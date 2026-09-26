@@ -100,6 +100,12 @@
   .game-loading-wrap { position:absolute; inset:0; z-index:500; overflow:hidden; background:#14101f; }
   .game-loading-wrap.hide { display:none; }
   .map-loading-retry { margin-top:8px; padding:8px 18px; border-radius:20px; border:2px solid #ffb347; background:rgba(255,140,60,0.18); color:#ffd899; font-weight:800; font-size:12px; cursor:pointer; }
+  .diag-overlay { position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; padding:20px; }
+  .diag-overlay.show { display:flex; }
+  .diag-box { background:#1c1530; border:2px solid #ffb347; border-radius:16px; padding:18px; max-width:360px; width:100%; max-height:80vh; overflow-y:auto; }
+  .diag-title { color:#ffd899; font-weight:900; font-size:15px; margin-bottom:10px; }
+  .diag-body { color:#e8dcff; font-size:12px; font-weight:600; line-height:1.7; white-space:pre-wrap; word-break:break-word; font-family:monospace; }
+  .diag-actions { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
 
   /* ---------- CHARACTER PORTRAIT (post-signup confirmation) ---------- */
   .char-portrait-frame { width:230px; height:300px; border-radius:22px; background:radial-gradient(circle at 50% 18%, rgba(255,179,71,0.28), rgba(123,92,255,0.08) 55%, rgba(0,0,0,0) 75%); display:flex; align-items:center; justify-content:center; padding:8px; position:relative; }
@@ -615,10 +621,22 @@
         <button class="nav-btn qm-btn" data-tab="challenger"><span class="nav-icon">🕯️</span>Challenger</button>
         <button class="nav-btn qm-btn" data-tab="profile"><span class="nav-icon">👤</span>Profile</button>
         <button class="qm-btn" id="btn-leaderboard"><span class="nav-icon">🏆</span>Ranks</button>
+        <button class="qm-btn" id="btn-diagnostics"><span class="nav-icon">🛠️</span>Map Status</button>
       </div>
       <div class="pumpkin-fab-wrap">
         <div class="pumpkin-glow"></div>
         <button class="pumpkin-fab" id="btn-menu" title="Menu">🎃</button>
+      </div>
+    </div>
+
+    <div class="diag-overlay" id="diag-overlay">
+      <div class="diag-box">
+        <div class="diag-title">🛠️ Map Status</div>
+        <div class="diag-body" id="diag-body">—</div>
+        <div class="diag-actions">
+          <button class="map-loading-retry" id="diag-retry-btn">🔄 Retry Map Data</button>
+          <button class="map-loading-retry" id="diag-close-btn" style="background:rgba(255,255,255,0.08); border-color:#888;">Close</button>
+        </div>
       </div>
     </div>
 
@@ -1556,12 +1574,16 @@
     $('#admin-panel').style.display = (state.email && state.email.toLowerCase()===ADMIN_EMAIL) ? 'block' : 'none';
     showScreen('game');
     refreshHUD(); renderCollection(); startAutosave(); spawnClouds();
-    // If the loading screen already got a real GPS fix and started building the world
-    // around it (see runLoadingSequence), state.geoAnchor is already set here — reuse it
-    // instead of wiping and rebuilding from the DEFAULT fallback, so the roads/buildings
-    // that have been loading in the background this whole time are still there.
-    if (!state.geoAnchor) setAnchorAndBuild(DEFAULT_LAT, DEFAULT_LON);
-    else applyWorldTransform();
+    // ALWAYS (re)build the world here, every single session. A returning player's last
+    // geoAnchor gets saved into their profile along with everything else — so on a
+    // returning session state.geoAnchor is already truthy before this line ever runs,
+    // and skipping the build "because it's already set" (what this used to do) meant
+    // buildWorld(), and therefore every chunk/road/toto load, silently never ran at all
+    // for anyone except a brand-new character. Rebuilding is cheap (it just re-seeds the
+    // chunk queue), so there's no real cost to always doing it — reuse the last known
+    // anchor as a starting point if we have one (closer to reality than the hardcoded
+    // default), and let real GPS correct it moments later either way.
+    setAnchorAndBuild(state.geoAnchor ? state.geoAnchor.lat : DEFAULT_LAT, state.geoAnchor ? state.geoAnchor.lon : DEFAULT_LON);
     locate();
     startLocateRetries();
     if (!compassEnabled) enableCompass(true); // auto-turn-on, no manual tap needed; fails silently if unsupported/denied
@@ -1764,6 +1786,20 @@
       img.style.transform = mirror ? 'scaleX(-1)' : '';
       _facing.mirror = mirror;
     }
+  }
+  // Plain-language notes on the last thing that happened with each network call, shown
+  // in the on-screen Map Status panel — since we can't see the browser console on
+  // someone's phone, this is how we actually find out what's failing and why.
+  const diag = {
+    lastRegionAttempt: null, lastRegionResult: null, lastRegionError: null,
+    lastWeatherAttempt: null, lastWeatherResult: null, lastWeatherError: null,
+  };
+  function describeFetchError(e){
+    if (!e) return 'unknown error';
+    if (e.name === 'AbortError') return 'timed out waiting for a response';
+    if (e instanceof TypeError) return 'network request blocked or failed before reaching the server (TypeError: '+e.message+') — often a connectivity, CORS, or DNS problem rather than the server itself';
+    if (e.errors && e.errors.length) return e.errors.map(describeFetchError).join(' | ');
+    return (e.message || String(e));
   }
   let anchorReadyResolvers = [];
   function waitForAnchor(){
@@ -2059,13 +2095,15 @@
     }
     lastWeatherFetch = now; lastWeatherGeo = {lat:geo.lat, lon:geo.lon};
     weatherFetchInFlight = true;
+    diag.lastWeatherAttempt = new Date().toLocaleTimeString();
     try {
       const url = 'https://api.open-meteo.com/v1/forecast?latitude='+geo.lat.toFixed(4)+'&longitude='+geo.lon.toFixed(4)+'&current=weather_code,wind_speed_10m&timezone=auto';
       const ctrl = new AbortController();
       const timer = setTimeout(()=>ctrl.abort(), 20000);
       const res = await fetch(url, {signal: ctrl.signal}).finally(()=> clearTimeout(timer));
-      if (!res.ok) return;
+      if (!res.ok){ diag.lastWeatherError = 'HTTP '+res.status; return; }
       const data = await res.json();
+      diag.lastWeatherError = null; diag.lastWeatherResult = 'ok';
       const code = data.current && data.current.weather_code;
       const wind = data.current && data.current.wind_speed_10m;
       const info = WEATHER_CODES[code] || WEATHER_CODES[0];
@@ -2076,7 +2114,7 @@
       if (info.hazard) showHazard(code, info.hazard);
       else if (windHazard) showHazard('wind'+Math.round(wind), 'High winds in your area ('+Math.round(wind)+' km/h) — be careful out there.');
       else lastHazardCode = null;
-    } catch(e){ console.warn('weather fetch failed', e); }
+    } catch(e){ diag.lastWeatherError = describeFetchError(e); console.warn('weather fetch failed', e); }
     finally { weatherFetchInFlight = false; }
   }
   if (!window.__totoEnvTicker){
@@ -2615,16 +2653,20 @@
     const ctrl = new AbortController();
     const timer = setTimeout(()=>ctrl.abort(), 25000);
     let data = null;
+    diag.lastRegionAttempt = new Date().toLocaleTimeString();
     try {
       data = await Promise.any(endpoints.map(base=>
         fetch(base+'?data='+encodeURIComponent(query), {signal: ctrl.signal})
-          .then(resp=>{ if (!resp.ok) throw new Error('bad status '+resp.status); return resp.json(); })
+          .then(resp=>{ if (!resp.ok) throw new Error('HTTP '+resp.status+' from '+new URL(base).hostname); return resp.json(); })
       ));
-    } catch(e){ console.warn('region terrain fetch failed:', e); }
+      diag.lastRegionError = null;
+    } catch(e){ diag.lastRegionError = describeFetchError(e); console.warn('region terrain fetch failed:', e); }
     clearTimeout(timer);
     if (!data || !data.elements || !data.elements.length){
+      diag.lastRegionResult = diag.lastRegionError ? 'failed' : 'got 0 elements back (query ran fine, but nothing in range)';
       return []; // don't cache a failure — the next chunk-load into this region gets a fresh try
     }
+    diag.lastRegionResult = data.elements.length+' elements';
 
     const project = (la, lo)=>{ const md = metersDelta(state.geoAnchor.lat, state.geoAnchor.lon, la, lo); return worldPosFromMeters(md.east, md.north); };
     const smallRoads = new Set(['footway','path','pedestrian','track','cycleway','steps']);
@@ -2893,6 +2935,38 @@
   $('#btn-admin-energy').onclick = ()=>{ state.candy += 1000000; state.gems += 1000000; refreshHUD(); markDirty(); saveNow(false); showToast('Admin: +1,000,000 Candy & Gems'); };
 
   $('#btn-leaderboard').onclick = ()=>{ closeQuickMenu(); $('#leaderboard-modal').classList.add('active'); loadLeaderboard(); };
+  function renderDiagnostics(){
+    const a = state.geoAnchor;
+    const regionCount = state.regionEls ? state.regionEls.size : 0;
+    const chunkCount = state.loadedChunks ? state.loadedChunks.size : 0;
+    const lines = [
+      'GPS anchor: '+(a ? a.lat.toFixed(5)+', '+a.lon.toFixed(5) : 'NOT SET — this is why nothing else can load'),
+      'Using default location: '+(a && state.geo && a.lat===DEFAULT_LAT && a.lon===DEFAULT_LON ? 'yes (real GPS hasn\'t come in)' : 'no'),
+      'Chunks loaded: '+chunkCount+'   Queue waiting: '+chunkQueue.length,
+      'Regions with map data: '+regionCount,
+      'Wild totos on map: '+(state.wildTotos ? state.wildTotos.length : 0),
+      '',
+      'Last road/building fetch: '+(diag.lastRegionAttempt || 'never attempted'),
+      '  result: '+(diag.lastRegionError ? 'FAILED — '+diag.lastRegionError : (diag.lastRegionResult || 'pending…')),
+      '',
+      'Last weather fetch: '+(diag.lastWeatherAttempt || 'never attempted'),
+      '  result: '+(diag.lastWeatherError ? 'FAILED — '+diag.lastWeatherError : (diag.lastWeatherResult || 'pending…')),
+    ];
+    $('#diag-body').textContent = lines.join('\n');
+  }
+  $('#btn-diagnostics').onclick = ()=>{ closeQuickMenu(); renderDiagnostics(); $('#diag-overlay').classList.add('show'); };
+  $('#diag-close-btn').onclick = ()=> $('#diag-overlay').classList.remove('show');
+  $('#diag-retry-btn').onclick = ()=>{
+    locate();
+    if (state.geoAnchor){
+      const {cx, cy} = currentChunkCoords();
+      const {rx, ry} = regionCoordsFor(cx, cy);
+      state.regionEls.delete(regionKey(rx,ry)); // force a fresh attempt even if one already "succeeded" with 0 results
+      ensureChunksLoaded();
+    }
+    fetchWeather(true);
+    setTimeout(renderDiagnostics, 400);
+  };
   $('[data-close-leaderboard]').onclick = ()=> $('#leaderboard-modal').classList.remove('active');
 
   // ---------------- STORE (honor system — see store-warning banner for why) ----------------
