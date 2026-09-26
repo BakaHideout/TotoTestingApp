@@ -106,6 +106,15 @@
   .diag-title { color:#ffd899; font-weight:900; font-size:15px; margin-bottom:10px; }
   .diag-body { color:#e8dcff; font-size:12px; font-weight:600; line-height:1.7; white-space:pre-wrap; word-break:break-word; font-family:monospace; }
   .diag-actions { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .transfer-toggle-btn { margin-left:auto; margin-right:10px; padding:5px 12px; border-radius:14px; border:1.5px solid #7b5cff; background:rgba(123,92,255,0.15); color:#c9b8ff; font-weight:800; font-size:11px; cursor:pointer; }
+  .transfer-toggle-btn.active { background:#7b5cff; color:#fff; }
+  .toto-card.transfer-selected { outline:3px solid #7b5cff; outline-offset:-3px; background:rgba(123,92,255,0.18); }
+  .toto-card.transfer-mode { cursor:pointer; }
+  .transfer-check { position:absolute; top:6px; right:6px; width:20px; height:20px; border-radius:50%; border:2px solid #fff; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; font-size:12px; }
+  .toto-card.transfer-selected .transfer-check { background:#7b5cff; }
+  .transfer-bar { position:sticky; bottom:0; display:flex; align-items:center; gap:10px; padding:10px 14px; background:#1c1530; border-top:2px solid #7b5cff; flex-wrap:wrap; }
+  .transfer-bar #transfer-count { color:#fff; font-weight:800; font-size:13px; }
+  .transfer-bar #transfer-reward { color:#ffd899; font-weight:700; font-size:12px; margin-right:auto; }
 
   /* ---------- CHARACTER PORTRAIT (post-signup confirmation) ---------- */
   .char-portrait-frame { width:230px; height:300px; border-radius:22px; background:radial-gradient(circle at 50% 18%, rgba(255,179,71,0.28), rgba(123,92,255,0.08) 55%, rgba(0,0,0,0) 75%); display:flex; align-items:center; justify-content:center; padding:8px; position:relative; }
@@ -122,7 +131,7 @@
   .pandaqueen-img { width:1em; height:1.2em; object-fit:contain; vertical-align:middle; }
   .char-avatar { font-size:56px; } .char-avatar .player-avatar-svg { width:0.85em; height:1.19em; }
   .char-name { font-weight:800; font-size:13px; margin-top:6px; }
-  .starter-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; max-width:360px; margin-bottom:18px; }
+  .starter-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; max-width:360px; margin-bottom:18px; }
   .starter-card { background:var(--panel); border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; border:3px solid transparent; }
   .starter-card.sel { border-color: var(--accent); transform:translateY(-3px); }
   .starter-card .sp { font-size:34px; }
@@ -646,8 +655,14 @@
     </div>
 
     <div class="panel-screen" data-panel="totos">
-      <div class="panel-header">Your Totos <span class="close-x" data-close>✕</span></div>
+      <div class="panel-header">Your Totos <button class="transfer-toggle-btn" id="btn-transfer-mode">🔄 Transfer</button><span class="close-x" data-close>✕</span></div>
       <div class="panel-body"><div class="toto-grid" id="toto-collection"></div></div>
+      <div class="transfer-bar" id="transfer-bar" style="display:none;">
+        <span id="transfer-count">0 selected</span>
+        <span id="transfer-reward"></span>
+        <button class="btn-cancel" id="btn-transfer-cancel">Cancel</button>
+        <button class="btn-catch" id="btn-transfer-confirm">Transfer</button>
+      </div>
     </div>
 
     <div class="panel-screen" data-panel="battle">
@@ -691,6 +706,7 @@
               <button class="admin-btn" data-give="eternal">+ Eternal Toto</button>
             </div>
             <button class="admin-btn" style="width:100%; margin-top:8px; background:#ff8a3d;" id="btn-admin-energy">+1,000,000 Candy &amp; Gems</button>
+            <button class="admin-btn" style="width:100%; margin-top:8px; background:#7b5cff;" id="btn-admin-max-player">👑 Max My Player Level (100)</button>
           </div>
         </div>
         <button class="btn-logout" id="btn-logout">Log Out</button>
@@ -710,6 +726,7 @@
         <button class="btn-cancel" data-close-det>Close</button>
         <button class="btn-catch" id="btn-power-up">Power Up</button>
       </div>
+      <button class="admin-btn" id="btn-admin-max-toto" style="display:none; width:100%; margin-top:8px; background:#7b5cff;">👑 Admin: Max This Toto's Level</button>
     </div>
   </div>
 
@@ -804,11 +821,10 @@
   const $$ = (sel, ctx) => Array.from((ctx||root).querySelectorAll(sel));
 
   const SPECIES = {
-    grass:[["Vine Wraith","🌿"],["Bramble Ghoul","🥀"]], water:[["Boo Berry","👻"],["Potion Slime","🧪"]],
-    fire:[["Pumpkin Pup","🎃"],["Candle Imp","🕯️"]], ice:[["Bone Bean","💀"],["Witchcap Sprout","🍄"]],
-    stone:[["Cobweb Crab","🕸️"],["Grave Pebble","🪦"]], electric:[["Candy Bat","🦇"],["Moon Moth","🌙"]],
-    wood:[["Hollow Treant","🌲"],["Rootbound Ghast","🍂"]],
-    spooky:[["Pumpkin Fiend","🎃"],["Grave Wisp","👻"],["Bone Rattler","💀"],["Web Stalker","🕷️"],["Night Bat","🦇"]]
+    fire:[["Pumpkin Prowler","🐾"]],
+    water:[["Moonlight Boo","👻"]],
+    grass:[["Vinewing","🦇"]],
+    spooky:[["Graveguard","🛡️"]]
   };
   // Battle role — every species is good at one of four things. Attackers hit hardest;
   // Tankers soak hits (high HP/def, and see "TANK TAUNT" below for how they draw the
@@ -816,15 +832,10 @@
   // Supporters buff the rest of the team. statsFromCp() below reads this to shape each
   // species' stats, and the battle UI reads it to decide which special action to offer.
   const SPECIES_ROLE = {
-    'Vine Wraith':'supporter', 'Bramble Ghoul':'attacker',
-    'Hollow Treant':'tanker', 'Rootbound Ghast':'healer',
-    'Boo Berry':'healer', 'Potion Slime':'healer',
-    'Pumpkin Pup':'attacker', 'Candle Imp':'supporter',
-    'Bone Bean':'attacker', 'Witchcap Sprout':'supporter',
-    'Cobweb Crab':'tanker', 'Grave Pebble':'tanker',
-    'Candy Bat':'attacker', 'Moon Moth':'supporter',
-    'Pumpkin Fiend':'attacker', 'Grave Wisp':'supporter',
-    'Bone Rattler':'tanker', 'Web Stalker':'attacker', 'Night Bat':'supporter'
+    'Pumpkin Prowler':'attacker',
+    'Moonlight Boo':'healer',
+    'Vinewing':'supporter',
+    'Graveguard':'tanker'
   };
   const ROLE_INFO = {
     attacker:{ label:'Attacker', icon:'🔥', color:'#ff6a3d' },
@@ -847,10 +858,10 @@
   // Painted-art totos (as opposed to the hand-coded SVG bodies below) — cropped from
   // provided reference art, background removed, only the character kept.
   const TOTO_IMG = {
-    'Pumpkin Pup':'pumpkin_pup', 'Cobweb Crab':'cobweb_crab', 'Boo Berry':'boo_berry',
-    'Candle Imp':'candle_imp', 'Candy Bat':'candy_bat', 'Grave Pebble':'grave_pebble',
-    'Potion Slime':'potion_slime', 'Moon Moth':'moon_moth', 'Bone Bean':'bone_bean',
-    'Witchcap Sprout':'witchcap_sprout'
+    'Pumpkin Prowler':'pumpkin_prowler',
+    'Moonlight Boo':'moonlight_boo',
+    'Vinewing':'vinewing',
+    'Graveguard':'graveguard'
   };
   function totoImgMarkup(name, small){
     const file = TOTO_IMG[name];
@@ -875,32 +886,20 @@
   ];
   LEGENDARY_SPECIES.forEach(sp=>{ SPECIES_ROLE[sp.name] = sp.role; TOTO_IMG[sp.name] = sp.img; });
   const ELEMENTS = Object.keys(SPECIES);
-  const STARTER_NATURES = ELEMENTS.filter(e=>e!=='spooky');
+  const NON_SPOOKY_ELEMENTS = ELEMENTS.filter(e=>e!=='spooky');
+  // All 4 are starter choices now — Graveguard included, unlike the old "spooky" bucket
+  // which used to hold wild-only monsters instead of a proper starter design.
+  const STARTER_NATURES = ELEMENTS;
   const TIER_CAP = {normal:1500, legendary:3500, mythical:6500, eternal:20000};
   const TIER_ORDER = ['normal','legendary','mythical','eternal'];
-  const TOTO_MAX_LEVEL = 80;
-  const PLAYER_MAX_LEVEL = 50;
-  // Legendary/Mythical/Eternal catches roll their actual stats independently of the CP you
-  // saw them fight at in the encounter — there's a 0.5% chance you get them at that full,
-  // perfect CP, but normally you'll catch them stronger than anything of the tier below
-  // (so they're always a step up) yet short of this tier's own cap — you have to power
-  // them up yourself the rest of the way, same as everything else.
-  function rollCaughtCp(tier){
-    const cap = TIER_CAP[tier];
-    if (Math.random() < 0.005) return cap; // 0.5% perfect catch
-    const idx = TIER_ORDER.indexOf(tier);
-    const floor = idx > 0 ? TIER_CAP[TIER_ORDER[idx-1]] : 0;
-    const upper = Math.max(floor+50, Math.floor(cap*0.9));
-    return Math.floor(floor + 1 + Math.random()*Math.max(1, upper-floor-1));
-  }
+  const TOTO_MAX_LEVEL = 50;
+  const PLAYER_MAX_LEVEL = 100;
   function finalizeCatch(opp){
-    const caught = Object.assign({}, opp, { id: uid(), level: 1, isToni: !!opp.isToni });
-    if (caught.tier !== 'normal'){
-      const rolled = rollCaughtCp(caught.tier);
-      caught.cp = rolled;
-      const s = statsFromCp(rolled, caught.role);
-      caught.maxHp=s.maxHp; caught.hp=s.maxHp; caught.atk=s.atk; caught.strength=s.strength; caught.def=s.def; caught.spd=s.spd; caught.maxEnergy=s.maxEnergy; caught.energy=s.maxEnergy;
-    }
+    // The wild/gym Toto you fought already has correct, level-derived stats (see
+    // makeToto/applyLevelStats) — catching it just gives your copy a new id, it doesn't
+    // reset or re-roll anything. Whatever level you found it at is your starting point;
+    // leveling it further from there is on you, same as any other Toto.
+    const caught = Object.assign({}, opp, { id: uid(), isToni: !!opp.isToni });
     state.collection.push(caught);
     return caught;
   }
@@ -1047,12 +1046,6 @@
   }
   function rand(seed){ const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
   function uid(){ return 'id'+Date.now()+Math.floor(Math.random()*100000); }
-  function rollCP(tier){
-    if (tier==='normal') return Math.floor(1 + Math.random()*1499);
-    if (tier==='legendary') return Math.floor(1500 + Math.random()*2000);
-    if (tier==='mythical') return Math.floor(3500 + Math.random()*3000);
-    if (tier==='eternal') return 20000;
-  }
   function statsFromCp(cp, role){
     const m = ROLE_STAT_MULT[role] || ROLE_STAT_MULT.attacker;
     return {
@@ -1063,6 +1056,40 @@
       spd: Math.round((20+cp*0.01)*m.spd),
       maxEnergy: Math.round((40+cp*0.02)*m.nrg)
     };
+  }
+  // Level is now the one source of truth for a Toto's stats — not a random CP roll. Every
+  // Toto walks the same curve from a shared level-1 floor up to ITS TIER'S OWN ceiling
+  // (TIER_CAP fed through the same statsFromCp shape used before, so the numbers stay in
+  // the same family/balance as before) at level TOTO_MAX_LEVEL — so a normal Toto and an
+  // eternal Toto both hit "fully maxed" exactly at level 50, just at very different heights.
+  function statsForLevel(tier, role, level){
+    const lvl = Math.max(1, Math.min(TOTO_MAX_LEVEL, level));
+    const t = (lvl-1) / (TOTO_MAX_LEVEL-1); // 0 at level 1, 1 at level 50
+    const lo = statsFromCp(1, role), hi = statsFromCp(TIER_CAP[tier], role);
+    const lerp = (a,b)=> Math.round(a + (b-a)*t);
+    return {
+      maxHp: lerp(lo.maxHp, hi.maxHp), atk: lerp(lo.atk, hi.atk),
+      strength: lerp(lo.strength, hi.strength), def: lerp(lo.def, hi.def),
+      spd: lerp(lo.spd, hi.spd), maxEnergy: lerp(lo.maxEnergy, hi.maxEnergy)
+    };
+  }
+  // Power level is just the sum of a Toto's actual stats — no separate hidden number.
+  function powerLevelOf(s){ return s.maxHp + s.atk + s.strength + s.def + s.spd + s.maxEnergy; }
+  function applyLevelStats(t, level){
+    t.level = level;
+    const s = statsForLevel(t.tier, t.role, level);
+    t.maxHp=s.maxHp; t.hp=s.maxHp; t.atk=s.atk; t.strength=s.strength; t.def=s.def; t.spd=s.spd; t.maxEnergy=s.maxEnergy; t.energy=s.maxEnergy;
+    t.cp = powerLevelOf(s);
+    return t;
+  }
+  // Wild/gym Totos start at a random level for their tier instead of a flat 1 — normal
+  // ones skew low (an easy first catch), higher tiers start further along — but NEVER
+  // maxed: whatever you catch, from a raid or otherwise, still needs candy and manual
+  // leveling afterward to actually reach TOTO_MAX_LEVEL.
+  const TIER_START_LEVEL_RANGE = { normal:[1,15], legendary:[5,25], mythical:[10,35], eternal:[15,40] };
+  function randomStartLevel(tier){
+    const [lo,hi] = TIER_START_LEVEL_RANGE[tier] || TIER_START_LEVEL_RANGE.normal;
+    return lo + Math.floor(Math.random()*(hi-lo+1));
   }
   function makeToto(tier){
     let name, sprite, emoji, nature;
@@ -1077,15 +1104,16 @@
         [name, emoji] = pool[Math.floor(Math.random()*pool.length)];
         sprite = spriteFor(name, nature) || emoji;
       } else {
-        nature = ELEMENTS[Math.floor(Math.random()*7)];
+        nature = NON_SPOOKY_ELEMENTS[Math.floor(Math.random()*NON_SPOOKY_ELEMENTS.length)];
         const pool = SPECIES[nature];
         [name, emoji] = pool[Math.floor(Math.random()*pool.length)];
         sprite = spriteFor(name, nature);
       }
     }
     const role = roleOf(name);
-    const cp = rollCP(tier); const s = statsFromCp(cp, role);
-    return { id:uid(), name, sprite, tier, nature, role, cp, level:1, maxHp:s.maxHp, hp:s.maxHp, atk:s.atk, strength:s.strength, def:s.def, spd:s.spd, maxEnergy:s.maxEnergy, energy:s.maxEnergy };
+    const t = { id:uid(), name, sprite, tier, nature, role, level:1, cp:0, maxHp:0, hp:0, atk:0, strength:0, def:0, spd:0, maxEnergy:0, energy:0 };
+    applyLevelStats(t, randomStartLevel(tier));
+    return t;
   }
   // Toni — a custom Eternal, always guarding the first Challenger shrine so she's easy to find.
   // Original artwork (not the reference photo) — a small animated inline SVG so she reads
@@ -1347,12 +1375,8 @@
     return { candy: Math.max(1, Math.round(base.candy*mult)) };
   }
   function applyPowerUp(t){
-    const cap = TIER_CAP[t.tier];
-    if (t.cp >= cap || t.level >= TOTO_MAX_LEVEL) return false;
-    const step = Math.max(25, Math.round((cap - t.cp) * 0.18));
-    t.cp = Math.min(cap, t.cp + step); t.level = Math.min(TOTO_MAX_LEVEL, t.level + 1);
-    const s = statsFromCp(t.cp, t.role);
-    t.maxHp=s.maxHp; t.hp=s.maxHp; t.atk=s.atk; t.strength=s.strength; t.def=s.def; t.spd=s.spd; t.maxEnergy=s.maxEnergy; t.energy=s.maxEnergy;
+    if (t.level >= TOTO_MAX_LEVEL) return false;
+    applyLevelStats(t, t.level + 1);
     return true;
   }
 
@@ -1537,8 +1561,9 @@
   function makeStarterToto(natureKey){
     const [name] = SPECIES[natureKey][0];
     const role = roleOf(name);
-    const cp = rollCP('normal'); const s = statsFromCp(cp, role);
-    return { id:uid(), name, sprite: spriteFor(name, natureKey), tier:'normal', nature:natureKey, role, cp, level:1, maxHp:s.maxHp, hp:s.maxHp, atk:s.atk, strength:s.strength, def:s.def, spd:s.spd, maxEnergy:s.maxEnergy, energy:s.maxEnergy };
+    const t = { id:uid(), name, sprite: spriteFor(name, natureKey), tier:'normal', nature:natureKey, role, level:1, cp:0, maxHp:0, hp:0, atk:0, strength:0, def:0, spd:0, maxEnergy:0, energy:0 };
+    applyLevelStats(t, 1); // starters always begin at level 1 — no head start, everyone levels up from scratch
+    return t;
   }
   function showStarterSelect(){
     const grid = $('#starter-grid'); grid.innerHTML='';
@@ -1639,9 +1664,13 @@
     return state.collection.slice().sort((a,b)=>b.cp-a.cp).slice(0,6).reduce((sum,t)=>sum+t.cp,0);
   }
   // Trainer level is separate from Power Level — it simply tracks progress (currently tied
-  // to how many Totos you've caught) and is capped at PLAYER_MAX_LEVEL (50).
+  // to how many Totos you've caught) and is capped at PLAYER_MAX_LEVEL (100). It only ever
+  // goes up: naturally as your collection grows, or instantly if admin sets it directly —
+  // recomputing from collection size alone would otherwise stomp an admin-set level back
+  // down the next time this runs.
   function computeCharLevel(){
-    return Math.min(PLAYER_MAX_LEVEL, 1 + Math.floor(state.collection.length/2));
+    const natural = 1 + Math.floor(state.collection.length/2);
+    return Math.min(PLAYER_MAX_LEVEL, Math.max(natural, state.charLevel||1));
   }
   function refreshHUD(){
     $('#hud-candy-chip').innerHTML = candyIconHtml(16)+' <span id="hud-candy">'+state.candy.toLocaleString()+'</span>';
@@ -2346,7 +2375,7 @@
   function spawnWildTotoAt(x, y, chunkKey){
     if (state.wildTotos.length >= MAX_WILD_TOTOS) pruneFarTotos();
     if (state.wildTotos.length >= MAX_WILD_TOTOS) return;
-    const t = makeToto('normal');
+    const t = makeToto(Math.random() < 0.05 ? 'legendary' : 'normal'); // 5% of wild spawns are legendary
     t._x = x; t._y = y; t._chunkKey = chunkKey;
     state.wildTotos.push(t);
     appendTotoNode(t);
@@ -2566,15 +2595,17 @@
     }
     state.chunkEls.set(key, chunkEls);
 
-    // wild Totos for this chunk — spawn immediately, don't wait on the network
+    // wild Totos for this chunk — spawn immediately, don't wait on the network. At least
+    // 5 show up right around the player (not just scattered one-per-chunk over a wide
+    // area), with a 5% chance of any one of them being a legendary instead of normal.
     if (state.wildTotos.length < MAX_WILD_TOTOS){
-      const wildCount = 2 + Math.floor(rand(baseSeed+50)*3);
+      const wildCount = 5 + Math.floor(rand(baseSeed+50)*3);
       for (let i=0;i<wildCount;i++){
         const s = baseSeed + i*233.7;
         const east = centerEast + (rand(s)-0.5)*CHUNK_SIZE_M;
         const north = centerNorth + (rand(s+1)-0.5)*CHUNK_SIZE_M;
         const pos = worldPosFromMeters(east, north);
-        const t = makeToto('normal');
+        const t = makeToto(rand(s+2) < 0.05 ? 'legendary' : 'normal');
         t._x = pos.x; t._y = pos.y; t._chunkKey = chunkKey(cx, cy);
         state.wildTotos.push(t);
         appendTotoNode(t);
@@ -2774,18 +2805,70 @@
   });
   $$('[data-close]').forEach(x=> x.onclick = ()=>{ $$('.panel-screen').forEach(p=>p.classList.remove('active')); $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab==='map')); });
 
+  // ---------------- TRANSFER (release Totos for candy, multi-select) ----------------
+  let transferMode = false;
+  let transferSelected = new Set();
+  const TIER_TRANSFER_BASE = { normal:3, legendary:20, mythical:60, eternal:200 };
+  function transferRewardFor(t){
+    const base = TIER_TRANSFER_BASE[t.tier] || TIER_TRANSFER_BASE.normal;
+    return Math.round(base * (1 + (t.level-1)*0.08));
+  }
+  function updateTransferBar(){
+    const bar = $('#transfer-bar');
+    if (!transferMode){ bar.style.display = 'none'; return; }
+    bar.style.display = 'flex';
+    const ids = [...transferSelected];
+    const totos = state.collection.filter(t=> ids.includes(t.id));
+    const reward = totos.reduce((sum,t)=> sum + transferRewardFor(t), 0);
+    $('#transfer-count').textContent = ids.length+' selected';
+    $('#transfer-reward').innerHTML = ids.length ? ('+'+reward+' '+candyIconHtml(13)+' if transferred') : 'Tap Totos below to select them';
+    $('#btn-transfer-confirm').disabled = ids.length===0;
+  }
+  $('#btn-transfer-mode').onclick = ()=>{
+    transferMode = !transferMode; transferSelected.clear();
+    $('#btn-transfer-mode').classList.toggle('active', transferMode);
+    renderCollection();
+  };
+  $('#btn-transfer-cancel').onclick = ()=>{
+    transferMode = false; transferSelected.clear();
+    $('#btn-transfer-mode').classList.remove('active');
+    renderCollection();
+  };
+  $('#btn-transfer-confirm').onclick = ()=>{
+    const ids = [...transferSelected];
+    if (!ids.length) return;
+    const totos = state.collection.filter(t=> ids.includes(t.id));
+    const reward = totos.reduce((sum,t)=> sum + transferRewardFor(t), 0);
+    if (!confirm('Transfer '+ids.length+' Toto'+(ids.length===1?'':'s')+' for '+reward+' candy? This can\'t be undone.')) return;
+    state.collection = state.collection.filter(t=> !ids.includes(t.id));
+    state.candy += reward;
+    transferMode = false; transferSelected.clear();
+    $('#btn-transfer-mode').classList.remove('active');
+    refreshHUD(); markDirty(); saveNow(false); renderCollection();
+    showToast('Transferred '+ids.length+' Toto'+(ids.length===1?'':'s')+' for '+reward+' candy!');
+  };
   function renderCollection(){
     const grid = $('#toto-collection'); grid.innerHTML='';
-    if (state.collection.length===0){ grid.innerHTML = '<p style="grid-column:1/-1; color:#999; font-weight:700; font-size:13px;">No Totos yet — battle a wild Toto on the map to catch one.</p>'; return; }
+    if (state.collection.length===0){ grid.innerHTML = '<p style="grid-column:1/-1; color:#999; font-weight:700; font-size:13px;">No Totos yet — battle a wild Toto on the map to catch one.</p>'; updateTransferBar(); return; }
     state.collection.slice().sort((a,b)=>b.cp-a.cp).forEach(t=>{
-      const card = document.createElement('div'); card.className='toto-card';
+      const card = document.createElement('div'); card.className='toto-card'+(transferMode?' transfer-mode':'')+(transferSelected.has(t.id)?' transfer-selected':'');
+      card.style.position = 'relative';
       const ri = ROLE_INFO[t.role] || ROLE_INFO.attacker;
       card.innerHTML = '<div class="sp'+glowClassFor(t.tier)+'">'+spriteMarkup(t)+'</div><div class="nm">'+t.name+'</div>'
         + '<div class="role-badge" style="color:'+ri.color+';">'+ri.icon+' '+ri.label+'</div>'
-        + '<div class="lv">Lv.'+t.level+'</div><div class="cp">PWR '+t.cp+'</div><div class="tier-badge tier-'+t.tier+'">'+t.tier+'</div>';
-      card.onclick = ()=> openDetail(t.id);
+        + '<div class="lv">Lv.'+t.level+'</div><div class="cp">PWR '+t.cp+'</div><div class="tier-badge tier-'+t.tier+'">'+t.tier+'</div>'
+        + (transferMode ? '<div class="transfer-check">'+(transferSelected.has(t.id)?'✓':'')+'</div>' : '');
+      card.onclick = ()=>{
+        if (transferMode){
+          if (transferSelected.has(t.id)) transferSelected.delete(t.id); else transferSelected.add(t.id);
+          renderCollection();
+        } else {
+          openDetail(t.id);
+        }
+      };
       grid.appendChild(card);
     });
+    updateTransferBar();
   }
   function dexCardHtml(name, sprite, owned){
     if (owned){
@@ -2902,12 +2985,14 @@
     detailTarget = t;
     $('#det-sprite').innerHTML = spriteMarkup(t); $('#det-name').textContent = t.name;
     $('#det-sub').textContent = 'Lv.'+t.level+' · PWR '+t.cp+' · '+t.tier;
-    $('#det-stats').innerHTML = statBarRow('HP', t.hp, Math.max(t.maxHp,1), '#4dbf4d') + statBarRow('Attack', t.atk, 200, '#ff5470') +
-      statBarRow('Strength', t.strength, 200, '#ff8a3d') + statBarRow('Defense', t.def, 150, '#4d7cff') +
-      statBarRow('Speed', t.spd, 100, '#7b5cff') + statBarRow('Energy', t.energy, Math.max(t.maxEnergy,1), '#00c2a8');
-    const cap = TIER_CAP[t.tier]; const maxed = t.cp >= cap || t.level >= TOTO_MAX_LEVEL; const cost = powerUpCost(t);
+    $('#det-stats').innerHTML = statBarRow('HP', t.hp, Math.max(t.maxHp,1), '#4dbf4d') + statBarRow('Attack', t.atk, 1600, '#ff5470') +
+      statBarRow('Strength', t.strength, 1600, '#ff8a3d') + statBarRow('Defense', t.def, 1300, '#4d7cff') +
+      statBarRow('Speed', t.spd, 260, '#7b5cff') + statBarRow('Energy', t.energy, Math.max(t.maxEnergy,1), '#00c2a8');
+    const maxed = t.level >= TOTO_MAX_LEVEL; const cost = powerUpCost(t);
     $('#det-msg').innerHTML = maxed ? 'Max level for this tier!' : ('Power Up cost: '+cost.candy+' '+candyIconHtml(14));
     $('#btn-power-up').disabled = maxed; $('#btn-power-up').innerHTML = maxed ? '★ MAX LEVEL' : 'Power Up';
+    const isAdmin = state.email && state.email.toLowerCase()===ADMIN_EMAIL;
+    $('#btn-admin-max-toto').style.display = (isAdmin && !maxed) ? 'block' : 'none';
     $('#detail-modal').classList.add('active');
   }
   $$('[data-close-det]').forEach(x=> x.onclick = ()=> $('#detail-modal').classList.remove('active'));
@@ -2933,6 +3018,14 @@
     };
   });
   $('#btn-admin-energy').onclick = ()=>{ state.candy += 1000000; state.gems += 1000000; refreshHUD(); markDirty(); saveNow(false); showToast('Admin: +1,000,000 Candy & Gems'); };
+  $('#btn-admin-max-player').onclick = ()=>{ state.charLevel = PLAYER_MAX_LEVEL; refreshHUD(); markDirty(); saveNow(false); showToast('Admin: Player level maxed to '+PLAYER_MAX_LEVEL); };
+  $('#btn-admin-max-toto').onclick = ()=>{
+    if (!detailTarget) return;
+    applyLevelStats(detailTarget, TOTO_MAX_LEVEL);
+    refreshHUD(); markDirty(); saveNow(false);
+    openDetail(detailTarget.id);
+    showToast('Admin: '+detailTarget.name+' maxed to Lv.'+TOTO_MAX_LEVEL+'!');
+  };
 
   $('#btn-leaderboard').onclick = ()=>{ closeQuickMenu(); $('#leaderboard-modal').classList.add('active'); loadLeaderboard(); };
   function renderDiagnostics(){
