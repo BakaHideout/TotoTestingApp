@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v19';
+const CACHE_NAME = 'totoquest-v20';
 const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png',
   './assets/loading-bg.jpg', './assets/girl-front.png', './assets/girl-back.png',
   './assets/boy-front.png', './assets/boy-back.png',
