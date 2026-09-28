@@ -232,6 +232,13 @@
   .toto-node .bubble, .gym-node .bubble { font-size:34px; animation: floaty 2.4s ease-in-out infinite; }
   .toto-node .bubble svg, .gym-node .bubble svg, .toto-node .bubble img, .gym-node .bubble img { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   @keyframes floaty { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
+  @keyframes totoFloat3d {
+    0%,100% { transform: translateY(0) rotateY(0deg); }
+    25% { transform: translateY(-4px) rotateY(10deg); }
+    50% { transform: translateY(-7px) rotateY(0deg); }
+    75% { transform: translateY(-4px) rotateY(-10deg); }
+  }
+  .creature-img { animation: totoFloat3d 3.2s ease-in-out infinite; filter: drop-shadow(0 6px 5px rgba(0,0,0,0.4)); }
   /* Map markers are tiny — the creature's per-limb idle wiggle (eyes/arms/legs/ghost-sway)
      is invisible at that size but each one is a separate continuously-running animation.
      With ~30 creatures on screen that was dozens of animated properties repainting every
@@ -410,6 +417,8 @@
   .btn-special { padding:16px 12px; border-radius:14px; border:none; color:#fff; font-weight:800; font-size:11.5px; cursor:pointer; display:none; }
   .btn-special.role-healer { background:linear-gradient(135deg,#2ecc71,#1a9c58); }
   .btn-special.role-supporter { background:linear-gradient(135deg,#b06bff,#7a3fd9); }
+  .btn-special.role-attacker { background:linear-gradient(135deg,#ff8a3d,#e0501f); }
+  .btn-special.role-tanker { background:linear-gradient(135deg,#4d9fff,#2b6fd9); }
   .btn-special:disabled { opacity:0.45; cursor:default; }
 
   .toni-glow { filter: drop-shadow(0 0 12px rgba(255,80,190,0.9)) drop-shadow(0 0 26px rgba(255,40,170,0.7)) drop-shadow(0 0 40px rgba(255,90,210,0.4)); animation: toniPulse 1.5s ease-in-out infinite; }
@@ -797,7 +806,7 @@
       <div class="battle-log" id="battle-log">Tap ATTACK to fight!</div>
     </div>
     <div class="battle-controls">
-      <button class="btn-swap" id="btn-swap-toto">🔁 Swap</button>
+      <button class="btn-special" id="btn-special2"></button>
       <button class="btn-special" id="btn-special"></button>
       <button class="btn-attack" id="btn-attack">⚔️ ATTACK!</button>
     </div>
@@ -820,76 +829,71 @@
   const $ = (sel, ctx) => (ctx||root).querySelector(sel);
   const $$ = (sel, ctx) => Array.from((ctx||root).querySelectorAll(sel));
 
-  const SPECIES = {
-    fire:[["Pumpkin Prowler","🐾"]],
-    water:[["Moonlight Boo","👻"]],
-    grass:[["Vinewing","🦇"]],
-    spooky:[["Graveguard","🛡️"]]
-  };
-  // Battle role — every species is good at one of four things. Attackers hit hardest;
-  // Tankers soak hits (high HP/def, and see "TANK TAUNT" below for how they draw the
-  // enemy's attention off your team in group raids); Healers can patch up HP mid-fight;
-  // Supporters buff the rest of the team. statsFromCp() below reads this to shape each
-  // species' stats, and the battle UI reads it to decide which special action to offer.
-  const SPECIES_ROLE = {
-    'Pumpkin Prowler':'attacker',
-    'Moonlight Boo':'healer',
-    'Vinewing':'supporter',
-    'Graveguard':'tanker'
-  };
+  // ---------------- SPECIES ROSTER ----------------
+  // Every species the game currently knows about. Mythical/Eternal don't have their own
+  // art yet (coming later) — see makeToto, which borrows Legendary art for those tiers
+  // in the meantime so nothing errors out.
+  //
+  // Starters — also spawn in the wild like any other normal Toto, just guaranteed to be
+  // one of each role so a new trainer always has a real choice.
+  const STARTER_SPECIES = [
+    { name:'Pumpkin Pup',  role:'attacker',  img:'pumpkin_pup' },
+    { name:'Candle Imp',   role:'supporter', img:'candle_imp' },
+    { name:'Grave Pebble', role:'tanker',    img:'grave_pebble' },
+    { name:'Boo Berry',    role:'healer',    img:'boo_berry' },
+  ];
+  // The other 47 normal-tier species.
+  const WILD_NORMAL_SPECIES = [
+    {name:'Coffin Pup',role:'tanker',img:'coffin_pup'},{name:'Wispkin',role:'attacker',img:'wispkin'},
+    {name:'Spiderling',role:'tanker',img:'spiderling'},{name:'Ravenette',role:'supporter',img:'ravenette'},
+    {name:'Tomb Tot',role:'healer',img:'tomb_tot'},{name:'Flame Sprite',role:'attacker',img:'flame_sprite'},
+    {name:'Candycorn Golem',role:'tanker',img:'candycorn_golem'},{name:'Ghoul Kitten',role:'healer',img:'ghoul_kitten'},
+    {name:'Batling',role:'attacker',img:'batling'},{name:'Pumpkin Finch',role:'supporter',img:'pumpkin_finch'},
+    {name:'Slime Wraith',role:'tanker',img:'slime_wraith'},{name:'Cursed Bunny',role:'attacker',img:'cursed_bunny'},
+    {name:'Lantern Sprite',role:'healer',img:'lantern_sprite'},{name:'Frost Fang',role:'tanker',img:'frost_fang'},
+    {name:'Hex Hound',role:'supporter',img:'hex_hound'},{name:'Witchling',role:'attacker',img:'witchling'},
+    {name:'Bone Moth',role:'healer',img:'bone_moth'},{name:'Cinder Cub',role:'attacker',img:'cinder_cub'},
+    {name:'Moonie',role:'supporter',img:'moonie'},{name:'Grave Golem',role:'tanker',img:'grave_golem'},
+    {name:'Poison Frog',role:'healer',img:'poison_frog'},{name:'Thorn Imp',role:'attacker',img:'thorn_imp'},
+    {name:'Crystal Bat',role:'supporter',img:'crystal_bat'},{name:'Mummy Pup',role:'tanker',img:'mummy_pup'},
+    {name:'Soul Fox',role:'healer',img:'soul_fox'},{name:'Jackalope',role:'attacker',img:'jackalope'},
+    {name:'Shadow Slime',role:'supporter',img:'shadow_slime'},{name:'Pumpkin Turtle',role:'tanker',img:'pumpkin_turtle'},
+    {name:'Starling',role:'healer',img:'starling'},{name:'Toxic Spider',role:'attacker',img:'toxic_spider'},
+    {name:'Fang Pup',role:'supporter',img:'fang_pup'},{name:'Specter Cat',role:'tanker',img:'specter_cat'},
+    {name:'Candy Bat',role:'attacker',img:'candy_bat'},{name:'Rune Pixie',role:'healer',img:'rune_pixie'},
+    {name:'Blaze Hare',role:'supporter',img:'blaze_hare'},{name:'Ice Pumpkin',role:'tanker',img:'ice_pumpkin'},
+    {name:'Web Spinner',role:'attacker',img:'web_spinner'},{name:'Voodoo Doll',role:'supporter',img:'voodoo_doll'},
+    {name:'Nightcap',role:'healer',img:'nightcap'},{name:'Shadow Sprite',role:'attacker',img:'shadow_sprite'},
+    {name:'Frost Owl',role:'tanker',img:'frost_owl'},{name:'Cursed Crow',role:'supporter',img:'cursed_crow'},
+    {name:'Pumpkin Ghost',role:'healer',img:'pumpkin_ghost'},{name:'Scarecrow Tot',role:'tanker',img:'scarecrow_tot'},
+    {name:'Banshee',role:'supporter',img:'banshee'},{name:'Lava Pup',role:'healer',img:'lava_pup'},
+    {name:'Moon Rabbit',role:'healer',img:'moon_rabbit'},
+  ];
+  const NORMAL_SPECIES = STARTER_SPECIES.concat(WILD_NORMAL_SPECIES);
+  const LEGENDARY_SPECIES = [
+    {name:'Pumpkin Reaper',role:'attacker',img:'pumpkin_reaper'},{name:'Frost Howl',role:'tanker',img:'frost_howl'},
+    {name:'Soul Witch',role:'healer',img:'soul_witch'},{name:'Nightwing Drake',role:'supporter',img:'nightwing_drake'},
+    {name:'Pumpkin Golem',role:'tanker',img:'pumpkin_golem'},{name:'Ember Fox',role:'attacker',img:'ember_fox'},
+    {name:'Royal Slime',role:'healer',img:'royal_slime'},{name:'Bone Steed',role:'supporter',img:'bone_steed'},
+    {name:'Grimlet',role:'attacker',img:'grimlet'},{name:'Void Guardian',role:'tanker',img:'void_guardian'},
+  ];
+  const SPECIES_ROLE = {}, TOTO_IMG = {};
+  NORMAL_SPECIES.concat(LEGENDARY_SPECIES).forEach(sp=>{ SPECIES_ROLE[sp.name]=sp.role; TOTO_IMG[sp.name]=sp.img; });
   const ROLE_INFO = {
     attacker:{ label:'Attacker', icon:'🔥', color:'#ff6a3d' },
     tanker:{ label:'Tanker', icon:'🛡️', color:'#4d9fff' },
     healer:{ label:'Healer', icon:'✚', color:'#3ddc7a' },
     supporter:{ label:'Supporter', icon:'★', color:'#c07dff' }
   };
-  // How hard each role leans into its specialty, as a multiplier on the same base curve
-  // every Toto would otherwise share. Attackers trade away HP/def for the biggest attack
-  // number in the game; Tankers do the opposite. Healers and Supporters give up some
-  // attack for a bigger energy pool, since their value comes from their special action
-  // (see battle code below), not from hitting hard.
-  const ROLE_STAT_MULT = {
-    attacker: { hp:0.85, atk:1.45, def:0.80, spd:1.05, nrg:1.00 },
-    tanker:   { hp:1.55, atk:0.65, def:1.55, spd:0.85, nrg:0.90 },
-    healer:   { hp:1.05, atk:0.70, def:0.95, spd:1.00, nrg:1.25 },
-    supporter:{ hp:1.00, atk:0.85, def:1.00, spd:1.10, nrg:1.20 }
-  };
   function roleOf(name){ return SPECIES_ROLE[name] || 'attacker'; }
   // Painted-art totos (as opposed to the hand-coded SVG bodies below) — cropped from
   // provided reference art, background removed, only the character kept.
-  const TOTO_IMG = {
-    'Pumpkin Prowler':'pumpkin_prowler',
-    'Moonlight Boo':'moonlight_boo',
-    'Vinewing':'vinewing',
-    'Graveguard':'graveguard'
-  };
   function totoImgMarkup(name, small){
     const file = TOTO_IMG[name];
     if (!file) return null;
     const src = 'assets/totos/'+(small?'sm/':'')+file+'.png';
     return '<img class="creature-img" src="'+src+'" alt="'+name+'" draggable="false">';
   }
-  // Legendary tier is a fixed roster of 10 named legendaries (your own reference art,
-  // background removed) rather than a random species rolled at a high CP band — every
-  // gym boss/legendary catch is one of these ten, never a generic species at "legendary" power.
-  const LEGENDARY_SPECIES = [
-    { name:'Shadow Reaper',    role:'attacker',  types:'Fire · Shadow',    img:'shadow_reaper' },
-    { name:'Frost Wyrm',       role:'tanker',    types:'Ice · Flying',     img:'frost_wyrm' },
-    { name:'Pumpkin Colossus', role:'healer',    types:'Plant · Fire',     img:'pumpkin_colossus' },
-    { name:'Nightmare Queen',  role:'supporter', types:'Bug · Shadow',     img:'nightmare_queen' },
-    { name:'Blood Moon Wolf',  role:'attacker',  types:'Fire · Dark',      img:'blood_moon_wolf' },
-    { name:'Thunder Serpent',  role:'attacker',  types:'Electric · Flying',img:'thunder_serpent' },
-    { name:'Toxic Basilisk',   role:'healer',    types:'Poison · Dragon',  img:'toxic_basilisk' },
-    { name:'Soul Lantern',     role:'supporter', types:'Ghost · Psychic',  img:'soul_lantern' },
-    { name:'Obsidian Golem',   role:'tanker',    types:'Rock · Dark',      img:'obsidian_golem' },
-    { name:'Hexen Drake',      role:'supporter', types:'Dragon · Poison',  img:'hexen_drake' }
-  ];
-  LEGENDARY_SPECIES.forEach(sp=>{ SPECIES_ROLE[sp.name] = sp.role; TOTO_IMG[sp.name] = sp.img; });
-  const ELEMENTS = Object.keys(SPECIES);
-  const NON_SPOOKY_ELEMENTS = ELEMENTS.filter(e=>e!=='spooky');
-  // All 4 are starter choices now — Graveguard included, unlike the old "spooky" bucket
-  // which used to hold wild-only monsters instead of a proper starter design.
-  const STARTER_NATURES = ELEMENTS;
   const TIER_CAP = {normal:1500, legendary:3500, mythical:6500, eternal:20000};
   const TIER_ORDER = ['normal','legendary','mythical','eternal'];
   const TOTO_MAX_LEVEL = 50;
@@ -1046,39 +1050,52 @@
   }
   function rand(seed){ const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
   function uid(){ return 'id'+Date.now()+Math.floor(Math.random()*100000); }
-  function statsFromCp(cp, role){
-    const m = ROLE_STAT_MULT[role] || ROLE_STAT_MULT.attacker;
-    return {
-      maxHp: Math.round((50+cp*0.18)*m.hp),
-      atk: Math.round((10+cp*0.05)*m.atk),
-      strength: Math.round((8+cp*0.045)*m.atk),
-      def: Math.round((8+cp*0.04)*m.def),
-      spd: Math.round((20+cp*0.01)*m.spd),
-      maxEnergy: Math.round((40+cp*0.02)*m.nrg)
-    };
-  }
-  // Level is now the one source of truth for a Toto's stats — not a random CP roll. Every
-  // Toto walks the same curve from a shared level-1 floor up to ITS TIER'S OWN ceiling
-  // (TIER_CAP fed through the same statsFromCp shape used before, so the numbers stay in
-  // the same family/balance as before) at level TOTO_MAX_LEVEL — so a normal Toto and an
-  // eternal Toto both hit "fully maxed" exactly at level 50, just at very different heights.
+  // Explicit level-50 (max) stats per role per tier — each tier is exactly double the one
+  // below it (normal -> legendary -> mythical -> eternal), so "eternal is always way
+  // better" is true by construction, not by coincidence. Healers get a "heal" stat
+  // (their heals are a % of it, see HEAL_* below); Supporters get a "buff" stat (how
+  // strong their team buff is). Tanker/Attacker just use hp/atk/def/spd directly.
+  const ROLE_MAX_STATS = {
+    attacker:  { eternal:{hp:12000,atk:20000,def:8000, spd:15000} },
+    healer:    { eternal:{hp:40000,atk:5000, def:10000,spd:5000, heal:20000} },
+    tanker:    { eternal:{hp:20000,atk:5000, def:20000,spd:5000} },
+    supporter: { eternal:{hp:15000,atk:8000, def:9000, spd:10000,buff:15000} },
+  };
+  (function buildTierTable(){
+    // mythical = eternal/2, legendary = eternal/4, normal = eternal/8
+    Object.keys(ROLE_MAX_STATS).forEach(role=>{
+      const eternal = ROLE_MAX_STATS[role].eternal;
+      ROLE_MAX_STATS[role].mythical  = {}; ROLE_MAX_STATS[role].legendary = {}; ROLE_MAX_STATS[role].normal = {};
+      Object.keys(eternal).forEach(stat=>{
+        ROLE_MAX_STATS[role].mythical[stat]  = Math.round(eternal[stat]/2);
+        ROLE_MAX_STATS[role].legendary[stat] = Math.round(eternal[stat]/4);
+        ROLE_MAX_STATS[role].normal[stat]    = Math.round(eternal[stat]/8);
+      });
+    });
+  })();
+  // Level is the one source of truth for a Toto's stats. Level 1 starts at 10% of its
+  // tier+role's max (still recognizably weak, not a zero), and climbs in a straight line
+  // to exactly 100% at TOTO_MAX_LEVEL (50) — so every Toto, regardless of tier, is fully
+  // maxed out at the same level, just at very different heights.
   function statsForLevel(tier, role, level){
+    const max = (ROLE_MAX_STATS[role] || ROLE_MAX_STATS.attacker)[tier] || ROLE_MAX_STATS.attacker.normal;
     const lvl = Math.max(1, Math.min(TOTO_MAX_LEVEL, level));
-    const t = (lvl-1) / (TOTO_MAX_LEVEL-1); // 0 at level 1, 1 at level 50
-    const lo = statsFromCp(1, role), hi = statsFromCp(TIER_CAP[tier], role);
-    const lerp = (a,b)=> Math.round(a + (b-a)*t);
-    return {
-      maxHp: lerp(lo.maxHp, hi.maxHp), atk: lerp(lo.atk, hi.atk),
-      strength: lerp(lo.strength, hi.strength), def: lerp(lo.def, hi.def),
-      spd: lerp(lo.spd, hi.spd), maxEnergy: lerp(lo.maxEnergy, hi.maxEnergy)
-    };
+    const t = 0.1 + 0.9*(lvl-1)/(TOTO_MAX_LEVEL-1); // 10% at level 1 -> 100% at level 50
+    const out = {};
+    Object.keys(max).forEach(stat=> out[stat] = Math.max(1, Math.round(max[stat]*t)));
+    return out;
   }
-  // Power level is just the sum of a Toto's actual stats — no separate hidden number.
-  function powerLevelOf(s){ return s.maxHp + s.atk + s.strength + s.def + s.spd + s.maxEnergy; }
+  // Power level is just the sum of a Toto's actual combat stats (hp+atk+def+spd) — no
+  // separate hidden number. The role-specific stat (heal/buff) isn't counted here since
+  // it's a utility number, not a combat one, and would make healers/supporters look
+  // artificially stronger than an attacker/tanker of the same real fighting weight.
+  function powerLevelOf(s){ return (s.hp||0) + (s.atk||0) + (s.def||0) + (s.spd||0); }
   function applyLevelStats(t, level){
     t.level = level;
     const s = statsForLevel(t.tier, t.role, level);
-    t.maxHp=s.maxHp; t.hp=s.maxHp; t.atk=s.atk; t.strength=s.strength; t.def=s.def; t.spd=s.spd; t.maxEnergy=s.maxEnergy; t.energy=s.maxEnergy;
+    t.maxHp=s.hp; t.hp=s.hp; t.atk=s.atk; t.def=s.def; t.spd=s.spd;
+    t.heal = s.heal || 0; t.buff = s.buff || 0;
+    t.strength = t.atk; t.maxEnergy = 100; t.energy = 100; // legacy fields some UI/battle code still reads
     t.cp = powerLevelOf(s);
     return t;
   }
@@ -1095,20 +1112,16 @@
     let name, sprite, emoji, nature;
     if (tier === 'legendary'){
       const sp = LEGENDARY_SPECIES[Math.floor(Math.random()*LEGENDARY_SPECIES.length)];
-      name = sp.name; nature = sp.types; sprite = spriteFor(name, nature);
+      name = sp.name; nature = sp.role; sprite = spriteFor(name, nature);
+    } else if (tier === 'mythical' || tier === 'eternal'){
+      // Mythical/Eternal don't have their own dedicated art/roster yet (coming later) —
+      // borrow a Legendary's look for now so these tiers still work end-to-end (admin
+      // testing, gym bosses) rather than erroring out or being unreachable.
+      const sp = LEGENDARY_SPECIES[Math.floor(Math.random()*LEGENDARY_SPECIES.length)];
+      name = sp.name; nature = sp.role; sprite = spriteFor(name, nature);
     } else {
-      const spooky = Math.random() < 0.4 || tier==='eternal';
-      if (spooky){
-        nature = 'spooky';
-        const pool = SPECIES.spooky;
-        [name, emoji] = pool[Math.floor(Math.random()*pool.length)];
-        sprite = spriteFor(name, nature) || emoji;
-      } else {
-        nature = NON_SPOOKY_ELEMENTS[Math.floor(Math.random()*NON_SPOOKY_ELEMENTS.length)];
-        const pool = SPECIES[nature];
-        [name, emoji] = pool[Math.floor(Math.random()*pool.length)];
-        sprite = spriteFor(name, nature);
-      }
+      const sp = NORMAL_SPECIES[Math.floor(Math.random()*NORMAL_SPECIES.length)];
+      name = sp.name; nature = sp.role; sprite = spriteFor(name, nature);
     }
     const role = roleOf(name);
     const t = { id:uid(), name, sprite, tier, nature, role, level:1, cp:0, maxHp:0, hp:0, atk:0, strength:0, def:0, spd:0, maxEnergy:0, energy:0 };
@@ -1265,23 +1278,20 @@
   function spriteMarkup(t){ return (t && t.isToni) ? TONI_SVG : (t ? t.sprite : ''); }
   function glowClassFor(tier){ return tier==='eternal' ? ' toni-glow' : (tier==='mythical' ? ' mythical-glow' : (tier==='legendary' ? ' legendary-glow' : '')); }
   // Master species list for the Encyclopedia — every name the game can roll, with its art.
-  const DEX_SPECIES = [];
-  Object.keys(SPECIES).forEach(nature=>{
-    SPECIES[nature].forEach(([name])=>{
-      DEX_SPECIES.push({ name, nature, role: roleOf(name), sprite: spriteFor(name, nature) });
-    });
-  });
+  const DEX_SPECIES = NORMAL_SPECIES.map(sp=>({ name: sp.name, nature: sp.role, role: sp.role, sprite: spriteFor(sp.name, sp.role) }));
   // The 10 fixed legendaries get their own Dex list (see LEGENDARY_SPECIES) since that
   // tier no longer rolls from the general species pool above.
-  const LEGENDARY_DEX = LEGENDARY_SPECIES.map(sp=>({ name: sp.name, nature: sp.types, role: sp.role, sprite: spriteFor(sp.name, sp.types) }));
+  const LEGENDARY_DEX = LEGENDARY_SPECIES.map(sp=>({ name: sp.name, nature: sp.role, role: sp.role, sprite: spriteFor(sp.name, sp.role) }));
   function makeToniGuardian(){
-    const cp = 20000; const s = statsFromCp(cp, 'supporter');
-    return { id:uid(), name:'Toni', sprite:'🎃', tier:'eternal', role:'supporter', level:1, cp, maxHp:s.maxHp, hp:s.maxHp, atk:s.atk, strength:s.strength, def:s.def, spd:s.spd, maxEnergy:s.maxEnergy, energy:s.maxEnergy, isToni:true };
+    const t = { id:uid(), name:'Toni', sprite:'🎃', tier:'eternal', role:'supporter', isToni:true };
+    applyLevelStats(t, TOTO_MAX_LEVEL);
+    return t;
   }
   function makeFixedEternal(name, sprite){
     const role = roleOf(name);
-    const cp = 20000; const s = statsFromCp(cp, role);
-    return { id:uid(), name, sprite, tier:'eternal', role, level:1, cp, maxHp:s.maxHp, hp:s.maxHp, atk:s.atk, strength:s.strength, def:s.def, spd:s.spd, maxEnergy:s.maxEnergy, energy:s.maxEnergy };
+    const t = { id:uid(), name, sprite, tier:'eternal', role };
+    applyLevelStats(t, TOTO_MAX_LEVEL);
+    return t;
   }
   // Grimhollow — the Ashen Shrine's guardian: a grim-reaper skeleton in a black cloak
   // with a glowing-edged scythe.
@@ -1558,21 +1568,19 @@
   };
 
   // ---------------- STARTER SELECT (new accounts only) ----------------
-  function makeStarterToto(natureKey){
-    const [name] = SPECIES[natureKey][0];
+  function makeStarterToto(name){
     const role = roleOf(name);
-    const t = { id:uid(), name, sprite: spriteFor(name, natureKey), tier:'normal', nature:natureKey, role, level:1, cp:0, maxHp:0, hp:0, atk:0, strength:0, def:0, spd:0, maxEnergy:0, energy:0 };
+    const t = { id:uid(), name, sprite: spriteFor(name, role), tier:'normal', nature:role, role, level:1, cp:0, maxHp:0, hp:0, atk:0, strength:0, def:0, spd:0, maxEnergy:0, energy:0 };
     applyLevelStats(t, 1); // starters always begin at level 1 — no head start, everyone levels up from scratch
     return t;
   }
   function showStarterSelect(){
     const grid = $('#starter-grid'); grid.innerHTML='';
-    STARTER_NATURES.forEach((nature, i)=>{
-      const [name] = SPECIES[nature][0];
-      const role = roleOf(name), ri = ROLE_INFO[role];
+    STARTER_SPECIES.forEach((sp, i)=>{
+      const name = sp.name, role = sp.role, ri = ROLE_INFO[role];
       const card = document.createElement('div'); card.className='starter-card' + (i===0?' sel':'');
-      card.dataset.nature = nature;
-      card.innerHTML = '<div class="sp">'+spriteFor(name, nature)+'</div><div class="nm">'+name+'</div>'
+      card.dataset.name = name;
+      card.innerHTML = '<div class="sp">'+spriteFor(name, role)+'</div><div class="nm">'+name+'</div>'
         + '<div class="role-badge" style="color:'+ri.color+';">'+ri.icon+' '+ri.label+'</div>';
       card.onclick = ()=>{ $$('.starter-card').forEach(c=>c.classList.remove('sel')); card.classList.add('sel'); };
       grid.appendChild(card);
@@ -1583,8 +1591,8 @@
     // Read the selection straight from the DOM at confirm-time — no separately-tracked
     // variable that could ever drift out of sync with what's actually highlighted.
     const selCard = $('#starter-grid .starter-card.sel') || $('#starter-grid .starter-card');
-    const nature = (selCard && selCard.dataset.nature) || STARTER_NATURES[0];
-    const starter = makeStarterToto(nature);
+    const name = (selCard && selCard.dataset.name) || STARTER_SPECIES[0].name;
+    const starter = makeStarterToto(name);
     state.collection.push(starter);
     showToast('Welcome, '+starter.name+'!');
     enterGame(true);
@@ -2397,6 +2405,20 @@
       }
     }, AMBIENT_SPAWN_INTERVAL_MS);
   }
+  // Terrain watchdog: ensureChunksLoaded() previously only ever got called again on a
+  // real GPS movement update — so if the very first automatic fetch after entering the
+  // game happened to fail (a cold connection, one bad round-trip, anything transient)
+  // and GPS wasn't producing fresh fixes often enough, NOTHING ever prompted a retry and
+  // the map just stayed empty forever, even though the exact same call made manually
+  // (the "Retry Map Data" button) worked fine. This just keeps trying on its own — it's
+  // a no-op for anything already loaded (see ensureRegionTerrain's cache/dedup), so it's
+  // safe to call this often.
+  if (!window.__totoTerrainWatchdog){
+    window.__totoTerrainWatchdog = setInterval(()=>{
+      if (!state.geoAnchor) return;
+      ensureChunksLoaded();
+    }, 15000);
+  }
   function appendGymNode(gym){
     const ring = document.createElement('div'); ring.className='gym-radius';
     const ringPx = GYM_RADIUS_M*2*GPS_SCALE;
@@ -3189,38 +3211,35 @@
     $('#setup-cancel').onclick = closeSetup;
   }
   function renderTeamSelectStep(target, mode, allies){
-    const MAX_TEAM = 5;
+    // Exactly one Toto goes into battle now — no bench. If it's defeated, you don't swap
+    // to a backup; see endBattle()/spectate handling for what happens instead in a group
+    // fight (you watch your teammates finish it, and still win if they pull it off).
     const sorted = state.collection.slice().sort((a,b)=>b.cp-a.cp);
-    let selected = sorted.slice(0, Math.min(MAX_TEAM, sorted.length)).map(t=>t.id);
+    let selected = sorted.length ? sorted[0].id : null;
     function cardsHtml(){
       return sorted.map(t=>{
-        const isSel = selected.includes(t.id);
+        const isSel = selected===t.id; const ri = ROLE_INFO[t.role]||ROLE_INFO.attacker;
         return '<div class="team-card'+(isSel?' sel':'')+'" data-id="'+t.id+'">'+
-          '<div class="sp">'+spriteMarkup(t)+'</div><div class="nm">'+t.name+'</div><div class="cp">PWR '+t.cp+'</div>'+
+          '<div class="sp">'+spriteMarkup(t)+'</div><div class="nm">'+t.name+'</div>'
+          + '<div class="role-badge" style="color:'+ri.color+';">'+ri.icon+' '+ri.label+'</div>'
+          + '<div class="cp">PWR '+t.cp+'</div>'+
         '</div>';
       }).join('');
     }
     $('#setup-card').innerHTML =
-      '<div class="setup-title">Choose Your Team</div>'+
-      '<div class="setup-sub">Pick up to '+MAX_TEAM+' Totos — tap to toggle</div>'+
+      '<div class="setup-title">Choose Your Toto</div>'+
+      '<div class="setup-sub">Pick exactly 1 — this is who fights</div>'+
       '<div class="team-grid" id="team-grid">'+cardsHtml()+'</div>'+
-      '<div class="setup-sub" id="team-count">'+selected.length+'/'+MAX_TEAM+' selected</div>'+
       '<div class="btn-row"><button class="btn-cancel" id="team-cancel">Cancel</button><button class="btn-catch" id="team-confirm">Battle!</button></div>';
     $$('.team-card', $('#team-grid')).forEach(card=>{
       card.onclick = ()=>{
-        const id = card.dataset.id;
-        const idx = selected.indexOf(id);
-        if (idx>=0){ selected.splice(idx,1); card.classList.remove('sel'); }
-        else {
-          if (selected.length>=MAX_TEAM){ showToast('You can only bring '+MAX_TEAM+' Totos.'); return; }
-          selected.push(id); card.classList.add('sel');
-        }
-        $('#team-count').textContent = selected.length+'/'+MAX_TEAM+' selected';
+        selected = card.dataset.id;
+        $$('.team-card', $('#team-grid')).forEach(c=> c.classList.toggle('sel', c.dataset.id===selected));
       };
     });
     $('#team-confirm').onclick = ()=>{
-      if (!selected.length){ showToast('Pick at least one Toto!'); return; }
-      const team = selected.map(id=>state.collection.find(t=>t.id===id)).filter(Boolean);
+      if (!selected){ showToast('You need a Toto to battle with!'); return; }
+      const team = [state.collection.find(t=>t.id===selected)].filter(Boolean);
       renderCountdownStep('Preparing battle…', ()=> launchBattle({mode, opponent: target.boss, allies, shrineName: target.name, team}));
     };
     $('#team-cancel').onclick = closeSetup;
@@ -3303,7 +3322,6 @@
     $('#battle-title').textContent = opts.mode==='catch' ? 'Wild Encounter' : (opts.shrineName ? (opts.shrineName+' Raid') : 'Raid');
     $('#battle-stage').className = 'battle-stage ' + (opts.mode==='catch' ? 'theme-catch' : 'theme-raid');
     spawnEmbers();
-    $('#btn-swap-toto').style.display = team.length>1 ? 'inline-block' : 'none';
     const row = $('#ally-row'); row.innerHTML='';
     battle.allies.forEach(ally=>{
       const chip = document.createElement('div'); chip.className='ally-chip';
@@ -3332,56 +3350,90 @@
     $('#bf-e-name').textContent=e.name; $('#bf-e-cp').textContent='PWR '+e.cp; $('#bf-e-level').textContent=e.tier; $('#bf-e-sprite').innerHTML=e.sprite;
     $('#bf-e-sprite').classList.toggle('toni-glow', e.tier==='eternal'); $('#bf-e-sprite').classList.toggle('mythical-glow', e.tier==='mythical');
     $('#bf-e-hp').style.width=Math.max(0,(e.hp/e.maxHp*100))+'%';
+    $('#btn-attack').style.display = battle.spectating ? 'none' : '';
     updateSpecialButton();
   }
-  // Healer and Supporter get a role-specific action here; Attacker's whole identity is
-  // just a bigger attack stat (see ROLE_STAT_MULT), so it gets no extra button — same
-  // for Tanker, whose specialty (see startBattleTimers) is passive, not something you tap.
+  // Every role gets a real active ability now, each on its own cooldown (not an energy
+  // cost) — Attacker's Charge Attack and Tanker's Fortify hit the same 10s cooldown as
+  // Supporter's Team Buff; Healer gets two: a fast single-target Heal (5s) and a slower
+  // Mass Heal (10s) that hits the whole team at once.
+  const ABILITY_COOLDOWN_MS = { attacker:10000, tanker:10000, supporter:10000, healerSingle:5000, healerAoe:10000 };
+  function abilityReady(t, key){ if (!t.cooldowns) t.cooldowns={}; return (Date.now()-(t.cooldowns[key]||0)) >= ABILITY_COOLDOWN_MS[key]; }
+  function cooldownLeftMs(t, key){ if (!t.cooldowns) t.cooldowns={}; return Math.max(0, ABILITY_COOLDOWN_MS[key]-(Date.now()-(t.cooldowns[key]||0))); }
   function updateSpecialButton(){
-    const btn = $('#btn-special');
-    if (!battle){ btn.style.display='none'; return; }
+    const btn = $('#btn-special'), btn2 = $('#btn-special2');
+    if (!battle || battle.spectating){ btn.style.display='none'; btn2.style.display='none'; return; }
     const role = battle.player.role;
-    btn.classList.remove('role-healer','role-supporter');
+    btn.classList.remove('role-healer','role-supporter','role-attacker','role-tanker');
+    btn2.style.display = 'none';
+    const label = (base, key)=>{ const cd = cooldownLeftMs(battle.player, key); return { text: cd>0 ? base+' ('+Math.ceil(cd/1000)+'s)' : base, disabled: cd>0 }; };
     if (role==='healer'){
-      btn.style.display = 'inline-block';
-      btn.classList.add('role-healer');
-      btn.textContent = '✚ Heal';
-      btn.disabled = battle.player.energy < HEAL_COST;
+      btn.style.display='inline-block'; btn.classList.add('role-healer');
+      const l1 = label('✚ Heal','healerSingle'); btn.textContent=l1.text; btn.disabled=l1.disabled;
+      btn2.style.display='inline-block'; btn2.classList.add('role-healer');
+      const l2 = label('✚✚ Mass Heal','healerAoe'); btn2.textContent=l2.text; btn2.disabled=l2.disabled;
     } else if (role==='supporter'){
-      btn.style.display = 'inline-block';
-      btn.classList.add('role-supporter');
-      btn.textContent = (battle.buff && battle.buff.hits>0) ? '★ Buffed ('+battle.buff.hits+')' : '★ Buff';
-      btn.disabled = battle.player.energy < BUFF_COST || (battle.buff && battle.buff.hits>0);
+      btn.style.display='inline-block'; btn.classList.add('role-supporter');
+      const l = label('★ Team Buff','supporter'); btn.textContent=l.text; btn.disabled=l.disabled;
+    } else if (role==='attacker'){
+      btn.style.display='inline-block'; btn.classList.add('role-attacker');
+      const l = label('⚡ Charge Attack','attacker'); btn.textContent=l.text; btn.disabled=l.disabled;
+    } else if (role==='tanker'){
+      btn.style.display='inline-block'; btn.classList.add('role-tanker');
+      const l = label('🛡️ Fortify','tanker'); btn.textContent=l.text; btn.disabled=l.disabled;
     } else {
-      btn.style.display = 'none';
+      btn.style.display='none';
     }
   }
-  const HEAL_COST = 20, BUFF_COST = 15;
   $('#btn-special').onclick = ()=>{
-    if (!battle || battle.over) return;
-    const role = battle.player.role;
+    if (!battle || battle.over || battle.spectating) return;
+    const role = battle.player.role, p = battle.player;
     if (role==='healer'){
-      if (battle.player.energy < HEAL_COST) return;
-      battle.player.energy -= HEAL_COST;
-      const healAmt = Math.round(battle.player.maxHp*0.25);
-      battle.player.hp = Math.min(battle.player.maxHp, battle.player.hp+healAmt);
-      let healedAllies = 0;
-      battle.allies.forEach((ally,i)=>{
-        if (ally.hp<=0) return;
-        ally.hp = Math.min(100, ally.hp+25);
-        const fill = $('#ally-row').children[i] && $('#ally-row').children[i].querySelector('.ally-hp-fill');
-        if (fill) fill.style.width = ally.hp+'%';
-        healedAllies++;
-      });
+      if (!abilityReady(p,'healerSingle')) return;
+      p.cooldowns.healerSingle = Date.now();
+      const healAmt = Math.max(1, Math.round((p.heal||0)*0.8));
+      p.hp = Math.min(p.maxHp, p.hp+healAmt);
       renderBattle();
-      battleLog('✚ '+battle.player.name+' heals '+healAmt+' HP'+(healedAllies?' and patches up the whole team!':'!'));
+      battleLog('✚ '+p.name+' heals for '+healAmt+' HP!');
     } else if (role==='supporter'){
-      if (battle.player.energy < BUFF_COST || (battle.buff && battle.buff.hits>0)) return;
-      battle.player.energy -= BUFF_COST;
-      battle.buff = { atkMult:1.35, defMult:1.3, hits:3 };
+      if (!abilityReady(p,'supporter')) return;
+      p.cooldowns.supporter = Date.now();
+      battle.buff = { atkMult:1.3, defMult:1.25, expiresAt: Date.now()+8000 };
       renderBattle();
-      battleLog('★ '+battle.player.name+' buffs the team — harder hits, sturdier defense for 3 rounds!');
+      battleLog('★ '+p.name+' buffs the team — harder hits, sturdier defense for 8s!');
+    } else if (role==='attacker'){
+      if (!abilityReady(p,'attacker')) return;
+      p.cooldowns.attacker = Date.now();
+      const dmg = computeDamage(p.atk*2.5, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
+      battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
+      flashSprite('e'); popDamage('e', dmg, '#ffd23d'); renderBattle();
+      battleLog('⚡ '+p.name+' unleashes a CHARGE ATTACK for '+dmg+'!');
+      if (battle.enemy.hp<=0) endBattle(true);
+    } else if (role==='tanker'){
+      if (!abilityReady(p,'tanker')) return;
+      p.cooldowns.tanker = Date.now();
+      battle.fortify = { defMult:1.6, expiresAt: Date.now()+8000 };
+      renderBattle();
+      battleLog('🛡️ '+p.name+' fortifies — massive defense boost for 8s!');
     }
+  };
+  $('#btn-special2').onclick = ()=>{
+    if (!battle || battle.over || battle.spectating) return;
+    const p = battle.player;
+    if (p.role!=='healer' || !abilityReady(p,'healerAoe')) return;
+    p.cooldowns.healerAoe = Date.now();
+    const healAmt = Math.max(1, Math.round((p.heal||0)*0.5));
+    p.hp = Math.min(p.maxHp, p.hp+healAmt);
+    let healedAllies = 0;
+    battle.allies.forEach((ally,i)=>{
+      if (ally.hp<=0) return;
+      ally.hp = Math.min(100, ally.hp+50);
+      const fill = $('#ally-row').children[i] && $('#ally-row').children[i].querySelector('.ally-hp-fill');
+      if (fill) fill.style.width = ally.hp+'%';
+      healedAllies++;
+    });
+    renderBattle();
+    battleLog('✚✚ '+p.name+' heals the whole team for '+healAmt+' HP each!');
   };
   function battleLog(msg){ $('#battle-log').textContent = msg; }
   function flashSprite(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
@@ -3397,12 +3449,13 @@
     clearBattleTimers();
     const enemyDelay = Math.max(500, 1500 - battle.enemy.spd*4);
     battle.timers.enemyTimer = setInterval(()=>{
-      if (!battle || battle.over) return;
-      // A Tanker up front reduces the whole team's incoming hit via the Buff def bonus
-      // (below) same as anyone, but its real specialty is in the ally-damage loop just
+      if (!battle || battle.over || battle.spectating) return;
+      // A Tanker up front reduces the whole team's incoming hit via the Buff/Fortify def
+      // bonus below same as anyone, but its real specialty is in the ally-damage loop just
       // below this timer — allies simply don't take chip damage while a Tanker leads.
-      const buffed = battle.buff && battle.buff.hits>0;
-      const defPower = battle.player.def * (buffed ? battle.buff.defMult : 1);
+      const buffed = battle.buff && battle.buff.expiresAt > Date.now();
+      const fortified = battle.fortify && battle.fortify.expiresAt > Date.now();
+      const defPower = battle.player.def * (buffed ? battle.buff.defMult : 1) * (fortified ? battle.fortify.defMult : 1);
       let dmg = computeDamage(battle.enemy.atk+battle.enemy.strength, defPower, battle.player.maxHp, damageCapPct(battle.mode));
       if (battle.group) dmg = Math.round(dmg*0.6);
       battle.player.hp = Math.max(0, battle.player.hp - dmg);
@@ -3410,14 +3463,19 @@
       battleLog(battle.enemy.name+' hits for '+dmg+'!');
       if (battle.player.hp<=0) endBattle(false);
     }, enemyDelay);
-    battle.timers.regenTimer = setInterval(()=>{ if (!battle||battle.over) return; battle.player.energy = Math.min(battle.player.maxEnergy, battle.player.energy+2); renderBattle(); }, 1000);
+    battle.timers.regenTimer = setInterval(()=>{ if (!battle||battle.over||battle.spectating) return; battle.player.energy = Math.min(battle.player.maxEnergy, battle.player.energy+2); renderBattle(); }, 1000);
+    // Keeps ability cooldown countdowns ticking on-screen even when you're not the one
+    // pressing anything — otherwise "Heal (3s)" would just sit frozen until your next tap.
+    battle.timers.cooldownTicker = setInterval(()=>{ if (!battle||battle.over) return; updateSpecialButton(); }, 500);
     if (battle.group){
       battle.timers.allyTimer = setInterval(()=>{
         if (!battle||battle.over) return;
         // "The boss has to beat the tanks first": while your active Toto is a Tanker, it
         // draws all the aggro — your allies land their hits same as always, but take none
         // of the return damage, which otherwise would have chipped away at them here.
-        const tanking = battle.player.role==='tanker';
+        // While spectating (your own Toto already fell), there's no active Toto tanking —
+        // your team just has to weather it on their own.
+        const tanking = !battle.spectating && battle.player.role==='tanker';
         battle.allies.forEach((ally,i)=>{
           if (ally.hp<=0) return;
           const dmg = 4+Math.random()*5;
@@ -3429,39 +3487,45 @@
           }
         });
         renderBattle();
-        if (battle.enemy.hp<=0) endBattle(true);
+        if (battle.enemy.hp<=0){ endBattle(true); return; }
+        if (battle.spectating && !battle.allies.some(a=>a.hp>0)) endBattle(false);
       }, 900);
     }
   }
   function clearBattleTimers(){ if (!battle) return; Object.values(battle.timers).forEach(t=>t&&clearInterval(t)); battle.timers={}; }
 
   $('#btn-attack').onclick = ()=>{
-    if (!battle || battle.over) return;
+    if (!battle || battle.over || battle.spectating) return;
     const cost = 10; let weak=false;
     if (battle.player.energy < cost) weak=true; else battle.player.energy -= cost;
-    const buffed = battle.buff && battle.buff.hits>0;
+    const buffed = battle.buff && battle.buff.expiresAt > Date.now();
     const atkPower = (battle.player.atk+battle.player.strength) * (buffed ? battle.buff.atkMult : 1);
     let dmg = computeDamage(atkPower, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
     if (weak) dmg = Math.round(dmg*0.35);
     battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
-    if (buffed) battle.buff.hits--;
     flashSprite('e'); popDamage('e', dmg, '#fff'); renderBattle();
     battleLog(weak ? 'Low energy! Weak hit for '+dmg+'.' : 'You strike for '+dmg+'!');
     if (battle.enemy.hp<=0) endBattle(true);
   };
-  $('#btn-swap-toto').onclick = ()=>{
-    if (!battle) return;
-    const team = battle.team && battle.team.length ? battle.team : [battle.player.ref];
-    const curIdx = team.findIndex(t=>t.id===battle.player.ref.id);
-    const next = team[(curIdx+1)%team.length];
-    battle.player = fighterFromToto(next); renderBattle(); battleLog('Sent out '+next.name+'!');
-  };
   let pendingEternalCatch = null;
   function endBattle(won){
     if (!battle || battle.over) return;
+    // If your Toto goes down in a group fight and your team is still swinging, you don't
+    // just lose on the spot — you watch the rest of it play out, and still win if they
+    // pull it off (see the allyTimer's win/loss checks in startBattleTimers above).
+    if (!won && battle.group && !battle.spectating && battle.allies.some(a=>a.hp>0)){
+      battle.spectating = true;
+      if (battle.timers.enemyTimer){ clearInterval(battle.timers.enemyTimer); battle.timers.enemyTimer=null; }
+      if (battle.timers.regenTimer){ clearInterval(battle.timers.regenTimer); battle.timers.regenTimer=null; }
+      battleLog(battle.player.name+' was defeated — watching your team fight on!');
+      showToast(battle.player.name+' fell. Your team fights on without you...');
+      renderBattle();
+      return;
+    }
     battle.over = true; clearBattleTimers();
     if (won){
       const opp = battle.opponentTemplate;
+      const teamCarried = !!battle.spectating;
       if (opp.tier === 'eternal'){
         battleLog('Victory! '+opp.name+' stands before you, weakened...');
         pendingEternalCatch = opp;
@@ -3470,11 +3534,11 @@
         return;
       }
       finalizeCatch(opp);
-      battleLog('Victory! '+opp.name+(battle.mode==='catch'?' was caught!':' joined you!'));
-      showToast(battle.mode==='catch' ? ('Caught '+opp.name+'!') : ('Raid won! '+opp.name+' joined you.'));
+      battleLog((teamCarried ? 'Your team pulled through! ' : 'Victory! ')+opp.name+(battle.mode==='catch'?' was caught!':' joined you!'));
+      showToast(battle.mode==='catch' ? ('Caught '+opp.name+'!') : (teamCarried ? ('Your team won it — '+opp.name+' joined you too!') : ('Raid won! '+opp.name+' joined you.')));
       renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     } else {
-      battleLog(battle.mode==='catch' ? (battle.opponentTemplate.name+' got away!') : 'Your Toto was defeated — retreat!');
+      battleLog(battle.mode==='catch' ? (battle.opponentTemplate.name+' got away!') : (battle.spectating ? 'Your whole team was defeated...' : 'Your Toto was defeated — retreat!'));
       showToast('Defeated — better luck next time.');
     }
     setTimeout(()=>{ $('#battle-screen').classList.remove('active'); battle=null; }, 900);
