@@ -359,6 +359,7 @@
   .lobby-list { display:flex; justify-content:center; gap:8px; margin:14px 0; min-height:40px; }
   .lobby-slot { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:20px; border:2px dashed rgba(255,255,255,0.25); }
   .lobby-slot.filled { border-style:solid; border-color: var(--accent); background:rgba(255,138,61,0.2); }
+  .lobby-slot.real { border-color:#3ddc7a; background:rgba(61,220,122,0.22); box-shadow:0 0 8px rgba(61,220,122,0.6); }
   .lobby-count { font-weight:800; font-size:13px; margin-bottom:4px; }
   .countdown-num { font-size:56px; font-weight:800; color:var(--accent); margin:10px 0; }
 
@@ -399,6 +400,8 @@
   .ally-row { display:flex; gap:8px; justify-content:center; padding:4px 0; min-height:0; position:relative; z-index:3; }
   .ally-chip { background:rgba(255,255,255,0.85); border-radius:10px; padding:4px 7px; display:flex; align-items:center; gap:5px; font-size:10px; font-weight:800; }
   .ally-chip .as { font-size:16px; }
+  .ally-chip.real { outline:2px solid #3ddc7a; }
+  .ally-live-dot { width:7px; height:7px; border-radius:50%; background:#3ddc7a; box-shadow:0 0 5px #3ddc7a; }
   .ally-hp-track { width:34px; background:#eee; border-radius:5px; height:5px; overflow:hidden; }
   .ally-hp-fill { height:100%; background:#4dbf4d; }
   .battle-log { color:#ffd9a0; font-size:11px; font-weight:700; text-align:center; min-height:16px; position:relative; z-index:3; }
@@ -878,7 +881,12 @@
     {name:'Grimlet',role:'attacker',img:'grimlet'},{name:'Void Guardian',role:'tanker',img:'void_guardian'},
   ];
   const SPECIES_ROLE = {}, TOTO_IMG = {};
-  NORMAL_SPECIES.concat(LEGENDARY_SPECIES).forEach(sp=>{ SPECIES_ROLE[sp.name]=sp.role; TOTO_IMG[sp.name]=sp.img; });
+  // Art is split across tier folders (normal/, legendary/, eternal/) so no single folder ever
+  // gets near GitHub's 100-files-per-upload limit.
+  NORMAL_SPECIES.forEach(sp=>{ SPECIES_ROLE[sp.name]=sp.role; TOTO_IMG[sp.name]='normal/'+sp.img; });
+  LEGENDARY_SPECIES.forEach(sp=>{ SPECIES_ROLE[sp.name]=sp.role; TOTO_IMG[sp.name]='legendary/'+sp.img; });
+  SPECIES_ROLE['Witch Hana']='attacker'; SPECIES_ROLE['Max']='attacker'; SPECIES_ROLE['Toni']='supporter';
+  TOTO_IMG['Witch Hana']='eternal/witch_hana'; TOTO_IMG['Max']='eternal/max'; TOTO_IMG['Toni']='eternal/toni_scarecrow';
   const ROLE_INFO = {
     attacker:{ label:'Attacker', icon:'🔥', color:'#ff6a3d' },
     tanker:{ label:'Tanker', icon:'🛡️', color:'#4d9fff' },
@@ -891,7 +899,7 @@
   function totoImgMarkup(name, small){
     const file = TOTO_IMG[name];
     if (!file) return null;
-    const src = 'assets/totos/'+(small?'sm/':'')+file+'.png';
+    const src = 'assets/totos/'+file+'.png'; // file already includes its tier folder, e.g. normal/coffin_pup
     return '<img class="creature-img" src="'+src+'" alt="'+name+'" draggable="false">';
   }
   const TIER_CAP = {normal:1500, legendary:3500, mythical:6500, eternal:20000};
@@ -1077,12 +1085,12 @@
   // tier+role's max (still recognizably weak, not a zero), and climbs in a straight line
   // to exactly 100% at TOTO_MAX_LEVEL (50) — so every Toto, regardless of tier, is fully
   // maxed out at the same level, just at very different heights.
-  function statsForLevel(tier, role, level){
+  function statsForLevel(tier, role, level, mult){
     const max = (ROLE_MAX_STATS[role] || ROLE_MAX_STATS.attacker)[tier] || ROLE_MAX_STATS.attacker.normal;
     const lvl = Math.max(1, Math.min(TOTO_MAX_LEVEL, level));
     const t = 0.1 + 0.9*(lvl-1)/(TOTO_MAX_LEVEL-1); // 10% at level 1 -> 100% at level 50
     const out = {};
-    Object.keys(max).forEach(stat=> out[stat] = Math.max(1, Math.round(max[stat]*t)));
+    Object.keys(max).forEach(stat=> out[stat] = Math.max(1, Math.round(max[stat]*t*(mult||1))));
     return out;
   }
   // Power level is just the sum of a Toto's actual combat stats (hp+atk+def+spd) — no
@@ -1092,7 +1100,7 @@
   function powerLevelOf(s){ return (s.hp||0) + (s.atk||0) + (s.def||0) + (s.spd||0); }
   function applyLevelStats(t, level){
     t.level = level;
-    const s = statsForLevel(t.tier, t.role, level);
+    const s = statsForLevel(t.tier, t.role, level, t.statMult);
     t.maxHp=s.hp; t.hp=s.hp; t.atk=s.atk; t.def=s.def; t.spd=s.spd;
     t.heal = s.heal || 0; t.buff = s.buff || 0;
     t.strength = t.atk; t.maxEnergy = 100; t.energy = 100; // legacy fields some UI/battle code still reads
@@ -1255,26 +1263,7 @@
     + '<path d="M45,49 Q50,52 55,49" stroke="#2a2530" stroke-width="1.8" fill="none" stroke-linecap="round"/>'
     + '<path d="M33,102 Q50,110 67,102" stroke="#d9d2c6" stroke-width="2" fill="none" stroke-linecap="round"/>'
     + '</svg>';
-  const TONI_SVG = '<svg class="toni-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">'
-    + '<ellipse cx="50" cy="113" rx="26" ry="5" fill="rgba(0,0,0,0.25)"/>'
-    + '<g class="toni-wing toni-wing-l"><path d="M40,55 C20,38 4,44 2,60 C10,57 21,61 31,70 C35,64 38,59 40,55 Z" fill="#4a2f6b" stroke="#2c1a44" stroke-width="2"/><circle cx="15" cy="55" r="4" fill="#eaffea" opacity="0.85"/></g>'
-    + '<g class="toni-wing toni-wing-r"><path d="M60,55 C80,38 96,44 98,60 C90,57 79,61 69,70 C65,64 62,59 60,55 Z" fill="#4a2f6b" stroke="#2c1a44" stroke-width="2"/><circle cx="85" cy="55" r="4" fill="#eaffea" opacity="0.85"/></g>'
-    + '<path d="M35,78 C32,96 33,109 40,116 L60,116 C67,109 68,96 65,78 Z" fill="#3c2a52" stroke="#241a35" stroke-width="2"/>'
-    + '<ellipse cx="50" cy="100" rx="15" ry="10" fill="#000" opacity="0.12"/>'
-    + '<line x1="21" y1="116" x2="29" y2="58" stroke="#6b4a2f" stroke-width="3" stroke-linecap="round"/>'
-    + '<circle class="toni-orb" cx="29" cy="53" r="6" fill="#9b5cff"/>'
-    + '<ellipse cx="50" cy="55" rx="26" ry="23" fill="#ff8a3d" stroke="#b85a1e" stroke-width="2.5"/>'
-    + '<ellipse cx="50" cy="67" rx="20" ry="7" fill="#000" opacity="0.1"/>'
-    + '<path d="M32,55 Q50,47 68,55" stroke="#b85a1e" stroke-width="1.5" fill="none" opacity="0.5"/>'
-    + '<path d="M32,57 Q50,65 68,57" stroke="#b85a1e" stroke-width="1.5" fill="none" opacity="0.5"/>'
-    + '<path class="toni-eye" d="M36,51 L45,49 L40,59 Z" fill="#fff2b0"/>'
-    + '<path class="toni-eye" d="M64,51 L55,49 L60,59 Z" fill="#fff2b0"/>'
-    + '<path d="M34,65 L40,69 L44,64 L50,70 L56,64 L60,69 L66,65" stroke="#fff2b0" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
-    + '<path d="M50,8 L29,45 Q50,39 71,45 Z" fill="#6b3fa0" stroke="#442868" stroke-width="2.5"/>'
-    + '<ellipse cx="50" cy="45" rx="23" ry="5" fill="#6b3fa0" stroke="#442868" stroke-width="2.5"/>'
-    + '<circle cx="50" cy="9" r="4.5" fill="#ff8a3d" stroke="#b85a1e" stroke-width="1.5"/>'
-    + '<ellipse cx="40" cy="46" rx="9" ry="6" fill="#fff" opacity="0.3" transform="rotate(-20 40 46)"/>'
-    + '</svg>';
+  const TONI_SVG = '<img class="creature-img" src="assets/totos/eternal/toni_scarecrow.png" alt="Toni" draggable="false">';
   function spriteMarkup(t){ return (t && t.isToni) ? TONI_SVG : (t ? t.sprite : ''); }
   function glowClassFor(tier){ return tier==='eternal' ? ' toni-glow' : (tier==='mythical' ? ' mythical-glow' : (tier==='legendary' ? ' legendary-glow' : '')); }
   // Master species list for the Encyclopedia — every name the game can roll, with its art.
@@ -1283,13 +1272,13 @@
   // tier no longer rolls from the general species pool above.
   const LEGENDARY_DEX = LEGENDARY_SPECIES.map(sp=>({ name: sp.name, nature: sp.role, role: sp.role, sprite: spriteFor(sp.name, sp.role) }));
   function makeToniGuardian(){
-    const t = { id:uid(), name:'Toni', sprite:'🎃', tier:'eternal', role:'supporter', isToni:true };
+    const t = { id:uid(), name:'Toni', sprite:TONI_SVG, tier:'eternal', role:'supporter', isToni:true };
     applyLevelStats(t, TOTO_MAX_LEVEL);
     return t;
   }
-  function makeFixedEternal(name, sprite){
-    const role = roleOf(name);
-    const t = { id:uid(), name, sprite, tier:'eternal', role };
+  function makeFixedEternal(name, sprite, roleOverride, statMult){
+    const role = roleOverride || roleOf(name);
+    const t = { id:uid(), name, sprite, tier:'eternal', role, statMult: statMult||1 };
     applyLevelStats(t, TOTO_MAX_LEVEL);
     return t;
   }
@@ -1362,7 +1351,13 @@
     + '<path d="M11,19 L15,22 L18,18 L21,22 L25,19" stroke="#8a3a10" stroke-width="1.8" fill="none" stroke-linecap="round"/>'
     + '<circle class="cr-eye" cx="15" cy="14" r="1.8" fill="#fff2b0"/><circle class="cr-eye" cx="25" cy="14" r="1.8" fill="#fff2b0"/>'
     + '</svg>';
-  function makeMaxiPadi(){ return makeFixedEternal('MaxiPadi', MAXIPADI_SVG); }
+  const MAX_IMG = '<img class="creature-img" src="assets/totos/eternal/max.png" alt="Max" draggable="false">';
+  const HANA_IMG = '<img class="creature-img" src="assets/totos/eternal/witch_hana.png" alt="Witch Hana" draggable="false">';
+  // Max: one of the strongest Attackers in the game, with his own bite moves (see the
+  // Savage Bite / Frenzy Bite buttons in battle). Witch Hana: the strongest Challenger to
+  // beat right now, so she carries an extra stat multiplier on top of Eternal.
+  function makeMax(){ return makeFixedEternal('Max', MAX_IMG, 'attacker', 1.15); }
+  function makeWitchHana(){ return makeFixedEternal('Witch Hana', HANA_IMG, 'attacker', 1.3); }
   function makeGrimhollow(){ return makeFixedEternal('Grimhollow', GRIMHOLLOW_SVG); }
   function makePumpkinRider(){ return makeFixedEternal('Pumpkin Rider', PUMPKIN_RIDER_SVG); }
   // PandaQueen — a fifth Eternal, using the user's own provided artwork (background
@@ -1445,6 +1440,36 @@
       });
       if (res.ok) return true;
       if (res.status!==409 || attempt===1) throw new Error('github write failed '+res.status);
+    }
+    return false;
+  }
+  // Lightweight real-player lobby matchmaking, piggybacking on the exact same GitHub
+  // JSON file trick as the leaderboard above (no separate backend/account needed). If
+  // GITHUB_LB_* isn't configured, this silently no-ops and group battles just go straight
+  // to the bots-after-40s fallback, which is also correct behavior with nobody else to see it.
+  const GITHUB_PRESENCE_PATH = 'lobby-presence.json';
+  function githubPresenceUrl(){ return 'https://api.github.com/repos/'+GITHUB_LB_OWNER+'/'+GITHUB_LB_REPO+'/contents/'+GITHUB_PRESENCE_PATH; }
+  async function githubPresenceRead(){
+    const res = await fetch(githubPresenceUrl(), { headers:{ Authorization:'Bearer '+GITHUB_LB_TOKEN, Accept:'application/vnd.github+json' } });
+    if (res.status===404) return { data:{lobbies:{}}, sha:null };
+    if (!res.ok) throw new Error('presence read failed '+res.status);
+    const d = await res.json();
+    let data = {lobbies:{}};
+    try { data = JSON.parse(b64DecodeUnicode(d.content)||'{}'); if (!data.lobbies) data.lobbies={}; } catch(e){}
+    return { data, sha: d.sha };
+  }
+  async function githubPresenceWrite(mutateFn){
+    for (let attempt=0; attempt<2; attempt++){
+      const { data, sha } = await githubPresenceRead();
+      mutateFn(data);
+      const body = { message:'lobby presence', content: b64EncodeUnicode(JSON.stringify(data)) };
+      if (sha) body.sha = sha;
+      const res = await fetch(githubPresenceUrl(), {
+        method:'PUT', headers:{ Authorization:'Bearer '+GITHUB_LB_TOKEN, Accept:'application/vnd.github+json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) return true;
+      if (res.status!==409 || attempt===1) return false;
     }
     return false;
   }
@@ -2784,8 +2809,9 @@
     // battle-ready from anywhere — deliberately NOT placed on the map, only reachable
     // through the Challenger tab.
     state.shrines = [
+      { id:uid(), guardian: makeWitchHana(),         name: "Hana's Village" },
+      { id:uid(), guardian: makeMax(),                name: "Max's Domain" },
       { id:uid(), guardian: makeToniGuardian(),      name: "Toni's Hollow" },
-      { id:uid(), guardian: makeMaxiPadi(),           name: "Maxi's Domain" },
       { id:uid(), guardian: makeGrimhollow(),         name: 'Ashen Shrine' },
       { id:uid(), guardian: makePumpkinRider(),       name: 'Hollow Crossing' },
       { id:uid(), guardian: makePandaQueen(),         name: 'Hexwood Grove' }
@@ -2905,8 +2931,9 @@
       return matches.length ? matches.sort((a,b)=>b.cp-a.cp)[0] : null;
     }
     const ETERNAL_ROSTER = [
+      { name:'Witch Hana', sprite:HANA_IMG },
+      { name:'Max', sprite:MAX_IMG },
       { name:'Toni', sprite:TONI_SVG },
-      { name:'MaxiPadi', sprite:MAXIPADI_SVG },
       { name:'Grimhollow', sprite:GRIMHOLLOW_SVG },
       { name:'Pumpkin Rider', sprite:PUMPKIN_RIDER_SVG },
       { name:'PandaQueen', sprite:PANDAQUEEN_SVG }
@@ -3245,36 +3272,78 @@
     $('#team-cancel').onclick = closeSetup;
   }
   function renderLobbyStep(target){
-    let joined = 1, maxSlots = 4, secondsLeft = 14;
+    const WAIT_SECS = 40;
+    const maxSlots = 4;
+    const myId = uid();
+    // Grouping key: same shrine, same rough arrival window, so people who queue up
+    // within about a minute of each other land in the same lobby.
+    const lobbyId = target.name.replace(/\s+/g,'_')+'_'+Math.floor(Date.now()/60000);
+    let secondsLeft = WAIT_SECS, realAllies = [], botsAdded = [], started = false, presenceOk = githubLbConfigured;
     $('#setup-card').innerHTML =
       '<div class="setup-title">Group Battle Lobby</div>'+
-      '<div class="setup-sub">'+target.name+' · waiting for trainers…</div>'+
+      '<div class="setup-sub">'+target.name+' · '+(presenceOk ? 'waiting for real trainers…' : 'gathering a team…')+'</div>'+
       '<div class="lobby-count" id="lobby-count">1/'+maxSlots+' ready</div>'+
       '<div class="lobby-list" id="lobby-list"></div>'+
-      '<div class="setup-sub" id="lobby-timer">Starting in '+secondsLeft+'s</div>'+
+      '<div class="setup-sub" id="lobby-timer">Waiting for players… '+secondsLeft+'s</div>'+
       '<div class="btn-row"><button class="btn-cancel" id="lobby-cancel">Leave</button><button class="btn-catch" id="lobby-start">Start Now</button></div>';
     function renderSlots(){
       const el = $('#lobby-list'); el.innerHTML='';
-      for (let i=0;i<maxSlots;i++){
-        const filled = i<joined;
-        el.insertAdjacentHTML('beforeend', '<div class="lobby-slot'+(filled?' filled':'')+'">'+(filled?(i===0?'🧙':['🧟','🧛','🕵️'][i%3]):'?')+'</div>');
-      }
-      $('#lobby-count').textContent = joined+'/'+maxSlots+' ready';
+      el.insertAdjacentHTML('beforeend', '<div class="lobby-slot filled" title="You">🧙</div>');
+      realAllies.forEach(p=> el.insertAdjacentHTML('beforeend', '<div class="lobby-slot filled real" title="'+(p.name||'Trainer')+' (real)">'+(p.avatar||'🧑')+'</div>'));
+      botsAdded.forEach(p=> el.insertAdjacentHTML('beforeend', '<div class="lobby-slot filled" title="'+p.name+' (bot)">'+p.avatar+'</div>'));
+      const filled = 1+realAllies.length+botsAdded.length;
+      for (let i=filled; i<maxSlots; i++) el.insertAdjacentHTML('beforeend', '<div class="lobby-slot">?</div>');
+      $('#lobby-count').textContent = filled+'/'+maxSlots+' ready';
     }
     renderSlots();
-    const joinTimer = setInterval(()=>{ if (joined<maxSlots){ joined++; renderSlots(); } }, 2600);
+    async function registerPresence(){
+      if (!presenceOk) return;
+      try {
+        await githubPresenceWrite(data=>{
+          if (!data.lobbies[lobbyId]) data.lobbies[lobbyId]=[];
+          data.lobbies[lobbyId] = data.lobbies[lobbyId].filter(p=> Date.now()-p.ts<25000 && p.id!==myId);
+          data.lobbies[lobbyId].push({ id:myId, name:state.username||'Trainer', avatar:state.avatar||'🧙', ts:Date.now() });
+        });
+      } catch(e){ presenceOk = false; } // API unreachable — fall back to bots-only silently
+    }
+    async function pollPresence(){
+      if (!presenceOk || started) return;
+      try {
+        const { data } = await githubPresenceRead();
+        const list = (data.lobbies && data.lobbies[lobbyId]) || [];
+        realAllies = list.filter(p=> p.id!==myId && Date.now()-p.ts<25000).slice(0, maxSlots-1);
+        renderSlots();
+        if (1+realAllies.length >= maxSlots) start();
+      } catch(e){}
+    }
+    async function removePresence(){
+      if (!presenceOk) return;
+      try { await githubPresenceWrite(data=>{ if (data.lobbies[lobbyId]) data.lobbies[lobbyId]=data.lobbies[lobbyId].filter(p=>p.id!==myId); }); } catch(e){}
+    }
+    registerPresence();
+    const presenceTimer = setInterval(()=>{ registerPresence(); pollPresence(); }, 3000);
+    const botNames = [['Ghosty','🧟'],['Vamp','🧛'],['Sleuth','🕵️']];
+    function fillRemainingWithBots(){
+      const openSlots = maxSlots - (1+realAllies.length+botsAdded.length);
+      for (let i=0;i<openSlots;i++) botsAdded.push({ name:botNames[i%3][0], avatar:botNames[i%3][1] });
+      renderSlots();
+    }
     const tickTimer = setInterval(()=>{
-      secondsLeft--; $('#lobby-timer').textContent = 'Starting in '+secondsLeft+'s';
-      if (secondsLeft<=0){ start(); }
+      if (started) return;
+      secondsLeft--;
+      const filled = 1+realAllies.length+botsAdded.length;
+      $('#lobby-timer').textContent = filled>=maxSlots ? 'Ready!' : ('Waiting for players… '+Math.max(0,secondsLeft)+'s');
+      if (secondsLeft<=0){ fillRemainingWithBots(); start(); }
     }, 1000);
     function start(){
-      clearInterval(joinTimer); clearInterval(tickTimer);
-      const allySprites = ['🧟','🧛','🕵️'];
-      const allies = Array.from({length: Math.max(0, joined-1)}).map((_,i)=>({ sprite: allySprites[i%allySprites.length], hp:100 }));
+      if (started) return; started = true;
+      clearInterval(presenceTimer); clearInterval(tickTimer); removePresence();
+      const allies = realAllies.map(p=>({ sprite:p.avatar||'🧑', hp:100, name:p.name||'Trainer', isReal:true }))
+        .concat(botsAdded.map(p=>({ sprite:p.avatar, hp:100, name:p.name, isReal:false })));
       renderTeamSelectStep(target, 'group', allies);
     }
-    $('#lobby-start').onclick = start;
-    $('#lobby-cancel').onclick = ()=>{ clearInterval(joinTimer); clearInterval(tickTimer); closeSetup(); };
+    $('#lobby-start').onclick = ()=>{ if (1+realAllies.length+botsAdded.length < maxSlots) fillRemainingWithBots(); start(); };
+    $('#lobby-cancel').onclick = ()=>{ clearInterval(presenceTimer); clearInterval(tickTimer); removePresence(); closeSetup(); };
   }
   function renderCountdownStep(label, onDone){
     $('#setup-card').innerHTML = '<div class="setup-title">'+label+'</div><div class="countdown-num" id="cd-num">3</div><div class="setup-sub">Get your Toto ready…</div>';
@@ -3324,8 +3393,9 @@
     spawnEmbers();
     const row = $('#ally-row'); row.innerHTML='';
     battle.allies.forEach(ally=>{
-      const chip = document.createElement('div'); chip.className='ally-chip';
-      chip.innerHTML = '<span class="as">'+ally.sprite+'</span><div class="ally-hp-track"><div class="ally-hp-fill" style="width:100%;"></div></div>';
+      const chip = document.createElement('div'); chip.className='ally-chip'+(ally.isReal?' real':'');
+      chip.title = (ally.name||'Ally')+(ally.isReal?' (real player)':' (bot)');
+      chip.innerHTML = '<span class="as">'+ally.sprite+'</span>'+(ally.isReal?'<span class="ally-live-dot"></span>':'')+'<div class="ally-hp-track"><div class="ally-hp-fill" style="width:100%;"></div></div>';
       row.appendChild(chip);
     });
     renderBattle();
