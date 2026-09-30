@@ -274,6 +274,51 @@
      frame for zero visible benefit — turned off here, still fully animated in battle/menus. */
   .toto-node .cr-eye, .toto-node .cr-legL, .toto-node .cr-legR, .toto-node .cr-armL, .toto-node .cr-armR, .toto-node .cr-ghost,
   .gym-node .cr-eye, .gym-node .cr-legL, .gym-node .cr-legR, .gym-node .cr-armL, .gym-node .cr-armR, .gym-node .cr-ghost { animation:none !important; }
+
+  /* --- Standing-on-the-ground map markers (scoped to .toto-node/.gym-node only; the
+     shared totoFloat3d rule a few lines up is left untouched for the battle arena, Toto
+     detail modal and starter-card views, which were tuned separately). A rotateY spin
+     pivoting from an image's own center reads as a flat sticker tipping over on a table;
+     pivoting from the sprite's own base (50% 100%) instead, under a touch of perspective
+     on its immediate parent, reads as a figure rooted at its feet leaning/turning like it
+     is actually standing in the diorama. Applied to both the painted-art sprites
+     (.creature-img) and the hand-coded SVG bodies (.creature-svg) — the latter had zero
+     motion on the map before this (their per-limb wiggle is disabled here for
+     performance, see the rule just above), so this also fixes those species looking
+     completely static. */
+  .toto-node .bubble, .gym-node .tower-boss { perspective: 240px; }
+  .toto-node .creature-img, .gym-node .creature-img,
+  .toto-node .creature-svg, .gym-node .creature-svg {
+    transform-origin: 50% 100%;
+    animation: totoStandBob 3.4s ease-in-out infinite;
+  }
+  @keyframes totoStandBob {
+    0%,100% { transform: rotateX(10deg) translateY(0) rotateY(0deg); }
+    25%     { transform: rotateX(10deg) translateY(-3px) rotateY(7deg); }
+    50%     { transform: rotateX(10deg) translateY(-5px) rotateY(0deg); }
+    75%     { transform: rotateX(10deg) translateY(-3px) rotateY(-7deg); }
+  }
+  /* Slow "wandering in a small circle" idle — there's no walk-cycle art, so this fakes a
+     creature ambling around its own little patch of ground with a classic orbit trick:
+     .node-orbit sweeps a tiny circle (a rotate + a fixed translate baked into one
+     keyframe so the translate gets carried around as the rotation advances), while
+     .node-orbit-fix carries the exact opposite rotation on the same timing, so the two
+     always cancel out and the artwork itself never visibly spins or tips over — only its
+     position drifts in a slow little loop. node-ring/node-shadow are siblings of
+     .node-spin, outside this wrapper entirely, so the ground marker and shadow stay put
+     while the character wanders within it, same as a real animal grazing near one spot. */
+  .node-orbit { display:inline-block; animation: totoOrbitSweep 12s linear infinite; }
+  .node-orbit-fix { display:inline-block; animation: totoOrbitCounter 12s linear infinite; }
+  .gym-node .node-orbit, .gym-node .node-orbit-fix { animation-duration: 14s; }
+  @keyframes totoOrbitSweep {
+    0%   { transform: rotate(0deg) translate(4px, 0); }
+    100% { transform: rotate(360deg) translate(4px, 0); }
+  }
+  @keyframes totoOrbitCounter {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+  }
+
   .toto-node .cp-tag { background:#222; color:#fff; font-size:9px; font-weight:800; padding:1px 6px; border-radius:8px; margin-top:2px; display:inline-block; }
   .pumpkin-tower { position:relative; width:60px; height:78px; margin:0 auto; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.4)); animation: floaty 2.6s ease-in-out infinite; }
   .tower-svg { width:100%; height:100%; display:block; }
@@ -285,7 +330,6 @@
 
   .map-controls { display:none !important; }
   .map-btn { width:42px; height:42px; border-radius:50%; background:var(--panel); border:none; font-size:17px; box-shadow:0 6px 14px rgba(0,0,0,0.25); cursor:pointer; }
-  .map-btn.compass-on { background:linear-gradient(135deg,#ff8a3d,#ff5f6d); box-shadow:0 0 0 3px rgba(255,140,60,0.4), 0 6px 14px rgba(0,0,0,0.3); }
   .gps-status { display:none !important; }
   .dpad { position:absolute; left:14px; bottom:197px; z-index:20; display:none; grid-template-columns: repeat(3, 32px); grid-template-rows: repeat(3, 32px); gap:3px; }
   .dpad.show { display:grid; }
@@ -399,23 +443,49 @@
   .battle-title { font-weight:800; font-size:14px; }
   .battle-retreat { background:rgba(255,255,255,0.15); border:none; color:#fff; padding:6px 12px; border-radius:10px; font-weight:700; font-size:11.5px; cursor:pointer; }
   .battle-stage { flex:1; position:relative; margin:6px 14px; border-radius:18px; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; padding:14px; }
-  .battle-stage.theme-raid { background: radial-gradient(circle at 50% 25%, #5a3a8a, #1c1430 85%); }
+  /* Raid/challenge fights get a painted Halloween-village night scene behind the boss —
+     deep purple/blue sky, a big pale moon up top, a spooky village skyline silhouette
+     and glowing jack-o'-lanterns along the ground, and a warm ember glow rising where
+     the boss stands — matching the mood/palette of your reference art, but always an
+     atmospheric backdrop, never a specific painted character: the real enemy Toto's own
+     big sprite (rendered in #bf-e-sprite) is what reads as "the boss". Wild-catch
+     encounters keep the simpler painted-gradient look since they're a lighter, more
+     casual moment than a raid fight. */
+  .battle-stage.theme-raid { background: linear-gradient(180deg, #191a3c 0%, #26204a 24%, #362253 44%, #24123a 70%, #140a22 100%); }
+  .battle-stage.theme-raid::before {
+    content:''; position:absolute; top:58px; left:16%; width:110px; height:110px;
+    background:radial-gradient(circle, rgba(232,238,255,0.95), rgba(205,218,255,0.3) 46%, transparent 72%);
+    border-radius:50%; z-index:0; pointer-events:none;
+  }
   .battle-stage.theme-catch { background: radial-gradient(circle at 50% 25%, #2f5a4a, #10241d 85%); }
-  /* Painted-arena backdrop — a soft glowing moon up top and a silhouetted treeline along
-     the bottom, plus a bottom vignette — so the arena reads as a scene rather than a flat
-     color gradient, mirroring the reference raid screen's forest-at-night backdrop. Pure
-     CSS/SVG so it costs nothing and needs no external art. */
-  .battle-stage::before {
+  /* Painted-arena backdrop for the catch theme only — a soft glowing moon up top and a
+     silhouetted treeline along the bottom — so it still reads as a scene rather than a
+     flat color gradient even without a reference photo behind it. */
+  .battle-stage.theme-catch::before {
     content:''; position:absolute; top:6px; left:50%; width:130px; height:130px; transform:translateX(-50%);
     background:radial-gradient(circle, rgba(255,250,222,0.85), rgba(255,250,222,0.22) 45%, transparent 72%);
     border-radius:50%; z-index:0; pointer-events:none;
   }
-  .battle-stage::after {
+  .battle-stage.theme-catch::after {
     content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
     background:
       radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.55), transparent 62%),
       linear-gradient(to bottom, transparent 58%, rgba(0,0,0,0.4) 100%),
       url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 160' preserveAspectRatio='none'%3E%3Cpath d='M0,160 L0,100 L20,60 L28,90 L45,40 L55,95 L70,70 L80,120 L100,55 L112,100 L130,75 L140,130 L160,65 L172,110 L190,80 L200,140 L220,60 L232,115 L250,85 L262,130 L280,70 L295,120 L315,90 L330,140 L350,75 L365,115 L380,95 L400,130 L400,160 Z' fill='rgba(8,6,16,0.55)'/%3E%3C/svg%3E") repeat-x bottom / 400px 160px;
+  }
+  /* Raid theme's ground layer: a warm ember glow rising behind where the boss stands,
+     a couple of glowing jack-o'-lantern dots along the edges, a spooky village skyline
+     silhouette (fence posts, peaked roofs, a tower) across the bottom, plus the bottom
+     vignette/top darkening so HP bars and log text stay legible over it all. */
+  .battle-stage.theme-raid::after {
+    content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:
+      radial-gradient(circle 16px at 9% 88%, rgba(255,150,50,0.85), transparent 70%),
+      radial-gradient(circle 14px at 91% 85%, rgba(255,150,50,0.8), transparent 70%),
+      radial-gradient(ellipse at 50% 68%, rgba(255,120,50,0.42), transparent 58%),
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.62), transparent 55%),
+      linear-gradient(to bottom, rgba(10,6,22,0.32) 0%, transparent 20%, transparent 55%, rgba(0,0,0,0.5) 100%),
+      url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100' preserveAspectRatio='none'%3E%3Cpath d='M0,100 L0,55 L8,55 L8,40 L20,22 L32,40 L32,55 L55,55 L55,30 L64,30 L64,14 L74,2 L84,14 L84,30 L93,30 L93,55 L120,55 L120,44 L130,44 L130,26 L142,12 L154,26 L154,44 L164,44 L164,55 L195,55 L195,38 L203,38 L203,20 L211,8 L219,20 L219,38 L227,38 L227,55 L260,55 L260,42 L270,42 L270,24 L282,10 L294,24 L294,42 L304,42 L304,55 L330,55 L330,35 L338,35 L338,16 L348,4 L358,16 L358,35 L366,35 L366,55 L400,55 L400,100 Z' fill='rgba(9,6,18,0.68)'/%3E%3C/svg%3E") repeat-x bottom / 340px 82px;
   }
   .ember { position:absolute; bottom:-10px; font-size:12px; opacity:0.7; animation: emberRise linear infinite; pointer-events:none; }
   @keyframes emberRise { 0%{ transform:translateY(0) translateX(0); opacity:0.8;} 100%{ transform:translateY(-380px) translateX(20px); opacity:0;} }
@@ -456,17 +526,23 @@
   .wave-badge-text { line-height:1.2; }
   .wave-num { font-size:9.5px; font-weight:800; }
   .wave-loc { font-size:7.5px; color:#ffd9a0; font-weight:700; }
-  /* Arena: the boss stands big and centered with the whole active party's small full-body
-     sprites lined up in front of it (facing the boss), same as the reference raid screen —
-     rather than the boss alone with the player's sprite hidden away in the side panel. The
-     roster column on the right stays as the stat/role/HP readout for the fight. */
-  .stage-body { flex:1; display:flex; flex-direction:row; align-items:stretch; gap:6px; min-height:0; position:relative; z-index:2; }
-  .arena-mid { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:10px 4px 4px; position:relative; z-index:2; min-width:0; }
+  /* Arena: the boss stands big and centered in its own row (with the roster stat column
+     beside it), and the whole active party's small full-body sprites line up together in
+     a second row spanning the full arena width, facing the boss — same as the reference
+     raid screen — rather than the boss alone with the player's sprite hidden in the side
+     panel, or the party squeezed narrow next to the roster column. */
+  .stage-body { flex:1; display:flex; flex-direction:column; align-items:stretch; gap:18px; min-height:0; position:relative; z-index:2; }
+  .stage-row { flex:1; display:flex; flex-direction:row; align-items:stretch; gap:4px; min-height:0; }
+  .arena-mid { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 2px 2px; position:relative; z-index:2; min-width:0; }
   .sprite-wrap { position:relative; display:flex; flex-direction:column; align-items:center; }
   .sprite-glow { position:absolute; width:70px; height:24px; border-radius:50%; bottom:-6px; filter:blur(4px); }
   .sprite-glow.player { background:rgba(120,220,120,0.55); }
-  .sprite-glow.enemy { background:rgba(255,90,90,0.5); }
+  .sprite-glow.enemy { background:rgba(255,90,90,0.5); width:120px; height:34px; }
+  /* The boss's own real art (a full-size TOTO_IMG PNG, injected as #bf-e-sprite's
+     innerHTML) rendered big and centered — this IS "the giant picture" the arena is
+     built around, not a fixed background photo of a generic monster. */
   .arena-sprite { font-size:88px; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.4)); position:relative; z-index:2; }
+  .arena-sprite.enemy { font-size:190px; }
   .arena-sprite svg, .modal-sp svg, .arena-sprite img, .modal-sp img { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   .arena-sprite.player { animation: floaty 2s ease-in-out infinite; }
   .arena-sprite.enemy { animation: floaty 2.3s ease-in-out infinite reverse; }
@@ -490,13 +566,16 @@
      your Toto plus up to 3 allies, each labeled with name/level and a tiny HP bar right
      under its feet, matching the reference raid screen's "whole team visible in the
      arena" look instead of a single lone sprite floating by itself. */
-  .field-party { display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
-  .field-row { display:flex; justify-content:center; align-items:flex-end; gap:8px; flex-wrap:wrap; width:100%; }
-  .ally-field-row { display:flex; align-items:flex-end; gap:8px; flex-wrap:wrap; }
+  .field-party { display:flex; flex-direction:column; align-items:center; gap:3px; width:100%; }
+  .field-row { display:flex; justify-content:center; align-items:flex-end; gap:5px; flex-wrap:wrap; width:100%; }
+  .ally-field-row { display:flex; align-items:flex-end; gap:5px; flex-wrap:wrap; }
   .field-slot { display:flex; flex-direction:column; align-items:center; gap:2px; }
   .field-slot .sprite-wrap { position:relative; }
-  .field-slot .arena-sprite { font-size:40px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4)); }
-  .field-slot .sprite-glow { width:34px; height:11px; bottom:-3px; }
+  /* Every real battle participant's own toto (you plus each real/computer ally) stands
+     here at a clearly-visible size — this is the "let everyone see each others totos
+     that are battling" row, not decorative background characters. */
+  .field-slot .arena-sprite { font-size:54px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4)); }
+  .field-slot .sprite-glow { width:44px; height:13px; bottom:-3px; }
   .field-tag { display:flex; align-items:center; gap:4px; background:rgba(0,0,0,0.42); border-radius:6px; padding:1px 6px; max-width:70px; }
   .field-name { color:#fff; font-weight:800; font-size:7.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:46px; }
   .field-level { color:#ffd9a0; font-weight:700; font-size:7px; white-space:nowrap; }
@@ -508,7 +587,7 @@
   /* Roster panel — the up-to-4 Totos actually fighting the boss (you plus real/computer
      allies in a group raid), each its own small slot with a portrait, role icon+label,
      level and HP bar — the readout that sits beside the arena where the sprites stand. */
-  .roster-panel { display:flex; flex-direction:column; gap:6px; justify-content:flex-start; padding:2px; position:relative; z-index:3; flex:0 0 132px; width:132px; overflow-y:auto; }
+  .roster-panel { display:flex; flex-direction:column; gap:6px; justify-content:flex-start; padding:2px; position:relative; z-index:3; flex:0 0 112px; width:112px; overflow-y:auto; }
   .roster-slot { background:rgba(20,14,34,0.55); border:1.5px solid rgba(255,255,255,0.14); border-radius:13px; padding:5px 7px; display:flex; align-items:center; gap:6px; width:100%; box-sizing:border-box; }
   .roster-slot.me { border-color:#ffb238; box-shadow:0 0 8px rgba(255,178,56,0.35); }
   /* Circular character portrait with a colored ring matched to the Toto's role, and a
@@ -520,7 +599,7 @@
   .roster-role-badge { position:absolute; bottom:-2px; right:-2px; width:15px; height:15px; border-radius:50%; background:#888; border:1.5px solid #1a1330; display:flex; align-items:center; justify-content:center; font-size:8.5px; line-height:1; }
   .roster-info { flex:1; min-width:0; }
   .roster-name-row { display:flex; align-items:center; justify-content:space-between; gap:3px; }
-  .roster-name-row .roster-name { font-weight:800; font-size:9.5px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:58px; }
+  .roster-name-row .roster-name { font-weight:800; font-size:9.5px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:42px; }
   .roster-level { color:#c9b8f5; font-weight:700; font-size:7.5px; white-space:nowrap; }
   .roster-role-row { display:flex; align-items:center; gap:3px; margin:1px 0; }
   .roster-role-icon { font-size:8.5px; line-height:1; }
@@ -548,24 +627,31 @@
   .bc-icon-btn { width:32px; height:32px; border-radius:9px; border:1.5px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.12); color:#fff; font-size:9.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; letter-spacing:0.2px; }
   .bc-icon-btn.gear { font-size:15px; }
   .bc-icon-btn.active { background:linear-gradient(135deg,#ffb347,#ff7a3d); border-color:#ffb347; color:#2a1400; box-shadow:0 0 9px rgba(255,150,50,0.65); }
-  .btn-attack { flex:0 0 auto; width:80px; height:80px; border-radius:50%; border:3px solid rgba(255,255,255,0.5); background:radial-gradient(circle at 35% 30%, #ff8a5a, #ff3b5c 55%, #c81f45 100%); color:#fff; font-weight:900; font-size:11.5px; line-height:1.15; cursor:pointer; text-transform:uppercase; letter-spacing:0.3px; display:flex; align-items:center; justify-content:center; text-align:center; animation: attackGlow 1.8s ease-in-out infinite; }
-  .btn-attack:active { transform: scale(0.94); }
+  /* Wide ornate banner button (not a plain circle) with a double red/gold border and
+     corner flourishes, crossed-swords icon beside the label — mirrors the reference raid
+     screen's "CHARGE ATTACK" banner instead of a generic round button. */
+  .btn-attack { flex:0 0 auto; position:relative; min-width:150px; height:52px; padding:0 22px; border-radius:26px; border:2px solid #ffcf7a; outline:2px solid rgba(200,40,40,0.9); outline-offset:2px; background:linear-gradient(180deg,#ff8a5a, #c81f2f 60%, #7a1220 100%); color:#ffe8b0; font-weight:900; font-size:14px; letter-spacing:0.4px; cursor:pointer; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:7px; text-shadow:0 1px 2px rgba(0,0,0,0.6); animation: attackGlow 1.8s ease-in-out infinite; }
+  .btn-attack::before { content:'⚔️'; font-size:16px; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
+  .btn-attack:active { transform: scale(0.96); }
   @keyframes attackGlow {
-    0%,100% { box-shadow:0 0 12px rgba(255,110,60,0.55), 0 0 0 rgba(255,110,60,0); }
-    50% { box-shadow:0 0 24px rgba(255,150,70,0.95), 0 0 10px rgba(255,110,60,0.5); }
+    0%,100% { box-shadow:0 0 10px rgba(255,110,60,0.5), 0 0 0 rgba(255,110,60,0); }
+    50% { box-shadow:0 0 22px rgba(255,150,70,0.95), 0 0 8px rgba(255,110,60,0.5); }
   }
-  .bc-ability { position:relative; width:42px; height:42px; border-radius:11px; border:1.5px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.12); color:#fff; font-size:17px; cursor:pointer; align-items:center; justify-content:center; display:none; }
-  .bc-ability.role-healer { background:linear-gradient(135deg,#2ecc71,#1a9c58); }
-  .bc-ability.role-supporter { background:linear-gradient(135deg,#b06bff,#7a3fd9); }
-  .bc-ability.role-attacker { background:linear-gradient(135deg,#ff8a3d,#e0501f); }
-  .bc-ability.role-tanker { background:linear-gradient(135deg,#4d9fff,#2b6fd9); }
-  .bc-ability:disabled { opacity:0.5; cursor:default; }
-  .bc-ability-cd { position:absolute; bottom:1px; right:2px; font-size:7.5px; font-weight:900; background:rgba(0,0,0,0.6); border-radius:5px; padding:0 3px; display:none; }
+  /* Ability slots read as small colored gems with a glow matching their role color and a
+     numbered badge at the bottom-left corner, mirroring the reference raid screen's row
+     of four numbered ability icons. */
+  .bc-ability { position:relative; width:44px; height:44px; border-radius:13px; border:1.5px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12); color:#fff; font-size:18px; cursor:pointer; align-items:center; justify-content:center; display:none; }
+  .bc-ability.role-healer { background:linear-gradient(135deg,#3fe08a,#1a9c58); border-color:#7dffb8; box-shadow:0 0 10px rgba(46,204,113,0.55); }
+  .bc-ability.role-supporter { background:linear-gradient(135deg,#c48bff,#7a3fd9); border-color:#dcb8ff; box-shadow:0 0 10px rgba(176,107,255,0.55); }
+  .bc-ability.role-attacker { background:linear-gradient(135deg,#ff9a5a,#e0501f); border-color:#ffc79a; box-shadow:0 0 10px rgba(255,90,50,0.55); }
+  .bc-ability.role-tanker { background:linear-gradient(135deg,#6fb6ff,#2b6fd9); border-color:#aed6ff; box-shadow:0 0 10px rgba(77,159,255,0.55); }
+  .bc-ability:disabled { opacity:0.5; cursor:default; box-shadow:none; }
+  .bc-ability-cd { position:absolute; top:1px; right:2px; font-size:7.5px; font-weight:900; background:rgba(0,0,0,0.6); border-radius:5px; padding:0 3px; display:none; }
   /* Numbered corner badge on every ability slot (1-4), matching the reference raid
      screen's numbered ability-icon row — shown on locked slots too so the full set of
      four always reads as one row even when only 1-2 are unlocked for the active role. */
-  .bc-ability-num { position:absolute; top:-4px; left:-4px; width:14px; height:14px; border-radius:50%; background:#1a1330; border:1.5px solid rgba(255,255,255,0.5); color:#fff; font-size:8px; font-weight:900; display:flex; align-items:center; justify-content:center; }
-  .bc-ability.locked { display:flex; background:rgba(255,255,255,0.06); border-style:dashed; color:rgba(255,255,255,0.35); cursor:default; font-size:13px; }
+  .bc-ability-num { position:absolute; bottom:-3px; left:-3px; width:14px; height:14px; border-radius:50%; background:#1a1330; border:1.5px solid rgba(255,255,255,0.6); color:#fff; font-size:8px; font-weight:900; display:flex; align-items:center; justify-content:center; z-index:1; }
+  .bc-ability.locked { display:flex; background:rgba(255,255,255,0.06); border-style:dashed; color:rgba(255,255,255,0.35); cursor:default; font-size:13px; box-shadow:none; }
   .catch-choice-overlay { position:absolute; inset:0; z-index:40; background:rgba(10,6,20,0.72); display:none; align-items:center; justify-content:center; padding:20px; }
   .catch-choice-overlay.show { display:flex; }
   .catch-choice-card { background:#1e1730; border:2px solid #ffb347; border-radius:18px; padding:20px 18px; text-align:center; max-width:320px; box-shadow:0 14px 34px rgba(0,0,0,0.5); }
@@ -764,7 +850,6 @@
           <button class="map-btn" id="btn-zoom-out" title="Zoom out">➖</button>
           <button class="map-btn" id="btn-rotate-l" title="Rotate left">↺</button>
           <button class="map-btn" id="btn-rotate-r" title="Rotate right">↻</button>
-          <button class="map-btn" id="btn-compass" title="Turn camera with your phone's compass">🧭</button>
           <button class="map-btn" id="btn-locate" title="Re-center on GPS">🎯</button>
           <button class="map-btn" id="btn-simulate" title="Test walking (no real GPS needed)">🕹️</button>
         </div>
@@ -959,30 +1044,18 @@
         </div>
       </div>
       <div class="stage-body">
-        <!-- The boss stands big and centered, with the whole active party's small
-             full-body sprites lined up in front of it facing it — you plus any real or
-             computer allies — each tagged with name/level and its own tiny HP bar,
-             mirroring the reference raid screen's "whole team visible together" arena
-             instead of one lone sprite floating alone. -->
-        <div class="arena-mid" id="arena-mid">
-          <div class="sprite-wrap"><div class="sprite-glow enemy"></div><div class="arena-sprite enemy" id="bf-e-sprite">🎃</div></div>
-          <div class="field-party" id="field-party">
-            <div class="field-row" id="field-row">
-              <div class="field-slot me" id="field-slot-p">
-                <div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player" id="bf-p-sprite">👻</div></div>
-                <div class="field-tag"><span class="field-name" id="bf-p-fname">Your Toto</span><span class="field-level" id="bf-p-flevel">Lv.1</span></div>
-                <div class="field-hp-track"><div class="field-hp-fill" id="bf-p-fhp" style="width:100%;"></div></div>
-                <span class="field-hp-frac" id="bf-p-fhpfrac">100/100</span>
-              </div>
-              <div class="ally-field-row" id="ally-field-row"></div>
-            </div>
+        <div class="stage-row">
+          <!-- The boss stands big and centered — its own real art, not a fixed backdrop
+               photo, so whichever Toto you're actually fighting is unmistakably "the
+               giant picture" in the arena. -->
+          <div class="arena-mid" id="arena-mid">
+            <div class="sprite-wrap"><div class="sprite-glow enemy"></div><div class="arena-sprite enemy" id="bf-e-sprite">🎃</div></div>
           </div>
-        </div>
-        <!-- The up to 4 Totos actually fighting the boss: you (always first, outlined) plus
-             real or computer allies in a group raid — a vertical party column down the
-             right edge, each its own slot with portrait, role icon+label, level and HP
-             bar, same idea as the reference raid screen's right-side party list. -->
-        <div class="roster-panel" id="roster-panel">
+          <!-- The up to 4 Totos actually fighting the boss: you (always first, outlined) plus
+               real or computer allies in a group raid — a vertical party column down the
+               right edge, each its own slot with portrait, role icon+label, level and HP
+               bar, same idea as the reference raid screen's right-side party list. -->
+          <div class="roster-panel" id="roster-panel">
           <div class="roster-slot me">
             <div class="roster-portrait-wrap">
               <span class="roster-portrait" id="bf-p-portrait">👻</span>
@@ -1001,6 +1074,23 @@
           </div>
           <div class="ally-row" id="ally-row"></div>
         </div>
+        </div>
+        <!-- The whole active party's own real full-body sprites, standing together facing
+             the boss — you plus any real or computer allies, each tagged with name/level
+             and its own tiny HP bar, in one row spanning the full arena width so everyone
+             battling is clearly visible, matching the reference raid screen's "whole team
+             visible together" look instead of one lone sprite floating alone. -->
+        <div class="field-party" id="field-party">
+          <div class="field-row" id="field-row">
+            <div class="field-slot me" id="field-slot-p">
+              <div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player" id="bf-p-sprite">👻</div></div>
+              <div class="field-tag"><span class="field-name" id="bf-p-fname">Your Toto</span><span class="field-level" id="bf-p-flevel">Lv.1</span></div>
+              <div class="field-hp-track"><div class="field-hp-fill" id="bf-p-fhp" style="width:100%;"></div></div>
+              <span class="field-hp-frac" id="bf-p-fhpfrac">100/100</span>
+            </div>
+            <div class="ally-field-row" id="ally-field-row"></div>
+          </div>
+        </div>
       </div>
       <div class="battle-log" id="battle-log">Tap ATTACK to fight!</div>
     </div>
@@ -1010,7 +1100,7 @@
         <button class="bc-icon-btn" id="btn-auto" title="Auto-battle">AUTO</button>
         <button class="bc-icon-btn" id="btn-speed" title="Battle speed">1×</button>
       </div>
-      <button class="btn-attack" id="btn-attack">CHARGE<br>ATTACK</button>
+      <button class="btn-attack" id="btn-attack">CHARGE ATTACK</button>
       <div class="bc-side bc-right">
         <button class="bc-ability" id="btn-special"><span class="bc-ability-num">1</span><span class="bc-ability-icon"></span><span class="bc-ability-cd"></span></button>
         <button class="bc-ability" id="btn-special2"><span class="bc-ability-num">2</span><span class="bc-ability-icon"></span><span class="bc-ability-cd"></span></button>
@@ -1998,7 +2088,6 @@
     setAnchorAndBuild(state.geoAnchor ? state.geoAnchor.lat : DEFAULT_LAT, state.geoAnchor ? state.geoAnchor.lon : DEFAULT_LON);
     locate();
     startLocateRetries();
-    if (!compassEnabled) enableCompass(true); // auto-turn-on, no manual tap needed; fails silently if unsupported/denied
     runMapLoadingOverlay();
     await saveNow(true);
   }
@@ -2136,14 +2225,11 @@
   let watchId = null, simulateMode = false, lastMoveTs = Date.now(), idleCheckTimer = null;
   state.cameraRotate = 0; state.worldOffset = {x:0,y:0}; state.playerWorldPos = {x:WORLD_CENTER, y:WORLD_CENTER};
   state.cameraZoom = 1; state.cameraTilt = TILT_MAX * (1-ZOOM_MIN)/(ZOOM_MAX-ZOOM_MIN);
-  // heading = which way you're actually facing/walking in the real world (compass-driven,
-  // 0 = north). viewOrbit = a purely cosmetic "look around your character" swipe, separate
-  // from heading on purpose. These used to be the same variable, which is why swiping to
-  // peek at her front used to fight with the compass and snap back — the compass kept
-  // pulling that shared value toward your real heading mid-swipe. Now the world only ever
-  // rotates to match heading (so it's always accurate to which way you're really facing/
-  // walking), and viewOrbit *only* ever changes which side of her you see, never the map.
-  state.heading = 0; state.viewOrbit = 0;
+  // viewOrbit is the ONLY thing that turns the camera now — a plain one-finger
+  // left/right drag that orbits the camera all the way around your character, Pokémon-GO
+  // style, with no phone-compass/device-orientation sensor involved at all. It has no
+  // "snap back" — wherever you leave it is where the camera stays until you drag again.
+  state.viewOrbit = 0;
 
   function metersDelta(lat0, lon0, lat1, lon1){
     const mPerDegLat = 110540, mPerDegLon = 111320 * Math.cos(lat0*Math.PI/180);
@@ -2159,12 +2245,11 @@
     // would look "stuck"/blank right after a fresh signup).
     if (typeof state.cameraTilt !== 'number') state.cameraTilt = TILT_MAX * (1-ZOOM_MIN)/(ZOOM_MAX-ZOOM_MIN);
     if (typeof state.cameraZoom !== 'number') state.cameraZoom = 1;
-    if (typeof state.heading !== 'number') state.heading = 0;
     if (typeof state.viewOrbit !== 'number') state.viewOrbit = 0;
-    // World rotation is driven ONLY by heading — this is what makes the map "heading-up"
-    // (whichever way you're really facing stays pointing to the top of the screen) and
-    // it's the one thing viewOrbit (below) never touches.
-    state.cameraRotate = ((-state.heading % 360) + 360) % 360;
+    // World rotation is driven ONLY by your one-finger left/right drag (viewOrbit) — a
+    // full Pokémon-GO-style camera orbit all the way around your character, never by a
+    // phone compass/device-orientation sensor.
+    state.cameraRotate = ((state.viewOrbit % 360) + 360) % 360;
     if (!state.playerWorldPos) state.playerWorldPos = {x:WORLD_CENTER, y:WORLD_CENTER};
     const o = state.worldOffset || {x:0,y:0};
     // Tilt lives on the outermost wrapper only, so it always tilts the camera toward
@@ -2185,11 +2270,10 @@
     $('#world').style.setProperty('--rot', state.cameraRotate+'deg');
     updatePlayerFacing();
   }
-  // The character sprite itself never changes with the camera any more — no front/back
-  // swap, no mirroring. She's always seen from behind, walking the direction the world is
-  // oriented (which is driven purely by compass heading, never by camera swipe/orbit) —
-  // same fixed third-person-from-behind view as Pokémon GO's trainer. Swiping only orbits
-  // the CAMERA around her to look at the surrounding map; it never touches her sprite.
+  // The character sprite itself never changes with the camera — no front/back swap, no
+  // mirroring. She's always seen from behind, same fixed third-person-from-behind view as
+  // Pokémon GO's trainer. Dragging only orbits the CAMERA around her to look at the
+  // surrounding map; it never touches her sprite.
   let _facing = { gender:null };
   function updatePlayerFacing(){
     const holder = document.getElementById('player-avatar');
@@ -2357,7 +2441,7 @@
   $('#btn-locate').onclick = locate;
   // Auto-retry persistently once the game starts, front-loaded faster at first (a cold GPS
   // radio commonly needs a couple of quick tries before it locks on) — so you never HAVE
-  // to tap the compass button yourself; it's just there as a manual re-center option.
+  // to tap the locate button yourself; it's just there as a manual re-center option.
   let locateAttempts = 0;
   function startLocateRetries(){
     locateAttempts = 0;
@@ -2379,7 +2463,7 @@
     next();
   }
   // Re-check location whenever the app regains focus — covers being backgrounded,
-  // screen-locked, or switched away from and back, without needing the compass tap.
+  // screen-locked, or switched away from and back, without needing the locate tap.
   if (!window.__totoVisibilityRelocate){
     window.__totoVisibilityRelocate = true;
     document.addEventListener('visibilitychange', ()=>{
@@ -2571,90 +2655,16 @@
   }
   $('#btn-zoom-in').onclick = ()=> setZoom(state.cameraZoom + 0.15);
   $('#btn-zoom-out').onclick = ()=> setZoom(state.cameraZoom - 0.15);
-  // Rotate buttons now orbit the CAMERA around the character (viewOrbit) rather than
-  // spinning the map — see the state.heading/state.viewOrbit note above.
-  $('#btn-rotate-l').onclick = ()=>{ cancelOrbitReturn(); state.viewOrbit = (state.viewOrbit-20+360)%360; applyWorldTransform(); scheduleOrbitReturn(); };
-  $('#btn-rotate-r').onclick = ()=>{ cancelOrbitReturn(); state.viewOrbit = (state.viewOrbit+20+360)%360; applyWorldTransform(); scheduleOrbitReturn(); };
+  // Rotate buttons nudge the camera orbit by a fixed step — same viewOrbit the drag
+  // gesture below drives, just without touching the screen.
+  $('#btn-rotate-l').onclick = ()=>{ state.viewOrbit = (state.viewOrbit-20+360)%360; applyWorldTransform(); };
+  $('#btn-rotate-r').onclick = ()=>{ state.viewOrbit = (state.viewOrbit+20+360)%360; applyWorldTransform(); };
 
-  // ---------------- COMPASS (device heading) ----------------
-  // "Point your phone a direction and your character slowly turns that way, and that's
-  // the way she'll walk": off by default (most browsers — especially iOS Safari — require
-  // an explicit tap before they'll hand over orientation data, which is why this is a
-  // button, not automatic), and once on, a smoothing loop eases state.heading toward the
-  // reported compass heading each frame rather than snapping straight to it, so ordinary
-  // sensor jitter doesn't make the view twitch. This drives the MAP's rotation only
-  // (heading-up, like a nav app) — it deliberately never touches viewOrbit, so swiping to
-  // peek at your character's front can't fight with the compass anymore.
-  let compassEnabled = false, compassTargetHeading = null, compassRAF = null, compassHandlerName = null;
-  function headingFromEvent(e){
-    if (typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)) return e.webkitCompassHeading;
-    if (e.absolute && typeof e.alpha === 'number') return (360 - e.alpha) % 360;
-    return null;
-  }
-  function onDeviceOrientation(e){
-    const h = headingFromEvent(e);
-    if (h===null || isNaN(h)) return;
-    compassTargetHeading = h;
-  }
-  function compassLoop(){
-    if (!compassEnabled){ compassRAF = null; return; } // stop spinning the RAF loop entirely once turned off, instead of ticking forever doing nothing
-    if (compassTargetHeading!==null){
-      let diff = ((compassTargetHeading - state.heading + 540) % 360) - 180;
-      if (Math.abs(diff) > 0.4){
-        state.heading = (state.heading + diff*0.08 + 360) % 360;
-        applyWorldTransform();
-      }
-    }
-    compassRAF = requestAnimationFrame(compassLoop);
-  }
-  async function enableCompass(silent){
-    try {
-      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
-        const res = await DeviceOrientationEvent.requestPermission();
-        if (res !== 'granted'){ if (!silent) showToast('Compass permission denied'); return; }
-      } else if (!('DeviceOrientationEvent' in window)){
-        if (!silent) showToast('No compass sensor on this device'); return;
-      }
-    } catch(e){ if (!silent) showToast('Compass not available here'); return; }
-    compassHandlerName = ('ondeviceorientationabsolute' in window) ? 'deviceorientationabsolute' : 'deviceorientation';
-    window.addEventListener(compassHandlerName, onDeviceOrientation);
-    compassEnabled = true;
-    $('#btn-compass').classList.add('compass-on');
-    if (!compassRAF) compassLoop();
-    if (!silent) showToast('🧭 Compass camera on');
-  }
-  function disableCompass(){
-    compassEnabled = false;
-    compassTargetHeading = null;
-    if (compassHandlerName) window.removeEventListener(compassHandlerName, onDeviceOrientation);
-    $('#btn-compass').classList.remove('compass-on');
-    showToast('Compass off — manual rotate');
-  }
-  $('#btn-compass').onclick = ()=>{ compassEnabled ? disableCompass() : enableCompass(); };
-
-  // Single finger = swipe left/right to peek around your character (viewOrbit — a look,
-  // not a turn: it never changes her real heading/walk direction, and drifts back to the
-  // default behind-her view a couple seconds after you let go, same as a third-person
-  // game's free-look camera).
+  // One finger, dragged left or right, orbits the camera all the way around your
+  // character — a full 360°, Pokémon-GO style — and it stays exactly where you leave it;
+  // there is no phone-compass/device-orientation sensor involved anywhere in this game,
+  // and no auto-return snapping the view back to center.
   // Two fingers = pinch out to zoom into ground level, pinch in to return to sky view.
-  let orbitReturnTimer = null, orbitReturnRAF = null;
-  function cancelOrbitReturn(){
-    if (orbitReturnTimer){ clearTimeout(orbitReturnTimer); orbitReturnTimer = null; }
-    if (orbitReturnRAF){ cancelAnimationFrame(orbitReturnRAF); orbitReturnRAF = null; }
-  }
-  function scheduleOrbitReturn(){
-    cancelOrbitReturn();
-    orbitReturnTimer = setTimeout(()=>{
-      function step(){
-        let diff = ((0 - state.viewOrbit + 540) % 360) - 180;
-        if (Math.abs(diff) < 0.6){ state.viewOrbit = 0; applyWorldTransform(); orbitReturnRAF = null; return; }
-        state.viewOrbit = (state.viewOrbit + diff*0.06 + 360) % 360;
-        applyWorldTransform();
-        orbitReturnRAF = requestAnimationFrame(step);
-      }
-      orbitReturnRAF = requestAnimationFrame(step);
-    }, 2200);
-  }
   (function setupLookAround(){
     const mapView = $('#map-view');
     mapView.style.touchAction = 'none';
@@ -2670,7 +2680,6 @@
       activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
       try { mapView.setPointerCapture(e.pointerId); } catch(err){}
       if (activePointers.size===1){
-        cancelOrbitReturn();
         rotateDrag = { startX:e.clientX, startOrbit: state.viewOrbit, pointerId:e.pointerId };
         pinchState = null;
       } else if (activePointers.size===2){
@@ -2697,10 +2706,9 @@
     function releasePointer(e){
       activePointers.delete(e.pointerId);
       if (activePointers.size < 2) pinchState = null;
-      if (rotateDrag && e.pointerId===rotateDrag.pointerId){ rotateDrag = null; scheduleOrbitReturn(); }
+      if (rotateDrag && e.pointerId===rotateDrag.pointerId){ rotateDrag = null; }
       if (activePointers.size===1){
         const entry = Array.from(activePointers.entries())[0];
-        cancelOrbitReturn();
         rotateDrag = { startX: entry[1].x, startOrbit: state.viewOrbit, pointerId: entry[0] };
       }
     }
@@ -2736,7 +2744,7 @@
   function appendTotoNode(t){
     const node = document.createElement('div'); node.className='toto-node';
     node.style.left=t._x+'px'; node.style.top=t._y+'px';
-    node.innerHTML = '<div class="node-ring"></div><div class="node-shadow"></div><div class="node-spin"><div class="bubble">'+spriteMarkup(t)+'</div><div class="cp-tag">PWR '+t.cp+'</div><div class="dist-tag">…m</div></div>';
+    node.innerHTML = '<div class="node-ring"></div><div class="node-shadow"></div><div class="node-spin"><div class="node-orbit"><div class="node-orbit-fix"><div class="bubble">'+spriteMarkup(t)+'</div></div></div><div class="cp-tag">PWR '+t.cp+'</div><div class="dist-tag">…m</div></div>';
     t._distEl = node.querySelector('.dist-tag');
     t._node = node;
     node.onclick = ()=> tryStartEncounter(t);
@@ -2805,7 +2813,7 @@
     gym._ringEl = ring;
     const node = document.createElement('div'); node.className='gym-node';
     node.style.left=gym.x+'px'; node.style.top=gym.y+'px';
-    node.innerHTML = '<div class="node-ring"></div><div class="node-shadow" style="width:34px; height:11px;"></div><div class="node-spin">'+pumpkinTowerHtml(spriteMarkup(gym.boss))+'<div class="gym-label">'+gym.name+'</div><div class="dist-tag">…m</div></div>';
+    node.innerHTML = '<div class="node-ring"></div><div class="node-shadow" style="width:34px; height:11px;"></div><div class="node-spin"><div class="node-orbit"><div class="node-orbit-fix">'+pumpkinTowerHtml(spriteMarkup(gym.boss))+'</div></div><div class="gym-label">'+gym.name+'</div><div class="dist-tag">…m</div></div>';
     gym._distEl = node.querySelector('.dist-tag');
     gym._node = node;
     node.onclick = ()=> tryStartGymRaid(gym);
