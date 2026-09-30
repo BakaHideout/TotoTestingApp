@@ -1,9 +1,18 @@
-const CACHE_NAME = 'totoquest-v24';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png',
-  './assets/loading-bg.jpg', './assets/girl-front.png', './assets/girl-back.png',
-  './assets/boy-front.png', './assets/boy-back.png',
-  './assets/girl-front-sm.png', './assets/girl-back-sm.png',
-  './assets/boy-front-sm.png', './assets/boy-back-sm.png',
+const CACHE_NAME = 'totoquest-v25';
+const ASSETS = [
+'./index.html',
+'./manifest.json',
+'./icon-192.png',
+'./icon-512.png',
+'./assets/loading-bg.jpg',
+'./assets/girl-front.png',
+'./assets/girl-back.png',
+'./assets/boy-front.png',
+'./assets/boy-back.png',
+'./assets/girl-front-sm.png',
+'./assets/girl-back-sm.png',
+'./assets/boy-front-sm.png',
+'./assets/boy-back-sm.png',
   './assets/totos/normal/banshee.png',
   './assets/totos/normal/batling.png',
   './assets/totos/normal/blaze_hare.png',
@@ -65,9 +74,14 @@ const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512
   './assets/totos/legendary/royal_slime.png',
   './assets/totos/legendary/soul_witch.png',
   './assets/totos/legendary/void_guardian.png',
+  './assets/totos/eternal/blossom_wraith.png',
+  './assets/totos/eternal/harvest_warden.png',
   './assets/totos/eternal/max.png',
+  './assets/totos/eternal/shadow_sovereign.png',
   './assets/totos/eternal/toni_scarecrow.png',
-  './assets/totos/eternal/witch_hana.png'];
+  './assets/totos/eternal/vesper_nightshade.png',
+  './assets/totos/eternal/witch_hana.png'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
