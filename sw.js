@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v28';
+const CACHE_NAME = 'totoquest-v30';
 const ASSETS = [
 './index.html',
 './manifest.json',
@@ -64,6 +64,9 @@ const ASSETS = [
   './assets/totos/normal/web_spinner.png',
   './assets/totos/normal/wispkin.png',
   './assets/totos/normal/witchling.png',
+  './assets/totos/normal/pumpkin_tot.png',
+  './assets/totos/normal/black_cat_tot.png',
+  './assets/totos/normal/translucent_tot.png',
   './assets/totos/legendary/bone_steed.png',
   './assets/totos/legendary/ember_fox.png',
   './assets/totos/legendary/frost_howl.png',
