@@ -1888,22 +1888,30 @@
     const retryShowTimer = setTimeout(()=>{ retryBtn.style.display = 'inline-block'; }, 7000);
 
     setP(15, state.geoAnchor ? 'Loading your neighborhood…' : 'Finding your location…');
-    // Matches the terrain-fetch timeout below — no point giving up here sooner than that
-    // fetch itself would.
-    const MAX_MS = 26000;
+    // A real fetch that fails fast (blocked network, quick CORS/DNS error) used to make
+    // this whole screen resolve in well under a second — technically "done" but with no
+    // real roads/buildings ever loaded, so you'd land on a half-built map without knowing
+    // it. MIN_MS guarantees this screen is up long enough to read as an actual loading
+    // screen (and gives a slow-but-working connection real time to land) even when the
+    // underlying wait resolves instantly; MAX_MS is just the hard safety cap so a
+    // genuinely stuck connection can't trap you here forever.
+    const MIN_MS = 6000, MAX_MS = 20000;
     let done = false;
-    await Promise.race([
-      (async ()=>{
-        await waitForAnchor();
-        setP(60, 'Loading your neighborhood…');
-        await waitForPriorityChunk();
-        done = true;
-      })(),
-      new Promise(res=> setTimeout(res, MAX_MS))
+    await Promise.all([
+      Promise.race([
+        (async ()=>{
+          await waitForAnchor();
+          setP(55, 'Loading your neighborhood…');
+          await waitForPriorityChunk();
+          done = true;
+        })(),
+        new Promise(res=> setTimeout(res, MAX_MS))
+      ]),
+      new Promise(res=> setTimeout(res, MIN_MS))
     ]);
     clearTimeout(retryShowTimer); clearInterval(tipTimer); clearInterval(creepTimer);
     setP(100, done ? 'Ready!' : 'Still working on it…');
-    await new Promise(res=> setTimeout(res, done ? 200 : 500));
+    await new Promise(res=> setTimeout(res, done ? 300 : 600));
     wrap.classList.add('hide');
   }
   function computePowerLevel(){
@@ -2036,30 +2044,21 @@
     $('#world').style.setProperty('--rot', state.cameraRotate+'deg');
     updatePlayerFacing();
   }
-  // We only have two painted poses per character (front/back) — no true left/right profile
-  // art — so "seeing every angle as you swipe around her" is approximated rather than a
-  // real 3D turnaround: the orbit circle is split into four 90° arcs alternating back /
-  // front / front(mirrored) / back(mirrored). viewOrbit=0 (the resting position, and where
-  // it settles back to after you let go — see setupLookAround) always shows her back, which
-  // is also always the direction she's actually walking, since the world itself is oriented
-  // by heading, not by viewOrbit. Swiping only changes which side you're peeking at, never
-  // her real facing/walk direction.
-  let _facing = { front:null, mirror:null, gender:null };
+  // The character sprite itself never changes with the camera any more — no front/back
+  // swap, no mirroring. She's always seen from behind, walking the direction the world is
+  // oriented (which is driven purely by compass heading, never by camera swipe/orbit) —
+  // same fixed third-person-from-behind view as Pokémon GO's trainer. Swiping only orbits
+  // the CAMERA around her to look at the surrounding map; it never touches her sprite.
+  let _facing = { gender:null };
   function updatePlayerFacing(){
     const holder = document.getElementById('player-avatar');
     const img = holder && holder.querySelector('img');
     if (!img) return;
     const g = state.avatar==='male' ? 'male' : 'female';
-    const a = ((state.viewOrbit%360)+360)%360;
-    const showFront = a > 90 && a < 270;
-    const mirror = a > 180;
-    if (_facing.front !== showFront || _facing.gender !== g){
-      img.src = showFront ? AVATAR_IMG[g].frontSm : AVATAR_IMG[g].backSm;
-      _facing.front = showFront; _facing.gender = g;
-    }
-    if (_facing.mirror !== mirror){
-      img.style.transform = mirror ? 'scaleX(-1)' : '';
-      _facing.mirror = mirror;
+    if (_facing.gender !== g){
+      img.src = AVATAR_IMG[g].backSm;
+      img.style.transform = '';
+      _facing.gender = g;
     }
   }
   // Plain-language notes on the last thing that happened with each network call, shown
