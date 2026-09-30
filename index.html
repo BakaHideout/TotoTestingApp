@@ -405,15 +405,22 @@
   .boss-banner .boss-cp { font-size:9.5px; color:#e2d4ff; font-weight:700; }
   .boss-hp-track { background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.35); border-radius:8px; height:14px; overflow:hidden; margin-top:6px; }
   .boss-hp-track .fighter-hp-fill { height:100%; }
-  /* Arena (boss) on the left, the party column on the right — mirrors the reference raid
-     screen's "big boss, party list down the side" split instead of stacking them. */
+  /* Wave/location badge, top-left of the stage, above the boss banner — mirrors the
+     reference raid screen's "Wave 1/1 · Location" corner tag. Hidden for plain wild-catch
+     encounters (set via JS only when there's a shrine/gym name to show). */
+  .wave-badge { position:absolute; top:8px; left:8px; z-index:4; background:rgba(0,0,0,0.4); color:#ffd9a0; font-weight:800; font-size:9px; padding:3px 8px; border-radius:20px; display:none; }
+  .wave-badge.show { display:block; }
+  /* Arena: the boss stands big and centered with the whole active party's small full-body
+     sprites lined up in front of it (facing the boss), same as the reference raid screen —
+     rather than the boss alone with the player's sprite hidden away in the side panel. The
+     roster column on the right stays as the stat/role/HP readout for the fight. */
   .stage-body { flex:1; display:flex; flex-direction:row; align-items:stretch; gap:6px; min-height:0; position:relative; z-index:2; }
-  .arena-mid { flex:1; display:flex; align-items:center; justify-content:center; padding:6px 4px; position:relative; z-index:2; min-width:0; }
+  .arena-mid { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:10px 4px 4px; position:relative; z-index:2; min-width:0; }
   .sprite-wrap { position:relative; display:flex; flex-direction:column; align-items:center; }
   .sprite-glow { position:absolute; width:70px; height:24px; border-radius:50%; bottom:-6px; filter:blur(4px); }
   .sprite-glow.player { background:rgba(120,220,120,0.55); }
   .sprite-glow.enemy { background:rgba(255,90,90,0.5); }
-  .arena-sprite { font-size:72px; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.4)); position:relative; z-index:2; }
+  .arena-sprite { font-size:88px; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.4)); position:relative; z-index:2; }
   .arena-sprite svg, .modal-sp svg, .arena-sprite img, .modal-sp img { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   .arena-sprite.player { animation: floaty 2s ease-in-out infinite; }
   .arena-sprite.enemy { animation: floaty 2.3s ease-in-out infinite reverse; }
@@ -433,33 +440,60 @@
   .dmg-pop { position:absolute; font-weight:900; font-size:18px; pointer-events:none; animation: dmgFloat 0.7s ease-out forwards; z-index:5; }
   @keyframes dmgFloat { 0%{ transform:translateY(0); opacity:1; } 100%{ transform:translateY(-38px); opacity:0; } }
   .vs-badge { color:#fff; font-weight:800; font-size:13px; opacity:0.6; position:relative; z-index:2; }
+  /* The active party's small full-body sprites, standing together facing the boss —
+     your Toto plus up to 3 allies, each labeled with name/level and a tiny HP bar right
+     under its feet, matching the reference raid screen's "whole team visible in the
+     arena" look instead of a single lone sprite floating by itself. */
+  .field-party { display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
+  .field-row { display:flex; justify-content:center; align-items:flex-end; gap:8px; flex-wrap:wrap; width:100%; }
+  .ally-field-row { display:flex; align-items:flex-end; gap:8px; flex-wrap:wrap; }
+  .field-slot { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .field-slot .sprite-wrap { position:relative; }
+  .field-slot .arena-sprite { font-size:40px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4)); }
+  .field-slot .sprite-glow { width:34px; height:11px; bottom:-3px; }
+  .field-tag { display:flex; align-items:center; gap:4px; background:rgba(0,0,0,0.42); border-radius:6px; padding:1px 6px; max-width:70px; }
+  .field-name { color:#fff; font-weight:800; font-size:7.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:46px; }
+  .field-level { color:#ffd9a0; font-weight:700; font-size:7px; white-space:nowrap; }
+  .field-hp-track { width:42px; background:rgba(255,255,255,0.28); border-radius:4px; height:5px; overflow:hidden; }
+  .field-hp-fill { height:100%; background:linear-gradient(90deg,#7bd66a,#4dbf4d); transition:width 0.2s linear; }
+  .field-hp-fill.low { background:linear-gradient(90deg,#ff5470,#ff8a3d); }
+  .field-slot.fainted .arena-sprite { opacity:0.35; filter:grayscale(1); animation:none; }
   /* Roster panel — the up-to-4 Totos actually fighting the boss (you plus real/computer
-     allies in a group raid), each its own small slot with sprite, name, role and HP bar. */
-  .roster-panel { display:flex; flex-direction:column; gap:6px; justify-content:flex-start; padding:2px; position:relative; z-index:3; flex:0 0 140px; width:140px; overflow-y:auto; }
+     allies in a group raid), each its own small slot with a portrait, role icon+label,
+     level and HP bar — the readout that sits beside the arena where the sprites stand. */
+  .roster-panel { display:flex; flex-direction:column; gap:6px; justify-content:flex-start; padding:2px; position:relative; z-index:3; flex:0 0 122px; width:122px; overflow-y:auto; }
   .roster-slot { background:rgba(255,255,255,0.92); border-radius:12px; padding:5px 7px; display:flex; align-items:center; gap:5px; width:100%; box-sizing:border-box; }
   .roster-slot.me { outline:2px solid #ffb238; }
-  .roster-slot .sprite-wrap { flex-shrink:0; }
-  .roster-slot .arena-sprite { font-size:26px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.35)); }
-  .roster-slot .sprite-glow { width:26px; height:9px; bottom:-3px; }
+  .roster-portrait-wrap { flex-shrink:0; }
+  .roster-portrait { font-size:24px; line-height:1; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.35)); display:inline-block; }
+  .roster-portrait img, .roster-portrait svg { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   .roster-info { flex:1; min-width:0; }
   .roster-name-row { display:flex; align-items:center; justify-content:space-between; gap:3px; }
-  .roster-name-row .roster-name { font-weight:800; font-size:9.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:68px; }
-  .roster-level { color:#888; font-weight:700; font-size:8px; white-space:nowrap; }
-  .roster-cp { display:none; } /* not enough width in the narrow side column; name+HP say enough */
+  .roster-name-row .roster-name { font-weight:800; font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:56px; }
+  .roster-level { color:#888; font-weight:700; font-size:7.5px; white-space:nowrap; }
+  .roster-role-row { display:flex; align-items:center; gap:3px; margin:1px 0; }
+  .roster-role-icon { font-size:8.5px; line-height:1; }
+  .roster-role-label { font-size:7px; color:#777; font-weight:800; text-transform:uppercase; letter-spacing:0.2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .roster-cp { display:none; } /* not enough width in the narrow side column */
   .roster-slot .fighter-hp-track { height:6px; }
   .roster-slot .fighter-nrg-track { height:4px; }
   .ally-row { display:contents; }
   .ally-chip { background:rgba(255,255,255,0.92); border-radius:12px; padding:5px 7px; display:flex; align-items:center; gap:5px; font-size:10px; font-weight:800; width:100%; box-sizing:border-box; position:relative; }
-  .ally-chip .as { font-size:22px; line-height:1; flex-shrink:0; }
+  .ally-chip .as { font-size:20px; line-height:1; flex-shrink:0; }
   .ally-chip .as img, .ally-chip .as svg { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   .ally-chip.real { outline:2px solid #3ddc7a; }
+  .ally-chip.fainted { opacity:0.55; }
   .ally-info { flex:1; min-width:0; }
   .ally-name-row { display:flex; align-items:center; justify-content:space-between; gap:3px; }
-  .ally-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:68px; font-size:9.5px; }
-  .ally-role-icon { font-size:10px; flex-shrink:0; }
+  .ally-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:56px; font-size:9px; }
+  .ally-level { color:#888; font-weight:700; font-size:7.5px; white-space:nowrap; }
+  .ally-role-row { display:flex; align-items:center; gap:3px; margin:1px 0; }
+  .ally-role-icon { font-size:8.5px; flex-shrink:0; }
+  .ally-role-label { font-size:7px; color:#777; font-weight:800; text-transform:uppercase; letter-spacing:0.2px; }
   .ally-live-dot { width:7px; height:7px; border-radius:50%; background:#3ddc7a; box-shadow:0 0 5px #3ddc7a; position:absolute; top:4px; right:4px; }
   .ally-hp-track { width:100%; background:#eee; border-radius:5px; height:6px; overflow:hidden; margin-top:2px; }
-  .ally-hp-fill { height:100%; background:#4dbf4d; }
+  .ally-hp-fill { height:100%; background:#4dbf4d; transition:width 0.2s linear; }
+  .ally-hp-fill.low { background:linear-gradient(90deg,#ff5470,#ff8a3d); }
   .battle-log { color:#ffd9a0; font-size:11px; font-weight:700; text-align:center; min-height:16px; position:relative; z-index:3; }
   .battle-controls { padding:12px 14px 16px; display:flex; gap:8px; }
   .catch-choice-overlay { position:absolute; inset:0; z-index:40; background:rgba(10,6,20,0.72); display:none; align-items:center; justify-content:center; padding:20px; }
@@ -844,6 +878,7 @@
       <button class="battle-retreat" id="btn-retreat">Retreat</button>
     </div>
     <div class="battle-stage theme-catch" id="battle-stage">
+      <div class="wave-badge" id="wave-badge">Raid</div>
       <div class="boss-banner">
         <div class="boss-banner-row">
           <span class="boss-name" id="bf-e-name">Enemy</span>
@@ -853,18 +888,34 @@
         <div class="boss-hp-track"><div class="fighter-hp-fill enemy" id="bf-e-hp" style="width:100%;"></div></div>
       </div>
       <div class="stage-body">
+        <!-- The boss stands big and centered, with the whole active party's small
+             full-body sprites lined up in front of it facing it — you plus any real or
+             computer allies — each tagged with name/level and its own tiny HP bar,
+             mirroring the reference raid screen's "whole team visible together" arena
+             instead of one lone sprite floating alone. -->
         <div class="arena-mid" id="arena-mid">
           <div class="sprite-wrap"><div class="sprite-glow enemy"></div><div class="arena-sprite enemy" id="bf-e-sprite">🎃</div></div>
+          <div class="field-party" id="field-party">
+            <div class="field-row" id="field-row">
+              <div class="field-slot me" id="field-slot-p">
+                <div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player" id="bf-p-sprite">👻</div></div>
+                <div class="field-tag"><span class="field-name" id="bf-p-fname">Your Toto</span><span class="field-level" id="bf-p-flevel">Lv.1</span></div>
+                <div class="field-hp-track"><div class="field-hp-fill" id="bf-p-fhp" style="width:100%;"></div></div>
+              </div>
+              <div class="ally-field-row" id="ally-field-row"></div>
+            </div>
+          </div>
         </div>
         <!-- The up to 4 Totos actually fighting the boss: you (always first, outlined) plus
              real or computer allies in a group raid — a vertical party column down the
-             right edge, each its own slot with sprite, name, role and HP bar, same idea as
-             the reference raid screen's right-side party list. -->
+             right edge, each its own slot with portrait, role icon+label, level and HP
+             bar, same idea as the reference raid screen's right-side party list. -->
         <div class="roster-panel" id="roster-panel">
           <div class="roster-slot me">
-            <div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player" id="bf-p-sprite">👻</div></div>
+            <div class="roster-portrait-wrap"><span class="roster-portrait" id="bf-p-portrait">👻</span></div>
             <div class="roster-info">
               <div class="roster-name-row"><span class="roster-name" id="bf-p-name">Your Toto</span><span class="roster-level" id="bf-p-level">Lv.1</span></div>
+              <div class="roster-role-row"><span class="roster-role-icon" id="bf-p-role-icon">🔥</span><span class="roster-role-label" id="bf-p-role-label">Attacker</span></div>
               <div class="fighter-hp-track"><div class="fighter-hp-fill" id="bf-p-hp" style="width:100%;"></div></div>
               <div class="fighter-nrg-track"><div class="fighter-nrg-fill" id="bf-p-nrg" style="width:100%;"></div></div>
             </div>
@@ -3508,7 +3559,7 @@
           if (!ally.pendingRole) return;
           const role = rolePool[ri % rolePool.length]; ri++;
           const mt = makeMythicalOfRole(role);
-          ally.sprite = spriteMarkup(mt); ally.name = mt.name; ally.role = mt.role; ally.tier = 'mythical';
+          ally.sprite = spriteMarkup(mt); ally.name = mt.name; ally.role = mt.role; ally.tier = 'mythical'; ally.level = mt.level;
           delete ally.pendingRole;
         });
       }
@@ -3656,18 +3707,30 @@
     });
     $('#battle-title').textContent = opts.mode==='catch' ? 'Wild Encounter' : (opts.shrineName ? (opts.shrineName+' Raid') : 'Raid');
     $('#battle-stage').className = 'battle-stage ' + (opts.mode==='catch' ? 'theme-catch' : 'theme-raid');
+    const waveBadge = $('#wave-badge');
+    if (opts.mode==='catch'){ waveBadge.classList.remove('show'); }
+    else { waveBadge.textContent = opts.shrineName || 'Raid'; waveBadge.classList.add('show'); }
     spawnEmbers();
     const row = $('#ally-row'); row.innerHTML='';
-    battle.allies.forEach(ally=>{
+    const fieldRow = $('#ally-field-row'); fieldRow.innerHTML='';
+    battle.allies.forEach((ally,i)=>{
       const chip = document.createElement('div'); chip.className='ally-chip'+(ally.isReal?' real':'');
       chip.title = (ally.name||'Ally')+(ally.isReal?' (real player)':' (bot)');
       const ri = ally.role ? (ROLE_INFO[ally.role]||null) : null;
       chip.innerHTML = '<span class="as">'+ally.sprite+'</span>'
         + '<div class="ally-info"><div class="ally-name-row"><span class="ally-name">'+(ally.name||'Ally')+'</span>'
-        + (ri ? '<span class="ally-role-icon" style="color:'+ri.color+';">'+ri.icon+'</span>' : '')+'</div>'
+        + (ally.level ? '<span class="ally-level">Lv.'+ally.level+'</span>' : '')+'</div>'
+        + (ri ? '<div class="ally-role-row"><span class="ally-role-icon" style="color:'+ri.color+';">'+ri.icon+'</span><span class="ally-role-label">'+ri.label+'</span></div>' : '')
         + '<div class="ally-hp-track"><div class="ally-hp-fill" style="width:100%;"></div></div></div>'
         + (ally.isReal?'<span class="ally-live-dot"></span>':'');
       row.appendChild(chip);
+      // Matching small full-body sprite standing in the arena beside your own, so the
+      // whole active party is visible together facing the boss (not just you).
+      const fslot = document.createElement('div'); fslot.className='field-slot';
+      fslot.innerHTML = '<div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player">'+ally.sprite+'</div></div>'
+        + '<div class="field-tag"><span class="field-name">'+(ally.name||'Ally')+'</span>'+(ally.level?'<span class="field-level">Lv.'+ally.level+'</span>':'')+'</div>'
+        + '<div class="field-hp-track"><div class="field-hp-fill" style="width:100%;"></div></div>';
+      fieldRow.appendChild(fslot);
     });
     renderBattle();
     $('#battle-screen').classList.add('active');
@@ -3685,9 +3748,17 @@
   function renderBattle(){
     if (!battle) return;
     const p=battle.player, e=battle.enemy;
+    const pHpPct = Math.max(0,(p.hp/p.maxHp*100));
     $('#bf-p-name').textContent=p.name; $('#bf-p-cp').textContent='PWR '+p.cp; $('#bf-p-level').textContent='Lv.'+p.level; $('#bf-p-sprite').innerHTML=p.sprite;
     $('#bf-p-sprite').classList.toggle('toni-glow', p.tier==='eternal'); $('#bf-p-sprite').classList.toggle('mythical-glow', p.tier==='mythical');
-    $('#bf-p-hp').style.width=Math.max(0,(p.hp/p.maxHp*100))+'%'; $('#bf-p-nrg').style.width=Math.max(0,(p.energy/p.maxEnergy*100))+'%';
+    $('#bf-p-sprite').closest('.field-slot').classList.toggle('fainted', p.hp<=0);
+    $('#bf-p-hp').style.width=pHpPct+'%'; $('#bf-p-nrg').style.width=Math.max(0,(p.energy/p.maxEnergy*100))+'%';
+    // Portrait + field standee mirror the same sprite/name/level, just in the roster
+    // column and standing in the arena respectively.
+    $('#bf-p-portrait').innerHTML=p.sprite; $('#bf-p-fname').textContent=p.name; $('#bf-p-flevel').textContent='Lv.'+p.level;
+    $('#bf-p-fhp').style.width=pHpPct+'%'; $('#bf-p-fhp').classList.toggle('low', pHpPct<30);
+    const pr = ROLE_INFO[p.role] || ROLE_INFO.attacker;
+    $('#bf-p-role-icon').textContent=pr.icon; $('#bf-p-role-icon').style.color=pr.color; $('#bf-p-role-label').textContent=pr.label;
     $('#bf-e-name').textContent=e.name; $('#bf-e-cp').textContent='PWR '+e.cp; $('#bf-e-level').textContent=e.tier; $('#bf-e-sprite').innerHTML=e.sprite;
     $('#bf-e-sprite').classList.toggle('toni-glow', e.tier==='eternal'); $('#bf-e-sprite').classList.toggle('mythical-glow', e.tier==='mythical');
     $('#bf-e-hp').style.width=Math.max(0,(e.hp/e.maxHp*100))+'%';
@@ -3769,8 +3840,7 @@
     battle.allies.forEach((ally,i)=>{
       if (ally.hp<=0) return;
       ally.hp = Math.min(100, ally.hp+50);
-      const fill = $('#ally-row').children[i] && $('#ally-row').children[i].querySelector('.ally-hp-fill');
-      if (fill) fill.style.width = ally.hp+'%';
+      syncAllyHp(i, ally.hp);
       healedAllies++;
     });
     Sound.playAbility(); flashCast('p'); renderBattle();
@@ -3783,8 +3853,28 @@
   // the ally-damage tick so group fights don't look static even though ally combat itself
   // is simulated rather than fully played out move-by-move.
   function flashAllyChip(i){
-    const chip = $('#ally-row').children[i]; if (!chip) return;
-    chip.classList.remove('acting'); void chip.offsetWidth; chip.classList.add('acting');
+    const chip = $('#ally-row').children[i]; if (chip){ chip.classList.remove('acting'); void chip.offsetWidth; chip.classList.add('acting'); }
+    const fslot = $('#ally-field-row').children[i];
+    const fsprite = fslot && fslot.querySelector('.arena-sprite');
+    if (fsprite){ fsprite.classList.remove('cast'); void fsprite.offsetWidth; fsprite.classList.add('cast'); }
+  }
+  // Keeps an ally's roster-chip HP bar and its matching full-body standee in the arena in
+  // sync with each other (and marks both "down" once it hits 0), since the two are
+  // separate DOM elements showing the same underlying ally.
+  function syncAllyHp(i, hp){
+    const chip = $('#ally-row').children[i];
+    const fslot = $('#ally-field-row').children[i];
+    const low = hp < 30, down = hp <= 0;
+    if (chip){
+      const fill = chip.querySelector('.ally-hp-fill');
+      if (fill){ fill.style.width = Math.max(0,hp)+'%'; fill.classList.toggle('low', low); }
+      chip.classList.toggle('fainted', down);
+    }
+    if (fslot){
+      const fill = fslot.querySelector('.field-hp-fill');
+      if (fill){ fill.style.width = Math.max(0,hp)+'%'; fill.classList.toggle('low', low); }
+      fslot.classList.toggle('fainted', down);
+    }
   }
   function popDamage(who, val, color){
     const anchor = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite');
@@ -3840,8 +3930,7 @@
           if (Math.random()<0.35) flashAllyChip(i); // occasional "acting" pulse, not every tick
           if (!tanking){
             ally.hp = Math.max(0, ally.hp-(2+Math.random()*4));
-            const fill = $('#ally-row').children[i] && $('#ally-row').children[i].querySelector('.ally-hp-fill');
-            if (fill) fill.style.width = ally.hp+'%';
+            syncAllyHp(i, ally.hp);
           }
         });
         renderBattle();
