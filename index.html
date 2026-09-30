@@ -89,7 +89,10 @@
 
   /* ---------- LOADING SCREEN ---------- */
   .loading-wrap { position:relative; height:100%; width:100%; overflow:hidden; background:#14101f; }
-  .loading-bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 22%; }
+  /* Full width, natural height (not a full-bleed cover crop) so the whole banner — including
+     the "TotoQuest" title text baked into the art — is always visible instead of getting cut
+     off on tall/narrow phone screens. The loading bar/status sits in the space below it. */
+  .loading-bg-img { position:absolute; top:0; left:0; width:100%; height:auto; object-fit:contain; }
   .loading-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(12,8,22,0.05) 0%, rgba(12,8,22,0.25) 45%, rgba(10,6,18,0.94) 88%, #0c0716 100%); }
   .loading-content { position:absolute; left:0; right:0; bottom:38px; padding:0 30px; display:flex; flex-direction:column; align-items:center; gap:9px; }
   .loading-status { color:#ffd899; font-weight:800; font-size:11.5px; letter-spacing:0.5px; text-transform:uppercase; text-shadow:0 2px 4px rgba(0,0,0,0.6); min-height:14px; }
@@ -190,9 +193,12 @@
   .player-pin { position:absolute; left:50%; top:58%; transform: translate(-50%,-100%); z-index:15; text-align:center; }
   .player-ring { position:absolute; left:50%; bottom:6px; width:90px; height:90px; transform:translate(-50%,50%); border-radius:50%; border:2px solid rgba(255,150,60,0.65); background:radial-gradient(circle, rgba(255,150,60,0.22), rgba(255,90,40,0.05) 70%, transparent 75%); pointer-events:none; z-index:-1; }
   .player-shadow { width:26px; height:9px; border-radius:50%; background:rgba(0,0,0,0.28); margin:2px auto 0; }
-  .player-avatar { font-size:52px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.25)); animation: bob 2.6s ease-in-out infinite; } .player-avatar .player-avatar-svg { width:0.85em; height:1.19em; }
+  /* A bit more depth than a flat sprite: a heavier, softer drop-shadow (like real light
+     falling on a 3D figure rather than a flat cutout) plus a very slight scale "breathe" so
+     she reads as standing in the scene rather than pasted on top of it. */
+  .player-avatar { font-size:52px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.45)) drop-shadow(0 2px 3px rgba(0,0,0,0.3)); animation: bob 2.6s ease-in-out infinite; } .player-avatar .player-avatar-svg { width:0.85em; height:1.19em; }
   .player-avatar.walking { animation: bob 0.55s ease-in-out infinite; }
-  @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+  @keyframes bob { 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-4px) scale(1.015);} }
   /* Soft lit circle around the player, like a lantern pushing back the dark — purely
      visual, sits above the terrain/decor but below the UI chrome. */
   .fog-vignette { position:absolute; inset:0; z-index:8; pointer-events:none;
@@ -399,7 +405,10 @@
   .boss-banner .boss-cp { font-size:9.5px; color:#e2d4ff; font-weight:700; }
   .boss-hp-track { background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.35); border-radius:8px; height:14px; overflow:hidden; margin-top:6px; }
   .boss-hp-track .fighter-hp-fill { height:100%; }
-  .arena-mid { flex:0 1 220px; display:flex; align-items:center; justify-content:center; padding:6px 10px; position:relative; z-index:2; }
+  /* Arena (boss) on the left, the party column on the right — mirrors the reference raid
+     screen's "big boss, party list down the side" split instead of stacking them. */
+  .stage-body { flex:1; display:flex; flex-direction:row; align-items:stretch; gap:6px; min-height:0; position:relative; z-index:2; }
+  .arena-mid { flex:1; display:flex; align-items:center; justify-content:center; padding:6px 4px; position:relative; z-index:2; min-width:0; }
   .sprite-wrap { position:relative; display:flex; flex-direction:column; align-items:center; }
   .sprite-glow { position:absolute; width:70px; height:24px; border-radius:50%; bottom:-6px; filter:blur(4px); }
   .sprite-glow.player { background:rgba(120,220,120,0.55); }
@@ -410,33 +419,44 @@
   .arena-sprite.enemy { animation: floaty 2.3s ease-in-out infinite reverse; }
   .arena-sprite.hit { animation: hitflash 0.25s; }
   @keyframes hitflash { 0%{filter:brightness(2) drop-shadow(0 8px 8px rgba(0,0,0,0.4));} 100%{filter:brightness(1) drop-shadow(0 8px 8px rgba(0,0,0,0.4));} }
+  /* Plays on the player's sprite whenever an ability (Charge Attack/Heal/Buff/Fortify) is
+     used, so a move reads as a distinct "cast" moment rather than looking identical to a
+     plain attack. */
+  .arena-sprite.cast { animation: castglow 0.45s ease-out; }
+  @keyframes castglow {
+    0% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,210,60,0)); transform:scale(1); }
+    35% { filter: brightness(1.9) drop-shadow(0 0 18px rgba(255,210,60,0.95)); transform:scale(1.12); }
+    100% { filter: brightness(1) drop-shadow(0 8px 8px rgba(0,0,0,0.4)); transform:scale(1); }
+  }
+  .ally-chip.acting { animation: allyacting 0.5s ease-out; }
+  @keyframes allyacting { 0%{ box-shadow:0 0 0 rgba(255,210,60,0); } 40%{ box-shadow:0 0 14px rgba(255,210,60,0.9); } 100%{ box-shadow:0 0 0 rgba(255,210,60,0); } }
   .dmg-pop { position:absolute; font-weight:900; font-size:18px; pointer-events:none; animation: dmgFloat 0.7s ease-out forwards; z-index:5; }
   @keyframes dmgFloat { 0%{ transform:translateY(0); opacity:1; } 100%{ transform:translateY(-38px); opacity:0; } }
   .vs-badge { color:#fff; font-weight:800; font-size:13px; opacity:0.6; position:relative; z-index:2; }
   /* Roster panel — the up-to-4 Totos actually fighting the boss (you plus real/computer
      allies in a group raid), each its own small slot with sprite, name, role and HP bar. */
-  .roster-panel { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; padding:5px 2px; position:relative; z-index:3; }
-  .roster-slot { background:rgba(255,255,255,0.92); border-radius:12px; padding:5px 8px; display:flex; align-items:center; gap:6px; flex:1 1 46%; max-width:49%; min-width:0; box-sizing:border-box; }
+  .roster-panel { display:flex; flex-direction:column; gap:6px; justify-content:flex-start; padding:2px; position:relative; z-index:3; flex:0 0 140px; width:140px; overflow-y:auto; }
+  .roster-slot { background:rgba(255,255,255,0.92); border-radius:12px; padding:5px 7px; display:flex; align-items:center; gap:5px; width:100%; box-sizing:border-box; }
   .roster-slot.me { outline:2px solid #ffb238; }
   .roster-slot .sprite-wrap { flex-shrink:0; }
-  .roster-slot .arena-sprite { font-size:30px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.35)); }
-  .roster-slot .sprite-glow { width:30px; height:10px; bottom:-3px; }
+  .roster-slot .arena-sprite { font-size:26px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.35)); }
+  .roster-slot .sprite-glow { width:26px; height:9px; bottom:-3px; }
   .roster-info { flex:1; min-width:0; }
-  .roster-name-row { display:flex; align-items:center; justify-content:space-between; gap:4px; }
-  .roster-name-row .roster-name { font-weight:800; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:88px; }
-  .roster-level { color:#888; font-weight:700; font-size:8.5px; white-space:nowrap; }
-  .roster-cp { font-size:8.5px; color:#666; font-weight:700; white-space:nowrap; }
+  .roster-name-row { display:flex; align-items:center; justify-content:space-between; gap:3px; }
+  .roster-name-row .roster-name { font-weight:800; font-size:9.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:68px; }
+  .roster-level { color:#888; font-weight:700; font-size:8px; white-space:nowrap; }
+  .roster-cp { display:none; } /* not enough width in the narrow side column; name+HP say enough */
   .roster-slot .fighter-hp-track { height:6px; }
   .roster-slot .fighter-nrg-track { height:4px; }
   .ally-row { display:contents; }
-  .ally-chip { background:rgba(255,255,255,0.92); border-radius:12px; padding:5px 8px; display:flex; align-items:center; gap:6px; font-size:10px; font-weight:800; flex:1 1 46%; max-width:49%; min-width:0; box-sizing:border-box; position:relative; }
-  .ally-chip .as { font-size:26px; line-height:1; flex-shrink:0; }
+  .ally-chip { background:rgba(255,255,255,0.92); border-radius:12px; padding:5px 7px; display:flex; align-items:center; gap:5px; font-size:10px; font-weight:800; width:100%; box-sizing:border-box; position:relative; }
+  .ally-chip .as { font-size:22px; line-height:1; flex-shrink:0; }
   .ally-chip .as img, .ally-chip .as svg { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   .ally-chip.real { outline:2px solid #3ddc7a; }
   .ally-info { flex:1; min-width:0; }
-  .ally-name-row { display:flex; align-items:center; justify-content:space-between; gap:4px; }
-  .ally-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:88px; }
-  .ally-role-icon { font-size:11px; flex-shrink:0; }
+  .ally-name-row { display:flex; align-items:center; justify-content:space-between; gap:3px; }
+  .ally-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:68px; font-size:9.5px; }
+  .ally-role-icon { font-size:10px; flex-shrink:0; }
   .ally-live-dot { width:7px; height:7px; border-radius:50%; background:#3ddc7a; box-shadow:0 0 5px #3ddc7a; position:absolute; top:4px; right:4px; }
   .ally-hp-track { width:100%; background:#eee; border-radius:5px; height:6px; overflow:hidden; margin-top:2px; }
   .ally-hp-fill { height:100%; background:#4dbf4d; }
@@ -679,6 +699,7 @@
         <button class="nav-btn qm-btn" data-tab="profile"><span class="nav-icon">👤</span>Profile</button>
         <button class="qm-btn" id="btn-leaderboard"><span class="nav-icon">🏆</span>Ranks</button>
         <button class="qm-btn" id="btn-diagnostics"><span class="nav-icon">🛠️</span>Map Status</button>
+        <button class="qm-btn" id="btn-mute"><span class="nav-icon" id="btn-mute-icon">🔊</span>Sound</button>
       </div>
       <div class="pumpkin-fab-wrap">
         <div class="pumpkin-glow"></div>
@@ -831,23 +852,26 @@
         </div>
         <div class="boss-hp-track"><div class="fighter-hp-fill enemy" id="bf-e-hp" style="width:100%;"></div></div>
       </div>
-      <div class="arena-mid" id="arena-mid">
-        <div class="sprite-wrap"><div class="sprite-glow enemy"></div><div class="arena-sprite enemy" id="bf-e-sprite">🎃</div></div>
-      </div>
-      <!-- The up to 4 Totos actually fighting the boss: you (always first, outlined) plus
-           real or computer allies in a group raid — each its own slot with sprite, name,
-           role and an individual HP bar, same idea as the reference raid-screen party bar. -->
-      <div class="roster-panel" id="roster-panel">
-        <div class="roster-slot me">
-          <div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player" id="bf-p-sprite">👻</div></div>
-          <div class="roster-info">
-            <div class="roster-name-row"><span class="roster-name" id="bf-p-name">Your Toto</span><span class="roster-level" id="bf-p-level">Lv.1</span></div>
-            <div class="fighter-hp-track"><div class="fighter-hp-fill" id="bf-p-hp" style="width:100%;"></div></div>
-            <div class="fighter-nrg-track"><div class="fighter-nrg-fill" id="bf-p-nrg" style="width:100%;"></div></div>
-          </div>
-          <span class="roster-cp" id="bf-p-cp">PWR 0</span>
+      <div class="stage-body">
+        <div class="arena-mid" id="arena-mid">
+          <div class="sprite-wrap"><div class="sprite-glow enemy"></div><div class="arena-sprite enemy" id="bf-e-sprite">🎃</div></div>
         </div>
-        <div class="ally-row" id="ally-row"></div>
+        <!-- The up to 4 Totos actually fighting the boss: you (always first, outlined) plus
+             real or computer allies in a group raid — a vertical party column down the
+             right edge, each its own slot with sprite, name, role and HP bar, same idea as
+             the reference raid screen's right-side party list. -->
+        <div class="roster-panel" id="roster-panel">
+          <div class="roster-slot me">
+            <div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player" id="bf-p-sprite">👻</div></div>
+            <div class="roster-info">
+              <div class="roster-name-row"><span class="roster-name" id="bf-p-name">Your Toto</span><span class="roster-level" id="bf-p-level">Lv.1</span></div>
+              <div class="fighter-hp-track"><div class="fighter-hp-fill" id="bf-p-hp" style="width:100%;"></div></div>
+              <div class="fighter-nrg-track"><div class="fighter-nrg-fill" id="bf-p-nrg" style="width:100%;"></div></div>
+            </div>
+            <span class="roster-cp" id="bf-p-cp">PWR 0</span>
+          </div>
+          <div class="ally-row" id="ally-row"></div>
+        </div>
       </div>
       <div class="battle-log" id="battle-log">Tap ATTACK to fight!</div>
     </div>
@@ -874,6 +898,119 @@
   const root = document.getElementById('toto-root');
   const $ = (sel, ctx) => (ctx||root).querySelector(sel);
   const $$ = (sel, ctx) => Array.from((ctx||root).querySelectorAll(sel));
+
+  // ---------------- SOUND ----------------
+  // Everything here is synthesized live with the Web Audio API rather than loaded from
+  // sound files — this is a static GitHub Pages site with no audio assets shipped, and
+  // synthesizing keeps the PWA fully offline-capable with zero extra download weight.
+  // A soft, minor-key ambient loop plays as "music"; catch/attack/victory are short
+  // procedural stingers. Everything respects one mute toggle, persisted in localStorage
+  // (a device setting, not account data, so it isn't part of the save-game payload).
+  const Sound = (function(){
+    let ctx = null, master = null, musicGain = null, musicTimer = null, started = false;
+    let muted = (function(){ try { return localStorage.getItem('totoquest_muted')==='1'; } catch(e){ return false; } })();
+    function ensureCtx(){
+      if (ctx) return ctx;
+      try {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        master = ctx.createGain(); master.gain.value = muted ? 0 : 0.6; master.connect(ctx.destination);
+        musicGain = ctx.createGain(); musicGain.gain.value = 0.35; musicGain.connect(master);
+      } catch(e){ ctx = null; }
+      return ctx;
+    }
+    function tone(freq, startAt, dur, opts){
+      opts = opts||{};
+      const c = ensureCtx(); if (!c) return;
+      const osc = c.createOscillator(); osc.type = opts.type||'sine'; osc.frequency.value = freq;
+      const g = c.createGain(); g.gain.value = 0;
+      osc.connect(g); g.connect(opts.bus||master);
+      const t0 = c.currentTime + startAt;
+      const peak = opts.gain!=null ? opts.gain : 0.5;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(peak, t0+(opts.attack||0.02));
+      g.gain.exponentialRampToValueAtTime(0.001, t0+dur);
+      osc.start(t0); osc.stop(t0+dur+0.05);
+    }
+    function noiseBurst(startAt, dur, opts){
+      opts = opts||{};
+      const c = ensureCtx(); if (!c) return;
+      const bufSize = Math.max(1, Math.floor(c.sampleRate*dur));
+      const buf = c.createBuffer(1, bufSize, c.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1) * (1-i/bufSize);
+      const src = c.createBufferSource(); src.buffer = buf;
+      const filt = c.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value = opts.freq||1200;
+      const g = c.createGain(); g.gain.value = opts.gain!=null?opts.gain:0.35;
+      src.connect(filt); filt.connect(g); g.connect(master);
+      src.start(c.currentTime+startAt);
+    }
+    // Short, cheerful ascending chime — plays when you catch a Toto.
+    function playCatch(){
+      if (!ensureCtx()) return;
+      [523.25, 659.25, 783.99, 1046.5].forEach((f,i)=> tone(f, i*0.09, 0.32, {type:'triangle', gain:0.4}));
+    }
+    // A quick percussive thump for a landed attack — noise + a low sine "punch".
+    function playAttack(){
+      if (!ensureCtx()) return;
+      noiseBurst(0, 0.09, {freq:900, gain:0.28});
+      tone(140, 0, 0.14, {type:'square', gain:0.3});
+    }
+    // A brighter double-chime for abilities (heal/buff/charge) so they read as distinct
+    // from a plain attack without needing a whole separate sound per role.
+    function playAbility(){
+      if (!ensureCtx()) return;
+      tone(880, 0, 0.18, {type:'sine', gain:0.32});
+      tone(1174.66, 0.08, 0.22, {type:'sine', gain:0.3});
+    }
+    // Short victory fanfare — a little major-key run.
+    function playVictory(){
+      if (!ensureCtx()) return;
+      [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=> tone(f, i*0.1, 0.4, {type:'triangle', gain:0.42}));
+    }
+    function playDefeat(){
+      if (!ensureCtx()) return;
+      [400,340,280].forEach((f,i)=> tone(f, i*0.15, 0.35, {type:'sawtooth', gain:0.25}));
+    }
+    // Soft spooky ambient loop: a slow minor pad + an occasional high "twinkle" note,
+    // scheduled a bar at a time so it can keep looping indefinitely without ever loading
+    // an audio file. Re-schedules itself every 8s (a "bar") while music is playing.
+    const PAD_CHORD = [110, 130.81, 164.81]; // A minor-ish pad (A2, C3, E3)
+    const TWINKLE_NOTES = [880, 987.77, 1046.5, 1318.5, 1174.66];
+    function scheduleMusicBar(){
+      if (!ctx || !started) return;
+      const barStart = ctx.currentTime;
+      PAD_CHORD.forEach((f,i)=> tone(f, 0, 7.8, {type:'sine', gain:0.10, attack:1.2, bus:musicGain}));
+      // sprinkle 2-3 twinkle notes at random offsets within this 8s bar
+      const count = 2 + Math.floor(Math.random()*2);
+      for (let i=0;i<count;i++){
+        const note = TWINKLE_NOTES[Math.floor(Math.random()*TWINKLE_NOTES.length)];
+        tone(note, Math.random()*7, 0.9, {type:'sine', gain:0.09, attack:0.05, bus:musicGain});
+      }
+      musicTimer = setTimeout(scheduleMusicBar, 8000);
+    }
+    function startMusic(){
+      if (!ensureCtx() || started) return;
+      started = true;
+      if (ctx.state==='suspended') ctx.resume();
+      scheduleMusicBar();
+    }
+    function stopMusic(){ started = false; if (musicTimer) clearTimeout(musicTimer); musicTimer=null; }
+    function setMuted(m){
+      muted = !!m;
+      try { localStorage.setItem('totoquest_muted', muted?'1':'0'); } catch(e){}
+      if (master) master.gain.value = muted ? 0 : 0.6;
+    }
+    function isMuted(){ return muted; }
+    function resumeIfNeeded(){ if (ctx && ctx.state==='suspended') ctx.resume(); }
+    return { playCatch, playAttack, playAbility, playVictory, playDefeat, startMusic, stopMusic, setMuted, isMuted, resumeIfNeeded, ensureCtx };
+  })();
+  function updateMuteIcon(){ const el = document.getElementById('btn-mute-icon'); if (el) el.textContent = Sound.isMuted() ? '🔇' : '🔊'; }
+  // Audio can't start until a real user gesture on most browsers — piggyback on the very
+  // first tap/click anywhere in the game to unlock the AudioContext and kick off music.
+  document.addEventListener('pointerdown', function firstGesture(){
+    Sound.ensureCtx(); Sound.resumeIfNeeded(); Sound.startMusic();
+    document.removeEventListener('pointerdown', firstGesture);
+  }, { once:true });
 
   // ---------------- SPECIES ROSTER ----------------
   // Every species the game currently knows about. Mythical/Eternal don't have their own
@@ -3095,6 +3232,7 @@
     const respawnX = caught._x, respawnY = caught._y, respawnChunk = caught._chunkKey;
     state.collection.push(caught);
     removeTotoFromMap(caught);
+    Sound.playCatch();
     showToast('Caught '+caught.name+'!');
     renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     $('#encounter-modal').classList.remove('active');
@@ -3181,6 +3319,13 @@
     $('#diag-body').textContent = lines.join('\n');
   }
   $('#btn-diagnostics').onclick = ()=>{ closeQuickMenu(); renderDiagnostics(); $('#diag-overlay').classList.add('show'); };
+  updateMuteIcon();
+  $('#btn-mute').onclick = ()=>{
+    Sound.setMuted(!Sound.isMuted());
+    updateMuteIcon();
+    if (Sound.isMuted()) Sound.stopMusic(); else Sound.startMusic();
+    showToast(Sound.isMuted() ? '🔇 Sound muted' : '🔊 Sound on');
+  };
   $('#diag-close-btn').onclick = ()=> $('#diag-overlay').classList.remove('show');
   $('#diag-retry-btn').onclick = ()=>{
     locate();
@@ -3466,11 +3611,20 @@
   // and lets us deliberately pace gym/challenger raids to run longer than a wild scuffle.
   function damageCapPct(mode){
     if (mode==='catch') return 0.34;
-    if (mode==='challenge') return 0.055;
+    if (mode==='challenge') return 0.075;
     return 0.08; // gym raids (solo/group)
   }
+  // Mitigation is a RATIO of attacker power to defender power (attackPower/(attackPower+def))
+  // rather than the old "70/(70+def)" constant-offset formula. That old formula was tuned
+  // for stats in the tens/hundreds; once every tier's real stats moved into the
+  // thousands-to-tens-of-thousands range (see ROLE_MAX_STATS), a def stat of e.g. 8000
+  // crushed the "+70" constant to irrelevance and every hit rounded down to almost nothing —
+  // which is why a team of strong Totos could grind on a Challenger boss forever without it
+  // ever losing a meaningful chunk of HP. The ratio form scales correctly at ANY stat
+  // magnitude: matched attack-vs-defense always lands around half the raw attack power,
+  // and a real tier advantage (e.g. 4 Mythicals vs 1 Eternal) still shows up as a real edge.
   function computeDamage(attackPower, defenderDef, defenderMaxHp, capPct){
-    const mitigated = attackPower * (70/(70+defenderDef));
+    const mitigated = attackPower * (attackPower/(attackPower+Math.max(1,defenderDef)));
     let dmg = mitigated * (0.85 + Math.random()*0.3);
     dmg = Math.min(dmg, defenderMaxHp*capPct);
     return Math.max(2, Math.round(dmg));
@@ -3490,8 +3644,17 @@
     // stats — this only affects the battle copy, so the Toto you actually catch afterward
     // has completely normal health for its tier, not this temporary raid buff.
     if (opts.mode==='solo' || opts.mode==='group'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*2.2); enemyFighter.hp = enemyFighter.maxHp; }
-    else if (opts.mode==='challenge'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*3.2); enemyFighter.hp = enemyFighter.maxHp; }
+    else if (opts.mode==='challenge'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*2.8); enemyFighter.hp = enemyFighter.maxHp; }
     battle = { mode:opts.mode, shrineName:opts.shrineName||null, team:team, player:fighterFromToto(lead), enemy:enemyFighter, opponentTemplate:opts.opponent, allies:opts.allies||[], group:(opts.allies&&opts.allies.length>0), over:false, buff:null, timers:{} };
+    // Allies (real players or bots) never send us their actual Toto's stats — we only know
+    // a name/sprite/role — so for combat-math purposes every ally fights as a max-level
+    // Mythical of its shown role (falling back to Attacker if no role is known at all, e.g.
+    // a real player who joined before picking). This is what lets a real squad of allies
+    // meaningfully chip into a boss's HP instead of the old flat few-points-per-tick scratch.
+    battle.allies.forEach(ally=>{
+      const s = statsForLevel(ally.tier||'mythical', ally.role||'attacker', TOTO_MAX_LEVEL);
+      ally.atk = s.atk; ally.def = s.def;
+    });
     $('#battle-title').textContent = opts.mode==='catch' ? 'Wild Encounter' : (opts.shrineName ? (opts.shrineName+' Raid') : 'Raid');
     $('#battle-stage').className = 'battle-stage ' + (opts.mode==='catch' ? 'theme-catch' : 'theme-raid');
     spawnEmbers();
@@ -3572,27 +3735,27 @@
       p.cooldowns.healerSingle = Date.now();
       const healAmt = Math.max(1, Math.round((p.heal||0)*0.8));
       p.hp = Math.min(p.maxHp, p.hp+healAmt);
-      renderBattle();
+      Sound.playAbility(); flashCast('p'); renderBattle();
       battleLog('✚ '+p.name+' heals for '+healAmt+' HP!');
     } else if (role==='supporter'){
       if (!abilityReady(p,'supporter')) return;
       p.cooldowns.supporter = Date.now();
       battle.buff = { atkMult:1.3, defMult:1.25, expiresAt: Date.now()+8000 };
-      renderBattle();
+      Sound.playAbility(); flashCast('p'); renderBattle();
       battleLog('★ '+p.name+' buffs the team — harder hits, sturdier defense for 8s!');
     } else if (role==='attacker'){
       if (!abilityReady(p,'attacker')) return;
       p.cooldowns.attacker = Date.now();
       const dmg = computeDamage(p.atk*2.5, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
       battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
-      flashSprite('e'); popDamage('e', dmg, '#ffd23d'); renderBattle();
+      Sound.playAbility(); flashCast('p'); flashSprite('e'); popDamage('e', dmg, '#ffd23d'); renderBattle();
       battleLog('⚡ '+p.name+' unleashes a CHARGE ATTACK for '+dmg+'!');
       if (battle.enemy.hp<=0) endBattle(true);
     } else if (role==='tanker'){
       if (!abilityReady(p,'tanker')) return;
       p.cooldowns.tanker = Date.now();
       battle.fortify = { defMult:1.6, expiresAt: Date.now()+8000 };
-      renderBattle();
+      Sound.playAbility(); flashCast('p'); renderBattle();
       battleLog('🛡️ '+p.name+' fortifies — massive defense boost for 8s!');
     }
   };
@@ -3611,11 +3774,19 @@
       if (fill) fill.style.width = ally.hp+'%';
       healedAllies++;
     });
-    renderBattle();
+    Sound.playAbility(); flashCast('p'); renderBattle();
     battleLog('✚✚ '+p.name+' heals the whole team for '+healAmt+' HP each!');
   };
   function battleLog(msg){ $('#battle-log').textContent = msg; }
   function flashSprite(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
+  function flashCast(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('cast'); void el.offsetWidth; el.classList.add('cast'); }
+  // Cosmetic "an ally just did something" pulse on its roster chip, called on a timer from
+  // the ally-damage tick so group fights don't look static even though ally combat itself
+  // is simulated rather than fully played out move-by-move.
+  function flashAllyChip(i){
+    const chip = $('#ally-row').children[i]; if (!chip) return;
+    chip.classList.remove('acting'); void chip.offsetWidth; chip.classList.add('acting');
+  }
   function popDamage(who, val, color){
     const anchor = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite');
     const mid = $('#arena-mid'); const rect = anchor.getBoundingClientRect(); const parentRect = mid.getBoundingClientRect();
@@ -3626,7 +3797,10 @@
 
   function startBattleTimers(){
     clearBattleTimers();
-    const enemyDelay = Math.max(500, 1500 - battle.enemy.spd*4);
+    // spd is now a thousands-scale stat like everything else, so the old "*4" here would've
+    // floored this at 500ms for nearly every boss — bumping the floor to 900ms keeps raids
+    // from feeling like the boss is attacking faster than you can even watch it happen.
+    const enemyDelay = Math.max(900, 1500 - battle.enemy.spd*0.05);
     battle.timers.enemyTimer = setInterval(()=>{
       if (!battle || battle.over || battle.spectating) return;
       // A Tanker up front reduces the whole team's incoming hit via the Buff/Fortify def
@@ -3655,10 +3829,16 @@
         // While spectating (your own Toto already fell), there's no active Toto tanking —
         // your team just has to weather it on their own.
         const tanking = !battle.spectating && battle.player.role==='tanker';
+        // Real damage now, scaled down to this tick's cadence (900ms) against the ~3s a
+        // full "hit" is paced around elsewhere in this fight — so a Mythical ally with real
+        // Attacker stats actually puts a dent in an Eternal boss over time instead of the
+        // old flat 4-9 scratch that never mattered next to tens-of-thousands of boss HP.
         battle.allies.forEach((ally,i)=>{
           if (ally.hp<=0) return;
-          const dmg = 4+Math.random()*5;
+          const full = computeDamage(ally.atk||1, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
+          const dmg = full * 0.18;
           battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
+          if (Math.random()<0.35) flashAllyChip(i); // occasional "acting" pulse, not every tick
           if (!tanking){
             ally.hp = Math.max(0, ally.hp-(2+Math.random()*4));
             const fill = $('#ally-row').children[i] && $('#ally-row').children[i].querySelector('.ally-hp-fill');
@@ -3682,6 +3862,7 @@
     let dmg = computeDamage(atkPower, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
     if (weak) dmg = Math.round(dmg*0.35);
     battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
+    Sound.playAttack();
     flashSprite('e'); popDamage('e', dmg, '#fff'); renderBattle();
     battleLog(weak ? 'Low energy! Weak hit for '+dmg+'.' : 'You strike for '+dmg+'!');
     if (battle.enemy.hp<=0) endBattle(true);
@@ -3703,6 +3884,7 @@
     }
     battle.over = true; clearBattleTimers();
     if (won){
+      Sound.playVictory();
       const opp = battle.opponentTemplate;
       const teamCarried = !!battle.spectating;
       if (opp.tier === 'eternal'){
@@ -3717,6 +3899,7 @@
       showToast(battle.mode==='catch' ? ('Caught '+opp.name+'!') : (teamCarried ? ('Your team won it — '+opp.name+' joined you too!') : ('Raid won! '+opp.name+' joined you.')));
       renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     } else {
+      Sound.playDefeat();
       battleLog(battle.mode==='catch' ? (battle.opponentTemplate.name+' got away!') : (battle.spectating ? 'Your whole team was defeated...' : 'Your Toto was defeated — retreat!'));
       showToast('Defeated — better luck next time.');
     }
@@ -3725,6 +3908,7 @@
   $('#btn-eternal-catch').onclick = ()=>{
     if (!pendingEternalCatch) return;
     const caught = finalizeCatch(pendingEternalCatch);
+    Sound.playCatch();
     showToast('Caught '+caught.name+'! (PWR '+caught.cp+')');
     renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     closeCatchChoice();
