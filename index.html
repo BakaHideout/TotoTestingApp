@@ -89,17 +89,45 @@
   .divider { display:flex; align-items:center; gap:10px; color:#b3a6cf; font-size:10.5px; font-weight:700; margin: 1px 0; }
   .divider::before, .divider::after { content:''; flex:1; height:1px; background:#e5ddf7; }
 
+  /* ---------- TUTORIAL ---------- */
+  .tut-layer { position:absolute; inset:0; z-index:950; pointer-events:none; }
+  .tut-block { position:absolute; pointer-events:auto; background:transparent; }
+  .tut-ring { position:absolute; border-radius:16px; pointer-events:none; transition: left .25s, top .25s, width .25s, height .25s;
+    box-shadow:0 0 0 2px rgba(255,210,122,0.95), 0 0 18px 4px rgba(255,170,60,0.75), 0 0 0 4000px rgba(8,5,18,0.62); animation: tutPulse 1.6s ease-in-out infinite; }
+  .tut-ring.nohole { box-shadow:0 0 0 4000px rgba(8,5,18,0.62); animation:none; }
+  @keyframes tutPulse { 50% { box-shadow:0 0 0 3px rgba(255,236,170,1), 0 0 26px 8px rgba(255,170,60,0.9), 0 0 0 4000px rgba(8,5,18,0.62); } }
+  .tut-hand { position:absolute; font-size:34px; pointer-events:none; animation: tutTap 1s ease-in-out infinite; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6)); z-index:2; }
+  @keyframes tutTap { 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(-6px,-9px); } }
+  .tut-card { position:absolute; display:flex; gap:10px; align-items:flex-start; padding:14px 14px 10px; border-radius:18px; pointer-events:auto; color:#fff; z-index:3;
+    background:linear-gradient(180deg,#2c2150,#1a1233); border:2px solid #ffb347; box-shadow:0 12px 30px rgba(0,0,0,0.6), 0 0 16px rgba(255,160,60,0.35); transition: top .25s; }
+  .tut-guide { width:46px; height:46px; border-radius:12px; flex-shrink:0; box-shadow:0 3px 8px rgba(0,0,0,0.5); }
+  .tut-body { flex:1; min-width:0; }
+  .tut-step { font-size:10px; font-weight:800; color:#ffcf8a; letter-spacing:0.5px; text-transform:uppercase; }
+  .tut-title { font-size:16px; font-weight:800; margin:2px 0 4px; }
+  .tut-text { font-size:13px; line-height:1.42; color:#efe8ff; }
+  .tut-actions { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+  .tut-skip { background:none; border:none; color:#b9a8e0; font-weight:700; font-size:12px; cursor:pointer; padding:6px 2px; font-family:inherit; }
+  .tut-next { margin-left:auto; border:none; border-radius:12px; padding:9px 18px; font-family:inherit; font-weight:800; font-size:14px; color:#fff; background:linear-gradient(135deg,#ff9a3d,#ff5470); box-shadow:0 4px 10px rgba(255,90,80,0.45); cursor:pointer; }
+  /* practice-battle coach (inside the battle stage, so it turns with the battle screen) */
+  .bx-coach { position:absolute; top:70px; left:50%; transform:translateX(-50%); width:480px; display:none; align-items:center; gap:12px; padding:10px 14px; border-radius:16px; z-index:8; color:#fff; font-size:14px; font-weight:700; line-height:1.35;
+    background:linear-gradient(180deg, rgba(44,33,80,0.96), rgba(26,18,51,0.96)); border:2px solid #ffb347; box-shadow:0 8px 20px rgba(0,0,0,0.55); }
+  .bx-coach.show { display:flex; }
+  .bx-coach-text { flex:1; }
+  .bx-coach-next { flex-shrink:0; border:none; border-radius:10px; padding:8px 14px; font-family:inherit; font-weight:800; font-size:13px; color:#fff; background:linear-gradient(135deg,#ff9a3d,#ff5470); cursor:pointer; }
+  .bx-coach-hand { position:absolute; display:none; font-size:42px; z-index:9; pointer-events:none; animation: tutTap 1s ease-in-out infinite; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6)); }
+  .bx-coach-hand.show { display:block; }
+
   /* ---------- LOADING SCREEN ---------- */
   .loading-wrap { position:relative; height:100%; width:100%; overflow:hidden; background:#14101f; }
   /* Full width, natural height (not a full-bleed cover crop) so the whole banner — including
      the "TotoQuest" title text baked into the art — is always visible instead of getting cut
      off on tall/narrow phone screens. The loading bar/status sits in the space below it. */
-  .loading-bg-img { position:absolute; top:0; left:0; width:100%; height:auto; object-fit:contain; z-index:1; -webkit-mask-image:linear-gradient(to bottom, #000 82%, transparent 100%); mask-image:linear-gradient(to bottom, #000 82%, transparent 100%); }
+  .loading-bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 0%; z-index:1; }
   .loading-overlay, .loading-content { z-index:2; }
   /* the art fills the width; whatever screen is left below it gets a soft, blurred
      continuation of the same picture instead of a flat colour */
   .loading-wrap::before, .game-loading-wrap::before { content:''; position:absolute; inset:-30px; background:url(assets/loading-art.jpg) center bottom / cover no-repeat; filter: blur(18px) brightness(0.7) saturate(1.1); }
-  .loading-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(12,8,22,0) 0%, rgba(12,8,22,0) 52%, rgba(10,6,18,0.6) 70%, rgba(10,6,18,0.92) 90%, #0c0716 100%); }
+  .loading-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(12,8,22,0) 0%, rgba(12,8,22,0) 62%, rgba(10,6,18,0.7) 82%, rgba(10,6,18,0.9) 100%); }
   .loading-content { position:absolute; left:0; right:0; bottom:38px; padding:0 30px; display:flex; flex-direction:column; align-items:center; gap:9px; }
   .loading-status { color:#ffd899; font-weight:800; font-size:11.5px; letter-spacing:0.5px; text-transform:uppercase; text-shadow:0 2px 4px rgba(0,0,0,0.6); min-height:14px; }
   .loading-bar-track { width:100%; max-width:320px; height:15px; border-radius:10px; background:rgba(255,255,255,0.14); border:1.5px solid rgba(255,200,140,0.4); overflow:hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
@@ -1117,7 +1145,7 @@
   .mythical-glow { filter: drop-shadow(0 0 12px rgba(255,30,30,0.9)) drop-shadow(0 0 26px rgba(255,0,0,0.7)); animation: mythPulse 1.5s ease-in-out infinite; }
   @keyframes legendPulse { 0%,100%{ filter: drop-shadow(0 0 8px rgba(40,140,255,0.8)) drop-shadow(0 0 16px rgba(30,100,255,0.55)); } 50%{ filter: drop-shadow(0 0 18px rgba(70,170,255,1)) drop-shadow(0 0 34px rgba(30,110,255,0.9)); } }
   .legendary-glow { filter: drop-shadow(0 0 12px rgba(60,150,255,0.9)) drop-shadow(0 0 26px rgba(30,110,255,0.7)); animation: legendPulse 1.5s ease-in-out infinite, floaty 2.6s ease-in-out infinite; }
-  .toast { position:absolute; bottom:96px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:8px 16px; border-radius:20px; font-size:12.5px; font-weight:700; z-index:80; opacity:0; transition:opacity 0.25s; pointer-events:none;}
+  .toast { position:absolute; bottom:96px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:8px 16px; border-radius:20px; font-size:12.5px; font-weight:700; z-index:1000; opacity:0; transition:opacity 0.25s; pointer-events:none;}
   .toast.show { opacity:1; }
 </style>
 
@@ -1317,6 +1345,7 @@
         <button class="qm-btn" id="btn-leaderboard"><span class="nav-icon">🏆</span>Ranks</button>
         <button class="qm-btn" id="btn-diagnostics"><span class="nav-icon">🛠️</span>Map Status</button>
         <button class="qm-btn" id="btn-mute"><span class="nav-icon" id="btn-mute-icon">🔊</span>Sound</button>
+        <button class="qm-btn" id="btn-tutorial"><span class="nav-icon">📘</span>Tutorial</button>
       </div>
       <div class="pumpkin-fab-wrap">
         <div class="pumpkin-glow"></div>
@@ -1554,6 +1583,8 @@
         <button class="bx-menu-btn danger" id="btn-retreat">🏳️ Retreat</button>
         <button class="bx-menu-btn" id="bx-menu-close">Back to battle</button>
       </div>
+      <div class="bx-coach" id="bx-coach"><div class="bx-coach-text" id="bx-coach-text"></div><button class="bx-coach-next" id="bx-coach-next">Next</button></div>
+      <div class="bx-coach-hand" id="bx-coach-hand">👆</div>
       <div class="bx-banner" id="bx-banner"></div>
     </div>
     <div class="catch-choice-overlay" id="catch-choice-overlay">
@@ -2563,7 +2594,7 @@
     // (see runLoadingSequence), that in-flight/loaded world data lives on the state
     // object too, and replacing state wholesale used to throw it all away and start over
     // right as you reached the map, which was a chunk of the "lag" getting into a new game.
-    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle: !!viaGoogle });
+    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle: !!viaGoogle, tutorialDone:false });
     const ok = await saveNow(true);
     await rememberEmail(email);
     if (!ok) $('#reg-error').textContent = 'Could not reach save storage — you can still play, it will retry automatically.';
@@ -2645,6 +2676,14 @@
     locate();
     startLocateRetries();
     runMapLoadingOverlay();
+    // brand-new trainers get the tutorial as soon as the map is up (and again next time if
+    // they closed the app before finishing it)
+    if (state.tutorialDone === false || (isNew && !state.tutorialDone)){
+      const waitMap = setInterval(()=>{
+        const w = $('#game-loading-wrap');
+        if (!w || w.classList.contains('hide')){ clearInterval(waitMap); setTimeout(()=> Tutorial.start(), 700); }
+      }, 300);
+    }
     await saveNow(true);
   }
   // Keeps a cover screen up over the map for as long as it takes for something real to
@@ -3311,10 +3350,13 @@
     node.innerHTML = '<div class="node-ring"></div><div class="node-shadow"></div><div class="node-spin"><div class="node-orbit"><div class="node-orbit-fix"><div class="bubble">'+spriteMarkup(t)+'</div></div></div><div class="cp-tag">PWR '+t.cp+'</div><div class="dist-tag">…m</div></div>';
     t._distEl = node.querySelector('.dist-tag');
     t._node = node;
+    if (!t._expiresAt) t._expiresAt = Date.now() + WILD_LIFETIME_MS;
     node.onclick = ()=> tryStartEncounter(t);
     $('#toto-layer').appendChild(node);
   }
-  const RESPAWN_DELAY_MS = 3*60*1000; // a caught spot re-spawns something after ~3 minutes
+  const RESPAWN_DELAY_MS = 60*1000;          // a caught spot gets a new Toto a minute later
+  const WILD_LIFETIME_MS = 3*60*1000;        // a wild Toto wanders off after 3 minutes …
+  const WILD_REPLACE_DELAY_MS = 60*1000;     // … and a new one turns up in the same spot a minute after that
   const AMBIENT_SPAWN_INTERVAL_MS = 12*1000; // check fairly often, keeps the area from ever feeling empty
   const NEARBY_KEEP_MIN = 6, NEARBY_KEEP_MAX = 9; // aim to always have this many within easy walking reach
   const NEARBY_RADIUS_M = 200;
@@ -3338,22 +3380,42 @@
     state.wildTotos.push(t);
     appendTotoNode(t);
     refreshNodeDistances();
+    return t;
   }
-  // Guarantees 4 wild Totos are standing right around the player the instant they log in,
+  // Guarantees 3 wild Totos are standing right around the player the instant they log in,
   // instead of waiting on the wider chunk system (which scatters its 5-7-per-chunk spawns
   // anywhere across a 350m chunk, so the nearest one could easily start out well outside
   // the visible screen). Called once as soon as the world is built around a fresh GPS
-  // anchor — close range (24-70m) so all 4 are on-screen immediately.
+  // anchor — close range (12-34m) so all 3 are on-screen and catchable straight away.
   function spawnStartingTotosNearPlayer(){
     if (!state.playerWorldPos) return;
-    const n = 4;
+    const n = 3;   // 2-3 right around you, all close enough to catch
     for (let i=0;i<n;i++){
       const ang = (Math.PI*2*i/n) + (Math.random()-0.5)*0.7;
-      const distM = 24 + Math.random()*46;
+      const distM = 12 + Math.random()*22;
       const px = state.playerWorldPos.x + Math.cos(ang)*distM*GPS_SCALE;
       const py = state.playerWorldPos.y + Math.sin(ang)*distM*GPS_SCALE;
       spawnWildTotoAt(px, py, null);
     }
+  }
+  // Despawns: every wild Toto leaves after its 3 minutes (not while you're catching it),
+  // and a fresh one appears on that same spot a minute later.
+  if (!window.__totoDespawnTimer){
+    window.__totoDespawnTimer = setInterval(()=>{
+      if (!state || !state.wildTotos || !state.wildTotos.length) return;
+      const now = Date.now(); let gone = 0;
+      state.wildTotos.slice().forEach(t=>{
+        if (!t._expiresAt || t._expiresAt > now || t._hold || pendingCatch === t) return;
+        const x = t._x, y = t._y, ck = t._chunkKey, anchor = state.geoAnchor;
+        removeTotoFromMap(t); gone++;
+        setTimeout(()=>{
+          if (state.geoAnchor !== anchor || !state.playerWorldPos) return;
+          if (distanceMetersToWorldPoint(x, y) > PRUNE_RADIUS_M) return;
+          spawnWildTotoAt(x, y, ck);
+        }, WILD_REPLACE_DELAY_MS);
+      });
+      if (gone) refreshNodeDistances();
+    }, 2000);
   }
   if (!window.__totoAmbientSpawnTimer){
     window.__totoAmbientSpawnTimer = setInterval(()=>{
@@ -3597,6 +3659,8 @@
         const pos = worldPosFromMeters(east, north);
         const t = makeToto(rand(s+2) < 0.05 ? 'legendary' : 'normal');
         t._x = pos.x; t._y = pos.y; t._chunkKey = chunkKey(cx, cy);
+        // scattered spawns have already been around a while, so they don't all leave at once
+        t._expiresAt = Date.now() + WILD_LIFETIME_MS*(0.4 + rand(s+5)*0.6);
         state.wildTotos.push(t);
         appendTotoNode(t);
       }
@@ -4583,7 +4647,13 @@
     const distM = distanceMetersToWorldPoint(t._x, t._y);
     if (distM > WILD_RADIUS_M){ showToast('Too far ('+Math.round(distM)+'m) — get within '+WILD_RADIUS_M+'m of it.'); return; }
     pendingCatch = t;
-    $('#enc-sprite').innerHTML = spriteMarkup(t); $('#enc-name').textContent = t.name; $('#enc-sub').textContent = 'PWR '+t.cp+' · normal';
+    $('#enc-sprite').innerHTML = spriteMarkup(t); $('#enc-name').textContent = t.name;
+    const sub = ()=>{
+      const left = Math.max(0, (t._expiresAt||0) - Date.now());
+      $('#enc-sub').textContent = 'PWR '+t.cp+' · '+(t.tier||'normal')+(t._expiresAt && !t._hold ? ' · ⏳ leaves in '+Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0') : '');
+    };
+    sub(); clearInterval(window.__encTimer);
+    window.__encTimer = setInterval(()=>{ if (!$('#encounter-modal').classList.contains('active')){ clearInterval(window.__encTimer); return; } sub(); }, 1000);
     $('#encounter-modal').classList.add('active');
   }
   $$('[data-close-enc]').forEach(x=> x.onclick = ()=>{ $('#encounter-modal').classList.remove('active'); pendingCatch=null; });
@@ -4598,7 +4668,7 @@
     renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     $('#encounter-modal').classList.remove('active');
     pendingCatch = null;
-    // Something new will turn up at roughly this same spot after a few minutes.
+    // Something new turns up on this same spot a minute later.
     setTimeout(()=>{ spawnWildTotoAt(respawnX, respawnY, respawnChunk); }, RESPAWN_DELAY_MS);
   };
   function tryStartGymRaid(gym){
@@ -5840,6 +5910,13 @@
                startedAt:now, nextBossAt: now + 1800, nextSweepAt: now + SWEEP_EVERY_MS, sweepWarned:false,
                timers:{}, auto:false, over:false, spectating:false, targeting:null };
     allies.forEach((f,i)=>{ f.thinkAt = now + 1200 + i*400; f.swingAt = now + 500 + i*250; });
+    // the tutorial's practice fight: a gentle opponent that goes down in ~15 good hits
+    battle.practice = !!opts.practice;
+    if (battle.practice){
+      const hit = enemy.unit * (ROLE_BASIC_MULT[player.role] || 0.4) * player.atk/(player.atk + enemy.def);
+      enemy.maxHp = enemy.hp = Math.max(40, Math.round(hit*15));
+      battle.bossK = 0.0012; battle.nextBossAt = now + 3000; battle.coach = { i:0 }; battle.coachHits = 0;
+    }
     $('#btn-auto').classList.remove('on');
     $('#bx-bg').style.backgroundImage = 'url(assets/battle/'+(battle.kind==='shrine' ? 'village-blood' : 'village')+'.jpg)';
     $('#bx-menu').classList.remove('show');
@@ -5853,7 +5930,8 @@
     renderBattle();
     lockLandscape();
     battleLog(opts.mode==='catch' ? 'A wild '+enemy.name+' appears!' : enemy.name+' blocks the way!', true);
-    if (!player.kit.length) setTimeout(()=>{ if (battle && !battle.over) battleLog('Tip: your Toto learns its first ability at Lv 10 — check the Totos tab', true); }, 2600);
+    renderCoach();
+    if (!battle.practice && !player.kit.length) setTimeout(()=>{ if (battle && !battle.over) battleLog('Tip: your Toto learns its first ability at Lv 10 — check the Totos tab', true); }, 2600);
     else if (!group && player.role !== 'attacker') setTimeout(()=>{ if (battle && !battle.over) battleLog('Tip: '+(ROLE_INFO[player.role]||{label:'This role'}).label+'s shine in Group Battles — attackers deal the damage', true); }, 2600);
     startBattleTimers();
   }
@@ -5913,7 +5991,35 @@
       if (now >= f.swingAt) heroSwing(f);
     });
     if (battle && !battle.over && now - (battle.lastRender||0) > 200){ battle.lastRender = now; renderBattle(); }
+    if (battle && battle.practice) coachTick();
   }
+  const PRACTICE_COACH = [
+    { text:'This is a battle! Your Toto is on the left and the wild Toto is in the middle — its health bar is at the top.', next:true },
+    { text:'Tap CHARGE ATTACK to hit it. It recharges in about a second — watch the glow fill back up.', target:'#btn-attack', until:()=> (battle.coachHits||0) >= 3 },
+    { text:'These five slots are your abilities. Your Toto learns a new one every 10 levels (tap Learn in the Totos tab), then you use them here.', target:'#bx-abilities', next:true },
+    { text:'Tap AUTO and your Toto fights all by itself — abilities too.', target:'#btn-auto', until:()=> !!battle.auto },
+    { text:'That\'s it — finish it off! ⚔️' }
+  ];
+  function renderCoach(){
+    const box = $('#bx-coach'), hand = $('#bx-coach-hand');
+    if (!battle || !battle.practice || battle.over){ box.classList.remove('show'); hand.classList.remove('show'); return; }
+    const st = PRACTICE_COACH[battle.coach.i];
+    if (!st){ box.classList.remove('show'); hand.classList.remove('show'); return; }
+    $('#bx-coach-text').textContent = st.text;
+    $('#bx-coach-next').style.display = st.next ? '' : 'none';
+    box.classList.add('show');
+    coachTick();
+  }
+  function coachTick(){
+    if (!battle || !battle.practice) return;
+    const st = PRACTICE_COACH[battle.coach.i], hand = $('#bx-coach-hand');
+    if (!st){ hand.classList.remove('show'); return; }
+    if (st.until && st.until()){ battle.coach.i++; renderCoach(); return; }
+    const t = st.target ? $(st.target) : null;
+    if (t){ const c = bxCenterOf(t, 0.5); hand.style.left = (c.x - 6)+'px'; hand.style.top = (c.y - 6)+'px'; hand.classList.add('show'); }
+    else hand.classList.remove('show');
+  }
+  $('#bx-coach-next').onclick = ()=>{ if (battle && battle.practice){ battle.coach.i++; renderCoach(); } };
   function startBattleTimers(){
     clearBattleTimers();
     battle.timers.loop = setInterval(battleLoop, 100);
@@ -5926,7 +6032,7 @@
     if (!battle || battle.over) return;
     if (battle.spectating || battle.player.hp <= 0){ battleLog('Your Toto is down — your team fights on!', true); return; }
     const d = heroSwing(battle.player);
-    if (d){ Sound.playAttack(); renderBattle(); }
+    if (d){ Sound.playAttack(); if (battle.practice) battle.coachHits = (battle.coachHits||0) + 1; renderBattle(); }
   }
   $('#btn-attack').onclick = doPlayerAttack;
   $('#btn-auto').onclick = ()=>{
@@ -5942,6 +6048,8 @@
   $('#bx-menu-sound').onclick = ()=>{ const mb = $('#btn-mute'); if (mb) mb.click(); $('#bx-menu-sound').textContent = (Sound.isMuted && Sound.isMuted() ? '🔇' : '🔊')+' Sound'; };
 
   function closeBattleScreen(){
+    if (battle && battle.practice) window.__tutorialPracticeDone = true;
+    $('#bx-coach').classList.remove('show'); $('#bx-coach-hand').classList.remove('show');
     $('#battle-screen').classList.remove('active');
     $('#bx-menu').classList.remove('show');
     unlockOrientation();
@@ -5987,6 +6095,12 @@
       Sound.playVictory();
       const opp = battle.opponentTemplate;
       const teamCarried = !!battle.spectating;
+      if (battle.practice){
+        battleLog('Practice complete! Every battle gives your Toto XP — and beating a gym or shrine boss wins it for your team.', true);
+        renderCoach();
+        setTimeout(closeBattleScreen, 1900);
+        return;
+      }
       if (opp.tier === 'eternal'){
         battleLog('Victory! '+opp.name+' stands before you, weakened...');
         pendingEternalCatch = opp;
@@ -6026,6 +6140,219 @@
     closeBattleScreen();
   }
   $('#btn-retreat').onclick = ()=>{ if (battle){ clearBattleTimers(); } closeBattleScreen(); };
+
+  // ================= TUTORIAL (new trainers) =================
+  // Runs once after sign-up + starter pick (and any time from the menu's "Tutorial"
+  // button). Each step dims the screen except the thing it's talking about, explains it,
+  // and either waits for "Next" or for the player to actually do it (catch a Toto, open
+  // the menu, open a Toto's abilities …). It ends with a short practice battle that has
+  // its own coach inside the battle screen, and 100 candy for finishing.
+  const Tutorial = (()=>{
+    let steps = [], i = -1, layer = null, ticker = null, running = false, tutToto = null, startCatches = 0;
+    const root = ()=> document.getElementById('toto-root');
+    const q = sel=> document.querySelector(sel);
+    function totoBox(t){
+      if (!t || !t._node || !t._node.isConnected) return null;
+      const h = window.__toto3dHitBox && window.__toto3dHitBox(t.id);
+      if (h) return { left:h.x0, top:h.y0, width:h.x1-h.x0, height:h.y1-h.y0 };
+      const b = t._node.querySelector('.bubble') || t._node;
+      const r = b.getBoundingClientRect();
+      return r.width ? { left:r.left-6, top:r.top-6, width:r.width+12, height:r.height+12 } : null;
+    }
+    // The map spot that shows up (sx, sy) pixels away from your trainer on screen (the map
+    // can be turned, zoomed and tilted, so measure it with two invisible markers).
+    function worldOffsetForScreen(sx, sy){
+      const layer = $('#toto-layer'), P = state.playerWorldPos, k = 100;
+      const mk = (x,y)=>{ const d = document.createElement('div'); d.style.cssText = 'position:absolute;width:0;height:0;left:'+x+'px;top:'+y+'px'; layer.appendChild(d); const r = d.getBoundingClientRect(); d.remove(); return { x:r.left, y:r.top }; };
+      const o = mk(P.x, P.y), ex = mk(P.x+k, P.y), ey = mk(P.x, P.y+k);
+      const ax = (ex.x-o.x)/k, ay = (ex.y-o.y)/k, bx = (ey.x-o.x)/k, by = (ey.y-o.y)/k;
+      const det = ax*by - bx*ay;
+      if (!isFinite(det) || Math.abs(det) < 1e-6) return { x:sx, y:sy };
+      return { x:(sx*by - bx*sy)/det, y:(ax*sy - ay*sx)/det };
+    }
+    function ensureTutorialToto(){
+      if (tutToto && state.wildTotos.includes(tutToto)) return tutToto;
+      if (!state.playerWorldPos) return null;
+      // beside your trainer on screen (clear of it, and of the speech card), on whichever
+      // side has the most room from the other Totos — and always close enough to catch
+      const P = state.playerWorldPos;
+      let bestPt = null, bestRoom = -1;
+      // (straight out to the side: the map's tilt squashes up/down distances, and anything
+      // just behind your trainer would be hidden by it)
+      [[130,12],[-130,12],[130,-30],[-130,-30]].forEach(([sx,sy])=>{
+        const w = worldOffsetForScreen(sx, sy);
+        const m = Math.hypot(w.x, w.y)/GPS_SCALE, f = m > 36 ? 36/m : (m < 14 ? 14/Math.max(1,m) : 1);
+        const pt = { x:P.x + w.x*f, y:P.y + w.y*f };
+        const room = state.wildTotos.reduce((m,o)=> Math.min(m, Math.hypot(o._x-pt.x, o._y-pt.y)/GPS_SCALE), 999);
+        if (room > bestRoom + 4){ bestRoom = room; bestPt = pt; }
+      });
+      const x = bestPt.x, y = bestPt.y;
+      tutToto = spawnWildTotoAt(x, y, null) || null;
+      if (!tutToto && state.wildTotos.length){   // map's full — make room by sending the farthest one home
+        const far = state.wildTotos.slice().sort((a,b)=> distanceMetersToWorldPoint(b._x,b._y) - distanceMetersToWorldPoint(a._x,a._y))[0];
+        removeTotoFromMap(far);
+        tutToto = spawnWildTotoAt(x, y, null) || null;
+      }
+      if (tutToto) tutToto._hold = true;          // it waits for you — no wandering off mid-lesson
+      return tutToto;
+    }
+    function closeAll(){
+      try { $('#quick-menu').classList.remove('show'); $('#quick-menu-backdrop').classList.remove('show'); } catch(e){}
+      try { $('#detail-modal').classList.remove('active'); } catch(e){}
+      openGamePanel('map');
+    }
+    function keepDetail(){
+      if ($('#detail-modal').classList.contains('active') || !state.collection.length) return;
+      openGamePanel('totos'); openDetail(state.collection.slice().sort((a,b)=> (b.cp||0)-(a.cp||0))[0].id);
+    }
+    function makeSteps(){
+      const name = state.username || 'Trainer';
+      return [
+        { title:'Welcome to TotoQuest, '+name+'! 🎃', text:'Totos — spooky little monsters — are hiding all around the real world. I\'ll show you how everything works. It only takes a couple of minutes.' },
+        { title:'This is you', target:()=> q('#player-avatar'), text:'Your trainer stands where you are. Walk around in real life and your trainer walks with you. The map is your real neighbourhood — streets, houses, parks and ball fields.' },
+        { title:'Look around', text:'Drag with one finger to turn the map. Pinch with two fingers to zoom in and out.' },
+        { title:'A wild Toto!', enter: ensureTutorialToto, target:()=> totoBox(ensureTutorialToto()), text:'Wild Totos stand on glowing rings. The tag shows its power (PWR) and how far away it is. When the distance turns green you\'re close enough to catch it — within 40 m.' },
+        { title:'Catch it', target:()=> totoBox(ensureTutorialToto()), tap:true, text:'Tap the Toto.', until:()=> $('#encounter-modal').classList.contains('active') },
+        { title:'Throw!', target:()=> q('#btn-throw'), tap:true, cardAt:'top', text:'Tap Throw to catch it. Every Toto you catch starts at Lv 1 — you train it up yourself.', until:()=> state.collection.length > startCatches,
+          keep:()=>{ if (!$('#encounter-modal').classList.contains('active') && state.collection.length <= startCatches) go(i-1); },   // ran away? try again
+          leave:()=>{ if (tutToto) tutToto._hold = false; } },
+        { title:'Totos nearby', target:()=> q('#hud-nearby-chip'), text:'This counts the Totos near you. Wild Totos wander off after 3 minutes, and a new one turns up in the same spot a minute later — so keep checking around!' },
+        { title:'Candy & gems', target:()=> q('#hud-candy-chip'), text:'Candy levels up your Totos. Grab the candy corn you spot on the map for free candy. Gems (just below) are for the Store.' },
+        { title:'Real time & weather', target:()=> q('#hud-daynight'), text:'The map follows your real time of day and weather.' },
+        { title:'The menu', target:()=> q('#btn-menu'), tap:true, text:'Tap the pumpkin to open the menu.', until:()=> $('#quick-menu').classList.contains('show') },
+        { title:'Your Totos', target:()=> q('.qm-btn[data-tab="totos"]'), tap:true, text:'Tap Totos to see your collection.', until:()=> !!q('.panel-screen[data-panel="totos"].active'),
+          keep:()=>{ if (!$('#quick-menu').classList.contains('show')){ $('#quick-menu').classList.add('show'); $('#quick-menu-backdrop').classList.add('show'); } } },
+        { title:'Your collection', target:()=> q('#toto-sort-bar'), text:'All your Totos live here. Sort them strongest-first or weakest-first, and use Transfer (top) to swap extras for candy.' },
+        { title:'Open a Toto', target:()=> q('#toto-collection .toto-card'), tap:true, text:'Tap a Toto to see everything about it.', until:()=> $('#detail-modal').classList.contains('active'),
+          keep:()=>{ if (!q('.panel-screen[data-panel="totos"].active')) openGamePanel('totos'); } },
+        { title:'Levels & XP', keep:keepDetail, target:()=> q('#det-xp') && q('#det-xp').innerHTML ? q('#det-xp') : q('#det-sub'), text:'Its level and XP. Totos earn XP from every battle they fight — or level up instantly with candy using Power Up.' },
+        { title:'Abilities', keep:keepDetail, enter:()=>{ const b = q('.moves-box'); if (b) b.scrollIntoView({ block:'center' }); }, target:()=> q('.moves-box'),
+          text:'Every Toto has a role — Attacker, Tank, Healer or Support — and learns a new role ability at Lv 10, 20, 30, 40 and 50. When one unlocks, tap Learn here. Learned abilities appear in battle.' },
+        { title:'Gyms', enter:()=>{ closeAll(); openGamePanel('battle'); }, target:()=> q('#battle-shrine-list > *') || q('.panel-screen[data-panel="battle"] .panel-header'),
+          text:'Pumpkin towers on the map are gyms — this list shows the ones near you. Walk right up to one to battle its champion. Win, and the champion joins your team.' },
+        { title:'Challenger Shrines', enter:()=> openGamePanel('challenger'), target:()=> q('#challenger-list > *') || q('.panel-screen[data-panel="challenger"] .panel-header'),
+          text:'Mighty Eternal guardians you can battle from anywhere — alone or in a group. They\'re tough: train your Totos first, or bring a team with a Tank, Healer and Support.' },
+        { title:'Practice battle', enter:closeAll, text:'Let\'s try a quick practice battle with your Toto. I\'ll show you the controls.', nextLabel:'Start battle ⚔️' },
+        { practice:true },
+        { title:'Teamwork', text:'In Group Battles, each Toto plays its role: Tanks can Taunt so the boss attacks only them, Healers keep everyone alive, Supports protect and power up the team, and Attackers deal the big damage. For a heal or shield, tap the ability, then tap who on the team list.' },
+        { title:'Your trainer', target:()=> q('#hud-avatar'), text:'Tap your picture to customize your outfit (earn new clothes as you level) or open your Profile, where the Store lives.' },
+        { title:'More in the menu', enter:()=>{ $('#quick-menu').classList.add('show'); $('#quick-menu-backdrop').classList.add('show'); }, target:()=> q('#quick-menu'),
+          text:'Dex tracks every kind of Toto you\'ve found, Ranks shows the top trainers, and Tutorial plays this lesson again any time.', leave:closeAll },
+        { title:'You\'re ready! 🎃', text:'Here are 100 candy to get you started. Go catch some Totos!', nextLabel:'Let\'s go!' }
+      ];
+    }
+    function ensureLayer(){
+      if (layer) return layer;
+      layer = document.createElement('div');
+      layer.id = 'tut-layer'; layer.className = 'tut-layer';
+      layer.innerHTML = '<div class="tut-block" data-b="t"></div><div class="tut-block" data-b="b"></div><div class="tut-block" data-b="l"></div><div class="tut-block" data-b="r"></div>'
+        + '<div class="tut-ring"></div><div class="tut-hand">👆</div>'
+        + '<div class="tut-card"><img class="tut-guide" src="assets/brand/icon-192.png" alt=""><div class="tut-body"><div class="tut-step"></div><div class="tut-title"></div><div class="tut-text"></div>'
+        + '<div class="tut-actions"><button class="tut-skip">Skip tutorial</button><button class="tut-next">Next</button></div></div></div>';
+      root().appendChild(layer);
+      layer.querySelector('.tut-next').onclick = ()=> next();
+      layer.querySelector('.tut-skip').onclick = ()=>{ if (confirm('Skip the tutorial? You can replay it from the menu any time.')) finish(true); };
+      return layer;
+    }
+    function rectOf(t){
+      if (!t) return null;
+      if (t.getBoundingClientRect){ const r = t.getBoundingClientRect(); if (!r.width && !r.height) return null; return { left:r.left, top:r.top, width:r.width, height:r.height }; }
+      return t;
+    }
+    function place(){
+      if (!running || !layer) return;
+      const s = steps[i]; if (!s || s.practice) return;
+      const rr = root().getBoundingClientRect(), W = rr.width, H = rr.height;
+      let tr = null;
+      try { tr = s.target ? rectOf(s.target()) : null; } catch(e){ tr = null; }
+      const pad = 8;
+      const hole = tr ? { x:Math.max(0, tr.left - rr.left - pad), y:Math.max(0, tr.top - rr.top - pad), w:tr.width + pad*2, h:tr.height + pad*2 } : null;
+      const ring = layer.querySelector('.tut-ring'), hand = layer.querySelector('.tut-hand');
+      const B = k=> layer.querySelector('.tut-block[data-b="'+k+'"]');
+      const box = (el, x, y, w, h)=>{ el.style.left = x+'px'; el.style.top = y+'px'; el.style.width = Math.max(0,w)+'px'; el.style.height = Math.max(0,h)+'px'; };
+      if (hole && s.tap){
+        // only the highlighted thing can be tapped
+        box(B('t'), 0, 0, W, hole.y); box(B('b'), 0, hole.y+hole.h, W, H-hole.y-hole.h);
+        box(B('l'), 0, hole.y, hole.x, hole.h); box(B('r'), hole.x+hole.w, hole.y, W-hole.x-hole.w, hole.h);
+      } else { box(B('t'), 0, 0, W, H); box(B('b'),0,0,0,0); box(B('l'),0,0,0,0); box(B('r'),0,0,0,0); }
+      ring.classList.toggle('nohole', !hole);
+      if (hole) box(ring, hole.x, hole.y, hole.w, hole.h);
+      else box(ring, W/2, H/2, 0, 0);
+      hand.style.display = (hole && s.tap) ? '' : 'none';
+      if (hole && s.tap){ hand.style.left = (hole.x + hole.w*0.62)+'px'; hand.style.top = (hole.y + hole.h*0.62)+'px'; }
+      // the speech card sits below the highlight if it's in the top half, otherwise above
+      const card = layer.querySelector('.tut-card');
+      const ch = card.offsetHeight || 150, cw = Math.min(360, W - 24);
+      card.style.width = cw+'px'; card.style.left = ((W - cw)/2)+'px';
+      let top;
+      if (s.cardAt === 'top') top = 12;
+      else if (!hole) top = (H - ch)/2;
+      else if (hole.y + hole.h/2 < H*0.5) top = Math.min(H - ch - 12, hole.y + hole.h + 14);
+      else top = Math.max(12, hole.y - ch - 14);
+      card.style.top = top+'px';
+    }
+    function render(){
+      const s = steps[i];
+      ensureLayer();
+      if (s.practice){ layer.style.display = 'none'; return; }
+      layer.style.display = '';
+      layer.querySelector('.tut-step').textContent = 'Tutorial · '+(i+1)+' / '+steps.length;
+      layer.querySelector('.tut-title').textContent = s.title || '';
+      layer.querySelector('.tut-text').textContent = s.text || '';
+      const nb = layer.querySelector('.tut-next');
+      nb.style.display = s.until ? 'none' : '';
+      nb.textContent = s.nextLabel || (i === steps.length-1 ? 'Finish' : 'Next');
+      layer.querySelector('.tut-skip').style.display = i === steps.length-1 ? 'none' : '';
+      place();
+      setTimeout(place, 60); setTimeout(place, 400);
+    }
+    function go(k){
+      const prev = steps[i];
+      if (prev && prev.leave) { try { prev.leave(); } catch(e){} }
+      i = k;
+      if (i >= steps.length){ finish(false); return; }
+      const s = steps[i]; s._fired = false;
+      if (s.enter){ try { s.enter(); } catch(e){} }
+      if (s.practice) startPractice();
+      render();
+    }
+    function next(){ go(i+1); }
+    function startPractice(){
+      const lead = state.collection.slice().sort((a,b)=> (b.cp||0)-(a.cp||0))[0];
+      if (!lead){ setTimeout(next, 50); return; }
+      const opp = makeToto('normal'); applyLevelStats(opp, 1);
+      window.__tutorialPracticeDone = false;
+      launchBattle({ mode:'solo', kind:'gym', opponent:opp, team:[lead], allies:[], practice:true });
+    }
+    function tick(){
+      if (!running) return;
+      const s = steps[i]; if (!s) return;
+      if (s.practice){ if (window.__tutorialPracticeDone && !$('#battle-screen').classList.contains('active')) next(); return; }
+      if (s.until && !s._fired){ let ok = false; try { ok = s.until(); } catch(e){} if (ok){ s._fired = true; setTimeout(()=>{ if (steps[i] === s) next(); }, 350); return; } }
+      if (s.keep && !s._fired){ try { s.keep(); } catch(e){} if (steps[i] !== s) return; }
+      place();
+    }
+    function start(){
+      if (running) return;
+      running = true; steps = makeSteps(); i = -1;
+      startCatches = state.collection.length;
+      closeAll();
+      ensureLayer();
+      ticker = setInterval(tick, 200);
+      next();
+    }
+    function finish(skipped){
+      running = false; clearInterval(ticker); ticker = null;
+      if (tutToto){ tutToto._hold = false; tutToto = null; }
+      if (layer){ layer.remove(); layer = null; }
+      closeAll();
+      if (!state.tutorialDone && !skipped){ state.candy += 100; refreshHUD(); showToast('🎃 Tutorial complete — +100 candy!'); }
+      state.tutorialDone = true; markDirty(); saveNow(false);
+    }
+    return { start, isRunning: ()=> running };
+  })();
+  window.TotoTutorial = Tutorial;
+  $('#btn-tutorial').onclick = ()=>{ closeQuickMenu(); Tutorial.start(); };
 
   // ---------------- BOOT: stay logged in until an explicit Logout ----------------
   // ---------------- LOADING SCREEN ----------------
@@ -6101,7 +6428,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v43';
+window.TQ_APP_VERSION = 'v44';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -7773,6 +8100,8 @@ window.TQ_APP_VERSION = 'v43';
       if (m.label && m.label.parentNode) m.label.parentNode.removeChild(m.label);
     }
 
+    // where a creature is drawn on screen (the tutorial points at it)
+    window.__toto3dHitBox = id=>{ const m = mounts.get(id); return m && m.hit && m.group.visible ? m.hit : null; };
     // Taps on the drawn creature (which can extend above its invisible DOM marker now
     // that it stands upright) are routed back to that toto's own marker click.
     let downAt = null;
