@@ -207,6 +207,16 @@
      sell the contact. */
   .player-avatar { font-size:52px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.45)) drop-shadow(0 2px 3px rgba(0,0,0,0.3)); animation: idleStand 2.6s ease-in-out infinite; transform-origin:50% 100%; } .player-avatar .player-avatar-svg { width:0.85em; height:1.19em; }
   .player-avatar.walking { animation: walkBounce 0.5s ease-in-out infinite; }
+  /* True 3D player avatar (WebGL canvas), mounted by mountPlayer3D() in place of the flat
+     front/back image once Three.js is confirmed available on this device. The idle/walk
+     motion for this one lives INSIDE the 3D scene (real leg/arm swing), so the outer 2D
+     bounce/rock animation above is turned off here to avoid double-animating — the ".is-3d"
+     class is only ever added once the 3D model has actually mounted successfully, so a
+     device that can't run WebGL silently keeps the original flat-sprite look exactly as
+     before, animation and all. */
+  .player-avatar.is-3d { animation:none !important; filter:none; }
+  .player-avatar.is-3d.walking { animation:none !important; }
+  .player-avatar-3d { display:block; width:92px; height:124px; }
   @keyframes idleStand { 0%,100%{ transform:translateY(0) scale(1,1); } 50%{ transform:translateY(0) scale(1.015,0.985); } }
   @keyframes walkBounce {
     0%,100% { transform: translateY(0) rotate(0deg) scale(1,1); }
@@ -2144,8 +2154,19 @@
   };
 
   async function enterGame(isNew){
+    // Exposes the SAME state object (not a copy) to the 3D-avatar module script below —
+    // login/register swap in a whole new state object via Object.assign, and this call
+    // always runs right after either of those, so re-pointing the alias here keeps it
+    // correct across logins without touching every place state gets reassigned.
+    window.__gameState = state;
     const avFront = frontAvatarMarkup(state.avatar, true), avBack = backAvatarMarkup(state.avatar, true);
     $('#hud-avatar').innerHTML = avFront; $('#player-avatar').innerHTML = avBack; $('#profile-avatar').innerHTML = avFront;
+    // Try to upgrade the flat on-map marker to a real rotatable 3D model. This is purely
+    // additive: if the 3D module hasn't finished loading yet (slow network) we stash the
+    // gender and it mounts itself as soon as it's ready; if WebGL/Three.js is unavailable
+    // on this device, mountPlayer3D never gets defined and the 2D image set just above
+    // stays exactly as the display, untouched.
+    if (window.mountPlayer3D) window.mountPlayer3D(state.avatar); else window.__pendingPlayer3DGender = state.avatar;
     $('#avatar-corn-l').innerHTML = CANDY_ICON; $('#avatar-corn-r').innerHTML = CANDY_ICON;
     $('#profile-name').textContent = state.username;
     $('#profile-email').textContent = state.email; $('#profile-gender').textContent = state.gender; $('#profile-age').textContent = state.age;
@@ -4420,6 +4441,310 @@
     // Absolute last-resort fallback so a tap can never end up doing nothing.
     setTimeout(finishAndReload, 3000);
   });
+})();
+</script>
+
+<!-- Three.js is vendored locally under assets/vendor/ (MIT-licensed, see
+     THREE_JS_LICENSE.txt there) rather than pulled from a CDN at runtime — same
+     self-contained-PWA pattern as every other asset in this app, works fully
+     offline once installed, and the existing service worker below already
+     network-first/cache-falls-back it like any other same-origin file. -->
+<script type="importmap">
+{ "imports": { "three": "./assets/vendor/three.module.min.js" } }
+</script>
+<script type="module">
+// ============================================================================
+// PHASE 1 — real 3D player avatar + orbit camera (Three.js), additive only.
+// ----------------------------------------------------------------------------
+// This is a self-contained layer bolted onto the existing 2D GPS map game. It
+// does not touch the map, GPS, nodes, battles, inventory, or progression — it
+// only replaces what's drawn INSIDE the on-map "player-avatar" marker, and
+// only once this device/browser is confirmed to support WebGL. If anything
+// here goes wrong (WebGL missing, the CDN blocked, an old browser) it fails
+// silently and the original flat front/back sprite set in enterGame() in the
+// main game script above stays exactly as the display — nothing to repair.
+//
+// Camera vs. facing, kept separate the way a third-person game camera should be:
+//   - state.viewOrbit (declared in the main game script) already tracked "how
+//     far you've dragged the camera around your character" for the old 2D
+//     marker, which swapped between two flat images at the halfway points of
+//     the orbit. This reuses that exact same number as the angle a real 3D
+//     camera orbits around the 3D model instead — smooth and continuous, not
+//     a two-image swap, so every angle in between is visible, not just front
+//     and back.
+//   - The character model itself never rotates to follow the camera — it has
+//     one fixed facing. (There's no free-roam "move in a direction and turn
+//     to face it" concept to hook into here — this is a top-down GPS map
+//     where the world pans under a screen-fixed marker — so there's nothing
+//     that would ever turn the model, which is what keeps camera orbit and
+//     character facing fully decoupled, same as the brief asked for.)
+//
+// Equip slots are a plain data object (PLAYER_EQUIP_CATALOG, exposed on
+// window) read by buildPlayerModel() — swapping an item later from a future
+// customization screen is just changing a value in that object and calling
+// mountPlayer3D(gender) again to rebuild. Any slot can optionally point at a
+// real .glb file (slot.modelUrl) loaded with GLTFLoader; with no URL it falls
+// back to the procedural low-poly shape built right here, so real sculpted
+// art can be dropped in later (per-Toto, per-item) without rewriting this
+// system — see tryLoadRealModel().
+//
+// Not in this phase (by design, see the scoping discussion): Totos stay 2D
+// map/battle sprites for now, there's no customization SCREEN yet (just the
+// data model it would edit), and there's no pinch-zoom/elevation-drag on this
+// viewport — only the same one-finger left/right orbit the map already used.
+// ============================================================================
+(async () => {
+  try {
+    const probe = document.createElement('canvas');
+    const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+    if (!gl) return; // No WebGL here — keep the original flat sprite, nothing more to do.
+
+    const THREE = await import('three');
+
+    // ---------------- Equip catalog (data-driven, extensible) ----------------
+    // Colors echo the existing hand-painted witch art (robe purple/sash orange for
+    // the female look, robe green/sash brown for the male look) so the new 3D model
+    // reads as the SAME character, not an unrelated generic figure.
+    const PLAYER_EQUIP_CATALOG = {
+      female: {
+        skin:'#ffcf9e', hair:'#3a2a1c',
+        hat:       { kind:'witchHat', color:'#4a2f6b', trim:'#2c1a44', modelUrl:null },
+        top:       { kind:'robe',     color:'#6b3fa0', trim:'#442868', modelUrl:null },
+        legwear:   { kind:'robeHem',  color:'#5a3690', modelUrl:null },
+        shoes:     { color:'#241a3a', modelUrl:null },
+        accessory: { kind:'staff', color:'#6b4a2f', orb:'#ff8a3d', modelUrl:null },
+        backpack: null, glasses: null
+      },
+      male: {
+        skin:'#e8b98a', hair:'#2a2016',
+        hat:       { kind:'wizardCap', color:'#2f5c38', trim:'#1c3a22', modelUrl:null },
+        top:       { kind:'robe',      color:'#3f7d4a', trim:'#254a2c', modelUrl:null },
+        legwear:   { kind:'robeHem',   color:'#356b3f', modelUrl:null },
+        shoes:     { color:'#1c3226', modelUrl:null },
+        accessory: { kind:'staff', color:'#6b4a2f', orb:'#6bd88a', modelUrl:null },
+        backpack: null, glasses: null
+      }
+    };
+    // A future customization screen reads/writes this object directly, then calls
+    // window.mountPlayer3D(gender) again to rebuild with the new values.
+    window.PLAYER_EQUIP_CATALOG = PLAYER_EQUIP_CATALOG;
+
+    let GLTFLoaderCls = null;
+    async function getGLTFLoader(){
+      if (GLTFLoaderCls) return GLTFLoaderCls;
+      const mod = await import('./assets/vendor/GLTFLoader.js');
+      GLTFLoaderCls = mod.GLTFLoader;
+      return GLTFLoaderCls;
+    }
+    // No catalog entry sets modelUrl today, so this never fires yet — it exists so a
+    // real sculpted asset can replace a procedural slot later with no system changes.
+    function tryLoadRealModel(cfg, intoGroup){
+      if (!cfg || !cfg.modelUrl) return;
+      getGLTFLoader().then(Loader => {
+        new Loader().load(cfg.modelUrl, gltf => { intoGroup.add(gltf.scene); }, undefined, () => {});
+      }).catch(()=>{});
+    }
+
+    function limbPivot(y){ const g = new THREE.Group(); g.position.y = y; return g; }
+    function stdMat(color, extra){ return new THREE.MeshStandardMaterial(Object.assign({ color, roughness:0.75, metalness:0.04 }, extra||{})); }
+
+    // Ground-up proportions so feet land exactly on y=0 (the "ground" of this little
+    // scene) instead of floating — hipY is derived FROM legLen + shoeH rather than
+    // picked independently, so the two can never drift apart and leave a gap.
+    const SHOE_H = 0.09, LEG_LEN = 0.70, HIP_Y = LEG_LEN + SHOE_H, TORSO_H = 0.58, SHOULDER_Y = HIP_Y + TORSO_H;
+
+    function buildPlayerModel(gender){
+      const cfg = PLAYER_EQUIP_CATALOG[gender] || PLAYER_EQUIP_CATALOG.female;
+      const root = new THREE.Group();
+
+      // ---- Legs (hip pivot so each leg can swing independently for the walk cycle) ----
+      const legMat = stdMat((cfg.legwear&&cfg.legwear.color)||'#555');
+      const shoeMat = stdMat((cfg.shoes&&cfg.shoes.color)||'#241a3a');
+      function makeLeg(xSide){
+        const pivot = limbPivot(HIP_Y);
+        const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.095, LEG_LEN-0.19, 4, 8), legMat);
+        leg.position.set(xSide*0.13, -LEG_LEN/2, 0);
+        pivot.add(leg);
+        const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.16, SHOE_H, 0.22), shoeMat);
+        shoe.position.set(xSide*0.13, -LEG_LEN-SHOE_H/2, 0.03);
+        pivot.add(shoe);
+        root.add(pivot);
+        return pivot;
+      }
+      const leftLeg = makeLeg(-1), rightLeg = makeLeg(1);
+
+      // ---- Robe (tapered cylinder flaring toward the hem — reads as a robe, not pants) ----
+      const robeMat = stdMat((cfg.top&&cfg.top.color)||'#6b3fa0');
+      const robeH = TORSO_H + 0.15;
+      const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.30, robeH, 10), robeMat);
+      robe.position.y = HIP_Y + TORSO_H/2 - 0.05;
+      root.add(robe);
+      const sash = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.025, 6, 16), stdMat((cfg.top&&cfg.top.trim)||'#442868'));
+      sash.rotation.x = Math.PI/2; sash.position.y = HIP_Y + 0.2;
+      root.add(sash);
+
+      // ---- Arms (shoulder pivot) ----
+      const skinMat = stdMat(cfg.skin||'#ffcf9e');
+      function makeArm(xSide){
+        const pivot = limbPivot(SHOULDER_Y - 0.04);
+        pivot.rotation.z = xSide * 0.12;
+        const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.34, 4, 8), skinMat);
+        arm.position.set(xSide*0.26, -0.33, 0);
+        pivot.add(arm);
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), skinMat);
+        hand.position.set(xSide*0.26, -0.62, 0);
+        pivot.add(hand);
+        root.add(pivot);
+        return pivot;
+      }
+      const leftArm = makeArm(-1), rightArm = makeArm(1);
+
+      // ---- Head, face and hair ----
+      // Front is -Z, back is +Z (matches the camera orbit math in initPlayer3D: orbit
+      // 0 puts the camera on +Z looking back toward -Z, i.e. orbit 0 sees whatever faces
+      // +Z — same "starts facing away from camera" convention the old 2D marker used).
+      // A plain sphere head with a symmetric hair cap looks identical from every angle,
+      // which was the bug in the first pass of this model — nothing actually told you
+      // which way you were looking. Eyes on the front and a hair mass on the back fix
+      // that the same way a real head does.
+      const headGroup = new THREE.Group(); headGroup.position.y = SHOULDER_Y + 0.30; root.add(headGroup);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.21, 14, 12), skinMat);
+      headGroup.add(head);
+      const eyeMat = stdMat('#2a2016');
+      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.021, 6, 6), eyeMat); eyeL.position.set(-0.075, 0.01, -0.185);
+      const eyeR = eyeL.clone(); eyeR.position.x = 0.075;
+      headGroup.add(eyeL, eyeR);
+      // Hair mass sits toward the back/sides, leaving the face front bare.
+      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.225, 12, 10), stdMat(cfg.hair||'#3a2a1c'));
+      hair.scale.set(1, 1.05, 0.72);
+      hair.position.set(0, 0.03, 0.08);
+      headGroup.add(hair);
+
+      // ---- Hat: pointed witch hat (female default) / shorter wizard cap (male default) ----
+      if (cfg.hat){
+        const hatColor = cfg.hat.color||'#2c1a44', trimColor = cfg.hat.trim||hatColor;
+        const brim = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.02, 6, 16), stdMat(trimColor));
+        brim.rotation.x = Math.PI/2; brim.position.y = 0.19;
+        headGroup.add(brim);
+        const coneH = cfg.hat.kind==='witchHat' ? 0.42 : 0.3;
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.17, coneH, 10), stdMat(hatColor));
+        cone.position.y = 0.19 + coneH/2;
+        if (cfg.hat.kind==='witchHat'){ cone.position.z = 0.05; cone.rotation.x = 0.22; } // windswept, leaning back
+        headGroup.add(cone);
+        tryLoadRealModel(cfg.hat, headGroup); // no-op today — see header note
+      }
+
+      // ---- Staff + glowing orb accessory, held at the right hand ----
+      if (cfg.accessory && cfg.accessory.kind==='staff'){
+        const staffGroup = new THREE.Group();
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.95, 6), stdMat(cfg.accessory.color||'#6b4a2f'));
+        pole.position.y = 0.42;
+        staffGroup.add(pole);
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 10),
+          new THREE.MeshStandardMaterial({ color: cfg.accessory.orb||'#ff8a3d', emissive: cfg.accessory.orb||'#ff8a3d', emissiveIntensity:0.9, roughness:0.3 }));
+        orb.position.y = 0.92;
+        staffGroup.add(orb);
+        staffGroup.position.set(0.26, -0.62, 0.02);
+        rightArm.add(staffGroup);
+        root.userData.orb = orb;
+      }
+
+      tryLoadRealModel(cfg.top, root); // no-op today — see header note
+      root.userData.parts = { leftLeg, rightLeg, leftArm, rightArm, robe };
+      return root;
+    }
+
+    function animatePlayerModel(group, t, walking){
+      const p = group.userData.parts;
+      if (!p) return;
+      if (walking){
+        const s = Math.sin(t*8.5);
+        p.leftLeg.rotation.x = s*0.55; p.rightLeg.rotation.x = -s*0.55;
+        p.leftArm.rotation.x = -s*0.4; p.rightArm.rotation.x = s*0.4;
+        group.position.y = Math.abs(Math.cos(t*8.5))*0.035;
+        p.robe.rotation.z = s*0.025;
+      } else {
+        p.leftLeg.rotation.x = 0; p.rightLeg.rotation.x = 0;
+        const breathe = Math.sin(t*1.7);
+        p.leftArm.rotation.x = breathe*0.03; p.rightArm.rotation.x = -breathe*0.03;
+        p.robe.scale.y = 1 + breathe*0.012;
+        group.position.y = 0;
+      }
+      const orb = group.userData.orb;
+      if (orb) orb.material.emissiveIntensity = 0.7 + Math.sin(t*3)*0.3;
+    }
+
+    // ---------------- Per-canvas 3D viewport ----------------
+    function initPlayer3D(canvas, gender){
+      const scene = new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xfff1d6, 0x2a2045, 1.15));
+      const key = new THREE.DirectionalLight(0xffddaa, 0.85); key.position.set(1.5, 3, 2); scene.add(key);
+      const rim = new THREE.DirectionalLight(0x8f8fff, 0.35); rim.position.set(-2, 1.5, -2); scene.add(rim);
+
+      const CANVAS_W = 92, CANVAS_H = 124;
+      const camera = new THREE.PerspectiveCamera(45, CANVAS_W/CANVAS_H, 0.1, 20);
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      // Fixed intended size (matches the .player-avatar-3d CSS) rather than measuring
+      // layout — this marker never resizes, and reading clientWidth/Height here would
+      // return 0 if mounted before the game screen is the active one on screen.
+      renderer.setSize(CANVAS_W, CANVAS_H, false);
+
+      let group = buildPlayerModel(gender);
+      scene.add(group);
+
+      let stopped = false;
+      function frame(){
+        if (stopped) return;
+        requestAnimationFrame(frame);
+        // Only spend GPU time while the game/map screen is actually the one showing.
+        const gameScreen = document.querySelector('.screen[data-screen="game"]');
+        if (!gameScreen || !gameScreen.classList.contains('active')) return;
+        const gs = window.__gameState;
+        const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
+        const rad = THREE.MathUtils.degToRad(orbitDeg);
+        const radius = 3.0, camHeight = 1.5;
+        camera.position.set(Math.sin(rad)*radius, camHeight, Math.cos(rad)*radius);
+        camera.lookAt(0, 1.05, 0);
+        const walking = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
+        animatePlayerModel(group, performance.now()/1000, walking);
+        renderer.render(scene, camera);
+      }
+      requestAnimationFrame(frame);
+
+      return {
+        setGender(g){
+          scene.remove(group);
+          group.traverse(o=>{ if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+          group = buildPlayerModel(g);
+          scene.add(group);
+        },
+        dispose(){ stopped = true; renderer.dispose(); }
+      };
+    }
+
+    window.mountPlayer3D = function(gender){
+      const holder = document.getElementById('player-avatar');
+      if (!holder) return;
+      const g = gender==='male' ? 'male' : 'female';
+      if (holder.__player3d){ holder.__player3d.setGender(g); return; }
+      holder.innerHTML = '';
+      const canvas = document.createElement('canvas');
+      canvas.className = 'player-avatar-3d';
+      holder.appendChild(canvas);
+      holder.classList.add('is-3d');
+      holder.__player3d = initPlayer3D(canvas, g);
+    };
+
+    // enterGame() may already have run by the time this module finished its async CDN
+    // import — pick up whatever gender it stashed for us and mount right now.
+    if (window.__pendingPlayer3DGender){
+      window.mountPlayer3D(window.__pendingPlayer3DGender);
+      window.__pendingPlayer3DGender = null;
+    }
+  } catch (err){
+    console.warn('3D player avatar unavailable — staying on the 2D sprite marker.', err);
+  }
 })();
 </script>
 </body>
