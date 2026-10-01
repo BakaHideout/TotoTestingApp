@@ -187,18 +187,35 @@
   .deco.candy-corn-pickup { pointer-events:auto; cursor:pointer; }
   .deco .counter-rot { display:inline-block; transform: translate(-50%,-100%) rotate(calc(-1 * var(--rot,0deg))); }
   .gym-radius { position:absolute; border:2px dashed rgba(255,255,255,0.6); border-radius:50%; transform: translate(-50%,-50%); pointer-events:none; }
-  .node-shadow { position:absolute; left:50%; bottom:1px; width:26px; height:9px; border-radius:50%; background:radial-gradient(closest-side, rgba(0,10,0,0.4), rgba(0,10,0,0) 90%); transform:translateX(-50%); z-index:1; }
+  .node-shadow { position:absolute; left:50%; bottom:1px; width:26px; height:9px; border-radius:50%; background:radial-gradient(closest-side, rgba(0,10,0,0.4), rgba(0,10,0,0) 90%); transform:translateX(-50%); z-index:1; animation: nodeShadowPulse 3.4s ease-in-out infinite; }
+  /* Shrinks a touch in sync with the creature's own standing bob (totoStandBob below) so
+     its feet read as making/losing contact with the ground — without this the shadow sits
+     static while the art bobs over it, which is part of what made these look like a flat
+     sticker floating above the map instead of a character standing in the grass/road. */
+  @keyframes nodeShadowPulse { 0%,100%{ transform:translateX(-50%) scale(1); } 50%{ transform:translateX(-50%) scale(0.82); } }
   .deco-shadow { position:absolute; left:50%; bottom:-1px; border-radius:50%; background:radial-gradient(closest-side, rgba(0,10,0,0.35), rgba(0,10,0,0) 90%); transform:translateX(-50%); z-index:1; }
 
   .player-pin { position:absolute; left:50%; top:58%; transform: translate(-50%,-100%); z-index:15; text-align:center; }
   .player-ring { position:absolute; left:50%; bottom:6px; width:90px; height:90px; transform:translate(-50%,50%); border-radius:50%; border:2px solid rgba(255,150,60,0.65); background:radial-gradient(circle, rgba(255,150,60,0.22), rgba(255,90,40,0.05) 70%, transparent 75%); pointer-events:none; z-index:-1; }
-  .player-shadow { width:26px; height:9px; border-radius:50%; background:rgba(0,0,0,0.28); margin:2px auto 0; }
-  /* A bit more depth than a flat sprite: a heavier, softer drop-shadow (like real light
-     falling on a 3D figure rather than a flat cutout) plus a very slight scale "breathe" so
-     she reads as standing in the scene rather than pasted on top of it. */
-  .player-avatar { font-size:52px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.45)) drop-shadow(0 2px 3px rgba(0,0,0,0.3)); animation: bob 2.6s ease-in-out infinite; } .player-avatar .player-avatar-svg { width:0.85em; height:1.19em; }
-  .player-avatar.walking { animation: bob 0.55s ease-in-out infinite; }
-  @keyframes bob { 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-4px) scale(1.015);} }
+  .player-shadow { width:26px; height:9px; border-radius:50%; background:rgba(0,0,0,0.28); margin:2px auto 0; transition:transform 0.15s; }
+  /* Standing still she should look planted on the ground, not hovering — so idle is just
+     a tiny breathing scale with NO vertical lift. Walking is where the motion lives: a
+     stepping bounce plus a slight left-right rock (we only have one flat front/back
+     sprite, no separate leg frames to swap, so a weight-shifting rock+bounce is the
+     closest a flat image can get to reading as "legs moving" instead of gliding along
+     like a hovering sticker). The ground shadow (below) shrinks a touch on every step to
+     sell the contact. */
+  .player-avatar { font-size:52px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.45)) drop-shadow(0 2px 3px rgba(0,0,0,0.3)); animation: idleStand 2.6s ease-in-out infinite; transform-origin:50% 100%; } .player-avatar .player-avatar-svg { width:0.85em; height:1.19em; }
+  .player-avatar.walking { animation: walkBounce 0.5s ease-in-out infinite; }
+  @keyframes idleStand { 0%,100%{ transform:translateY(0) scale(1,1); } 50%{ transform:translateY(0) scale(1.015,0.985); } }
+  @keyframes walkBounce {
+    0%,100% { transform: translateY(0) rotate(0deg) scale(1,1); }
+    25%     { transform: translateY(-3px) rotate(-4deg) scale(0.98,1.02); }
+    50%     { transform: translateY(-5px) rotate(0deg) scale(1,1); }
+    75%     { transform: translateY(-3px) rotate(4deg) scale(0.98,1.02); }
+  }
+  .player-pin:has(.player-avatar.walking) .player-shadow { animation: playerShadowStep 0.5s ease-in-out infinite; }
+  @keyframes playerShadowStep { 0%,100%{ transform:scale(1); } 50%{ transform:scale(0.8); } }
   /* Soft lit circle around the player, like a lantern pushing back the dark — purely
      visual, sits above the terrain/decor but below the UI chrome. */
   .fog-vignette { position:absolute; inset:0; z-index:8; pointer-events:none;
@@ -241,9 +258,15 @@
      of totos nearby. */
   .node-ring { position:absolute; left:50%; bottom:4px; width:46px; height:46px; transform:translate(-50%,50%); border-radius:50%; border:1.5px solid rgba(255,255,255,0.32); background:radial-gradient(circle, rgba(255,255,255,0.16), rgba(255,255,255,0.03) 70%, transparent 75%); pointer-events:none; z-index:1; }
   .gym-node .node-ring { width:58px; height:58px; border-color:rgba(255,150,60,0.4); background:radial-gradient(circle, rgba(255,150,60,0.18), rgba(255,90,40,0.04) 70%, transparent 75%); }
-  .toto-node .bubble, .gym-node .bubble { font-size:34px; animation: floaty 2.4s ease-in-out infinite; position:relative; z-index:2; }
+  /* A much smaller bob than the shared `floaty` keyframe (used elsewhere for things that
+     really do float, like clouds/logo) — this wrapper is just a fallback for the rare
+     sprite with no inner .creature-img/.creature-svg (which carries the real standing
+     motion below). Keeping this one small avoids double-bobbing on top of that and
+     stacking into an exaggerated hover. */
+  .toto-node .bubble, .gym-node .bubble { font-size:34px; animation: nodeBubbleBob 2.4s ease-in-out infinite; position:relative; z-index:2; }
   .toto-node .bubble svg, .gym-node .bubble svg, .toto-node .bubble img, .gym-node .bubble img { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   @keyframes floaty { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
+  @keyframes nodeBubbleBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);} }
   /* A true 3D tilt (rotateY) of a flat painted image just skews/warps the picture instead
      of reading as a turning body — that's what made these look like flat paintings
      flipping rather than characters standing, so this sticks to undistorting bob +
@@ -675,13 +698,21 @@
   /* Wide ornate banner button (not a plain circle) with a double red/gold border and
      corner flourishes, crossed-swords icon beside the label — mirrors the reference raid
      screen's "CHARGE ATTACK" banner instead of a generic round button. */
-  .btn-attack { flex:0 0 auto; position:relative; min-width:150px; height:52px; padding:0 22px; border-radius:26px; border:2px solid #ffcf7a; outline:2px solid rgba(200,40,40,0.9); outline-offset:2px; background:linear-gradient(180deg,#ff8a5a, #c81f2f 60%, #7a1220 100%); color:#ffe8b0; font-weight:900; font-size:14px; letter-spacing:0.4px; cursor:pointer; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:7px; text-shadow:0 1px 2px rgba(0,0,0,0.6); animation: attackGlow 1.8s ease-in-out infinite; }
+  .btn-attack { flex:0 0 auto; position:relative; min-width:150px; height:52px; padding:0 22px; border-radius:26px; border:2px solid #ffcf7a; outline:2px solid rgba(200,40,40,0.9); outline-offset:2px; background:linear-gradient(180deg,#ff8a5a, #c81f2f 60%, #7a1220 100%); color:#ffe8b0; font-weight:900; font-size:14px; letter-spacing:0.4px; cursor:pointer; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:7px; text-shadow:0 1px 2px rgba(0,0,0,0.6); box-shadow:0 0 14px rgba(255,130,65,0.7); }
   .btn-attack::before { content:'⚔️'; font-size:16px; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
   .btn-attack:active { transform: scale(0.96); }
-  @keyframes attackGlow {
-    0%,100% { box-shadow:0 0 10px rgba(255,110,60,0.5), 0 0 0 rgba(255,110,60,0); }
-    50% { box-shadow:0 0 22px rgba(255,150,70,0.95), 0 0 8px rgba(255,110,60,0.5); }
+  /* The glow pulse used to animate box-shadow directly on the button, which forces the
+     browser to repaint the whole button (and can bleed into repainting its neighbors)
+     every frame, forever, for as long as a battle screen is open — on a phone that reads
+     as the bottom of the screen flickering/glitching. A separate ::after layer with a
+     fixed box-shadow that only animates opacity is compositor-only (cheap, no repaint),
+     so the same glow effect no longer costs anything per frame. */
+  .btn-attack::after {
+    content:''; position:absolute; inset:-6px; border-radius:30px; pointer-events:none;
+    box-shadow:0 0 22px rgba(255,150,70,0.95), 0 0 8px rgba(255,110,60,0.6);
+    opacity:0; animation: attackGlowFade 1.8s ease-in-out infinite; will-change:opacity;
   }
+  @keyframes attackGlowFade { 0%,100% { opacity:0; } 50% { opacity:1; } }
   /* Ability slots read as small colored gems with a glow matching their role color and a
      numbered badge at the bottom-left corner, mirroring the reference raid screen's row
      of four numbered ability icons. */
@@ -2315,20 +2346,27 @@
     $('#world').style.setProperty('--rot', state.cameraRotate+'deg');
     updatePlayerFacing();
   }
-  // The character sprite itself never changes with the camera — no front/back swap, no
-  // mirroring. She's always seen from behind, same fixed third-person-from-behind view as
-  // Pokémon GO's trainer. Dragging only orbits the CAMERA around her to look at the
-  // surrounding map; it never touches her sprite.
-  let _facing = { gender:null };
+  // Your character herself never moves or slides on screen when you drag to rotate —
+  // .player-pin sits outside #world entirely (see the HTML), so turning the camera only
+  // ever spins the map underneath her. What SHOULD change as you orbit the camera around
+  // her is which side of her you're looking at, same as walking in a circle around a real
+  // person standing still: drag the camera about halfway around (past 90°) and you're now
+  // facing her, drag it the rest of the way (past 270°) and you're back behind her. We
+  // only have a front and a back image (no left/right profile art), so the swap happens
+  // in two clean halves of the orbit rather than a smooth turn — still gets you "see the
+  // front and the back" at the 180°-apart points, just not the angles in between.
+  let _facing = { gender:null, front:null };
   function updatePlayerFacing(){
     const holder = document.getElementById('player-avatar');
     const img = holder && holder.querySelector('img');
     if (!img) return;
     const g = state.avatar==='male' ? 'male' : 'female';
-    if (_facing.gender !== g){
-      img.src = AVATAR_IMG[g].backSm;
+    const orbit = ((state.viewOrbit||0) % 360 + 360) % 360;
+    const showFront = orbit > 90 && orbit < 270;
+    if (_facing.gender !== g || _facing.front !== showFront){
+      img.src = showFront ? AVATAR_IMG[g].frontSm : AVATAR_IMG[g].backSm;
       img.style.transform = '';
-      _facing.gender = g;
+      _facing.gender = g; _facing.front = showFront;
     }
   }
   // Plain-language notes on the last thing that happened with each network call, shown
@@ -3819,10 +3857,16 @@
   // Percentage-based mitigation with a per-hit cap, instead of flat atk-minus-def — this is
   // what keeps a fight from being decided in one or two hits when CP levels are far apart,
   // and lets us deliberately pace gym/challenger raids to run longer than a wild scuffle.
+  // Lowered from 0.075/0.08 — these were letting a single hit (especially a 2.5x Charge
+  // Attack, or several allies chipping in on the same tick) take too big a bite out of a
+  // boss's health bar, which combined with the old HP multipliers below is why raids were
+  // getting cleared in just a few seconds. A smaller per-hit ceiling means more hits are
+  // needed regardless of how hard any one attack lands, which is what actually stretches
+  // a fight out instead of just inflating a number that a big enough hit cap ignores.
   function damageCapPct(mode){
     if (mode==='catch') return 0.34;
-    if (mode==='challenge') return 0.075;
-    return 0.08; // gym raids (solo/group)
+    if (mode==='challenge') return 0.04;
+    return 0.045; // gym raids (solo/group)
   }
   // Mitigation is a RATIO of attacker power to defender power (attackPower/(attackPower+def))
   // rather than the old "70/(70+def)" constant-offset formula. That old formula was tuned
@@ -3852,9 +3896,12 @@
     const enemyFighter = fighterFromToto(opts.opponent);
     // Gym champions and especially Challenger guardians fight tougher than their catchable
     // stats — this only affects the battle copy, so the Toto you actually catch afterward
-    // has completely normal health for its tier, not this temporary raid buff.
-    if (opts.mode==='solo' || opts.mode==='group'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*2.2); enemyFighter.hp = enemyFighter.maxHp; }
-    else if (opts.mode==='challenge'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*2.8); enemyFighter.hp = enemyFighter.maxHp; }
+    // has completely normal health for its tier, not this temporary raid buff. Raised well
+    // past the old 2.2x/2.8x (which, paired with the old looser per-hit damage cap above,
+    // was going down in about 5 seconds) so a real fight takes real effort — a big health
+    // pool rather than a punishing defense/attack stat, so it stays beatable, just longer.
+    if (opts.mode==='solo' || opts.mode==='group'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*5.5); enemyFighter.hp = enemyFighter.maxHp; }
+    else if (opts.mode==='challenge'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*7); enemyFighter.hp = enemyFighter.maxHp; }
     battle = { mode:opts.mode, shrineName:opts.shrineName||null, team:team, player:fighterFromToto(lead), enemy:enemyFighter, opponentTemplate:opts.opponent, allies:opts.allies||[], group:(opts.allies&&opts.allies.length>0), over:false, buff:null, timers:{}, auto:false, speedMult:1 };
     $('#btn-auto').classList.remove('active'); $('#btn-speed').classList.remove('active'); $('#btn-speed').textContent='1×';
     // Allies (real players or bots) never send us their actual Toto's stats — we only know
@@ -3911,24 +3958,33 @@
       stage.appendChild(e);
     }
   }
+  // renderBattle() runs on a 1-second timer (plus every attack/ability/damage tick) for
+  // the whole length of a fight. It used to unconditionally overwrite each sprite
+  // container's innerHTML with the exact same markup every single call — destroying and
+  // recreating the <img> element even though nothing changed, which forces a fresh
+  // decode/paint and drops it out of its GPU layer each time. At 1+ times a second for
+  // the whole battle that's exactly the kind of continuous repaint that shows up as
+  // flashing/glitching, especially on the now much bigger boss art. This only touches
+  // the DOM when the sprite markup actually differs from what's already there.
+  function setSpriteHtml(el, html){ if (el.__spriteHtml !== html){ el.innerHTML = html; el.__spriteHtml = html; } }
   function renderBattle(){
     if (!battle) return;
     const p=battle.player, e=battle.enemy;
     const pHpPct = Math.max(0,(p.hp/p.maxHp*100));
-    $('#bf-p-name').textContent=p.name; $('#bf-p-cp').textContent='PWR '+p.cp; $('#bf-p-level').textContent='Lv.'+p.level; $('#bf-p-sprite').innerHTML=p.sprite;
+    $('#bf-p-name').textContent=p.name; $('#bf-p-cp').textContent='PWR '+p.cp; $('#bf-p-level').textContent='Lv.'+p.level; setSpriteHtml($('#bf-p-sprite'), p.sprite);
     $('#bf-p-sprite').classList.toggle('toni-glow', p.tier==='eternal'); $('#bf-p-sprite').classList.toggle('mythical-glow', p.tier==='mythical');
     $('#bf-p-sprite').closest('.field-slot').classList.toggle('fainted', p.hp<=0);
     $('#bf-p-hp').style.width=pHpPct+'%'; $('#bf-p-nrg').style.width=Math.max(0,(p.energy/p.maxEnergy*100))+'%';
     $('#bf-p-hpfrac').textContent = Math.max(0,Math.round(p.hp)).toLocaleString()+' / '+Math.round(p.maxHp).toLocaleString();
     // Portrait + field standee mirror the same sprite/name/level, just in the roster
     // column and standing in the arena respectively.
-    $('#bf-p-portrait').innerHTML=p.sprite; $('#bf-p-fname').textContent=p.name; $('#bf-p-flevel').textContent='Lv.'+p.level;
+    setSpriteHtml($('#bf-p-portrait'), p.sprite); $('#bf-p-fname').textContent=p.name; $('#bf-p-flevel').textContent='Lv.'+p.level;
     $('#bf-p-fhp').style.width=pHpPct+'%'; $('#bf-p-fhp').classList.toggle('low', pHpPct<30);
     const pr = ROLE_INFO[p.role] || ROLE_INFO.attacker;
     $('#bf-p-role-badge').textContent=pr.icon; $('#bf-p-role-badge').style.background=pr.color;
     $('#bf-p-portrait').style.borderColor=pr.color; $('#bf-p-role-label').textContent=pr.label;
     $('#bf-p-fhpfrac').textContent = Math.max(0,Math.round(p.hp)).toLocaleString()+'/'+Math.round(p.maxHp).toLocaleString();
-    $('#bf-e-name').textContent=e.name; $('#bf-e-cp').textContent='PWR '+e.cp; $('#bf-e-level').textContent='Lv.'+(e.level||1); $('#bf-e-sprite').innerHTML=e.sprite;
+    $('#bf-e-name').textContent=e.name; $('#bf-e-cp').textContent='PWR '+e.cp; $('#bf-e-level').textContent='Lv.'+(e.level||1); setSpriteHtml($('#bf-e-sprite'), e.sprite);
     $('#bf-e-sprite').classList.toggle('toni-glow', e.tier==='eternal'); $('#bf-e-sprite').classList.toggle('mythical-glow', e.tier==='mythical');
     $('#bf-e-hp').style.width=Math.max(0,(e.hp/e.maxHp*100))+'%';
     $('#bf-e-hpfrac').textContent = Math.max(0,Math.round(e.hp)).toLocaleString()+' / '+Math.round(e.maxHp).toLocaleString();
