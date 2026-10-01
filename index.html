@@ -169,6 +169,10 @@
   .clouds { position:absolute; inset:0; pointer-events:none; opacity:0.9; z-index:1; }
   .cloud { position:absolute; font-size:26px; opacity:0.85; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15)); animation: drift linear infinite; }
   .cloud.ghost { font-size:22px; opacity:0.6; animation-name: driftGhost; }
+  .cloud.mist { width:170px; height:60px; filter: blur(4px); opacity:0.42;
+    background: radial-gradient(closest-side at 32% 62%, rgba(214,206,255,0.75), rgba(214,206,255,0) 100%),
+                radial-gradient(closest-side at 62% 42%, rgba(226,220,255,0.7), rgba(226,220,255,0) 100%),
+                radial-gradient(closest-side at 80% 66%, rgba(200,192,245,0.6), rgba(200,192,245,0) 100%); }
   @keyframes drift { from { transform: translateX(-40px);} to { transform: translateX(520px);} }
   @keyframes driftGhost { 0%{ transform: translateX(-30px) translateY(0);} 50%{ transform: translateX(240px) translateY(-10px);} 100%{ transform: translateX(510px) translateY(0);} }
 
@@ -216,7 +220,19 @@
      before, animation and all. */
   .player-avatar.is-3d { animation:none !important; filter:none; }
   .player-avatar.is-3d.walking { animation:none !important; }
-  .player-avatar-3d { display:block; width:92px; height:124px; }
+  .player-avatar-3d { display:block; width:170px; height:236px; }
+  /* The canvas frames her feet exactly 16px above its bottom edge (FRAME_FEET_PX in the
+     module script) — pulling the canvas down by that much plants her feet right on the
+     pin's anchor point, which is also the centre of the ground ring below. */
+  .player-pin.has-3d .player-avatar.is-3d { margin-bottom:-16px; position:relative; z-index:2; }
+  .player-pin.has-3d .player-shadow { display:none; }   /* the 3D scene casts its own */
+  .player-pin.has-3d .player-ring { bottom:0; width:168px; height:70px; border:2px solid rgba(255,224,165,0.85);
+    background: radial-gradient(closest-side, rgba(255,205,130,0.16), rgba(255,200,120,0.05) 72%, rgba(255,200,120,0) 100%);
+    box-shadow: 0 0 12px rgba(255,190,110,0.35), inset 0 0 10px rgba(255,190,110,0.22); }
+  /* warm pool of lantern light on the ground around her (Photo-2 style) */
+  .player-pin.has-3d::before { content:''; position:absolute; left:50%; bottom:0; width:340px; height:160px; transform:translate(-50%,50%);
+    border-radius:50%; background: radial-gradient(closest-side, rgba(255,176,92,0.30), rgba(255,150,70,0.11) 55%, rgba(255,140,60,0) 100%);
+    mix-blend-mode:screen; pointer-events:none; z-index:-2; }
   @keyframes idleStand { 0%,100%{ transform:translateY(0) scale(1,1); } 50%{ transform:translateY(0) scale(1.015,0.985); } }
   @keyframes walkBounce {
     0%,100% { transform: translateY(0) rotate(0deg) scale(1,1); }
@@ -270,7 +286,22 @@
      so its layout box/size is preserved — the 3D sync loop keeps reading its rect every
      frame) in favor of the WebGL billboard+dais drawn on the shared canvas above. The
      ring/shadow/cp-tag/dist-tag siblings are untouched. */
-  .toto-node.is-3d-mounted .bubble { visibility:hidden; }
+  .toto-node.is-3d-mounted .bubble,
+  .toto-node.is-3d-mounted .node-ring,
+  .toto-node.is-3d-mounted .node-shadow,
+  .toto-node.is-3d-mounted .cp-tag,
+  .toto-node.is-3d-mounted .dist-tag { visibility:hidden; }
+  /* The 3D layer reads the img's rect every frame for its foot point/scale — stop the
+     2D bob/squash/tilt animations on it so that measurement is steady (the small
+     wander-in-a-circle on .node-orbit stays, and carries the 3D creature with it). */
+  .toto-node.is-3d-mounted .bubble,
+  .toto-node.is-3d-mounted .creature-img { animation:none !important; }
+  #toto3d-labels { position:absolute; inset:0; z-index:7; pointer-events:none; overflow:hidden; }
+  .t3-label { position:absolute; left:0; top:0; transform-origin:50% 0; display:flex; gap:4px; align-items:center; white-space:nowrap; will-change:transform; }
+  .t3-label span { font-size:9px; font-weight:800; line-height:1; padding:2px 6px; border-radius:8px; }
+  .t3-pwr { background:rgba(20,16,32,0.78); color:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.35); }
+  .t3-dist { background:rgba(0,0,0,0.45); color:#ffe9c2; }
+  .t3-dist:empty { display:none; }
   .toto-node, .gym-node { position:absolute; transform: translate(-50%,-100%); text-align:center; cursor:pointer; z-index:10; contain:layout style; }
   .node-spin { position:relative; z-index:2; transform: rotate(calc(-1 * var(--rot,0deg))); }
   /* Grounding ring under each map creature, same idea as the player's — a soft lit patch
@@ -3438,8 +3469,9 @@
 
   function spawnClouds(){
     const c = $('#clouds'); c.innerHTML='';
-    const faces = ['🌩️','☁️','🌫️'];
-    for (let i=0;i<3;i++){ const el=document.createElement('div'); el.className='cloud'; el.textContent=faces[i%faces.length]; el.style.top=(6+i*16)+'%'; el.style.animationDuration=(34+i*10)+'s'; el.style.animationDelay=(-i*9)+'s'; c.appendChild(el); }
+    // Soft drifting mist puffs drawn in CSS (the old emoji clouds — the fog emoji in
+    // particular — rendered as grey square tiles on Android).
+    for (let i=0;i<3;i++){ const el=document.createElement('div'); el.className='cloud mist'; el.style.top=(6+i*16)+'%'; el.style.width=(140+i*45)+'px'; el.style.height=(50+i*14)+'px'; el.style.animationDuration=(34+i*10)+'s'; el.style.animationDelay=(-i*9)+'s'; c.appendChild(el); }
     const ghost = document.createElement('div'); ghost.className='cloud ghost'; ghost.textContent='👻'; ghost.style.top='30%'; ghost.style.animationDuration='26s'; ghost.style.animationDelay='-4s'; c.appendChild(ghost);
   }
 
@@ -4727,17 +4759,19 @@
         hat:       { kind:'witchHat', color:'#4a2f6b', trim:'#ffb347', modelUrl:null },
         top:       { kind:'robe',     color:'#6b3fa0', trim:'#ffb347', modelUrl:null },
         legwear:   { kind:'robeHem',  color:'#5a3690', modelUrl:null },
-        shoes:     { color:'#241a3a', modelUrl:null },
+        shoes:     { color:'#5a3622', modelUrl:null },
         accessory: { kind:'staff', color:'#6b4a2f', orb:'#ff8a3d', modelUrl:null },
         backpack: null, glasses: null
       },
+      // matches the male reference sheet: purple hat + coat with orange trim, orange/purple
+      // striped leggings, tall black boots, orange jack-o'-lantern staff, cat on shoulder
       male: {
-        skin:'#e8b98a', hair:'#b5591e',
-        hat:       { kind:'wizardCap', color:'#2f5c38', trim:'#ffb347', modelUrl:null },
-        top:       { kind:'robe',      color:'#3f7d4a', trim:'#ffb347', modelUrl:null },
-        legwear:   { kind:'robeHem',   color:'#356b3f', modelUrl:null },
-        shoes:     { color:'#1c3226', modelUrl:null },
-        accessory: { kind:'staff', color:'#6b4a2f', orb:'#6bd88a', modelUrl:null },
+        skin:'#f0c29c', hair:'#c8601e',
+        hat:       { kind:'witchHat',  color:'#4a2f6b', trim:'#e08a2e', modelUrl:null },
+        top:       { kind:'robe',      color:'#57358a', trim:'#e08a2e', modelUrl:null },
+        legwear:   { kind:'robeHem',   color:'#5a3690', modelUrl:null },
+        shoes:     { color:'#1f1a24', modelUrl:null },
+        accessory: { kind:'staff', color:'#6b4a2f', orb:'#ff8a3d', modelUrl:null },
         backpack: null, glasses: null
       }
     };
@@ -4942,208 +4976,597 @@
       return tex;
     }
 
-    // ---------------- Small companion/accessory builders ----------------
-    function makeCatCompanion(hatColor){
-      const g = new THREE.Group();
-      const black = stdMat('#201c22');
-      const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.052, 0.085, 4, 8), black);
-      body.rotation.z = Math.PI/2; g.add(body);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), black);
-      head.position.set(0.1, 0.02, 0); g.add(head);
-      [1,-1].forEach(x=>{
-        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.017, 0.028, 6), black);
-        ear.position.set(0.1+x*0.016, 0.058, x*0.022); ear.rotation.z = -x*0.3;
-        g.add(ear);
+    // ======================================================================
+    // v37 PLAYER MODEL — chibi-proportioned, toon-shaded, ink-outlined witch.
+    // ----------------------------------------------------------------------
+    // Replaces the first-pass capsule figure. Same public contract as before
+    // (buildPlayerModel(gender) -> Group with userData.parts, driven by
+    // PLAYER_EQUIP_CATALOG slots, rebuilt by mountPlayer3D for wardrobe
+    // changes), so the equip/unlock system keeps working unchanged.
+    //
+    // Style choices, aiming at the painted reference (big-head chibi, soft
+    // painterly shading, dark ink edge):
+    //  - MeshToonMaterial with a soft, lifted gradient ramp: colours stay vivid
+    //    like the painted art instead of going muddy in shadow.
+    //  - Inverted-hull outlines (back faces pushed out along the normal) give
+    //    every part a thin dark ink line, which is most of what makes a low-poly
+    //    figure read as "stylized character" rather than "placeholder".
+    //  - Repeated small parts (curls, candy) are merged into single meshes so
+    //    the whole figure stays a modest number of draw calls.
+    // Conventions kept from v1: front is -Z, feet on y=0. Lathe/cylinder UVs put
+    // canvas-centre on -Z (front) and the canvas seam on +Z (back) — see the
+    // calibration note on makeRobeTexture().
+    // ======================================================================
+    let toonGrad = null;
+    function getToonGradient(){
+      if (toonGrad) return toonGrad;
+      const n = 32, data = new Uint8Array(n*4);
+      for (let i=0;i<n;i++){
+        const x = i/(n-1);
+        const t = Math.min(1, Math.max(0, (x-0.30)/0.38));
+        const s = t*t*(3-2*t);                 // smooth band, not a hard cel step
+        const v = 0.40 + 0.60*s;               // lifted shadows keep colours rich, with real form
+        data[i*4]=data[i*4+1]=data[i*4+2]=Math.round(v*255); data[i*4+3]=255;
+      }
+      toonGrad = new THREE.DataTexture(data, n, 1, THREE.RGBAFormat);
+      toonGrad.minFilter = toonGrad.magFilter = THREE.LinearFilter;
+      toonGrad.generateMipmaps = false; toonGrad.needsUpdate = true;
+      return toonGrad;
+    }
+    function toon(color, extra){ return new THREE.MeshToonMaterial(Object.assign({ color, gradientMap:getToonGradient() }, extra||{})); }
+
+    const OUTLINE_COLOR = 0x1c1128;
+    const outlineMatCache = {};
+    function outlineMat(th){
+      const key = th.toFixed(4);
+      if (outlineMatCache[key]) return outlineMatCache[key];
+      const m = new THREE.MeshBasicMaterial({ color:OUTLINE_COLOR, side:THREE.BackSide });
+      m.onBeforeCompile = (sh)=>{
+        sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>',
+          '#include <begin_vertex>\n  transformed += normalize(normal) * '+key+';');
+      };
+      m.customProgramCacheKey = ()=> 'tq-outline-'+key;
+      outlineMatCache[key] = m;
+      return m;
+    }
+    // Adds a mesh (plus its ink outline) to a parent and returns it.
+    function part(parent, geo, material, opts){
+      opts = opts || {};
+      const mesh = new THREE.Mesh(geo, material);
+      if (opts.pos) mesh.position.set(...opts.pos);
+      if (opts.rot) mesh.rotation.set(...opts.rot);
+      if (opts.scale) mesh.scale.set(...opts.scale);
+      mesh.castShadow = opts.shadow !== false;
+      const th = opts.outline === undefined ? 0.014 : opts.outline;
+      if (th > 0){
+        const ol = new THREE.Mesh(geo, outlineMat(th));
+        ol.castShadow = false; ol.userData.isOutline = true; mesh.add(ol);
+      }
+      parent.add(mesh);
+      return mesh;
+    }
+    // Bakes many small transformed geometries into one (for curls, candy…).
+    function mergeParts(list){
+      const P=[], N=[], U=[];
+      const m = new THREE.Matrix4(), nm = new THREE.Matrix3(), q = new THREE.Quaternion(), e = new THREE.Euler();
+      const v = new THREE.Vector3();
+      list.forEach(it=>{
+        const g = it.geo.index ? it.geo.toNonIndexed() : it.geo;
+        e.set(...(it.rot||[0,0,0])); q.setFromEuler(e);
+        m.compose(new THREE.Vector3(...(it.pos||[0,0,0])), q, new THREE.Vector3(...(it.scale||[1,1,1])));
+        nm.getNormalMatrix(m);
+        const pa = g.attributes.position, na = g.attributes.normal, ua = g.attributes.uv;
+        for (let i=0;i<pa.count;i++){
+          v.fromBufferAttribute(pa,i).applyMatrix4(m); P.push(v.x,v.y,v.z);
+          v.fromBufferAttribute(na,i).applyMatrix3(nm).normalize(); N.push(v.x,v.y,v.z);
+          if (ua) U.push(ua.getX(i), ua.getY(i)); else U.push(0,0);
+        }
       });
-      const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.015, 0.1, 4, 6), black);
-      tail.position.set(-0.085, 0.015, 0); tail.rotation.z = Math.PI/2.5;
-      g.add(tail);
-      const tinyHat = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.06, 8), stdMat(hatColor||'#4a2f6b'));
-      tinyHat.position.set(0.1, 0.085, 0); g.add(tinyHat);
-      const eyeMat = new THREE.MeshStandardMaterial({ color:'#ffd27a', emissive:'#ffd27a', emissiveIntensity:0.5 });
-      [-0.02,0.02].forEach(z=>{ const e = new THREE.Mesh(new THREE.SphereGeometry(0.007,6,6), eyeMat); e.position.set(0.142,0.028,z); g.add(e); });
+      const out = new THREE.BufferGeometry();
+      out.setAttribute('position', new THREE.Float32BufferAttribute(P,3));
+      out.setAttribute('normal', new THREE.Float32BufferAttribute(N,3));
+      out.setAttribute('uv', new THREE.Float32BufferAttribute(U,2));
+      return out;
+    }
+
+    // ---------------- Textures for the v2 outfit ----------------
+    const coatTexCache = {};
+    function makeCoatTexture(base, trim, closed){
+      const key = base+'|'+trim+'|'+(closed?1:0);
+      if (coatTexCache[key]) return coatTexCache[key];
+      const W=512, H=512;
+      const c = document.createElement('canvas'); c.width=W; c.height=H;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = base; ctx.fillRect(0,0,W,H);
+      // soft vertical fold shading so the coat doesn't read as a flat tube
+      for (let i=0;i<10;i++){
+        const x = (i+0.5)*W/10;
+        const g = ctx.createLinearGradient(x-26,0,x+26,0);
+        g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(0.5,'rgba(0,0,0,0.10)'); g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle = g; ctx.fillRect(x-26, 120, 52, H-120);
+      }
+      const gold = '#ffd27a';
+      function star(cx,cy,r){ ctx.beginPath(); for (let i=0;i<10;i++){ const a=Math.PI/5*i-Math.PI/2, rr=i%2?r*0.42:r; ctx.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr);} ctx.closePath(); ctx.fill(); }
+      function moon(cx,cy,r){ ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.arc(cx+r*0.42,cy-r*0.3,r*0.86,0,Math.PI*2); ctx.fill('evenodd'); }
+      // scattered small moons + stars all over (the reference coat's print)
+      ctx.fillStyle = gold;
+      let seed = 7; const rnd = ()=>{ seed = (seed*9301+49297)%233280; return seed/233280; };
+      for (let i=0;i<46;i++){
+        const x = rnd()*W, y = 60+rnd()*(H-120);
+        if (Math.abs(x-256) < 70) continue;           // keep the front opening clear
+        if (rnd() < 0.35) moon(x,y,7+rnd()*4); else star(x,y,5+rnd()*4);
+      }
+      // big moon + stars on the back (split across the seam = +Z)
+      [0,W].forEach(sx=>{ moon(sx, 210, 46); star(sx-60, 300, 12); star(sx+58, 150, 10); });
+      if (!closed){
+        // front opening: striped dress showing between orange coat edges (witch look)
+        const dressX0 = 256-40, dressX1 = 256+40;
+        for (let y=40;y<H;y+=26){ ctx.fillStyle = (Math.floor(y/26)%2) ? '#2a1a2e' : '#ff8a3d'; ctx.fillRect(dressX0, y, dressX1-dressX0, 26); }
+        ctx.fillStyle = trim; ctx.fillRect(dressX0-16, 40, 16, H-40); ctx.fillRect(dressX1, 40, 16, H-40);
+      } else {
+        // buttoned-up front with gold frog-toggle closures (wizard look)
+        ctx.fillStyle = trim; ctx.fillRect(256-5, 30, 10, H-64);
+        ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+        for (let i=0;i<4;i++){
+          const y = 70 + i*52;
+          ctx.beginPath(); ctx.moveTo(256-26, y); ctx.quadraticCurveTo(256-12, y-10, 256, y); ctx.quadraticCurveTo(256+12, y+10, 256+26, y); ctx.stroke();
+          ctx.fillStyle = '#ffd27a'; ctx.beginPath(); ctx.ellipse(256, y, 7, 5, 0, 0, Math.PI*2); ctx.fill();
+        }
+      }
+      // pumpkin pockets either side of the opening
+      function pumpkin(cx,cy,s){
+        ctx.fillStyle = '#ff8a3d';
+        [-0.38,0,0.38].forEach(dx=>{ ctx.beginPath(); ctx.ellipse(cx+s*dx,cy,s*0.45,s*0.52,0,0,Math.PI*2); ctx.fill(); });
+        ctx.fillStyle = '#3d1f0b';
+        ctx.beginPath(); ctx.moveTo(cx-s*0.45,cy-s*0.1); ctx.lineTo(cx-s*0.2,cy-s*0.3); ctx.lineTo(cx-s*0.08,cy-s*0.05); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx+s*0.45,cy-s*0.1); ctx.lineTo(cx+s*0.2,cy-s*0.3); ctx.lineTo(cx+s*0.08,cy-s*0.05); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx-s*0.4,cy+s*0.15); ctx.quadraticCurveTo(cx,cy+s*0.5,cx+s*0.4,cy+s*0.15); ctx.quadraticCurveTo(cx,cy+s*0.3,cx-s*0.4,cy+s*0.15); ctx.fill();
+        ctx.fillStyle = '#3f7d4a'; ctx.fillRect(cx-4, cy-s*0.66, 8, 12);
+      }
+      pumpkin(256-112, 360, 46); pumpkin(256+112, 360, 46);
+      // a couple of stitched patches
+      function patch(cx,cy,w,h,col){ ctx.fillStyle=col; ctx.fillRect(cx-w/2,cy-h/2,w,h); ctx.strokeStyle='rgba(255,230,190,0.75)'; ctx.setLineDash([5,4]); ctx.lineWidth=2; ctx.strokeRect(cx-w/2+3,cy-h/2+3,w-6,h-6); ctx.setLineDash([]); }
+      patch(70, 300, 40, 34, '#7d55b8'); patch(430, 250, 36, 36, '#c4612a');
+      // hem trim: orange band with bat-wing scallops
+      ctx.fillStyle = trim; ctx.fillRect(0, H-34, W, 34);
+      ctx.beginPath();
+      for (let i=0;i<=16;i++){ const x=i*W/16; ctx.moveTo(x, H-34); ctx.quadraticCurveTo(x+W/32, H-52, x+W/16, H-34); }
+      ctx.fill();
+      // collar band
+      ctx.fillStyle = trim; ctx.fillRect(0,0,W,22);
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+      coatTexCache[key] = tex;
+      return tex;
+    }
+    const hatTexCache = {};
+    function makeHatTexture(base, accent){
+      const key = base+'|'+accent;
+      if (hatTexCache[key]) return hatTexCache[key];
+      const W=256, H=256;
+      const c = document.createElement('canvas'); c.width=W; c.height=H;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = base; ctx.fillRect(0,0,W,H);
+      for (let i=0;i<6;i++){ ctx.fillStyle='rgba(0,0,0,0.12)'; ctx.fillRect(i*W/6+8, 0, 6, H); }  // crumpled folds
+      function patch(cx,cy,w,h,col,rot){ ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot||0); ctx.fillStyle=col; ctx.fillRect(-w/2,-h/2,w,h); ctx.strokeStyle='rgba(255,230,190,0.8)'; ctx.setLineDash([4,3]); ctx.lineWidth=2; ctx.strokeRect(-w/2+3,-h/2+3,w-6,h-6); ctx.setLineDash([]); ctx.restore(); }
+      patch(170, 170, 34, 30, '#7d55b8', 0.2);
+      patch(60, 120, 30, 28, accent, -0.15);
+      patch(10, 190, 28, 26, '#2e8a5a', 0.1); patch(W+10, 190, 28, 26, '#2e8a5a', 0.1);
+      // gold crescent moon + stars on the front (canvas centre = -Z)
+      ctx.fillStyle = '#ffd27a';
+      ctx.beginPath(); ctx.arc(118, 150, 22, 0, Math.PI*2); ctx.arc(128, 142, 19, 0, Math.PI*2); ctx.fill('evenodd');
+      ctx.beginPath(); for (let i=0;i<10;i++){ const a=Math.PI/5*i-Math.PI/2, r=i%2?6:15; ctx.lineTo(150+Math.cos(a)*r, 108+Math.sin(a)*r);} ctx.closePath(); ctx.fill();
+      ctx.beginPath(); for (let i=0;i<10;i++){ const a=Math.PI/5*i-Math.PI/2, r=i%2?4:9; ctx.lineTo(96+Math.cos(a)*r, 70+Math.sin(a)*r);} ctx.closePath(); ctx.fill();
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+      hatTexCache[key] = tex;
+      return tex;
+    }
+    let weaveTex = null;
+    function makeWeaveTexture(){
+      if (weaveTex) return weaveTex;
+      const c = document.createElement('canvas'); c.width=128; c.height=64;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle='#9a6a3a'; ctx.fillRect(0,0,128,64);
+      for (let y=0;y<64;y+=8) for (let x=0;x<128;x+=16){
+        ctx.fillStyle = ((x/16+y/8)%2) ? '#b9844d' : '#7d5229';
+        ctx.fillRect(x+1,y+1,14,6);
+      }
+      weaveTex = new THREE.CanvasTexture(c);
+      weaveTex.wrapS = weaveTex.wrapT = THREE.RepeatWrapping; weaveTex.repeat.set(3,1);
+      weaveTex.colorSpace = THREE.SRGBColorSpace;
+      return weaveTex;
+    }
+
+    // ---------------- Accessory builders ----------------
+    let lanternHaloTex = null;
+    function getLanternHaloTexture(){
+      if (lanternHaloTex) return lanternHaloTex;
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(64,64,0, 64,64,64);
+      g.addColorStop(0,'rgba(255,255,255,0.9)'); g.addColorStop(0.25,'rgba(255,255,255,0.45)');
+      g.addColorStop(0.6,'rgba(255,255,255,0.12)'); g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,128,128);
+      lanternHaloTex = new THREE.CanvasTexture(c);
+      return lanternHaloTex;
+    }
+    function makeJackOLantern(r, glowColor){
+      const g = new THREE.Group();
+      const shell = toon('#f2731c', { emissive:'#ff5a00', emissiveIntensity:0.3 });
+      const lobes = [];
+      for (let i=0;i<6;i++){
+        const a = i/6*Math.PI*2;
+        lobes.push({ geo:new THREE.SphereGeometry(r*0.62, 16, 12), pos:[Math.sin(a)*r*0.42, 0, Math.cos(a)*r*0.42], scale:[0.8,1,0.8] });
+      }
+      lobes.push({ geo:new THREE.SphereGeometry(r*0.7, 16, 12), pos:[0,0,0], scale:[1,0.95,1] });
+      part(g, mergeParts(lobes), shell, { scale:[1,0.86,1], outline:0.008 });
+      part(g, new THREE.CylinderGeometry(r*0.12, r*0.16, r*0.35, 6), toon('#3f6b2a'), { pos:[0, r*0.82, 0], rot:[0,0,0.25], outline:0.006 });
+      // carved face glowing from inside (front = -Z)
+      const glow = new THREE.MeshBasicMaterial({ color: glowColor || '#ffe27a' });
+      const tri = new THREE.Shape(); tri.moveTo(-0.5,-0.4); tri.lineTo(0.5,-0.4); tri.lineTo(0,0.5); tri.closePath();
+      const triGeo = new THREE.ShapeGeometry(tri);
+      [-1,1].forEach(sx=>{ const e = new THREE.Mesh(triGeo, glow); e.scale.set(r*0.34, r*0.34, 1); e.position.set(sx*r*0.32, r*0.12, -r*0.86); e.rotation.y = Math.PI; g.add(e); });
+      const mouth = new THREE.Shape();
+      mouth.moveTo(-0.9,0.1); mouth.lineTo(-0.5,-0.05); mouth.lineTo(-0.3,0.15); mouth.lineTo(0,-0.05); mouth.lineTo(0.3,0.15); mouth.lineTo(0.5,-0.05); mouth.lineTo(0.9,0.1); mouth.quadraticCurveTo(0,-0.75,-0.9,0.1);
+      const m = new THREE.Mesh(new THREE.ShapeGeometry(mouth), glow); m.scale.set(r*0.42, r*0.42, 1); m.position.set(0, -r*0.25, -r*0.88); m.rotation.y = Math.PI; g.add(m);
       return g;
     }
-    function makeBasketAccessory(){
+    function makeBat(scale, color){
       const g = new THREE.Group();
-      const wood = stdMat('#8a6a4a');
-      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.072,0.05,0.085,10,1,true), wood);
-      bowl.material.side = THREE.DoubleSide;
-      g.add(bowl);
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.072,0.008,6,14), wood);
-      rim.rotation.x = Math.PI/2; rim.position.y = 0.042; g.add(rim);
-      const handle = new THREE.Mesh(new THREE.TorusGeometry(0.065,0.008,6,12,Math.PI), wood);
-      handle.rotation.z = Math.PI/2; handle.position.y = 0.095; g.add(handle);
-      ['#ff6b6b','#ffd166','#6bd1a0'].forEach((col,i)=>{
-        const candy = new THREE.Mesh(new THREE.SphereGeometry(0.016,6,6), new THREE.MeshStandardMaterial({color:col}));
-        candy.position.set((i-1)*0.028, 0.055, (i%2)*0.018 - 0.005);
-        g.add(candy);
+      const mat = toon(color || '#231a2e');
+      part(g, new THREE.SphereGeometry(0.5, 12, 10), mat, { scale:[0.9,1,0.8], outline:0.05 });
+      [-1,1].forEach(sx=>{ part(g, new THREE.ConeGeometry(0.18, 0.4, 6), mat, { pos:[sx*0.25, 0.55, 0], rot:[0,0,-sx*0.25], outline:0.04 }); });
+      const wing = new THREE.Shape();
+      wing.moveTo(0,0.25); wing.quadraticCurveTo(0.9,0.75,1.5,0.35); wing.quadraticCurveTo(1.25,0.05,1.1,-0.1); wing.quadraticCurveTo(0.95,0.05,0.75,-0.15); wing.quadraticCurveTo(0.55,0.0,0.35,-0.2); wing.quadraticCurveTo(0.2,-0.05,0,-0.1); wing.closePath();
+      const wg = new THREE.ExtrudeGeometry(wing, { depth:0.06, bevelEnabled:false });
+      const wl = new THREE.Group(), wr = new THREE.Group();
+      part(wl, wg, mat, { outline:0.035 }); part(wr, wg, mat, { outline:0.035, rot:[0, Math.PI, 0] });
+      wl.position.set(0.3,0.1,0); wr.position.set(-0.3,0.1,0); g.add(wl, wr);
+      const eye = new THREE.MeshBasicMaterial({ color:'#ffd94a' });
+      [-1,1].forEach(sx=>{ const e = new THREE.Mesh(new THREE.SphereGeometry(0.09,8,6), eye); e.position.set(sx*0.17, 0.12, -0.4); g.add(e); });
+      g.scale.setScalar(scale);
+      g.userData.wings = [wl, wr];
+      return g;
+    }
+    function makeBasket(){
+      const g = new THREE.Group();
+      const wood = toon('#ffffff', { map: makeWeaveTexture(), side: THREE.DoubleSide });
+      const bowl = new THREE.LatheGeometry([ new THREE.Vector2(0.001,0), new THREE.Vector2(0.09,0.005), new THREE.Vector2(0.115,0.06), new THREE.Vector2(0.125,0.12) ], 18);
+      part(g, bowl, wood, { outline:0.008 });
+      part(g, new THREE.TorusGeometry(0.125, 0.012, 6, 20), toon('#7d5229'), { pos:[0,0.12,0], rot:[Math.PI/2,0,0], outline:0.005 });
+      part(g, new THREE.TorusGeometry(0.11, 0.011, 6, 16, Math.PI), toon('#7d5229'), { pos:[0,0.12,0], outline:0.005 });
+      const candyCols = ['#ff5b6e','#ffd166','#6bd1a0','#8a6bff','#ff9a3d','#5ec8ff'];
+      candyCols.forEach((col,i)=>{
+        const a = i/candyCols.length*Math.PI*2;
+        part(g, new THREE.SphereGeometry(0.032, 10, 8), toon(col), { pos:[Math.cos(a)*0.06, 0.13+(i%2)*0.02, Math.sin(a)*0.06], scale:[1.3,0.9,0.9], rot:[0,a,0], outline:0.004 });
       });
+      const pk = makeJackOLantern(0.05, '#ffb347'); pk.position.set(-0.03, 0.17, -0.02); g.add(pk);
+      const bat = makeBat(0.07); bat.position.set(0.06, 0.2, 0.03); bat.rotation.y = 0.5; g.add(bat);
+      return g;
+    }
+    // Small black cat with its own mini witch hat (kept for the male look, which
+    // matches its reference sheet; the female look follows the newer reference).
+    function makeCatCompanion(hatColor){
+      const g = new THREE.Group();
+      const black = toon('#221c28');
+      part(g, new THREE.SphereGeometry(0.07, 14, 10), black, { scale:[0.8,1,1.25], outline:0.006 });
+      part(g, new THREE.SphereGeometry(0.06, 14, 10), black, { pos:[0,0.09,-0.05], outline:0.006 });
+      [-1,1].forEach(sx=> part(g, new THREE.ConeGeometry(0.022, 0.045, 6), black, { pos:[sx*0.032,0.15,-0.05], rot:[0,0,-sx*0.3], outline:0.004 }));
+      const eye = new THREE.MeshBasicMaterial({ color:'#ffd94a' });
+      [-1,1].forEach(sx=>{ const e = new THREE.Mesh(new THREE.SphereGeometry(0.011,8,6), eye); e.position.set(sx*0.022, 0.1, -0.104); g.add(e); });
+      part(g, new THREE.ConeGeometry(0.04, 0.08, 10), toon(hatColor||'#4a2f6b'), { pos:[0,0.18,-0.05], rot:[0.2,0,0], outline:0.004 });
+      const tailCurve = new THREE.CatmullRomCurve3([ new THREE.Vector3(0,-0.02,0.08), new THREE.Vector3(0.04,0.02,0.14), new THREE.Vector3(0.02,0.1,0.16), new THREE.Vector3(-0.02,0.14,0.13) ]);
+      part(g, new THREE.TubeGeometry(tailCurve, 16, 0.013, 6, false), black, { outline:0.004 });
       return g;
     }
 
-    // Ground-up proportions so feet land exactly on y=0 (the "ground" of this little
-    // scene) instead of floating — hipY is derived FROM legLen + shoeH rather than
-    // picked independently, so the two can never drift apart and leave a gap.
-    const SHOE_H = 0.09, LEG_LEN = 0.70, HIP_Y = LEG_LEN + SHOE_H, TORSO_H = 0.58, SHOULDER_Y = HIP_Y + TORSO_H;
+    // ---------------- Proportions (chibi) ----------------
+    const BOOT_H = 0.2, LEG_LEN = 0.36, HIP_Y = BOOT_H + LEG_LEN - 0.02;
+    const SHOULDER_Y = 1.06, HEAD_Y = 1.40, HEAD_R = 0.30;
 
     function buildPlayerModel(gender){
       const cfg = PLAYER_EQUIP_CATALOG[gender] || PLAYER_EQUIP_CATALOG.female;
+      const isFemale = gender !== 'male';
       const root = new THREE.Group();
+      const body = new THREE.Group(); root.add(body);         // rotates for facing
+      const skin = toon(cfg.skin || '#ffcf9e');
+      const hairCol = cfg.hair || '#d2691e';
+      const topColor = (cfg.top&&cfg.top.color) || '#6b3fa0', topTrim = (cfg.top&&cfg.top.trim) || '#ffb347';
+      const isTee = cfg.top && cfg.top.kind === 'tee';
 
-      // ---- Legs (hip pivot so each leg can swing independently for the walk cycle) ----
-      // Candy-corn striped leggings, matching the reference art for both looks.
-      const legMat = stdMat('#ffffff', { map: makeStripeTexture('#ff8a3d', (cfg.legwear&&cfg.legwear.color)||'#5a3690') });
-      const shoeMat = stdMat((cfg.shoes&&cfg.shoes.color)||'#241a3a');
-      function makeLeg(xSide){
-        const pivot = limbPivot(HIP_Y);
-        const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.095, LEG_LEN-0.19, 4, 8), legMat);
-        leg.position.set(xSide*0.13, -LEG_LEN/2, 0);
-        pivot.add(leg);
-        const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.16, SHOE_H, 0.22), shoeMat);
-        shoe.position.set(xSide*0.13, -LEG_LEN-SHOE_H/2, 0.03);
-        pivot.add(shoe);
-        root.add(pivot);
+      // ---- Legs: striped stockings + chunky strapped boots (hip pivots for walking) ----
+      const stockMat = toon('#ffffff', { map: makeStripeTexture(isFemale ? '#2a1a2e' : '#e07a2a', (cfg.legwear&&cfg.legwear.color) || '#5a3690') });
+      const bootMat = toon((cfg.shoes&&cfg.shoes.color) || '#4a2c1c');
+      const strapMat = toon('#2a1a12'), buckleMat = toon('#ffd27a', { emissive:'#5a4010' });
+      function makeLeg(sx){
+        const pivot = new THREE.Group(); pivot.position.set(sx*0.1, HIP_Y, 0);
+        part(pivot, new THREE.CapsuleGeometry(0.062, LEG_LEN-0.1, 6, 12), stockMat, { pos:[0, -LEG_LEN/2+0.02, 0] });
+        const by = -HIP_Y; // boot sits on the ground
+        part(pivot, new THREE.SphereGeometry(0.1, 16, 12), bootMat, { pos:[0, by+0.07, -0.035], scale:[0.95,0.72,1.35] });
+        part(pivot, new THREE.CylinderGeometry(0.085, 0.09, 0.17, 16), bootMat, { pos:[0, by+0.15, 0.005] });
+        part(pivot, new THREE.TorusGeometry(0.088, 0.018, 8, 18), bootMat, { pos:[0, by+0.235, 0.005], rot:[Math.PI/2,0,0], outline:0.006 });
+        part(pivot, new THREE.TorusGeometry(0.092, 0.012, 6, 18), strapMat, { pos:[0, by+0.15, 0.005], rot:[Math.PI/2,0,0], outline:0.004 });
+        part(pivot, new THREE.BoxGeometry(0.035, 0.03, 0.012), buckleMat, { pos:[sx*0.02, by+0.15, -0.098], outline:0.003 });
+        body.add(pivot);
         return pivot;
       }
       const leftLeg = makeLeg(-1), rightLeg = makeLeg(1);
 
-      // ---- Robe (tapered cylinder flaring toward the hem — reads as a robe, not pants) ----
-      // modelUrl aside, this is the one slot with a baked-in procedural texture rather than
-      // a flat color — see makeRobeTexture() for the moon/pumpkin/patch pattern and the
-      // U-coordinate convention it relies on.
-      const topKind = (cfg.top && cfg.top.kind) || 'robe';
-      const topColor = (cfg.top&&cfg.top.color)||'#6b3fa0', topTrim = (cfg.top&&cfg.top.trim)||'#442868';
-      // The earned "tee" top (level-100 unlock) is a short, barely-flared fitted shirt
-      // rather than a floor-length robe — different silhouette, same cylinder-plus-texture
-      // technique. Both variants anchor their TOP edge at the same shoulder-ish height so
-      // swapping tops never makes the character's neckline jump.
-      const isTee = topKind === 'tee';
-      const robeMat = stdMat('#ffffff', { map: isTee ? makeTeeTexture(topColor, topTrim) : makeRobeTexture(topColor, topTrim) });
-      const robeH = isTee ? (TORSO_H - 0.02) : (TORSO_H + 0.15);
-      const robeTopR = isTee ? 0.165 : 0.17, robeBottomR = isTee ? 0.19 : 0.30;
-      const robeTopEdgeY = (HIP_Y + TORSO_H/2 - 0.05) + (TORSO_H + 0.15)/2;
-      const robe = new THREE.Mesh(new THREE.CylinderGeometry(robeTopR, robeBottomR, robeH, 20), robeMat);
-      robe.position.y = robeTopEdgeY - robeH/2;
-      root.add(robe);
+      // ---- Coat (lathe: fitted chest, flared hem) or the earned fitted tee ----
+      let coat;
       if (!isTee){
-        const sash = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.025, 6, 16), stdMat(topTrim));
-        sash.rotation.x = Math.PI/2; sash.position.y = HIP_Y + 0.2;
-        root.add(sash);
+        const prof = [[0.30,0.36],[0.315,0.40],[0.295,0.48],[0.27,0.58],[0.245,0.68],[0.225,0.78],[0.212,0.86],[0.218,0.94],[0.225,1.0],[0.205,1.05],[0.15,1.09],[0.10,1.11]]
+          .map(([r,y])=> new THREE.Vector2(r,y));
+        coat = part(body, new THREE.LatheGeometry(prof, 40), toon('#ffffff', { map: makeCoatTexture(topColor, topTrim, !isFemale) }), { outline:0.016 });
+        part(body, new THREE.TorusGeometry(0.305, 0.022, 8, 40), toon(topTrim), { pos:[0,0.37,0], rot:[Math.PI/2,0,0], outline:0.008 });
+      } else {
+        const prof = [[0.22,0.66],[0.225,0.72],[0.215,0.82],[0.218,0.92],[0.225,1.0],[0.205,1.05],[0.15,1.09],[0.10,1.11]].map(([r,y])=> new THREE.Vector2(r,y));
+        coat = part(body, new THREE.LatheGeometry(prof, 40), toon('#ffffff', { map: makeTeeTexture(topColor, topTrim) }), { outline:0.016 });
+        // a short skirt under the tee so the silhouette still reads as the same character
+        const sk = [[0.27,0.44],[0.25,0.52],[0.225,0.62],[0.215,0.68]].map(([r,y])=> new THREE.Vector2(r,y));
+        part(body, new THREE.LatheGeometry(sk, 32), toon((cfg.legwear&&cfg.legwear.color) || '#3d2a5c'), { outline:0.012 });
       }
 
-      // ---- Arms (shoulder pivot) ----
-      const skinMat = stdMat(cfg.skin||'#ffcf9e');
-      function makeArm(xSide){
-        const pivot = limbPivot(SHOULDER_Y - 0.04);
-        pivot.rotation.z = xSide * 0.12;
-        const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.34, 4, 8), skinMat);
-        arm.position.set(xSide*0.26, -0.33, 0);
-        pivot.add(arm);
-        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), skinMat);
-        hand.position.set(xSide*0.26, -0.62, 0);
-        pivot.add(hand);
-        root.add(pivot);
+      // ---- Collar: orange hood folded on the shoulders + bow + little bat brooch ----
+      part(body, new THREE.TorusGeometry(0.16, 0.06, 12, 28), toon(topTrim), { pos:[0,1.085,0.01], rot:[Math.PI/2,0,0], outline:0.01 });
+      part(body, new THREE.SphereGeometry(0.2, 18, 12, 0, Math.PI*2, 0, Math.PI/2), toon(topTrim, { side:THREE.DoubleSide }), { pos:[0,1.02,0.12], rot:[-1.3,0,0], scale:[1,0.7,0.8], outline:0.01 });
+      [-1,1].forEach(sx=> part(body, new THREE.ConeGeometry(0.045, 0.09, 8), toon(topTrim), { pos:[sx*0.05,1.06,-0.17], rot:[0,0,sx*Math.PI/2], outline:0.006 }));
+      part(body, new THREE.SphereGeometry(0.025, 10, 8), toon(topTrim), { pos:[0,1.06,-0.175], outline:0.005 });
+      if (isFemale && !isTee){ const brooch = makeBat(0.07, '#2a1f3a'); brooch.position.set(0, 1.0, -0.215); body.add(brooch); }
+
+      // ---- Arms: bell sleeves with trim cuffs, little hands (shoulder pivots) ----
+      const sleeveMat = toon(topColor, { side:THREE.DoubleSide });
+      function makeArm(sx){
+        const pivot = new THREE.Group(); pivot.position.set(sx*0.2, SHOULDER_Y, 0);
+        pivot.rotation.z = sx*0.32;
+        const sl = [[0.055,0],[0.07,-0.08],[0.085,-0.18],[0.11,-0.27],[0.125,-0.31]].map(([r,y])=> new THREE.Vector2(r,y));
+        part(pivot, new THREE.LatheGeometry(sl, 18), sleeveMat, { outline:0.012 });
+        part(pivot, new THREE.TorusGeometry(0.122, 0.018, 8, 20), toon(topTrim), { pos:[0,-0.31,0], rot:[Math.PI/2,0,0], outline:0.006 });
+        part(pivot, new THREE.SphereGeometry(0.055, 14, 10), skin, { pos:[0,-0.345,0], scale:[1,1.05,0.95], outline:0.008 });
+        body.add(pivot);
         return pivot;
       }
       const leftArm = makeArm(-1), rightArm = makeArm(1);
 
-      // ---- Head, face and hair ----
-      // Front is -Z, back is +Z (matches the camera orbit math in initPlayer3D: orbit
-      // 0 puts the camera on +Z looking back toward -Z, i.e. orbit 0 sees whatever faces
-      // +Z — same "starts facing away from camera" convention the old 2D marker used).
-      // A plain sphere head with a symmetric hair cap looks identical from every angle,
-      // which was the bug in the first pass of this model — nothing actually told you
-      // which way you were looking. Eyes on the front and a hair mass on the back fix
-      // that the same way a real head does.
-      const headGroup = new THREE.Group(); headGroup.position.y = SHOULDER_Y + 0.30; root.add(headGroup);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.21, 14, 12), skinMat);
-      headGroup.add(head);
-      const eyeMat = stdMat('#2a2016');
-      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.021, 6, 6), eyeMat); eyeL.position.set(-0.075, 0.01, -0.185);
-      const eyeR = eyeL.clone(); eyeR.position.x = 0.075;
-      headGroup.add(eyeL, eyeR);
-      // Hair mass sits toward the back/sides, leaving the face front bare.
-      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.225, 12, 10), stdMat(cfg.hair||'#3a2a1c'));
-      hair.scale.set(1, 1.05, 0.72);
-      hair.position.set(0, 0.03, 0.08);
-      headGroup.add(hair);
+      // ---- Head ----
+      const headGroup = new THREE.Group(); headGroup.position.y = HEAD_Y; body.add(headGroup);
+      part(headGroup, new THREE.SphereGeometry(HEAD_R, 32, 24), skin, { scale:[1.04,0.97,1], outline:0.012 });
+      part(headGroup, new THREE.CylinderGeometry(0.07, 0.08, 0.1, 12), skin, { pos:[0,-HEAD_R*0.95,0], outline:0 });
+      // face features sit on the sphere surface; each feature group's +Z is the outward normal
+      function onFace(x, y, depth){
+        const z = -Math.sqrt(Math.max(0.0001, HEAD_R*HEAD_R - x*x - y*y));
+        const grp = new THREE.Group(); grp.position.set(x*1.04, y*0.97, z + (depth||0));
+        grp.lookAt(new THREE.Vector3(x*2.5, y*2.2, z*2.5));
+        headGroup.add(grp); return grp;
+      }
+      const eyeWhite = new THREE.MeshBasicMaterial({ color:'#fffaf2' });
+      const irisMat = new THREE.MeshBasicMaterial({ color: isFemale ? '#3a9a5c' : '#8a5a2e' });
+      const irisDark = new THREE.MeshBasicMaterial({ color: isFemale ? '#1c3a24' : '#3a2414' });
+      const pupilMat = new THREE.MeshBasicMaterial({ color:'#120c10' });
+      const shine = new THREE.MeshBasicMaterial({ color:'#ffffff' });
+      const lashMat = new THREE.MeshBasicMaterial({ color:'#2a1612' });
+      [-1,1].forEach(sx=>{
+        const e = onFace(sx*0.112, -0.015);
+        const w = new THREE.Mesh(new THREE.CircleGeometry(0.068, 24), eyeWhite); w.scale.set(0.85,1.08,1); w.position.z = 0.004; e.add(w);
+        const ir = new THREE.Mesh(new THREE.CircleGeometry(0.052, 24), irisDark); ir.scale.set(0.9,1.1,1); ir.position.set(0,-0.006,0.008); e.add(ir);
+        const ir2 = new THREE.Mesh(new THREE.CircleGeometry(0.042, 24), irisMat); ir2.scale.set(0.9,1.1,1); ir2.position.set(0,-0.012,0.011); e.add(ir2);
+        const pu = new THREE.Mesh(new THREE.CircleGeometry(0.02, 16), pupilMat); pu.position.set(0,-0.006,0.014); e.add(pu);
+        const s1 = new THREE.Mesh(new THREE.CircleGeometry(0.016, 12), shine); s1.position.set(-sx*0.016, 0.02, 0.017); e.add(s1);
+        const s2 = new THREE.Mesh(new THREE.CircleGeometry(0.008, 10), shine); s2.position.set(sx*0.014, -0.028, 0.017); e.add(s2);
+        const lash = new THREE.Mesh(new THREE.TorusGeometry(0.062, 0.009, 4, 16, Math.PI*0.95), lashMat); lash.scale.set(0.9,1.05,1); lash.position.set(0,0.004,0.016); lash.rotation.z = Math.PI*0.025; e.add(lash);
+        if (isFemale){ const flick = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.035, 4), lashMat); flick.position.set(sx*0.058, 0.04, 0.016); flick.rotation.z = -sx*0.9; e.add(flick); }
+        const brow = onFace(sx*0.11, 0.105);
+        const b = new THREE.Mesh(new THREE.CapsuleGeometry(0.008, 0.045, 3, 6), new THREE.MeshBasicMaterial({ color:'#a4481a' })); b.rotation.z = Math.PI/2 + sx*0.12; b.position.z = 0.006; brow.add(b);
+        const ch = onFace(sx*0.175, -0.095);
+        const blush = new THREE.Mesh(new THREE.CircleGeometry(0.038, 18), new THREE.MeshBasicMaterial({ color:'#ff8a8a', transparent:true, opacity:0.45 })); blush.scale.set(1.3,0.8,1); blush.position.z = 0.004; ch.add(blush);
+      });
+      const frk = new THREE.MeshBasicMaterial({ color:'#c9774d' });
+      [[-0.15,-0.07],[-0.13,-0.09],[-0.17,-0.1],[0.15,-0.07],[0.13,-0.09],[0.17,-0.1]].forEach(([x,y])=>{ const f = onFace(x,y); const d = new THREE.Mesh(new THREE.CircleGeometry(0.006, 6), frk); d.position.z = 0.006; f.add(d); });
+      const nose = onFace(0, -0.07); nose.add(new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), skin));
+      const mouthG = onFace(0, -0.135);
+      const smile = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.007, 6, 14, Math.PI), new THREE.MeshBasicMaterial({ color:'#8a2a2a' }));
+      smile.rotation.z = Math.PI; smile.position.z = 0.006; mouthG.add(smile);
 
-      // ---- Hat: wide-brimmed pointed witch hat (female) / shorter wizard cap (male) ----
+      // ---- Hair: a solid cap over the back/top of the head (open at the face, open at the
+      // crown where the hat sits) so no angle ever shows bare scalp, then a big curly
+      // mass of clustered curls on top of it (merged into one mesh) ----
+      const capGap = 0.95;   // half-width (radians) of the face opening, centred on -Z
+      const capGeo = new THREE.SphereGeometry(HEAD_R*1.05, 40, 24, -Math.PI/2 + capGap, Math.PI*2 - capGap*2, 0.5, 1.75);
+      part(headGroup, capGeo, toon(hairCol, { side:THREE.DoubleSide }), { scale:[1.04,0.97,1.04], outline:0.01 });
+      const curls = [];
+      let s = 11; const rnd = ()=>{ s = (s*9301+49297)%233280; return s/233280; };
+      for (let i=0;i<96;i++){           // shell around back/top/sides, down to the nape
+        const th = (rnd()*1.5 - 0.75)*Math.PI*0.95;   // around Y (0 = back +Z)
+        const ph = 0.15 + rnd()*1.85;                 // down from the top
+        const R = HEAD_R*1.04;
+        const x = Math.sin(th)*Math.sin(ph)*R, y = Math.cos(ph)*R*0.95, z = Math.cos(th)*Math.sin(ph)*R;
+        const cr = 0.085+rnd()*0.05;
+        if (z < -0.05 && y < 0.12) continue;          // keep the face clear
+        if (y + cr > 0.16) continue;                  // under the hat brim, never poking through it
+        curls.push({ geo:new THREE.SphereGeometry(cr, 12, 10), pos:[x, y, z+0.02] });
+      }
+      // bangs across the forehead under the brim
+      // (kept low enough that they peek out UNDER the brim instead of through it)
+      for (let i=0;i<7;i++){ const x = (i-3)*0.068; curls.push({ geo:new THREE.SphereGeometry(0.066 - Math.abs(i-3)*0.005, 12, 10), pos:[x, 0.085 - Math.abs(x)*0.22, -0.255 + Math.abs(x)*0.2], scale:[1,0.8,0.7] }); }
+      if (isFemale){
+        // long curly locks falling past the shoulders, both sides + back
+        // two staggered columns per lock so each reads as a fat ringlet, not a bead string
+        [[-1,0],[1,0],[-0.6,0.8],[0.6,0.8],[-0.25,1],[0.25,1]].forEach(([dx,dz],k)=>{
+          for (let j=0;j<6;j++){
+            const r = 0.082 - j*0.006;
+            const wob = (j%2 ? 1 : -1)*0.03;
+            const bx = dx*(0.25+j*0.012), bz = -0.02 + dz*0.2 + (k<2? 0.05:0);
+            curls.push({ geo:new THREE.SphereGeometry(r, 12, 10), pos:[bx+wob, -0.1 - j*0.075, bz] });
+            curls.push({ geo:new THREE.SphereGeometry(r*0.8, 10, 8), pos:[bx-wob*0.9, -0.137 - j*0.075, bz + dz*0.03 + (dz?0:0.035)] });
+          }
+        });
+      }
+      part(headGroup, mergeParts(curls), toon(hairCol), { outline:0.012 });
+
+      // ---- Hat ----
       if (cfg.hat){
-        const hatColor = cfg.hat.color||'#2c1a44', trimColor = cfg.hat.trim||'#ffb347';
-        const brimR = cfg.hat.kind==='witchHat' ? 0.4 : 0.32;
-        // A short, wide, slightly-domed disc reads as an actual hat BRIM — the thin torus
-        // ring this replaced looked like a floating halo instead of a brim resting on the head.
-        const brim = new THREE.Mesh(new THREE.CylinderGeometry(brimR, brimR*0.94, 0.025, 20), stdMat(hatColor));
-        brim.position.y = 0.185;
-        headGroup.add(brim);
-        const band = new THREE.Mesh(new THREE.TorusGeometry(brimR*0.52, 0.022, 6, 16), stdMat(trimColor));
-        band.rotation.x = Math.PI/2; band.position.y = 0.21;
-        headGroup.add(band);
-        const coneH = cfg.hat.kind==='witchHat' ? 0.36 : 0.26;
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(brimR*0.52, coneH, 10), stdMat(hatColor));
-        cone.position.y = 0.2 + coneH/2;
-        if (cfg.hat.kind==='witchHat'){ cone.position.z = 0.045; cone.rotation.x = 0.3; } // windswept, leaning back
-        headGroup.add(cone);
-        tryLoadRealModel(cfg.hat, headGroup); // no-op today — see header note
+        const hatColor = cfg.hat.color || '#4a2f6b', hatTrim = cfg.hat.trim || '#ffb347';
+        const witch = cfg.hat.kind === 'witchHat';
+        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.62, 0.02); hatGroup.rotation.x = -0.12; headGroup.add(hatGroup);
+        // wavy, drooping brim
+        const brimR = witch ? 0.56 : 0.44;
+        const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.03, 64, 1);
+        const bp = brimGeo.attributes.position;
+        for (let i=0;i<bp.count;i++){
+          const x = bp.getX(i), z = bp.getZ(i), r = Math.hypot(x,z), a = Math.atan2(z,x);
+          const f = Math.pow(r/brimR, 2);
+          bp.setY(i, bp.getY(i) - f*(witch ? 0.07 : 0.035)*(0.7 + 0.3*Math.sin(a*3 + 0.6)));
+        }
+        brimGeo.computeVertexNormals();
+        part(hatGroup, brimGeo, toon(hatColor), { outline:0.012 });
+        // tall cone, bent back at the tip (classic crumpled witch hat)
+        const H = witch ? 0.78 : 0.5, r0 = witch ? 0.235 : 0.22;
+        const cprof = []; for (let i=0;i<=12;i++){ const t = i/12; cprof.push(new THREE.Vector2(Math.max(0.006, r0*(1-t)*(1-0.12*Math.sin(t*Math.PI*3))), t*H)); }
+        const coneGeo = new THREE.LatheGeometry(cprof, 32);
+        const cpp = coneGeo.attributes.position;
+        for (let i=0;i<cpp.count;i++){
+          const t = cpp.getY(i)/H;
+          cpp.setZ(i, cpp.getZ(i) + (witch ? 0.34 : 0.12)*Math.pow(t, 2.4));
+          cpp.setX(i, cpp.getX(i) + (witch ? 0.10 : 0.03)*Math.pow(t, 3));
+          cpp.setY(i, cpp.getY(i) - (witch ? 0.12 : 0.03)*Math.pow(t, 3));
+        }
+        coneGeo.computeVertexNormals();
+        part(hatGroup, coneGeo, toon('#ffffff', { map: makeHatTexture(hatColor, hatTrim) }), { outline:0.012 });
+        part(hatGroup, new THREE.CylinderGeometry(r0*1.0, r0*1.03, 0.07, 32, 1, true), toon(hatTrim, { side:THREE.DoubleSide }), { pos:[0,0.045,0], outline:0.008 });
+        part(hatGroup, new THREE.BoxGeometry(0.07, 0.06, 0.02), buckleMat, { pos:[0,0.045,-r0-0.01], outline:0.004 });
+        if (witch){ const hb = makeBat(0.09); hb.position.set(0.3, 0.03, -0.2); hb.rotation.set(0.2, 0.6, 0.15); hatGroup.add(hb); root.userData.hatBat = hb; }
+        root.userData.hat = hatGroup;
+        tryLoadRealModel(cfg.hat, headGroup);
       }
 
-      // ---- Staff with a glowing jack-o'-lantern topper, held at the right hand ----
-      if (cfg.accessory && cfg.accessory.kind==='staff'){
-        const staffGroup = new THREE.Group();
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.95, 6), stdMat(cfg.accessory.color||'#6b4a2f'));
-        pole.position.y = 0.42;
-        staffGroup.add(pole);
-        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 10),
-          new THREE.MeshStandardMaterial({ color: cfg.accessory.orb||'#ff8a3d', emissive: cfg.accessory.orb||'#ff8a3d', emissiveIntensity:0.9, roughness:0.3 }));
-        orb.scale.set(1, 0.85, 1);
-        orb.position.y = 0.92;
-        staffGroup.add(orb);
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.015, 0.03, 6), stdMat('#3f7d4a'));
-        stem.position.y = 0.92 + 0.055*0.85;
-        staffGroup.add(stem);
-        staffGroup.position.set(0.26, -0.62, 0.02);
-        rightArm.add(staffGroup);
-        root.userData.orb = orb;
+      // ---- Staff: gnarled wood with a hanging jack-o'-lantern (right hand = +X) ----
+      if (cfg.accessory && cfg.accessory.kind === 'staff'){
+        const staff = new THREE.Group(); staff.position.set(0.36, 0, -0.05); body.add(staff);
+        const pts = [ [0,0.02],[0.012,0.35],[-0.01,0.7],[0.01,1.05],[-0.008,1.35],[0.02,1.6],[0.09,1.72],[0.17,1.7],[0.2,1.62] ].map(([x,y])=> new THREE.Vector3(x,y,0));
+        const curve = new THREE.CatmullRomCurve3(pts);
+        part(staff, new THREE.TubeGeometry(curve, 48, 0.024, 8, false), toon(cfg.accessory.color || '#6b4a2f'), { outline:0.008 });
+        [0.5, 0.95, 1.3].forEach(y=> part(staff, new THREE.SphereGeometry(0.032, 8, 6), toon('#5a3d24'), { pos:[0.005, y, 0], outline:0.005 }));
+        const hang = new THREE.Group(); hang.position.set(0.2, 1.62, 0); staff.add(hang);
+        part(hang, new THREE.CylinderGeometry(0.005, 0.005, 0.12, 4), toon('#3a3a3a'), { pos:[0,-0.06,0], outline:0 });
+        const orbCol = cfg.accessory.orb || '#ff8a3d';
+        const warm = orbCol === '#ff8a3d';
+        const lantern = makeJackOLantern(0.13, warm ? '#ffd76a' : '#d6ffcf');
+        lantern.position.y = -0.25; hang.add(lantern);
+        // soft halo of candle-light around it (camera-facing, additive) — the lit-lantern
+        // glow from the reference art
+        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map:getLanternHaloTexture(), color: warm ? 0xff8a30 : 0x8affb0,
+          transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0.6 }));
+        halo.scale.set(0.8, 0.8, 1); halo.position.y = -0.25; hang.add(halo);
+        // (No real point light here on purpose: MeshToonMaterial looks lights up through
+        // a ramp with a lifted floor, so a light *inside* the lantern lit its own shell
+        // from point-blank range and blew it out to yellow. The halo sells the glow.)
+        root.userData.lanternHalo = halo;
+        root.userData.lanternHang = hang;
+        rightArm.rotation.z = 0.55;   // right hand reaches out to the staff
       }
 
-      // ---- Candy basket, held at the left hand ----
-      const basket = makeBasketAccessory();
-      basket.position.set(-0.26, -0.6, 0.03);
-      basket.rotation.z = 0.1;
-      leftArm.add(basket);
+      // ---- Candy basket in the left hand (-X) ----
+      const basket = makeBasket();
+      basket.position.set(0, -0.48, 0.02); leftArm.add(basket);
+      leftArm.rotation.z = -0.38;
 
-      // ---- Black cat companion, perched on the back/shoulder ----
-      const cat = makeCatCompanion(cfg.hat && cfg.hat.color);
-      cat.position.set(0.21, SHOULDER_Y + 0.08, 0.14);
-      cat.rotation.y = -0.5;
-      root.add(cat);
+      // ---- Male look keeps its little shoulder cat from its own reference sheet ----
+      if (!isFemale){ const cat = makeCatCompanion(cfg.hat && cfg.hat.color); cat.scale.setScalar(1.6); cat.position.set(-0.27, SHOULDER_Y+0.02, 0.0); cat.rotation.y = 0.25; body.add(cat); }
+      // His sheet is the mirror image of hers (staff in the left hand, cat on the right
+      // shoulder) — mirror the whole figure rather than duplicating every placement.
+      if (!isFemale) body.scale.x = -1;
 
-      tryLoadRealModel(cfg.top, root); // no-op today — see header note
-      root.userData.parts = { leftLeg, rightLeg, leftArm, rightArm, robe };
+      tryLoadRealModel(cfg.top, root);
+      root.userData.parts = { leftLeg, rightLeg, leftArm, rightArm, robe: coat, body, headGroup };
+      root.userData.armRest = { l: leftArm.rotation.z, r: rightArm.rotation.z };
       return root;
     }
 
     function animatePlayerModel(group, t, walking){
       const p = group.userData.parts;
       if (!p) return;
+      const ud = group.userData;
+      const dt = Math.min(0.1, Math.max(0, t - (ud.lastT || t))); ud.lastT = t;
+      // Facing: idle she turns to face the camera (the reference pose); walking she turns
+      // away and heads "into" the map, the way a Pokémon-GO-style avatar walks.
+      const target = walking ? 0 : Math.PI;
+      if (ud.facing === undefined) ud.facing = target;
+      ud.facing += (target - ud.facing) * Math.min(1, dt*6);
+      p.body.rotation.y = ud.facing;
+      const rest = ud.armRest || { l:0, r:0 };
       if (walking){
         const s = Math.sin(t*8.5);
-        p.leftLeg.rotation.x = s*0.55; p.rightLeg.rotation.x = -s*0.55;
-        p.leftArm.rotation.x = -s*0.4; p.rightArm.rotation.x = s*0.4;
-        group.position.y = Math.abs(Math.cos(t*8.5))*0.035;
-        p.robe.rotation.z = s*0.025;
+        p.leftLeg.rotation.x = s*0.6; p.rightLeg.rotation.x = -s*0.6;
+        p.leftArm.rotation.x = -s*0.35; p.rightArm.rotation.x = s*0.2;
+        p.body.position.y = Math.abs(Math.cos(t*8.5))*0.04;
+        p.robe.rotation.z = s*0.03;
+        p.headGroup.rotation.z = s*0.03;
+        p.headGroup.position.y = HEAD_Y;
       } else {
         p.leftLeg.rotation.x = 0; p.rightLeg.rotation.x = 0;
-        const breathe = Math.sin(t*1.7);
-        p.leftArm.rotation.x = breathe*0.03; p.rightArm.rotation.x = -breathe*0.03;
-        p.robe.scale.y = 1 + breathe*0.012;
-        group.position.y = 0;
+        const b = Math.sin(t*1.8);
+        p.leftArm.rotation.x = b*0.04; p.rightArm.rotation.x = -b*0.03;
+        p.robe.scale.set(1 - b*0.006, 1 + b*0.01, 1 - b*0.006);
+        p.body.position.y = 0;
+        p.headGroup.rotation.z = Math.sin(t*0.9)*0.04;
+        p.headGroup.position.y = HEAD_Y + b*0.006;
       }
-      const orb = group.userData.orb;
-      if (orb) orb.material.emissiveIntensity = 0.7 + Math.sin(t*3)*0.3;
+      p.leftArm.rotation.z = rest.l; p.rightArm.rotation.z = rest.r;
+      if (ud.hat) ud.hat.rotation.z = Math.sin(t*1.3)*0.04;
+      if (ud.lanternHang){ ud.lanternHang.rotation.z = Math.sin(t*(walking?6:1.6))*(walking?0.3:0.12); ud.lanternHang.rotation.x = Math.sin(t*1.1)*0.06; }
+      const flicker = Math.sin(t*9)*0.5 + Math.sin(t*23)*0.3;
+      if (ud.lanternHalo) ud.lanternHalo.material.opacity = 0.55 + flicker*0.07;
+      if (ud.hatBat && ud.hatBat.userData.wings){ const f = Math.sin(t*3)*0.25; ud.hatBat.userData.wings[0].rotation.y = f; ud.hatBat.userData.wings[1].rotation.y = Math.PI - f; }
     }
+
+    // Shared lighting rig for every view of the player (map marker + wardrobe preview):
+    // warm key light casting a real soft shadow onto a catcher plane, a front fill, a
+    // cool rim from behind for the painted-edge glow, and a sky/ground fill. The rig is
+    // returned so each view can turn it with its camera — the map world spins under the
+    // player when you orbit, so studio-style lighting that follows the camera keeps her
+    // lit from the viewer's side at every angle instead of going dark from behind.
+    function addPlayerLighting(scene){
+      scene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.15));
+      const rig = new THREE.Group(); scene.add(rig);
+      const key = new THREE.DirectionalLight(0xffe2b8, 1.45);
+      key.position.set(1.5, 3.8, 2.4);
+      key.castShadow = true;
+      key.shadow.mapSize.set(1024, 1024);
+      key.shadow.camera.left = -1.4; key.shadow.camera.right = 1.4; key.shadow.camera.top = 2.8; key.shadow.camera.bottom = -0.6;
+      key.shadow.camera.near = 0.5; key.shadow.camera.far = 9;
+      key.shadow.bias = -0.0015; key.shadow.radius = 4;
+      rig.add(key);
+      const fill = new THREE.DirectionalLight(0xfff5e8, 0.5); fill.position.set(-1.2, 1.6, 3); rig.add(fill);
+      const rim = new THREE.DirectionalLight(0xb7a2ff, 0.9); rim.position.set(-2.2, 2.4, -3); rig.add(rim);
+      const catcher = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity:0.38 }));
+      catcher.rotation.x = -Math.PI/2; catcher.receiveShadow = true; scene.add(catcher);
+      // contact shadow right under the feet: a wide soft blob plus a tighter dark core,
+      // which is what reads as "standing ON the ground" at a glance
+      const blob = new THREE.Mesh(new THREE.CircleGeometry(0.42, 32),
+        new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.95 }));
+      blob.rotation.x = -Math.PI/2; blob.position.y = 0.004; blob.scale.set(1.35, 1.0, 1); scene.add(blob);
+      const core = new THREE.Mesh(new THREE.CircleGeometry(0.2, 32),
+        new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.9 }));
+      core.rotation.x = -Math.PI/2; core.position.y = 0.006; core.scale.set(1.5, 0.9, 1); scene.add(core);
+      return rig;
+    }
+    function setupPlayerRenderer(renderer){
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    }
+    // Disposes a model's per-build GPU objects while leaving the shared cached ones
+    // (outline materials, toon ramp, canvas textures) alone for the next rebuild.
+    function disposePlayerModel(group){
+      const shared = new Set(Object.values(outlineMatCache));
+      group.traverse(o=>{
+        if (o.geometry) o.geometry.dispose();
+        if (o.material && !shared.has(o.material)) o.material.dispose();
+      });
+    }
+
+    // (v1 capsule model removed — see the v37 PLAYER MODEL section above.)
 
     // ---------------- Per-canvas 3D viewport ----------------
     // A soft blob shadow drawn INTO the 3D scene itself, right under the feet, rather than
@@ -5161,26 +5584,34 @@
       return groundShadowTex;
     }
 
+    // Camera framing shared by the map marker and the wardrobe preview: a slightly
+    // elevated three-quarter "game camera" looking at the figure's middle. FRAME_FEET_PX
+    // is how far above the canvas bottom the feet land, which the CSS uses to plant
+    // them exactly on the player's ground ring (see .player-avatar.is-3d).
+    const PLAYER_CANVAS_W = 170, PLAYER_CANVAS_H = 236, FRAME_FEET_PX = 16;
+    const FRAME_FOV = 28, FRAME_ELEV = THREE.MathUtils.degToRad(15);
+    const FRAME_VIEW_H = 2.86;   // world units visible top-to-bottom
+    function placePlayerCamera(camera, orbitRad, viewH, feetPx, canvasH){
+      const d = viewH / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2));
+      // look-at height chosen so y=0 sits feetPx above the bottom edge
+      const unitsPerPx = viewH / canvasH;
+      const lookY = viewH/2 - feetPx*unitsPerPx;
+      camera.position.set(Math.sin(orbitRad)*d*Math.cos(FRAME_ELEV), lookY + d*Math.sin(FRAME_ELEV), Math.cos(orbitRad)*d*Math.cos(FRAME_ELEV));
+      camera.lookAt(0, lookY, 0);
+    }
+
     function initPlayer3D(canvas, gender){
       const scene = new THREE.Scene();
-      scene.add(new THREE.HemisphereLight(0xfff1d6, 0x2a2045, 1.15));
-      const key = new THREE.DirectionalLight(0xffddaa, 0.85); key.position.set(1.5, 3, 2); scene.add(key);
-      const rim = new THREE.DirectionalLight(0x8f8fff, 0.35); rim.position.set(-2, 1.5, -2); scene.add(rim);
-      const groundShadow = new THREE.Mesh(
-        new THREE.CircleGeometry(0.42, 20),
-        new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false })
-      );
-      groundShadow.rotation.x = -Math.PI/2; groundShadow.position.y = 0.004;
-      scene.add(groundShadow);
+      const rig = addPlayerLighting(scene);
 
-      const CANVAS_W = 92, CANVAS_H = 124;
-      const camera = new THREE.PerspectiveCamera(45, CANVAS_W/CANVAS_H, 0.1, 20);
+      const camera = new THREE.PerspectiveCamera(FRAME_FOV, PLAYER_CANVAS_W/PLAYER_CANVAS_H, 0.1, 30);
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      setupPlayerRenderer(renderer);
       // Fixed intended size (matches the .player-avatar-3d CSS) rather than measuring
       // layout — this marker never resizes, and reading clientWidth/Height here would
       // return 0 if mounted before the game screen is the active one on screen.
-      renderer.setSize(CANVAS_W, CANVAS_H, false);
+      renderer.setSize(PLAYER_CANVAS_W, PLAYER_CANVAS_H, false);
 
       let group = buildPlayerModel(gender);
       scene.add(group);
@@ -5195,14 +5626,8 @@
         const gs = window.__gameState;
         const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
         const rad = THREE.MathUtils.degToRad(orbitDeg);
-        // Tighter crop than the first pass — feet (y=0) now land close to the very bottom
-        // of the canvas instead of floating in a band of empty transparent space above the
-        // CSS ground shadow/ring below it, which is what actually made her look like she
-        // was hovering (the model itself was always correctly grounded — the framing
-        // just left air under her feet).
-        const radius = 2.75, camHeight = 1.45;
-        camera.position.set(Math.sin(rad)*radius, camHeight, Math.cos(rad)*radius);
-        camera.lookAt(0, 1.18, 0);
+        placePlayerCamera(camera, rad, FRAME_VIEW_H, FRAME_FEET_PX, PLAYER_CANVAS_H);
+        rig.rotation.y = rad;   // studio lighting follows the camera around her
         const walking = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
         animatePlayerModel(group, performance.now()/1000, walking);
         renderer.render(scene, camera);
@@ -5212,11 +5637,11 @@
       return {
         setGender(g){
           scene.remove(group);
-          group.traverse(o=>{ if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+          disposePlayerModel(group);
           group = buildPlayerModel(g);
           scene.add(group);
         },
-        dispose(){ stopped = true; renderer.dispose(); }
+        dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); }
       };
     }
 
@@ -5228,21 +5653,16 @@
     // needs than the tiny fixed HUD marker in initPlayer3D() below.
     function initWardrobePreview3D(canvas, gender){
       const scene = new THREE.Scene();
-      scene.add(new THREE.HemisphereLight(0xfff1d6, 0x2a2045, 1.15));
-      const key = new THREE.DirectionalLight(0xffddaa, 0.9); key.position.set(1.5, 3, 2); scene.add(key);
-      const rim = new THREE.DirectionalLight(0x8f8fff, 0.35); rim.position.set(-2, 1.5, -2); scene.add(rim);
-      const groundShadow = new THREE.Mesh(
-        new THREE.CircleGeometry(0.42, 20),
-        new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false })
-      );
-      groundShadow.rotation.x = -Math.PI/2; groundShadow.position.y = 0.004;
-      scene.add(groundShadow);
+      const rig = addPlayerLighting(scene);
 
-      const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 20);
+      const camera = new THREE.PerspectiveCamera(FRAME_FOV, 1, 0.1, 30);
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      setupPlayerRenderer(renderer);
+      let ch = 260;
       function resize(){
         const w = canvas.clientWidth || 200, h = canvas.clientHeight || 260;
+        ch = h;
         renderer.setSize(w, h, false);
         camera.aspect = w/h; camera.updateProjectionMatrix();
       }
@@ -5256,7 +5676,7 @@
       // instant the panel opens, and auto-spins gently whenever the player isn't actively
       // dragging — the live-rotating preview the brief asked for, without needing the
       // player to discover the drag gesture first.
-      let orbitDeg = 200, dragging = false, lastX = 0;
+      let orbitDeg = 20, dragging = false, lastX = 0;   // idle pose faces +Z, so ~0° = front
       canvas.addEventListener('pointerdown', e=>{ dragging = true; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
       canvas.addEventListener('pointermove', e=>{ if (!dragging) return; orbitDeg += (e.clientX-lastX)*0.6; lastX = e.clientX; });
       window.addEventListener('pointerup', ()=>{ dragging = false; });
@@ -5267,9 +5687,8 @@
         if (stopped) return;
         requestAnimationFrame(frame);
         const rad = THREE.MathUtils.degToRad(orbitDeg);
-        const radius = 2.6, camHeight = 1.5;
-        camera.position.set(Math.sin(rad)*radius, camHeight, Math.cos(rad)*radius);
-        camera.lookAt(0, 1.15, 0);
+        placePlayerCamera(camera, rad, 3.0, 20, ch);
+        rig.rotation.y = rad;
         if (!dragging) orbitDeg += 0.15;
         animatePlayerModel(group, performance.now()/1000, false);
         renderer.render(scene, camera);
@@ -5279,11 +5698,11 @@
       return {
         rebuild(g){
           scene.remove(group);
-          group.traverse(o=>{ if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+          disposePlayerModel(group);
           group = buildPlayerModel(g);
           scene.add(group);
         },
-        dispose(){ stopped = true; renderer.dispose(); window.removeEventListener('resize', resize); }
+        dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); window.removeEventListener('resize', resize); }
       };
     }
     window.mountWardrobePreview3D = function(canvas, gender){
@@ -5314,6 +5733,7 @@
       canvas.className = 'player-avatar-3d';
       holder.appendChild(canvas);
       holder.classList.add('is-3d');
+      if (holder.parentElement) holder.parentElement.classList.add('has-3d');
       holder.__player3d = initPlayer3D(canvas, g);
     };
 
@@ -5329,38 +5749,34 @@
 })();
 
 // ============================================================================
-// PHASE 2 — real 3D Totos on the overworld map (map only — battle's arena
-// sprite is completely untouched, per the brief).
+// PHASE 2 — 3D Totos on the overworld map (map only — battle's arena sprite is
+// untouched).
 // ----------------------------------------------------------------------------
-// The classic game script above is wrapped in its own `(function(){...})()`,
-// so none of its internals (state, $, TOTO_IMG, spriteFor, appendTotoNode...)
-// are reachable from here except through the one thing it already exports —
-// window.__gameState — plus the live DOM it builds. That's deliberate: rather
-// than reaching into that script to hook spawn/catch/prune, this layer just
-// watches window.__gameState.wildTotos and each toto's own t._node every
-// frame and mounts/unmounts a 3D presence to match whatever's actually on
-// screen. Zero edits to the existing map/spawn/catch logic.
+// The classic game script above is wrapped in its own IIFE, so this layer only
+// sees window.__gameState plus the live DOM it builds. It watches
+// __gameState.wildTotos every frame and mounts/unmounts a 3D presence for each
+// toto that's on the map — zero edits to the existing spawn/catch/prune logic.
 //
-// Why one shared canvas instead of giving every toto its own <canvas> (the
-// way the player's single marker works): up to MAX_WILD_TOTOS (38) can be
-// alive at once, and most browsers cap the number of *simultaneous* live
-// WebGL contexts well below that (mobile Safari/Chrome can be as low as
-// 8-16) — a context-per-creature approach would start silently losing
-// contexts long before the map felt crowded. So instead this is ONE
-// orthographic-camera scene laid over the whole map viewport, where every
-// toto is a small group (its existing 2D sprite art as a lit billboard, plus
-// a real, glowing, tilted "dais" disc underneath for genuine 3D shading) and
-// every frame its on-screen position/size is read straight from its existing
-// marker's actual getBoundingClientRect() — so it rides along with the real
-// GPS/pan/zoom/tilt/rotate/wander math for free, without this layer having
-// to understand any of it.
+// One shared full-viewport canvas + one ortho camera (not a canvas per toto:
+// up to 38 can be alive and mobile browsers cap live WebGL contexts around
+// 8-16). Every frame each toto's on-screen foot point and scale are read from
+// its own (now invisible) DOM marker, so it rides the existing GPS/pan/zoom/
+// tilt/orbit math for free.
 //
-// Honest scope note (same reasoning as the player's procedural model): there
-// are 50+ unique Toto species and hand-sculpting a real 3D model for each is
-// its own multi-week project. This reuses the existing painted 2D art as a
-// properly-lit, animated 3D billboard rather than leaving creatures as flat
-// stickers — a real step up, not a disguised no-op — while staying honest
-// that it isn't bespoke per-species 3D geometry.
+// v37 presentation (matches the "creatures standing on ground rings" look):
+//  - the creature stands UPRIGHT at its true proportions. The DOM marker lies
+//    on the CSS-tilted ground plane, so its projected rect is squashed
+//    vertically; only its WIDTH is used for scale, height comes from the art's
+//    own aspect ratio (the old billboard stretched the art to the squashed
+//    rect, which is what made creatures read as flat paintings).
+//  - feet are planted on the marker's foot point (all sprites are now cut out
+//    cleanly and bottom-aligned, see assets/totos), on a thin perspective-
+//    correct ground ring (ellipse ratio measured from the tilt) with a soft
+//    contact shadow, instead of the old floating tilted dais that was anchored
+//    under the labels rather than under the creature.
+//  - labels move to a small DOM overlay under the ring so the upright creature
+//    never covers them, and taps on the drawn creature are hit-tested back to
+//    the toto's own marker (same tryStartEncounter path as before).
 // ============================================================================
 (async () => {
   try {
@@ -5374,17 +5790,19 @@
     const THREE = await import('three');
 
     const scene = new THREE.Scene();
-    scene.add(new THREE.HemisphereLight(0xfff1d6, 0x241c3a, 1.05));
-    const key = new THREE.DirectionalLight(0xffddaa, 0.95); key.position.set(1.2, 3, 2); scene.add(key);
-    const rim = new THREE.DirectionalLight(0x9a8fff, 0.4); rim.position.set(-2, 1.4, -1.5); scene.add(rim);
-
-    // Looking straight down -Z from a fixed distance — screen-space-matched ortho
-    // projection, no perspective math needed since we hand it final pixel positions.
     const camera = new THREE.OrthographicCamera(0, 1, 0, 1, 1, 2000);
     camera.position.z = 1000;
-
     const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+
+    // Labels live in a plain DOM layer just above the canvas (crisp text, no texture
+    // re-rendering) and below the fog vignette.
+    let labelLayer = document.getElementById('toto3d-labels');
+    if (!labelLayer){
+      labelLayer = document.createElement('div');
+      labelLayer.id = 'toto3d-labels';
+      canvas.insertAdjacentElement('afterend', labelLayer);
+    }
 
     let vw = 1, vh = 1;
     function resize(){
@@ -5397,10 +5815,11 @@
     resize();
     window.addEventListener('resize', resize);
 
-    // Matches the glow colors already used elsewhere for mythical/eternal (see
-    // .mythical-glow / .toni-glow) so a 3D toto's rarity reads consistently with
-    // every other rarity cue in the game.
-    const TIER_ACCENT = { normal:'#cbb8ff', legendary:'#ffcf6b', mythical:'#ff3b3b', eternal:'#ff5ad2' };
+    // Ring colors: warm cream-gold for normal (like the reference), and the same
+    // rarity hues the rest of the game already uses for the rarer tiers.
+    const TIER_RING = { normal:'#f6dca4', legendary:'#ffc94d', mythical:'#ff5a5a', eternal:'#ff7ae0' };
+    const SIZE = 1.45;           // creatures read a bit bigger than the old flat icons
+    const PLANE_IMG_W = 34;      // .bubble img is 1em wide at 34px — ground-plane units
 
     const spriteTexCache = {};
     function getSpriteTexture(src){
@@ -5412,95 +5831,143 @@
       spriteTexCache[src] = tex;
       return tex;
     }
+    function radialTexture(stops){
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(64,64,0, 64,64,64);
+      stops.forEach(([o,col])=> g.addColorStop(o,col));
+      ctx.fillStyle = g; ctx.fillRect(0,0,128,128);
+      return new THREE.CanvasTexture(c);
+    }
+    const shadowTex = radialTexture([[0,'rgba(0,0,0,0.62)'],[0.55,'rgba(0,0,0,0.35)'],[1,'rgba(0,0,0,0)']]);
+    const glowTex = radialTexture([[0,'rgba(255,255,255,0.55)'],[0.45,'rgba(255,255,255,0.18)'],[1,'rgba(255,255,255,0)']]);
 
-    // ---------------- per-toto 3D mount ----------------
+    // Shared geometry — every toto is just a few transforms of these.
+    const GEO_RING = new THREE.RingGeometry(0.9, 1.0, 64);
+    const GEO_DISC = new THREE.CircleGeometry(1, 48);
+    const GEO_SPRITE = new THREE.PlaneGeometry(1, 1); GEO_SPRITE.translate(0, 0.5, 0); // origin at the feet
+    function mat(opts){ return new THREE.MeshBasicMaterial(Object.assign({ transparent:true, depthTest:false, depthWrite:false }, opts)); }
+
     const mounts = new Map(); // toto id -> mount record
 
     function tryMountToto(t){
       const bubbleEl = t._node.querySelector('.bubble');
       const img = bubbleEl && bubbleEl.querySelector('img.creature-img');
-      if (!bubbleEl || !img) return null; // no flat sprite to borrow art from — leave 2D alone
-
+      if (!bubbleEl || !img) return null; // no art to borrow — leave the 2D marker alone
+      const ringCol = TIER_RING[t.tier] || TIER_RING.normal;
       const group = new THREE.Group();
-
-      // The glowing "standing on something" dais — a flat disc given a fixed artistic
-      // tilt so it reads as a foreshortened ground plate even though the camera itself
-      // is a plain head-on ortho projection (it never actually matches the map's own
-      // CSS tilt angle, which is a deliberate simplification, not a bug).
-      const accent = TIER_ACCENT[t.tier] || TIER_ACCENT.normal;
-      const dais = new THREE.Mesh(
-        new THREE.CircleGeometry(1, 24),
-        new THREE.MeshStandardMaterial({ color:accent, emissive:accent, emissiveIntensity:0.4, roughness:0.45, metalness:0.2, transparent:true, opacity:0.88 })
-      );
-      dais.rotation.x = -1.2;
-      group.add(dais);
-
-      // Thin extra ring for anything rarer than normal — same visual language as the
-      // cp-tag/glow treatment used everywhere else to call out a special catch.
-      let ring = null;
-      if (t.tier !== 'normal'){
-        ring = new THREE.Mesh(
-          new THREE.RingGeometry(1.15, 1.3, 28),
-          new THREE.MeshBasicMaterial({ color:accent, transparent:true, opacity:0.8, side:THREE.DoubleSide })
-        );
-        ring.rotation.x = -1.2;
-        group.add(ring);
+      const fill = new THREE.Mesh(GEO_DISC, mat({ color:ringCol, opacity:0.10 }));
+      const ring = new THREE.Mesh(GEO_RING, mat({ color:ringCol, opacity:0.85 }));
+      const shadow = new THREE.Mesh(GEO_DISC, mat({ map:shadowTex }));
+      let glow = null;
+      if (t.tier && t.tier !== 'normal'){
+        glow = new THREE.Mesh(GEO_SPRITE, mat({ map:glowTex, color:ringCol, blending:THREE.AdditiveBlending, opacity:0.9 }));
+        group.add(glow);
       }
-
-      const sprite = new THREE.Mesh(
-        new THREE.PlaneGeometry(1,1),
-        new THREE.MeshBasicMaterial({ map:getSpriteTexture(img.src), transparent:true, side:THREE.DoubleSide, depthWrite:false })
-      );
-      group.add(sprite);
-
+      const sprite = new THREE.Mesh(GEO_SPRITE, mat({ map:getSpriteTexture(img.src) }));
+      group.add(fill, ring, shadow, sprite);
       scene.add(group);
       t._node.classList.add('is-3d-mounted');
 
-      return { group, dais, ring, sprite, bubbleEl, img, lastSrc:img.src, bobSeed: Math.random()*Math.PI*2 };
+      const label = document.createElement('div');
+      label.className = 't3-label';
+      label.innerHTML = '<span class="t3-pwr"></span><span class="t3-dist"></span>';
+      labelLayer.appendChild(label);
+
+      return { group, fill, ring, shadow, glow, sprite, bubbleEl, img, label,
+               pwrEl: label.querySelector('.t3-pwr'), distEl: label.querySelector('.t3-dist'),
+               lastSrc: img.src, lastPwr: null, lastDist: null,
+               seed: Math.random()*Math.PI*2, hit: null };
     }
 
-    function updateMountTransform(t, m, now){
+    function updateMount(t, m, now, canvasRect){
       if (m.img.src !== m.lastSrc){
         m.sprite.material.map = getSpriteTexture(m.img.src);
         m.sprite.material.needsUpdate = true;
         m.lastSrc = m.img.src;
       }
-      const nodeRect = t._node.getBoundingClientRect();
-      const bubbleRect = m.bubbleEl.getBoundingClientRect();
-      const canvasRect = canvas.getBoundingClientRect();
-      if (!nodeRect.width || !bubbleRect.width) return; // mid-layout, skip a frame rather than snap to 0
+      const r = m.img.getBoundingClientRect();
+      if (!r.width || !r.height){ m.group.visible = false; m.label.style.display = 'none'; m.hit = null; return; }
+      const fx = r.left + r.width/2 - canvasRect.left;
+      const fy = r.bottom - canvasRect.top;
+      // Off-screen culling (with margin so creatures don't pop at the edges).
+      if (fx < -120 || fx > vw+120 || fy < -40 || fy > vh+260){ m.group.visible = false; m.label.style.display = 'none'; m.hit = null; return; }
+      m.group.visible = true;
 
-      const groundX = nodeRect.left + nodeRect.width/2 - canvasRect.left;
-      const groundY = nodeRect.bottom - canvasRect.top;
-      const spriteCX = bubbleRect.left + bubbleRect.width/2 - canvasRect.left;
-      const spriteCY = bubbleRect.top + bubbleRect.height/2 - canvasRect.top;
+      const s = r.width / PLANE_IMG_W;                                    // screen px per ground unit here
+      // Ground foreshortening, measured from the tilt — capped so the ring always reads as
+      // an ellipse lying on the ground (even at the map's flattest, near top-down zoom
+      // levels) rather than a circle standing up behind the creature like a halo.
+      const k = Math.max(0.22, Math.min(0.42, (r.height / r.width) / 1.2));
+      const tex = m.sprite.material.map;
+      const aspect = (tex && tex.image && tex.image.width) ? tex.image.width / tex.image.height : (300/360);
+      const W = PLANE_IMG_W * s * SIZE, H = W / aspect;
+      const R = W * 0.5;
 
-      const gx = groundX - vw/2, gy = vh/2 - groundY;
-      const localX = (spriteCX - vw/2) - gx;
-      const localY = (vh/2 - spriteCY) - gy;
-      const bob = Math.sin(now*2 + m.bobSeed) * Math.min(3, bubbleRect.height*0.04);
+      const gx = fx - vw/2, gy = vh/2 - fy;
+      m.group.position.set(gx, gy, 0);
+      const order = Math.round(fy) * 6;
 
-      m.group.position.set(gx, gy, groundY*0.1);
-      m.sprite.position.set(localX, localY + bob, 0.6);
-      m.sprite.scale.set(Math.max(1,bubbleRect.width), Math.max(1,bubbleRect.height), 1);
+      m.fill.scale.set(R, R*k, 1);   m.fill.renderOrder = order;
+      m.ring.scale.set(R, R*k, 1);   m.ring.renderOrder = order + 1;
+      m.ring.material.opacity = 0.7 + 0.15*Math.sin(now*2 + m.seed);
+      m.shadow.scale.set(W*0.36, W*0.36*k, 1); m.shadow.renderOrder = order + 2;
 
-      const daisW = Math.max(1, nodeRect.width*0.5);
-      m.dais.scale.set(daisW, daisW*0.42, 1);
-      m.dais.position.set(0, daisW*0.18, -0.3);
-      m.dais.rotation.z = now*0.5;
-      if (m.ring){
-        m.ring.scale.set(daisW, daisW*0.42, 1);
-        m.ring.position.copy(m.dais.position);
-        m.ring.rotation.z = -now*0.35;
+      // Idle life: a gentle breathe (squash/stretch from the feet) and a slight sway —
+      // anchored at the feet so the creature never lifts off its ring.
+      const breathe = Math.sin(now*2.2 + m.seed);
+      const sway = Math.sin(now*1.3 + m.seed*1.7) * 0.035;
+      m.sprite.scale.set(W*(1 - breathe*0.012), H*(1 + breathe*0.022), 1);
+      m.sprite.rotation.z = sway;
+      m.sprite.position.set(0, -1.5*k, 0);       // sink the feet a hair into the ground line
+      m.sprite.renderOrder = order + 4;
+      if (m.glow){
+        m.glow.scale.set(W*1.35, H*1.15, 1);
+        m.glow.position.set(0, -H*0.06, 0);
+        m.glow.material.opacity = 0.55 + 0.25*Math.sin(now*1.6 + m.seed);
+        m.glow.renderOrder = order + 3;
       }
+
+      // Hit box for taps on the drawn creature (viewport coords).
+      m.hit = { x0: canvasRect.left + fx - W*0.42, x1: canvasRect.left + fx + W*0.42,
+                y0: canvasRect.top + fy - H*0.95,   y1: canvasRect.top + fy + R*k, depth: fy };
+
+      // Label pill just under the ring.
+      const pwr = 'PWR ' + (t.cp != null ? t.cp : '?');
+      const dist = t._distEl ? t._distEl.textContent : '';
+      if (pwr !== m.lastPwr){ m.pwrEl.textContent = pwr; m.lastPwr = pwr; }
+      if (dist !== m.lastDist){ m.distEl.textContent = dist; m.lastDist = dist; }
+      const ls = Math.max(0.8, Math.min(1.15, s));
+      m.label.style.display = '';
+      m.label.style.transform = 'translate(' + fx.toFixed(1) + 'px,' + (fy + R*k + 3).toFixed(1) + 'px) translateX(-50%) scale(' + ls.toFixed(2) + ')';
+      m.label.style.zIndex = String(1000 + Math.round(fy));
     }
 
     function disposeMount(m){
       scene.remove(m.group);
-      m.sprite.geometry.dispose(); m.sprite.material.dispose();
-      m.dais.geometry.dispose(); m.dais.material.dispose();
-      if (m.ring){ m.ring.geometry.dispose(); m.ring.material.dispose(); }
+      [m.fill, m.ring, m.shadow, m.sprite, m.glow].forEach(o=>{ if (o) o.material.dispose(); });
+      if (m.label && m.label.parentNode) m.label.parentNode.removeChild(m.label);
     }
+
+    // Taps on the drawn creature (which can extend above its invisible DOM marker now
+    // that it stands upright) are routed back to that toto's own marker click.
+    let downAt = null;
+    mapView.addEventListener('pointerdown', e=>{ downAt = { x:e.clientX, y:e.clientY }; }, true);
+    mapView.addEventListener('click', e=>{
+      if (e.target.closest && e.target.closest('.toto-node, .gym-node, .map-controls, .dpad, button')) return;
+      if (downAt && Math.hypot(e.clientX-downAt.x, e.clientY-downAt.y) > 10) return; // that was a drag
+      let best = null, bestT = null;
+      const gs = window.__gameState;
+      (gs && gs.wildTotos || []).forEach(t=>{
+        const m = mounts.get(t.id);
+        if (!m || !m.hit) return;
+        const h = m.hit;
+        if (e.clientX >= h.x0 && e.clientX <= h.x1 && e.clientY >= h.y0 && e.clientY <= h.y1){
+          if (!best || h.depth > best.depth){ best = h; bestT = t; }
+        }
+      });
+      if (bestT && bestT._node) bestT._node.click();
+    });
 
     function syncFrame(){
       requestAnimationFrame(syncFrame);
@@ -5509,9 +5976,9 @@
       const gs = window.__gameState;
       const list = gs && Array.isArray(gs.wildTotos) ? gs.wildTotos : [];
 
-      const r = mapView.getBoundingClientRect();
-      const rw = Math.max(1, Math.round(r.width)), rh = Math.max(1, Math.round(r.height));
-      if (rw !== vw || rh !== vh) resize();
+      const mr = mapView.getBoundingClientRect();
+      if (Math.round(mr.width) !== vw || Math.round(mr.height) !== vh) resize();
+      const canvasRect = canvas.getBoundingClientRect();
 
       const now = performance.now()/1000;
       const liveIds = new Set();
@@ -5524,12 +5991,11 @@
           if (!m) return;
           mounts.set(t.id, m);
         }
-        updateMountTransform(t, m, now);
+        updateMount(t, m, now, canvasRect);
       });
       mounts.forEach((m, id)=>{
         if (!liveIds.has(id)){ disposeMount(m); mounts.delete(id); }
       });
-
       renderer.render(scene, camera);
     }
     requestAnimationFrame(syncFrame);
