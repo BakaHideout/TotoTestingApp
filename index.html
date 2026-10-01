@@ -9,8 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>TotoQuest</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/brand/icon-192.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <style>
   html, body { margin:0; padding:0; background:#0e1420; height:100%; }
   body { display:flex; align-items:center; justify-content:center; }
@@ -62,6 +63,7 @@
   .auth-glow { position:absolute; width:280px; height:280px; border-radius:50%; background:radial-gradient(circle, rgba(255,138,61,0.32), transparent 70%); top:-70px; right:-70px; }
   .auth-glow2 { position:absolute; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle, rgba(123,92,255,0.35), transparent 70%); bottom:-60px; left:-60px; }
   .logo-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; margin-bottom:2px;}
+  .logo-img { width:132px; height:132px; border-radius:30px; box-shadow:0 10px 26px rgba(0,0,0,0.55), 0 0 22px rgba(255,190,90,0.35); animation: floaty 3s ease-in-out infinite; margin-bottom:4px; }
   .logo-emoji { font-size:56px; filter: drop-shadow(0 6px 14px rgba(255,140,0,0.55)); animation: floaty 3s ease-in-out infinite; }
   .logo-title { font-size:32px; font-weight:800; color:#fff; letter-spacing:0.5px; }
   .logo-sub { font-size:12.5px; color:#c9b8f5; }
@@ -92,8 +94,12 @@
   /* Full width, natural height (not a full-bleed cover crop) so the whole banner — including
      the "TotoQuest" title text baked into the art — is always visible instead of getting cut
      off on tall/narrow phone screens. The loading bar/status sits in the space below it. */
-  .loading-bg-img { position:absolute; top:0; left:0; width:100%; height:auto; object-fit:contain; }
-  .loading-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(12,8,22,0.05) 0%, rgba(12,8,22,0.25) 45%, rgba(10,6,18,0.94) 88%, #0c0716 100%); }
+  .loading-bg-img { position:absolute; top:0; left:0; width:100%; height:auto; object-fit:contain; z-index:1; -webkit-mask-image:linear-gradient(to bottom, #000 82%, transparent 100%); mask-image:linear-gradient(to bottom, #000 82%, transparent 100%); }
+  .loading-overlay, .loading-content { z-index:2; }
+  /* the art fills the width; whatever screen is left below it gets a soft, blurred
+     continuation of the same picture instead of a flat colour */
+  .loading-wrap::before, .game-loading-wrap::before { content:''; position:absolute; inset:-30px; background:url(assets/loading-art.jpg) center bottom / cover no-repeat; filter: blur(18px) brightness(0.7) saturate(1.1); }
+  .loading-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(12,8,22,0) 0%, rgba(12,8,22,0) 52%, rgba(10,6,18,0.6) 70%, rgba(10,6,18,0.92) 90%, #0c0716 100%); }
   .loading-content { position:absolute; left:0; right:0; bottom:38px; padding:0 30px; display:flex; flex-direction:column; align-items:center; gap:9px; }
   .loading-status { color:#ffd899; font-weight:800; font-size:11.5px; letter-spacing:0.5px; text-transform:uppercase; text-shadow:0 2px 4px rgba(0,0,0,0.6); min-height:14px; }
   .loading-bar-track { width:100%; max-width:320px; height:15px; border-radius:10px; background:rgba(255,255,255,0.14); border:1.5px solid rgba(255,200,140,0.4); overflow:hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
@@ -496,6 +502,11 @@
 
   .modal-back { position:absolute; inset:0; background:rgba(10,10,20,0.68); z-index:60; display:none; align-items:center; justify-content:center; padding:20px;}
   .modal-back.active { display:flex; }
+  .enc-note { font-size:11px; font-weight:700; color:#8a7aa8; margin:-2px 0 10px; }
+  .xp-row { margin:2px auto 8px; max-width:250px; text-align:left; }
+  .xp-row .xp-txt { display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color:#7a6a9a; margin-bottom:3px; }
+  .xp-row .xp-track { height:8px; border-radius:5px; background:#ece6fa; overflow:hidden; }
+  .xp-row .xp-fill { height:100%; border-radius:5px; background:linear-gradient(90deg,#7b5cff,#c04dff); }
   .modal-card { background:#fff; border-radius:20px; padding:20px; width:100%; max-width:340px; text-align:center; max-height:100%; overflow-y:auto; }
   /* Totos tab: sort by power */
   .sort-bar { display:flex; align-items:center; gap:6px; margin-bottom:10px; font-size:11.5px; font-weight:800; color:#888; }
@@ -1116,7 +1127,7 @@
   <!-- LOADING SCREEN (shown first; gives GPS + the service worker a moment to warm up) -->
   <div class="screen active" data-screen="loading">
     <div class="loading-wrap">
-      <img class="loading-bg-img" src="assets/loading-bg.jpg" alt="TotoQuest">
+      <img class="loading-bg-img" src="assets/loading-art.jpg" alt="TotoQuest">
       <div class="loading-overlay"></div>
       <div class="loading-content">
         <div class="loading-status" id="loading-status">Summoning the map…</div>
@@ -1132,8 +1143,7 @@
       <div class="auth-glow"></div>
       <div class="auth-glow2"></div>
       <div class="logo-wrap">
-        <div class="logo-emoji">🎃</div>
-        <div class="logo-title">TotoQuest</div>
+        <img class="logo-img" src="assets/brand/icon-512.png" alt="TotoQuest">
         <div class="logo-sub">a haunted world, waiting outside your door</div>
       </div>
       <div class="auth-card">
@@ -1204,7 +1214,7 @@
   <div class="screen" data-screen="game">
     <div class="game-wrap">
       <div class="game-loading-wrap hide" id="game-loading-wrap">
-        <img class="loading-bg-img" src="assets/loading-bg.jpg" alt="TotoQuest">
+        <img class="loading-bg-img" src="assets/loading-art.jpg" alt="TotoQuest">
         <div class="loading-overlay"></div>
         <div class="loading-content">
           <div class="loading-status" id="map-loading-status">Finding your location…</div>
@@ -1420,6 +1430,7 @@
       <div class="modal-sp" id="det-sprite">👻</div>
       <div class="modal-name" id="det-name">Wisp</div>
       <div class="modal-sub" id="det-sub">Lv.1 · CP 320 · normal</div>
+      <div class="xp-row" id="det-xp"></div>
       <div class="stat-list" id="det-stats"></div>
       <div class="moves-box"><div class="moves-title" id="det-ab-title">Abilities</div><div id="det-moves"></div></div>
       <div class="auth-error" id="det-msg" style="text-align:center;"></div>
@@ -1437,6 +1448,7 @@
       <div class="modal-sp" id="enc-sprite">👻</div>
       <div class="modal-name" id="enc-name">Wisp</div>
       <div class="modal-sub" id="enc-sub">CP 320 · normal</div>
+      <div class="enc-note">Caught Totos start at Lv 1 — train them in battles or with candy</div>
       <div class="btn-row">
         <button class="btn-cancel" data-close-enc>Run</button>
         <button class="btn-catch" id="btn-throw">🔮 Throw</button>
@@ -1823,12 +1835,22 @@
       target[slot] = base[slot] ? Object.assign({}, base[slot], preset || {}) : (preset ? Object.assign({}, preset) : base[slot]);
     });
   };
+  // Whatever level a Toto had in the wild (or as a boss), the one you catch starts at
+  // Lv 1 — you raise it yourself through battles (XP) or candy (Power Up).
+  function freshCaughtToto(opp){
+    const t = {};
+    Object.keys(opp).forEach(k=>{ if (k.charAt(0) !== '_') t[k] = opp[k]; });   // drop map-only bits
+    delete t.abilities; delete t.moves;
+    t.id = uid(); t.isToni = !!opp.isToni; t.xp = 0;
+    applyLevelStats(t, 1);
+    return t;
+  }
   function finalizeCatch(opp){
     // The wild/gym Toto you fought already has correct, level-derived stats (see
     // makeToto/applyLevelStats) — catching it just gives your copy a new id, it doesn't
     // reset or re-roll anything. Whatever level you found it at is your starting point;
     // leveling it further from there is on you, same as any other Toto.
-    const caught = Object.assign({}, opp, { id: uid(), isToni: !!opp.isToni });
+    const caught = freshCaughtToto(opp);
     state.collection.push(caught);
     return caught;
   }
@@ -2323,6 +2345,18 @@
     mythical:  { candy: 120 },
     eternal:   { candy: 400 }
   };
+  // ---------------- TOTO XP (earned in battles) ----------------
+  function xpToNext(level){ return 60 + 30*level; }
+  // Adds XP and levels the Toto up as many times as it fills the bar (its stats grow with
+  // every level, exactly like a candy Power Up). Returns how many levels it gained.
+  function grantTotoXp(t, amount){
+    if (!t || t.level >= TOTO_MAX_LEVEL) return 0;
+    t.xp = (t.xp||0) + Math.max(0, Math.round(amount));
+    let ups = 0;
+    while (t.level < TOTO_MAX_LEVEL && t.xp >= xpToNext(t.level)){ t.xp -= xpToNext(t.level); applyLevelStats(t, t.level + 1); ups++; }
+    if (t.level >= TOTO_MAX_LEVEL) t.xp = 0;
+    return ups;
+  }
   function powerUpCost(t){
     const base = TIER_POWERUP_BASE[t.tier] || TIER_POWERUP_BASE.normal;
     if (t.tier==='eternal') return { candy: base.candy }; // flat, as specified
@@ -2332,6 +2366,7 @@
   function applyPowerUp(t){
     if (t.level >= TOTO_MAX_LEVEL) return false;
     applyLevelStats(t, t.level + 1);
+    t.xp = Math.min(t.xp||0, xpToNext(t.level)-1);
     return true;
   }
 
@@ -4556,10 +4591,10 @@
     if (!pendingCatch) return;
     const caught = pendingCatch;
     const respawnX = caught._x, respawnY = caught._y, respawnChunk = caught._chunkKey;
-    state.collection.push(caught);
+    finalizeCatch(caught);
     removeTotoFromMap(caught);
     Sound.playCatch();
-    showToast('Caught '+caught.name+'!');
+    showToast('Caught '+caught.name+'! It starts at Lv 1 — train it in battles or with candy.');
     renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     $('#encounter-modal').classList.remove('active');
     pendingCatch = null;
@@ -4739,6 +4774,12 @@
     detailTarget = t;
     $('#det-sprite').innerHTML = spriteMarkup(t); $('#det-name').textContent = t.name;
     $('#det-sub').textContent = 'Lv.'+t.level+' · PWR '+t.cp+' · '+t.tier;
+    if (t.level >= TOTO_MAX_LEVEL) $('#det-xp').innerHTML = '';
+    else {
+      const need = xpToNext(t.level), have = Math.min(need, t.xp||0);
+      $('#det-xp').innerHTML = '<div class="xp-txt"><span>XP '+have.toLocaleString()+' / '+need.toLocaleString()+'</span><span>Lv '+(t.level+1)+' next</span></div>'
+        + '<div class="xp-track"><div class="xp-fill" style="width:'+Math.round(have/need*100)+'%"></div></div>';
+    }
     $('#det-stats').innerHTML = statBarRow('HP', t.hp, Math.max(t.maxHp,1), '#4dbf4d') + statBarRow('Attack', t.atk, 1600, '#ff5470') +
       statBarRow('Strength', t.strength, 1600, '#ff8a3d') + statBarRow('Defense', t.def, 1300, '#4d7cff') +
       statBarRow('Speed', t.spd, 260, '#7b5cff');
@@ -5906,6 +5947,28 @@
     unlockOrientation();
     battle = null;
   }
+  // XP for the Toto you fought with: tougher bosses give more, a loss still teaches a
+  // little (a quarter). Levels it gains are real levels — its stats grow and new
+  // abilities unlock to learn.
+  function awardBattleXp(won){
+    if (!battle || !battle.player || !battle.player.ref || battle.mode==='catch') return;
+    const t = state.collection.find(x=> x.id === battle.player.ref.id);
+    if (!t) return;
+    const e = battle.enemy;
+    const base = { normal:60, legendary:120, mythical:200, eternal:320 }[e.tier] || 100;
+    let xp = base * (0.6 + Math.min(TOTO_MAX_LEVEL, e.level||1)/TOTO_MAX_LEVEL*0.8);
+    if (battle.group) xp *= 0.9;
+    if (!won) xp *= 0.25;
+    xp = Math.round(xp);
+    const beforeLearn = learnableAbilities(t).length;
+    const ups = grantTotoXp(t, xp);
+    let msg = t.name+' +'+xp+' XP';
+    if (ups) msg += ' — reached Lv '+t.level+'!';
+    const fresh = learnableAbilities(t);
+    if (fresh.length > beforeLearn) msg += ' ✨ It can learn '+fresh[fresh.length-1].name+'!';
+    setTimeout(()=> showToast(msg), won ? 900 : 300);
+    renderCollection(); markDirty(); saveNow(false);
+  }
   let pendingEternalCatch = null;
   function endBattle(won){
     if (!battle || battle.over) return;
@@ -5915,6 +5978,7 @@
     if (!won && battle.group && battle.team.some(m=> m.hp > 0)){ battle.spectating = true; renderBattle(); return; }
     cancelTargeting();
     battle.over = true; clearBattleTimers(); renderBattle();
+    awardBattleXp(won);
     const banner = $('#bx-banner');
     banner.textContent = won ? 'VICTORY!' : 'DEFEAT';
     banner.className = 'bx-banner show ' + (won ? 'win' : 'lose');
@@ -6037,7 +6101,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v42';
+window.TQ_APP_VERSION = 'v43';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
