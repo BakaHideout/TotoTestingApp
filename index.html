@@ -14,6 +14,23 @@
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <style>
   html, body { margin:0; padding:0; background:#0e1420; height:100%; }
+  /* The game's art can't be long-pressed to save/share, dragged out, or text-selected. */
+  html, body { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+  img, canvas, svg { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-user-drag:none; }
+  img { pointer-events:none; }
+  input, textarea { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
+  /* ---------- in-game message boxes (instead of the browser's own pop-ups) ---------- */
+  .gd-back { position:absolute; inset:0; z-index:1200; display:none; align-items:center; justify-content:center; background:rgba(10,6,20,0.62); padding:20px; }
+  .gd-back.show { display:flex; }
+  .gd-card { width:100%; max-width:340px; background:linear-gradient(180deg,#2c2150,#1a1233); border:2px solid #ffb347; border-radius:20px; padding:18px 16px 14px; color:#fff; box-shadow:0 14px 34px rgba(0,0,0,0.6); text-align:center; }
+  .gd-icon { width:54px; height:54px; border-radius:14px; margin:-2px auto 8px; display:block; }
+  .gd-title { font-weight:800; font-size:16px; margin-bottom:6px; }
+  .gd-msg { font-size:13.5px; line-height:1.45; color:#efe8ff; white-space:pre-line; }
+  .gd-input { width:100%; box-sizing:border-box; margin-top:12px; padding:10px 12px; border-radius:12px; border:2px solid #6b4fa0; background:#fff; color:#222; font-size:14px; font-family:inherit; }
+  .gd-btns { display:flex; gap:8px; margin-top:16px; }
+  .gd-btns button { flex:1; border:none; border-radius:12px; padding:11px 10px; font-weight:800; font-size:14px; font-family:inherit; cursor:pointer; }
+  .gd-cancel { background:rgba(255,255,255,0.12); color:#e8dcff; }
+  .gd-ok { background:linear-gradient(135deg,#ff9a3d,#ff5470); color:#fff; }
   body { display:flex; align-items:center; justify-content:center; }
   #toto-root { max-width:100vw !important; height:100vh !important; border-radius:0 !important; }
   @media (min-width: 500px){ #toto-root { max-width:480px !important; height:860px !important; border-radius:26px !important; } }
@@ -1378,6 +1395,12 @@
 
         <div class="gps-status" id="gps-status">GPS: locating…</div>
         <div class="toast" id="toast"></div>
+        <div class="gd-back" id="game-dialog"><div class="gd-card">
+          <img class="gd-icon" src="assets/brand/icon-192.png" alt="">
+          <div class="gd-title" id="gd-title"></div><div class="gd-msg" id="gd-msg"></div>
+          <input class="gd-input" id="gd-input" type="email" autocomplete="email" style="display:none;">
+          <div class="gd-btns"><button class="gd-cancel" id="gd-cancel">Cancel</button><button class="gd-ok" id="gd-ok">OK</button></div>
+        </div></div>
       </div>
 
       <div class="quick-menu-backdrop" id="quick-menu-backdrop"></div>
@@ -1889,10 +1912,10 @@
     hat: [
       { id:'hat_default', name:'Classic Witch Hat', rarity:'Starter', unlock:'default',
         description:'Your trusty wide-brimmed hat — comes with every trainer.' },
-      { id:'hat_prestige', name:'Prestige Witch Hat', rarity:'Level 100 Achievement', unlock:'level100',
-        description:'Midnight-blue velvet stitched with golden constellations, a braided gold band, crystal tip charms and the phoenix "Level 100 · Max Rank Achiever" crest. Only for trainers who reach Level 100.',
-        thumb:'assets/wardrobe/prestige-hat-thumb.png',
-        preset:{ kind:'prestigeHat', color:'#1d2766', trim:'#d9a93a' } },
+      { id:'hat_prestige', name:'Level 100 Witch Hat', rarity:'Level 100 Achievement', unlock:'level100',
+        description:'Purple velvet embroidered in gold — LEVEL 100 across the front, jack-o\'-lanterns, autumn leaves and a band of golden bats. Only for trainers who reach Level 100.',
+        thumb:'assets/wardrobe/l100hat-thumb.png',
+        preset:{ kind:'level100Hat', color:'#4a1c5c', trim:'#d9a93a' } },
     ],
     top: [
       { id:'top_default', name:'Classic Robe', rarity:'Starter', unlock:'default',
@@ -1925,7 +1948,7 @@
       const fresh = ['top_level100_tee','hat_prestige'].filter(id=> !state.unlockedCosmetics.includes(id));
       if (fresh.length){
         fresh.forEach(id=> state.unlockedCosmetics.push(id));
-        showToast('🏆 Level 100! Unlocked the Level 100 Achievement Tee and the Prestige Witch Hat — wear them from Customize Character.');
+        showToast('🏆 Level 100! Unlocked the Level 100 Achievement Tee and the Level 100 Witch Hat — wear them from Customize Character.');
         markDirty();
       }
     }
@@ -2650,6 +2673,29 @@
     return true;
   }
 
+  // In-game message boxes. The browser's own confirm()/prompt() pop-ups show the website's
+  // address ("bakahideout.github.io says"), so the game asks its questions itself.
+  function gameDialog({ title='', message='', ok='OK', cancel='Cancel', input=null }){
+    return new Promise(resolve=>{
+      const back = $('#game-dialog'), inp = $('#gd-input'), rootEl = document.getElementById('toto-root');
+      if (back.parentNode !== rootEl) rootEl.appendChild(back);      // above every screen, even the tutorial
+      $('#gd-title').textContent = title; $('#gd-msg').textContent = message;
+      $('#gd-ok').textContent = ok;
+      $('#gd-cancel').textContent = cancel || ''; $('#gd-cancel').style.display = cancel ? '' : 'none';
+      inp.style.display = input ? '' : 'none'; inp.value = ''; if (input) inp.placeholder = input;
+      const done = val=>{ back.classList.remove('show'); $('#gd-ok').onclick = $('#gd-cancel').onclick = null; resolve(val); };
+      $('#gd-ok').onclick = ()=> done(input ? (inp.value.trim() || null) : true);
+      $('#gd-cancel').onclick = ()=> done(input ? null : false);
+      back.classList.add('show');
+      if (input) setTimeout(()=> inp.focus(), 50);
+    });
+  }
+  const gameConfirm = (message, title, ok, cancel)=> gameDialog({ title: title||'', message, ok: ok||'OK', cancel: cancel||'Cancel' });
+  const gamePrompt = (message, placeholder, title)=> gameDialog({ title: title||'', message, input: placeholder||' ', ok:'Continue' });
+  // long-pressing anything in the game never brings up the phone's save/share menu
+  document.addEventListener('contextmenu', e=>{ if (!(e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); }, true);
+  document.addEventListener('dragstart', e=>{ if (e.target && /^(IMG|CANVAS|svg)$/i.test(e.target.tagName||'')) e.preventDefault(); }, true);
+
   function showScreen(name){ $$('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name)); }
   function showToast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
 
@@ -2669,7 +2715,7 @@
     enterGame(false);
   }
   $('#btn-login').onclick = ()=> doLogin($('#login-email').value);
-  $('#btn-google-login').onclick = ()=> doLogin(prompt('Simulated Google Sign-In\\nEnter the Google email to log in with:')||'');
+  $('#btn-google-login').onclick = async ()=> doLogin((await gamePrompt('Enter the Google email you signed up with.', 'you@gmail.com', 'Continue with Google')) || '');
 
   async function doRegister(email, username, gender, age, viaGoogle){
     email = (email||'').trim().toLowerCase();
@@ -2692,8 +2738,8 @@
     showScreen('char');
   }
   $('#btn-register').onclick = ()=>{ const gender = $('#gender-select .sel').dataset.g; doRegister($('#reg-email').value, $('#reg-username').value, gender, $('#reg-age').value, false); };
-  $('#btn-google-register').onclick = ()=>{
-    const email = prompt('Simulated Google Sign-Up\\nEnter a Google email to register with:'); if (!email) return;
+  $('#btn-google-register').onclick = async ()=>{
+    const email = await gamePrompt('Enter the Google email to sign up with.', 'you@gmail.com', 'Sign up with Google'); if (!email) return;
     const username = email.split('@')[0]; const gender = $('#gender-select .sel').dataset.g;
     doRegister(email, username, gender, $('#reg-age').value, true);
   };
@@ -4735,12 +4781,12 @@
     $('#btn-transfer-mode').classList.remove('active');
     renderCollection();
   };
-  $('#btn-transfer-confirm').onclick = ()=>{
+  $('#btn-transfer-confirm').onclick = async ()=>{
     const ids = [...transferSelected];
     if (!ids.length) return;
     const totos = state.collection.filter(t=> ids.includes(t.id));
     const reward = totos.reduce((sum,t)=> sum + transferRewardFor(t), 0);
-    if (!confirm('Transfer '+ids.length+' Toto'+(ids.length===1?'':'s')+' for '+reward+' candy? This can\'t be undone.')) return;
+    if (!(await gameConfirm('Transfer '+ids.length+' Toto'+(ids.length===1?'':'s')+' for '+reward.toLocaleString()+' candy? This can\'t be undone.', 'Transfer Totos', 'Transfer'))) return;
     state.collection = state.collection.filter(t=> !ids.includes(t.id));
     state.candy += reward;
     transferMode = false; transferSelected.clear();
@@ -6634,7 +6680,7 @@
         { title:'Challenger Shrines', enter:()=> openGamePanel('challenger'), target:()=> q('#challenger-list > *') || q('.panel-screen[data-panel="challenger"] .panel-header'),
           text:'Mighty Eternal guardians you can battle from anywhere, alone or in a group — no pass needed. They\'re tough: train your Totos first, or bring a team with a Tank, Healer and Support.' },
         { title:'Teamwork', enter:closeAll, text:'In Group Battles, each Toto plays its role: Tanks can Taunt so the boss attacks only them, Healers keep everyone alive, Supports protect and power up the team, and Attackers deal the big damage. For a heal or shield, tap the ability, then tap who on the team list.' },
-        { title:'Your trainer', target:()=> q('#hud-avatar'), text:'Tap your picture to dress your trainer — new items replace what she\'s wearing, and you can try things on first. Reach trainer Level 100 to earn the Level 100 Achievement Tee and the Prestige Witch Hat. Your Profile and the Store are here too.' },
+        { title:'Your trainer', target:()=> q('#hud-avatar'), text:'Tap your picture to dress your trainer — new items replace what she\'s wearing, and you can try things on first. Reach trainer Level 100 to earn the Level 100 Achievement Tee and the Level 100 Witch Hat. Your Profile and the Store are here too.' },
         { title:'More in the menu', enter:()=>{ $('#quick-menu').classList.add('show'); $('#quick-menu-backdrop').classList.add('show'); }, target:()=> q('#quick-menu'),
           text:'Items is your bag (Raid Passes and Healing Elixirs), Dex tracks every kind of Toto you\'ve found, Ranks shows the top trainers, and Tutorial plays this lesson again any time.', leave:closeAll },
         { title:'You\'re ready! 🎃', text:'Here are 100 candy to get you started. Go catch some Totos!', nextLabel:'Let\'s go!' }
@@ -6650,7 +6696,7 @@
         + '<div class="tut-actions"><button class="tut-skip">Skip tutorial</button><button class="tut-next">Next</button></div></div></div>';
       root().appendChild(layer);
       layer.querySelector('.tut-next').onclick = ()=> next();
-      layer.querySelector('.tut-skip').onclick = ()=>{ if (confirm('Skip the tutorial? You can replay it from the menu any time.')) finish(true); };
+      layer.querySelector('.tut-skip').onclick = async ()=>{ if (await gameConfirm('You can replay it from the menu any time.', 'Skip the tutorial?', 'Skip', 'Keep going')) finish(true); };
       return layer;
     }
     function rectOf(t){
@@ -6831,7 +6877,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v45';
+window.TQ_APP_VERSION = 'v46';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -7408,67 +7454,15 @@ window.TQ_APP_VERSION = 'v45';
       hatTexCache[key] = tex;
       return tex;
     }
-    // ---- Prestige Witch Hat textures (navy velvet, gold constellations, runes, braid) ----
-    let prestigeConeTex = null, prestigeBrimTex = null, braidTex = null, prestigeBadgeTex = null;
-    function drawConstellations(ctx, W, H, seed, n){
-      let s = seed; const r = ()=>{ s = (s*9301+49297)%233280; return s/233280; };
-      for (let k=0;k<n;k++){
-        const pts = []; let x = r()*W, y = H*0.18 + r()*H*0.7;
-        for (let j=0;j<4+Math.floor(r()*3);j++){ pts.push([x,y]); x += (r()-0.4)*W*0.09; y += (r()-0.5)*H*0.16; }
-        ctx.strokeStyle = 'rgba(232,190,96,0.85)'; ctx.lineWidth = 1.6; ctx.beginPath(); pts.forEach(([px,py],i)=> i ? ctx.lineTo(px,py) : ctx.moveTo(px,py)); ctx.stroke();
-        pts.forEach(([px,py])=>{ ctx.fillStyle = '#ffe3a0'; ctx.beginPath(); ctx.arc(px, py, 2.6, 0, Math.PI*2); ctx.fill(); });
-      }
-      for (let k=0;k<70;k++){ ctx.fillStyle = 'rgba(255,230,170,'+(0.35+r()*0.5)+')'; ctx.beginPath(); ctx.arc(r()*W, r()*H, 0.8+r()*1.4, 0, Math.PI*2); ctx.fill(); }
-    }
-    const RUNE_GLYPHS = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
-    function makePrestigeConeTexture(){
-      if (prestigeConeTex) return prestigeConeTex;
-      const W = 512, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H;
-      const ctx = c.getContext('2d');
-      const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2a3790'); g.addColorStop(1,'#141c52'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-      for (let i=0;i<8;i++){ ctx.fillStyle = 'rgba(0,0,10,0.16)'; ctx.fillRect(i*W/8+10, 0, 12, H); ctx.fillStyle = 'rgba(120,140,255,0.08)'; ctx.fillRect(i*W/8+24, 0, 8, H); }
-      drawConstellations(ctx, W, H*0.86, 7, 9);
-      ctx.fillStyle = '#121845'; ctx.fillRect(0, H-34, W, 26);
-      ctx.strokeStyle = '#e2b04a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(0,H-34); ctx.lineTo(W,H-34); ctx.moveTo(0,H-8); ctx.lineTo(W,H-8); ctx.stroke();
-      ctx.fillStyle = '#e8bf62'; ctx.font = 'bold 18px serif'; ctx.textBaseline = 'middle';
-      let i = 0; for (let x=4; x<W; x+=19){ ctx.fillText(RUNE_GLYPHS[i++ % RUNE_GLYPHS.length], x, H-21); }
-      const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-      return (prestigeConeTex = t);
-    }
-    function makePrestigeBrimTexture(){
-      if (prestigeBrimTex) return prestigeBrimTex;
-      const S = 512, c = document.createElement('canvas'); c.width = c.height = S;
-      const ctx = c.getContext('2d'), m = S/2;
-      const g = ctx.createRadialGradient(m,m,40, m,m,m); g.addColorStop(0,'#26338a'); g.addColorStop(1,'#151d55'); ctx.fillStyle = g; ctx.fillRect(0,0,S,S);
-      drawConstellations(ctx, S, S, 21, 12);
-      // gold rune band round the edge
-      ctx.strokeStyle = '#e2b04a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(m,m,m-6,0,Math.PI*2); ctx.stroke();
-      ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(m,m,m-34,0,Math.PI*2); ctx.stroke();
-      ctx.save(); ctx.translate(m,m);
-      ctx.fillStyle = '#e8bf62'; ctx.font = 'bold 18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      for (let i=0;i<64;i++){ ctx.save(); ctx.rotate(i/64*Math.PI*2); ctx.fillText(RUNE_GLYPHS[i % RUNE_GLYPHS.length], 0, -(m-20)); ctx.restore(); }
-      ctx.restore();
-      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-      return (prestigeBrimTex = t);
-    }
-    function makeBraidTexture(){
-      if (braidTex) return braidTex;
-      const W = 256, H = 32, c = document.createElement('canvas'); c.width = W; c.height = H;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#8a5f17'; ctx.fillRect(0,0,W,H);
-      for (let x=-16; x<W+16; x+=16){
-        ctx.fillStyle = '#f2cd6a'; ctx.beginPath(); ctx.ellipse(x+8, 9, 9, 4.2, 0.6, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#c99a35'; ctx.beginPath(); ctx.ellipse(x+16, 22, 9, 4.2, -0.6, 0, Math.PI*2); ctx.fill();
-      }
-      ctx.strokeStyle = 'rgba(60,35,5,0.6)'; ctx.lineWidth = 2; ctx.strokeRect(0,1,W,H-2);
-      const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.repeat.x = 3; t.colorSpace = THREE.SRGBColorSpace;
-      return (braidTex = t);
-    }
-    function getPrestigeBadgeTexture(){
-      if (prestigeBadgeTex) return prestigeBadgeTex;
-      const t = new THREE.TextureLoader().load('assets/wardrobe/prestige-badge.png');
+    // ---- Level 100 Witch Hat: the embroidered hat art, unwrapped for the cone, band and brim ----
+    const l100TexCache = {};
+    function l100Tex(part, mirrored){
+      const k = part + (mirrored ? 'm' : '');
+      if (l100TexCache[k]) return l100TexCache[k];
+      const t = new THREE.TextureLoader().load('assets/wardrobe/l100hat-'+part+'.jpg');
       t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-      return (prestigeBadgeTex = t);
+      if (part !== 'brim'){ t.wrapS = THREE.RepeatWrapping; if (mirrored){ t.repeat.x = -1; t.offset.x = 1; } }
+      return (l100TexCache[k] = t);
     }
 
     let weaveTex = null;
@@ -7734,13 +7728,45 @@ window.TQ_APP_VERSION = 'v45';
       part(headGroup, mergeParts(curls), toon(hairCol), { outline:0.012 });
 
       // ---- Hat ----
-      if (cfg.hat){
+      if (cfg.hat && cfg.hat.kind === 'level100Hat'){
+        // The Level 100 Witch Hat: wide flat brim, a band of golden bats, and a squat cone
+        // with LEVEL 100 embroidered on the front, its tip curled over.
+        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.62, 0.02); hatGroup.rotation.x = -0.12; headGroup.add(hatGroup);
+        const velvet = '#4a1c5c', lip = '#6c3a8c';
+        const brimR = 0.6;
+        const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.035, 72, 1);
+        const bp = brimGeo.attributes.position;
+        for (let i=0;i<bp.count;i++){ const r = Math.hypot(bp.getX(i), bp.getZ(i)); bp.setY(i, bp.getY(i) - Math.pow(r/brimR, 2)*0.03); }
+        brimGeo.computeVertexNormals();
+        part(hatGroup, brimGeo, toon('#ffffff', { map: l100Tex('brim') }), { outline:0.012 });
+        part(hatGroup, new THREE.TorusGeometry(brimR*0.985, 0.016, 8, 72), toon(velvet), { pos:[0,-0.03,0], rot:[Math.PI/2,0,0], outline:0.006 });
+        const H = 0.66, r0 = 0.24;
+        const cprof = [];
+        for (let i=0;i<=14;i++){
+          const t = i/14;
+          const k = t < 0.78 ? (1 - 0.55*t) : (1 - 0.55*0.78)*Math.pow(Math.max(0, 1 - (t-0.78)/0.22), 0.8);
+          cprof.push(new THREE.Vector2(Math.max(0.006, r0*k), t*H));
+        }
+        const coneGeo = new THREE.LatheGeometry(cprof, 48);
+        const cpp = coneGeo.attributes.position;
+        for (let i=0;i<cpp.count;i++){
+          const t = cpp.getY(i)/H;
+          cpp.setZ(i, cpp.getZ(i) + 0.17*Math.pow(t, 2.8));     // the tip flops over to one side
+          cpp.setX(i, cpp.getX(i) + 0.27*Math.pow(t, 3.2));
+          cpp.setY(i, cpp.getY(i) - 0.09*Math.pow(t, 3));
+        }
+        coneGeo.computeVertexNormals();
+        part(hatGroup, coneGeo, toon('#ffffff', { map: l100Tex('cone', !isFemale) }), { pos:[0,0.075,0], outline:0.012 });   // sits on top of the band, so LEVEL 100 is never hidden
+        part(hatGroup, new THREE.CylinderGeometry(r0*1.05, r0*1.1, 0.095, 48, 1, true), toon('#ffffff', { map: l100Tex('band', !isFemale), side:THREE.DoubleSide }), { pos:[0,0.048,0], outline:0.008 });
+        part(hatGroup, new THREE.TorusGeometry(r0*1.06, 0.012, 8, 48), toon(lip), { pos:[0,0.096,0], rot:[Math.PI/2,0,0], outline:0.004 });
+        part(hatGroup, new THREE.TorusGeometry(r0*1.1, 0.012, 8, 48), toon(lip), { pos:[0,0.004,0], rot:[Math.PI/2,0,0], outline:0.004 });
+        root.userData.hat = hatGroup;
+      } else if (cfg.hat){
         const hatColor = cfg.hat.color || '#4a2f6b', hatTrim = cfg.hat.trim || '#ffb347';
-        const prestige = cfg.hat.kind === 'prestigeHat';
-        const witch = cfg.hat.kind === 'witchHat' || prestige;
+        const witch = cfg.hat.kind === 'witchHat';
         const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.62, 0.02); hatGroup.rotation.x = -0.12; headGroup.add(hatGroup);
         // wavy, drooping brim
-        const brimR = prestige ? 0.6 : (witch ? 0.56 : 0.44);
+        const brimR = witch ? 0.56 : 0.44;
         const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.03, 64, 1);
         const bp = brimGeo.attributes.position;
         for (let i=0;i<bp.count;i++){
@@ -7749,7 +7775,7 @@ window.TQ_APP_VERSION = 'v45';
           bp.setY(i, bp.getY(i) - f*(witch ? 0.07 : 0.035)*(0.7 + 0.3*Math.sin(a*3 + 0.6)));
         }
         brimGeo.computeVertexNormals();
-        part(hatGroup, brimGeo, prestige ? toon('#ffffff', { map: makePrestigeBrimTexture() }) : toon(hatColor), { outline:0.012 });
+        part(hatGroup, brimGeo, toon(hatColor), { outline:0.012 });
         // tall cone, bent back at the tip (classic crumpled witch hat)
         const H = witch ? 0.78 : 0.5, r0 = witch ? 0.235 : 0.22;
         const cprof = []; for (let i=0;i<=12;i++){ const t = i/12; cprof.push(new THREE.Vector2(Math.max(0.006, r0*(1-t)*(1-0.12*Math.sin(t*Math.PI*3))), t*H)); }
@@ -7762,33 +7788,10 @@ window.TQ_APP_VERSION = 'v45';
           cpp.setY(i, cpp.getY(i) - (witch ? 0.12 : 0.03)*Math.pow(t, 3));
         }
         coneGeo.computeVertexNormals();
-        part(hatGroup, coneGeo, toon('#ffffff', { map: prestige ? makePrestigeConeTexture() : makeHatTexture(hatColor, hatTrim) }), { outline:0.012 });
-        if (prestige){
-          // braided gold band with the phoenix "Level 100" crest on the front
-          part(hatGroup, new THREE.CylinderGeometry(r0*1.03, r0*1.07, 0.1, 40, 1, true), toon('#ffffff', { map: makeBraidTexture(), side:THREE.DoubleSide }), { pos:[0,0.055,0], outline:0.008 });
-          const crest = new THREE.Mesh(new THREE.PlaneGeometry(0.21, 0.26), new THREE.MeshBasicMaterial({ map: getPrestigeBadgeTexture(), transparent:true, alphaTest:0.35, side:THREE.DoubleSide }));
-          crest.position.set(0, 0.085, -r0*1.07 - 0.018); crest.rotation.set(-0.08, Math.PI, 0);
-          if (!isFemale) crest.scale.x = -1;        // the male figure is mirrored as a whole
-          hatGroup.add(crest);
-          // crystal cluster at the bent tip
-          const tip = new THREE.Group(); tip.position.set(0.10, H-0.12, 0.34); hatGroup.add(tip);
-          [['#8fe3ff',0,0.05,0,0],['#c78bff',-0.045,0.03,0.02,0.5],['#ffd66a',0.045,0.025,-0.02,-0.5]].forEach(([c,x,y,z,r])=>
-            part(tip, new THREE.OctahedronGeometry(0.034), toon(c, { emissive:c, emissiveIntensity:0.45 }), { pos:[x,y,z], rot:[0,0,r], scale:[0.7,1.7,0.7], outline:0.004 }));
-          part(tip, new THREE.TorusGeometry(0.03, 0.01, 6, 14), toon(hatTrim), { rot:[Math.PI/2,0,0], outline:0.003 });
-          // little gold stars and moons dangling from the brim
-          const goldM = toon('#e2b04a', { emissive:'#5a3c08', emissiveIntensity:0.4 });
-          [[-2.3,'star'],[-1.35,'moon'],[-0.5,'star'],[0.6,'moon'],[1.5,'star'],[2.45,'star']].forEach(([a, kind])=>{
-            const droop = 0.07*(0.7 + 0.3*Math.sin(a*3 + 0.6));
-            const hang = new THREE.Group(); hang.position.set(Math.cos(a)*brimR*0.95, -0.02 - droop*0.92, Math.sin(a)*brimR*0.95); hatGroup.add(hang);
-            part(hang, new THREE.CylinderGeometry(0.003, 0.003, 0.07, 4), goldM, { pos:[0,-0.035,0], outline:0 });
-            if (kind === 'star') part(hang, new THREE.OctahedronGeometry(0.03), goldM, { pos:[0,-0.085,0], scale:[1,1,0.35], rot:[0,0,0.4], outline:0.004 });
-            else part(hang, new THREE.TorusGeometry(0.024, 0.008, 6, 14, Math.PI*1.35), goldM, { pos:[0,-0.085,0], rot:[0,0,0.9], outline:0.003 });
-          });
-        } else {
-          part(hatGroup, new THREE.CylinderGeometry(r0*1.0, r0*1.03, 0.07, 32, 1, true), toon(hatTrim, { side:THREE.DoubleSide }), { pos:[0,0.045,0], outline:0.008 });
-          part(hatGroup, new THREE.BoxGeometry(0.07, 0.06, 0.02), buckleMat, { pos:[0,0.045,-r0-0.01], outline:0.004 });
-        }
-        if (witch && !prestige){ const hb = makeBat(0.09); hb.position.set(0.3, 0.03, -0.2); hb.rotation.set(0.2, 0.6, 0.15); hatGroup.add(hb); root.userData.hatBat = hb; }
+        part(hatGroup, coneGeo, toon('#ffffff', { map: makeHatTexture(hatColor, hatTrim) }), { outline:0.012 });
+        part(hatGroup, new THREE.CylinderGeometry(r0*1.0, r0*1.03, 0.07, 32, 1, true), toon(hatTrim, { side:THREE.DoubleSide }), { pos:[0,0.045,0], outline:0.008 });
+        part(hatGroup, new THREE.BoxGeometry(0.07, 0.06, 0.02), buckleMat, { pos:[0,0.045,-r0-0.01], outline:0.004 });
+        if (witch){ const hb = makeBat(0.09); hb.position.set(0.3, 0.03, -0.2); hb.rotation.set(0.2, 0.6, 0.15); hatGroup.add(hb); root.userData.hatBat = hb; }
         root.userData.hat = hatGroup;
         tryLoadRealModel(cfg.hat, headGroup);
       }
