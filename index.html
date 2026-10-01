@@ -260,6 +260,17 @@
   .weather-fx.storm-flash { animation: w-lightning 6.5s ease-in-out infinite; }
   @keyframes w-lightning { 0%,93%,100%{ background:rgba(255,255,255,0); } 94%{ background:rgba(220,225,255,0.35); } 95%{ background:rgba(220,225,255,0); } 96%{ background:rgba(220,225,255,0.22); } 97%{ background:rgba(220,225,255,0); } }
 
+  /* Shared WebGL overlay for real 3D Totos on the overworld map (map only — battle
+     stays 2D). Sits above the flat terrain/toto-layer but below the fog vignette and
+     weather fx, same visual slot the flat sprites occupied. Sized/positioned purely in
+     screen space; see the module script for how it stays in sync with each toto's DOM
+     marker (which still does all the real GPS/pan/zoom/tilt math, untouched). */
+  .toto3d-canvas { position:absolute; inset:0; width:100%; height:100%; z-index:6; pointer-events:none; }
+  /* Once a toto has a live 3D mount, its flat sprite is hidden (visibility, not display,
+     so its layout box/size is preserved — the 3D sync loop keeps reading its rect every
+     frame) in favor of the WebGL billboard+dais drawn on the shared canvas above. The
+     ring/shadow/cp-tag/dist-tag siblings are untouched. */
+  .toto-node.is-3d-mounted .bubble { visibility:hidden; }
   .toto-node, .gym-node { position:absolute; transform: translate(-50%,-100%); text-align:center; cursor:pointer; z-index:10; contain:layout style; }
   .node-spin { position:relative; z-index:2; transform: rotate(calc(-1 * var(--rot,0deg))); }
   /* Grounding ring under each map creature, same idea as the player's — a soft lit patch
@@ -388,6 +399,22 @@
   .panel-header { padding:16px; font-weight:800; font-size:18px; display:flex; align-items:center; justify-content:space-between; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,0.06); }
   .panel-header .close-x { cursor:pointer; font-size:18px; color:#999; }
   .panel-body { flex:1; overflow-y:auto; padding:14px; }
+
+  /* ---------------- Character Styling / Wardrobe ---------------- */
+  .wardrobe-preview-canvas { width:200px; height:260px; touch-action:none; cursor:grab; background:radial-gradient(circle at 50% 30%, #3a2f55, #1c1630); border-radius:16px; }
+  .wardrobe-preview-canvas:active { cursor:grabbing; }
+  .wardrobe-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
+  .wardrobe-tab-btn { flex:0 0 auto; background:#f1e9fa; border:2px solid transparent; border-radius:10px; padding:7px 12px; font-weight:800; font-size:12px; color:#6b3fa0; cursor:pointer; }
+  .wardrobe-tab-btn.active { background:#6b3fa0; color:#fff; }
+  .wardrobe-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .wardrobe-item-card { background:#fff; border:2px solid #eee; border-radius:12px; padding:10px 4px; text-align:center; cursor:pointer; position:relative; }
+  .wardrobe-item-card.sel { border-color:#ff8a3d; }
+  .wardrobe-item-card.locked { opacity:0.55; }
+  .wi-icon { font-size:26px; }
+  .wi-name { font-size:9.5px; font-weight:800; margin-top:4px; color:#555; line-height:1.2; }
+  .wi-equipped-tag { position:absolute; top:3px; right:3px; background:#2e9e2e; color:#fff; font-size:7.5px; font-weight:800; padding:1px 5px; border-radius:6px; }
+  .wardrobe-detail { background:#f6f1fb; border-radius:12px; padding:10px; font-size:12px; line-height:1.5; color:#444; min-height:54px; }
+  .wardrobe-detail b { color:#6b3fa0; }
 
   .toto-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
   .dex-tier-header { font-weight:800; font-size:13px; color:#555; margin:14px 0 8px; }
@@ -922,6 +949,7 @@
             </div>
           </div>
         </div>
+        <canvas id="toto3d-canvas" class="toto3d-canvas"></canvas>
         <div class="fog-vignette"></div>
         <div class="weather-fx" id="weather-fx"></div>
 
@@ -1047,6 +1075,23 @@
         <button class="btn-logout" id="btn-logout">Log Out</button>
       </div>
     </div>
+
+    <!-- CHARACTER STYLING / WARDROBE -->
+    <div class="panel-screen" data-panel="wardrobe">
+      <div class="panel-header">Character Styling <span class="close-x" data-close>✕</span></div>
+      <div class="panel-body" style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; justify-content:center;">
+          <canvas id="wardrobe-preview-canvas" class="wardrobe-preview-canvas"></canvas>
+        </div>
+        <div class="wardrobe-tabs" id="wardrobe-tabs"></div>
+        <div class="wardrobe-grid" id="wardrobe-grid"></div>
+        <div class="wardrobe-detail" id="wardrobe-detail"></div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-catch" style="flex:1;" id="btn-wardrobe-equip">Equip</button>
+          <button class="btn-cancel" style="flex:1;" id="btn-wardrobe-exit">Exit</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- TOTO DETAIL / POWER UP MODAL -->
@@ -1079,6 +1124,18 @@
   </div>
 
   <!-- LEADERBOARD -->
+  <!-- Tapping the HUD avatar circle (bottom-left) opens this little chooser instead of
+       going straight to a panel — "Customize Character" leads to the wardrobe, "View
+       Profile" is the same destination the quick-menu's own Profile button already uses. -->
+  <div class="modal-back" id="avatar-menu-modal">
+    <div class="modal-card" style="max-width:300px;">
+      <div class="modal-name" style="margin-bottom:12px;">Your Character</div>
+      <button class="btn-primary" style="width:100%; margin-bottom:10px;" id="btn-avatar-customize">🎨 Customize Character</button>
+      <button class="btn-primary" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg,#7b5cff,#4d7cff);" id="btn-avatar-viewprofile">👤 View Profile</button>
+      <button class="btn-cancel" style="width:100%;" data-close-avatar-menu>Cancel</button>
+    </div>
+  </div>
+
   <div class="modal-back" id="leaderboard-modal">
     <div class="modal-card" style="max-width:360px; text-align:left;">
       <div class="modal-name" style="text-align:center; margin-bottom:2px;">🏆 Power Leaderboard</div>
@@ -1403,6 +1460,73 @@
   const TIER_ORDER = ['normal','legendary','mythical','eternal'];
   const TOTO_MAX_LEVEL = 50;
   const PLAYER_MAX_LEVEL = 100;
+
+  // ---------------- COSMETICS / WARDROBE (earned wearables) ----------------
+  // One catalog entry per equippable item, grouped by the same slot names the 3D player
+  // model's equip system already uses (window.PLAYER_EQUIP_CATALOG, defined in the module
+  // script at the bottom of the page). 'default' items are free and always owned; anything
+  // else needs its unlock condition met (see checkCosmeticUnlocks). A `preset` here is just
+  // the handful of fields the 3D model's own slot config understands (color/trim/kind) —
+  // equipping an item means merging its preset into that slot and asking the model to
+  // rebuild, not writing new render code per item.
+  const COSMETIC_CATALOG = {
+    hat: [
+      { id:'hat_default', name:'Classic Witch Hat', rarity:'Starter', unlock:'default',
+        description:'Your trusty wide-brimmed hat — comes with every trainer.' },
+    ],
+    top: [
+      { id:'top_default', name:'Classic Robe', rarity:'Starter', unlock:'default',
+        description:'The moon-and-pumpkin robe you started your journey in.' },
+      { id:'top_level100_tee', name:'Commemorative TotoQuest Tee', rarity:'Epic', unlock:'level100',
+        description:'A legend-tier shirt celebrating TotoQuest achievements.',
+        preset:{ kind:'tee', color:'#3d2a5c', trim:'#d4af37' } },
+    ],
+    legwear: [
+      { id:'legwear_default', name:'Candy-Corn Leggings', rarity:'Starter', unlock:'default',
+        description:'Striped leggings, sweet as the holiday itself.' },
+    ],
+    shoes: [
+      { id:'shoes_default', name:'Classic Boots', rarity:'Starter', unlock:'default',
+        description:'Comfortable boots for long nights of trick-or-treating.' },
+    ],
+    accessory: [
+      { id:'accessory_default', name:'Jack-o-Staff & Basket', rarity:'Starter', unlock:'default',
+        description:'Your enchanted staff and candy basket.' },
+    ],
+  };
+  const COSMETIC_SLOT_LABEL = { hat:'Hat', top:'Top', legwear:'Legwear', shoes:'Shoes', accessory:'Accessory' };
+  function ownsCosmetic(item){ return item.unlock==='default' || (state.unlockedCosmetics||[]).includes(item.id); }
+  // Called from refreshHUD() every time charLevel is recomputed — cheap, idempotent (the
+  // includes() check means it only ever grants an item once no matter how often this runs).
+  function checkCosmeticUnlocks(){
+    state.unlockedCosmetics = state.unlockedCosmetics || [];
+    if (state.charLevel >= PLAYER_MAX_LEVEL && !state.unlockedCosmetics.includes('top_level100_tee')){
+      state.unlockedCosmetics.push('top_level100_tee');
+      showToast('🏆 Unlocked the Commemorative TotoQuest Tee! Equip it from Customize Character.');
+      markDirty();
+    }
+  }
+  // The 3D module calls this (via window.applyEquippedCosmetics) right before every
+  // mount/rebuild, so whatever's saved in state.equippedCosmetics always wins over the
+  // model's own hardcoded per-gender defaults — exposed on window because the module script
+  // that owns PLAYER_EQUIP_CATALOG can't see this classic script's top-level bindings
+  // (it's wrapped in its own IIFE), only what's explicitly attached to window.
+  window.applyEquippedCosmetics = function applyEquippedCosmetics(){
+    if (!window.PLAYER_EQUIP_CATALOG || !state) return;
+    const g = state.avatar==='male' ? 'male' : 'female';
+    const target = window.PLAYER_EQUIP_CATALOG[g];
+    if (!target) return;
+    state.equippedCosmetics = state.equippedCosmetics || {};
+    Object.keys(COSMETIC_CATALOG).forEach(slot=>{
+      const equippedId = state.equippedCosmetics[slot];
+      const item = equippedId && COSMETIC_CATALOG[slot].find(i=>i.id===equippedId);
+      if (item && item.preset && ownsCosmetic(item)){
+        target[slot] = Object.assign({}, target[slot], item.preset);
+      }
+      // No saved pick, pick not owned, or no preset on the item -> leave the model's own
+      // built-in default for that slot untouched.
+    });
+  };
   function finalizeCatch(opp){
     // The wild/gym Toto you fought already has correct, level-derived stats (see
     // makeToto/applyLevelStats) — catching it just gives your copy a new id, it doesn't
@@ -1919,7 +2043,11 @@
   let state = {
     loggedIn:false, username:'', email:'', gender:'female', age:'',
     avatar:'female', candy:150, gems:20, coins:0, collection:[], geo:null, activeTab:'map',
-    chunkEls: new Map()
+    chunkEls: new Map(),
+    // Earned wearables (see COSMETIC_CATALOG below) — unlockedCosmetics is every non-default
+    // item id the player has earned, equippedCosmetics is what's currently worn per slot
+    // ('default' or absent = the game's built-in starting look for that slot).
+    unlockedCosmetics: [], equippedCosmetics: {}
   };
   let detailTarget = null;
 
@@ -2263,6 +2391,7 @@
     $('#profile-count').textContent = state.collection.length;
     state.powerLevel = computePowerLevel();
     state.charLevel = computeCharLevel();
+    checkCosmeticUnlocks();
     $('#profile-power').textContent = state.powerLevel.toLocaleString();
     $('#profile-charlevel').textContent = state.charLevel;
     $('#hud-level').textContent = 'Lv '+state.charLevel;
@@ -3323,21 +3452,103 @@
   }
   $('#btn-menu').onclick = toggleQuickMenu;
   $('#quick-menu-backdrop').onclick = closeQuickMenu;
+  // Shared by the quick-menu nav buttons AND the HUD avatar's own little
+  // Customize/Profile popup (see below) — one place that knows how to switch
+  // which full-screen panel is showing, so both entry points stay in sync.
+  function openGamePanel(tab){
+    // Leaving the wardrobe panel stops its own little rotating-preview WebGL loop rather
+    // than leaving it spinning forever in the background once the panel's hidden.
+    if (tab!=='wardrobe'){
+      const wc = $('#wardrobe-preview-canvas');
+      if (wc && wc.__wardrobe3d){ wc.__wardrobe3d.dispose(); wc.__wardrobe3d = null; }
+    }
+    $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    if (tab==='map'){ $$('.panel-screen').forEach(p=>p.classList.remove('active')); return; }
+    $$('.panel-screen').forEach(p=>p.classList.toggle('active', p.dataset.panel===tab));
+    if (tab==='totos') renderCollection();
+    if (tab==='dex') renderDex();
+    if (tab==='challenger') renderChallenger();
+    if (tab==='battle') renderBattleList();
+    if (tab==='profile') refreshHUD();
+    if (tab==='wardrobe') renderWardrobe();
+  }
   $$('.nav-btn').forEach(btn=>{
     btn.onclick = ()=>{
-      $$('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
-      const tab = btn.dataset.tab;
       closeQuickMenu();
-      if (tab==='map'){ $$('.panel-screen').forEach(p=>p.classList.remove('active')); return; }
-      $$('.panel-screen').forEach(p=>p.classList.toggle('active', p.dataset.panel===tab));
-      if (tab==='totos') renderCollection();
-      if (tab==='dex') renderDex();
-      if (tab==='challenger') renderChallenger();
-      if (tab==='battle') renderBattleList();
-      if (tab==='profile') refreshHUD();
+      openGamePanel(btn.dataset.tab);
     };
   });
-  $$('[data-close]').forEach(x=> x.onclick = ()=>{ $$('.panel-screen').forEach(p=>p.classList.remove('active')); $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab==='map')); });
+  $$('[data-close]').forEach(x=> x.onclick = ()=> openGamePanel('map'));
+
+  // ---------------- WARDROBE (character customization) ----------------
+  let wardrobeUi = { slot:'hat', selectedId:null };
+  const WARDROBE_SLOTS = ['hat','top','legwear','shoes','accessory'];
+  function wardrobeEquippedId(slot){
+    const items = COSMETIC_CATALOG[slot] || [];
+    return (state.equippedCosmetics||{})[slot] || (items[0] && items[0].id);
+  }
+  function renderWardrobeTabs(){
+    const tabsEl = $('#wardrobe-tabs'); if (!tabsEl) return;
+    tabsEl.innerHTML = '';
+    WARDROBE_SLOTS.forEach(slot=>{
+      const b = document.createElement('button');
+      b.className = 'wardrobe-tab-btn' + (slot===wardrobeUi.slot ? ' active' : '');
+      b.textContent = COSMETIC_SLOT_LABEL[slot] || slot;
+      b.onclick = ()=>{ wardrobeUi.slot = slot; wardrobeUi.selectedId = null; renderWardrobeTabs(); renderWardrobeGrid(); };
+      tabsEl.appendChild(b);
+    });
+  }
+  function renderWardrobeGrid(){
+    const gridEl = $('#wardrobe-grid'); if (!gridEl) return;
+    gridEl.innerHTML = '';
+    const items = COSMETIC_CATALOG[wardrobeUi.slot] || [];
+    const equippedId = wardrobeEquippedId(wardrobeUi.slot);
+    if (!wardrobeUi.selectedId) wardrobeUi.selectedId = equippedId;
+    items.forEach(item=>{
+      const owned = ownsCosmetic(item);
+      const card = document.createElement('div');
+      card.className = 'wardrobe-item-card' + (item.id===wardrobeUi.selectedId?' sel':'') + (!owned?' locked':'');
+      card.innerHTML = '<div class="wi-icon">'+(owned?'👕':'🔒')+'</div><div class="wi-name">'+item.name+'</div>' + (item.id===equippedId?'<div class="wi-equipped-tag">Worn</div>':'');
+      card.onclick = ()=>{ wardrobeUi.selectedId = item.id; renderWardrobeGrid(); };
+      gridEl.appendChild(card);
+    });
+    renderWardrobeDetail();
+  }
+  function renderWardrobeDetail(){
+    const detailEl = $('#wardrobe-detail'), equipBtn = $('#btn-wardrobe-equip');
+    if (!detailEl || !equipBtn) return;
+    const items = COSMETIC_CATALOG[wardrobeUi.slot] || [];
+    const item = items.find(i=>i.id===wardrobeUi.selectedId) || items[0];
+    if (!item){ detailEl.innerHTML=''; equipBtn.disabled = true; return; }
+    const owned = ownsCosmetic(item);
+    detailEl.innerHTML = '<b>ITEM:</b> '+item.name+'<br><b>RARITY:</b> '+item.rarity+'<br><b>DESCRIPTION:</b> '+item.description
+      + (owned ? '' : '<br><span style="color:#c0392b; font-weight:800;">🔒 Not yet unlocked</span>');
+    const equippedId = wardrobeEquippedId(wardrobeUi.slot);
+    const alreadyWorn = item.id===equippedId;
+    equipBtn.disabled = !owned || alreadyWorn;
+    equipBtn.textContent = alreadyWorn ? 'Equipped' : 'Equip';
+    equipBtn.style.opacity = equipBtn.disabled ? '0.55' : '1';
+  }
+  function equipSelectedWardrobeItem(){
+    const items = COSMETIC_CATALOG[wardrobeUi.slot] || [];
+    const item = items.find(i=>i.id===wardrobeUi.selectedId);
+    if (!item || !ownsCosmetic(item)) return;
+    state.equippedCosmetics = state.equippedCosmetics || {};
+    state.equippedCosmetics[wardrobeUi.slot] = item.id;
+    markDirty(); saveNow(false);
+    if (window.mountPlayer3D) window.mountPlayer3D(state.avatar); // keep the map/HUD avatar in sync
+    if (window.rebuildWardrobePreview3D) window.rebuildWardrobePreview3D($('#wardrobe-preview-canvas'), state.avatar);
+    renderWardrobeGrid();
+    showToast('Equipped: '+item.name);
+  }
+  function renderWardrobe(){
+    wardrobeUi = { slot:'hat', selectedId:null };
+    renderWardrobeTabs();
+    renderWardrobeGrid();
+    if (window.mountWardrobePreview3D) window.mountWardrobePreview3D($('#wardrobe-preview-canvas'), state.avatar);
+  }
+  $('#btn-wardrobe-equip').onclick = equipSelectedWardrobeItem;
+  $('#btn-wardrobe-exit').onclick = ()=> openGamePanel('map');
 
   // ---------------- TRANSFER (release Totos for candy, multi-select) ----------------
   let transferMode = false;
@@ -3568,6 +3779,11 @@
   };
 
   $('#btn-leaderboard').onclick = ()=>{ closeQuickMenu(); $('#leaderboard-modal').classList.add('active'); loadLeaderboard(); };
+  $('#hud-avatar').style.cursor = 'pointer';
+  $('#hud-avatar').onclick = ()=>{ $('#avatar-menu-modal').classList.add('active'); };
+  $('#btn-avatar-customize').onclick = ()=>{ $('#avatar-menu-modal').classList.remove('active'); openGamePanel('wardrobe'); };
+  $('#btn-avatar-viewprofile').onclick = ()=>{ $('#avatar-menu-modal').classList.remove('active'); openGamePanel('profile'); };
+  $('[data-close-avatar-menu]').onclick = ()=> $('#avatar-menu-modal').classList.remove('active');
   function renderDiagnostics(){
     const a = state.geoAnchor;
     const regionCount = state.regionEls ? state.regionEls.size : 0;
@@ -4507,18 +4723,18 @@
     // reads as the SAME character, not an unrelated generic figure.
     const PLAYER_EQUIP_CATALOG = {
       female: {
-        skin:'#ffcf9e', hair:'#3a2a1c',
-        hat:       { kind:'witchHat', color:'#4a2f6b', trim:'#2c1a44', modelUrl:null },
-        top:       { kind:'robe',     color:'#6b3fa0', trim:'#442868', modelUrl:null },
+        skin:'#ffcf9e', hair:'#d2691e',
+        hat:       { kind:'witchHat', color:'#4a2f6b', trim:'#ffb347', modelUrl:null },
+        top:       { kind:'robe',     color:'#6b3fa0', trim:'#ffb347', modelUrl:null },
         legwear:   { kind:'robeHem',  color:'#5a3690', modelUrl:null },
         shoes:     { color:'#241a3a', modelUrl:null },
         accessory: { kind:'staff', color:'#6b4a2f', orb:'#ff8a3d', modelUrl:null },
         backpack: null, glasses: null
       },
       male: {
-        skin:'#e8b98a', hair:'#2a2016',
-        hat:       { kind:'wizardCap', color:'#2f5c38', trim:'#1c3a22', modelUrl:null },
-        top:       { kind:'robe',      color:'#3f7d4a', trim:'#254a2c', modelUrl:null },
+        skin:'#e8b98a', hair:'#b5591e',
+        hat:       { kind:'wizardCap', color:'#2f5c38', trim:'#ffb347', modelUrl:null },
+        top:       { kind:'robe',      color:'#3f7d4a', trim:'#ffb347', modelUrl:null },
         legwear:   { kind:'robeHem',   color:'#356b3f', modelUrl:null },
         shoes:     { color:'#1c3226', modelUrl:null },
         accessory: { kind:'staff', color:'#6b4a2f', orb:'#6bd88a', modelUrl:null },
@@ -4548,6 +4764,224 @@
     function limbPivot(y){ const g = new THREE.Group(); g.position.y = y; return g; }
     function stdMat(color, extra){ return new THREE.MeshStandardMaterial(Object.assign({ color, roughness:0.75, metalness:0.04 }, extra||{})); }
 
+    // ---------------- Procedural textures (canvas-drawn, no image assets needed) -------
+    // Matches the reference art's motifs — a moon+stars pattern on the BACK of the robe,
+    // pumpkins on the FRONT, patch squares near the seams, candy-corn striped leggings —
+    // using THREE.CylinderGeometry's own UV convention (u=0.25 wraps to +Z/back, u=0.75
+    // wraps to -Z/front, matching the front=-Z/back=+Z convention used everywhere else in
+    // this model) instead of hand-painted art, so it's cheap, crisp at any zoom, and easy
+    // to recolor per outfit.
+    const robeTexCache = {};
+    function makeRobeTexture(baseColor, trimColor){
+      const key = baseColor+'|'+trimColor;
+      if (robeTexCache[key]) return robeTexCache[key];
+      const W=512, H=512;
+      const c = document.createElement('canvas'); c.width=W; c.height=H;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = baseColor; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = trimColor;
+      ctx.fillRect(0,0,W,24);
+      ctx.fillRect(0,H-30,W,30);
+      ctx.beginPath();
+      const teeth=16, tw=W/teeth;
+      for (let i=0;i<teeth;i++){ ctx.moveTo(i*tw, H-30); ctx.lineTo(i*tw+tw/2, H-30+13); ctx.lineTo((i+1)*tw, H-30); }
+      ctx.closePath(); ctx.fill();
+
+      const gold = '#ffd27a';
+      function star(cx,cy,r,r2){
+        ctx.beginPath();
+        for (let i=0;i<10;i++){
+          const ang = Math.PI/5*i - Math.PI/2, rad = i%2===0?r:r2;
+          const x = cx+Math.cos(ang)*rad, y = cy+Math.sin(ang)*rad;
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.closePath(); ctx.fill();
+      }
+      // Both motifs are drawn big and bold — this marker renders tiny on the map (well
+      // under 30px wide), so fine detail just blurs away under mipmapping; a large,
+      // high-contrast shape is what actually survives at that size.
+      //
+      // U-coordinate calibration (checked empirically against this engine's actual
+      // CylinderGeometry UV layout by rendering real orbit angles, since it did NOT match
+      // either commonly-assumed formula): the canvas's own horizontal CENTER (x=256,
+      // "u=0.5") lands on -Z, and the texture's own left/right SEAM (x=0/512) lands on +Z.
+      // This model's convention is front=-Z/back=+Z (same one the head's hair/eyes already
+      // use) — so the FRONT motif (pumpkin) is centered in the middle of the canvas, and
+      // the BACK motif (moon) is drawn in two halves hugging the two edges, which rejoin
+      // into one whole moon at the seam once wrapping is on.
+      function moonCluster(cx,cy){
+        ctx.fillStyle = gold;
+        ctx.beginPath();
+        ctx.arc(cx,cy,78,0,Math.PI*2);
+        ctx.arc(cx+30,cy-24,68,0,Math.PI*2);
+        ctx.fill('evenodd');
+        star(cx-86,cy+80,16,6.5); star(cx+89,cy+90,13,5.5); star(cx,cy-110,11,4.5);
+      }
+      moonCluster(0,220); moonCluster(512,220);
+
+      function pumpkinCluster(cx,cy,s){
+        ctx.fillStyle = '#ff8a3d';
+        [-0.36,0,0.36].forEach(dx=>{ ctx.beginPath(); ctx.ellipse(cx+s*dx,cy,s*0.42,s*0.5,0,0,Math.PI*2); ctx.fill(); });
+        ctx.strokeStyle = 'rgba(0,0,0,0.22)'; ctx.lineWidth=3;
+        [-0.3,0.3].forEach(dx=>{ ctx.beginPath(); ctx.moveTo(cx+s*dx,cy-s*0.46); ctx.lineTo(cx+s*dx,cy+s*0.46); ctx.stroke(); });
+        ctx.fillStyle = '#3f7d4a'; ctx.fillRect(cx-5,cy-s*0.62,10,18);
+        star(cx-s*0.95,cy+s*0.9,11,4.5); star(cx+s*0.95,cy+s*0.9,11,4.5);
+      }
+      pumpkinCluster(256,235,96);
+
+      function patch(cx,cy,w,h){
+        ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(cx-w/2,cy-h/2,w,h);
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.setLineDash([4,4]); ctx.lineWidth=2;
+        ctx.strokeRect(cx-w/2,cy-h/2,w,h); ctx.setLineDash([]);
+      }
+      patch(128,330,36,36); patch(384,100,36,36);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      robeTexCache[key] = tex;
+      return tex;
+    }
+
+    // The one earned/unlockable top (see COSMETIC_CATALOG in the classic game script —
+    // "Commemorative TotoQuest Tee", granted at character level 100). Same canvas-texture
+    // technique and the same empirically-calibrated front=center/back=seam convention as
+    // makeRobeTexture() above, just with a badge/typography design instead of the
+    // moon-and-pumpkin pattern.
+    const teeTexCache = {};
+    function makeTeeTexture(baseColor, trimColor){
+      const key = baseColor+'|'+trimColor;
+      if (teeTexCache[key]) return teeTexCache[key];
+      const W=512, H=512;
+      const c = document.createElement('canvas'); c.width=W; c.height=H;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = baseColor; ctx.fillRect(0,0,W,H);
+      const gold = trimColor || '#d4af37';
+
+      function arcText(cx, cy, text, radius, fontPx){
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.fillStyle = gold;
+        ctx.font = 'bold '+fontPx+'px Georgia, serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const step = (fontPx*0.78)/radius;
+        let angle = -step*(text.length-1)/2;
+        for (const ch of text){
+          ctx.save();
+          ctx.rotate(angle);
+          ctx.translate(0, -radius);
+          ctx.fillText(ch, 0, 0);
+          ctx.restore();
+          angle += step;
+        }
+        ctx.restore();
+      }
+      function swirl(cx, cy, scale, mirror){
+        ctx.save();
+        ctx.translate(cx,cy); ctx.scale(mirror?-1:1,1);
+        ctx.strokeStyle = gold; ctx.lineWidth = 3*scale; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(0,0);
+        ctx.bezierCurveTo(14*scale,-10*scale, 30*scale,-6*scale, 34*scale,12*scale);
+        ctx.bezierCurveTo(38*scale,30*scale, 20*scale,38*scale, 6*scale,30*scale);
+        ctx.stroke();
+        ctx.beginPath(); ctx.arc(6*scale,30*scale,4*scale,0,Math.PI*2);
+        ctx.fillStyle = gold; ctx.fill();
+        ctx.restore();
+      }
+      function jackIcon(cx,cy,s){
+        ctx.fillStyle = '#ff8a3d';
+        ctx.beginPath(); ctx.ellipse(cx,cy,s,s*0.85,0,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#2a1a3a';
+        ctx.beginPath(); ctx.moveTo(cx-s*0.4,cy-s*0.15); ctx.lineTo(cx-s*0.15,cy-s*0.35); ctx.lineTo(cx+s*0.05,cy-s*0.15); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx+s*0.1,cy-s*0.15); ctx.lineTo(cx+s*0.35,cy-s*0.35); ctx.lineTo(cx+s*0.5,cy-s*0.15); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx-s*0.35,cy+s*0.25); ctx.quadraticCurveTo(cx,cy+s*0.55,cx+s*0.35,cy+s*0.25); ctx.quadraticCurveTo(cx,cy+s*0.4,cx-s*0.35,cy+s*0.25); ctx.fill();
+      }
+
+      // FRONT (canvas center = -Z): gold frame, arched "TOTOQUEST", a medallion with a
+      // jack-o-lantern and "MASTER / ACHIEVER", ribbon tails below.
+      ctx.strokeStyle = gold; ctx.lineWidth = 10;
+      ctx.strokeRect(28,28,W-56,H-56);
+      arcText(256, 150, 'TOTOQUEST', 95, 42);
+      ctx.beginPath(); ctx.arc(256,290,78,0,Math.PI*2);
+      ctx.fillStyle = gold; ctx.fill();
+      ctx.strokeStyle = baseColor; ctx.lineWidth = 4; ctx.stroke();
+      jackIcon(256,254,30);
+      ctx.fillStyle = '#2a1a3a'; ctx.font = 'bold 24px Georgia, serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('MASTER', 256, 304);
+      ctx.fillText('ACHIEVER', 256, 332);
+      ctx.fillStyle = '#b5431e';
+      ctx.beginPath(); ctx.moveTo(220,360); ctx.lineTo(200,420); ctx.lineTo(226,405); ctx.lineTo(240,420); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(292,360); ctx.lineTo(312,420); ctx.lineTo(286,405); ctx.lineTo(272,420); ctx.closePath(); ctx.fill();
+
+      // BACK (split across the seam = +Z, same two-copy trick as moonCluster): arched
+      // "LEVEL 100" plus a little filigree either side of it.
+      [0,512].forEach(seamX=>{
+        arcText(seamX, 190, 'LEVEL 100', 110, 50);
+        swirl(seamX-40, 260, 1.6, false); swirl(seamX+40, 260, 1.6, true);
+        swirl(seamX-40, 340, 1.3, false); swirl(seamX+40, 340, 1.3, true);
+      });
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      teeTexCache[key] = tex;
+      return tex;
+    }
+
+    const stripeTexCache = {};
+    function makeStripeTexture(colorA, colorB){
+      const key = colorA+'|'+colorB;
+      if (stripeTexCache[key]) return stripeTexCache[key];
+      const c = document.createElement('canvas'); c.width=32; c.height=128;
+      const ctx = c.getContext('2d');
+      const bands = 8;
+      for (let i=0;i<bands;i++){ ctx.fillStyle = i%2===0?colorA:colorB; ctx.fillRect(0, i*(128/bands), 32, 128/bands); }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      stripeTexCache[key] = tex;
+      return tex;
+    }
+
+    // ---------------- Small companion/accessory builders ----------------
+    function makeCatCompanion(hatColor){
+      const g = new THREE.Group();
+      const black = stdMat('#201c22');
+      const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.052, 0.085, 4, 8), black);
+      body.rotation.z = Math.PI/2; g.add(body);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), black);
+      head.position.set(0.1, 0.02, 0); g.add(head);
+      [1,-1].forEach(x=>{
+        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.017, 0.028, 6), black);
+        ear.position.set(0.1+x*0.016, 0.058, x*0.022); ear.rotation.z = -x*0.3;
+        g.add(ear);
+      });
+      const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.015, 0.1, 4, 6), black);
+      tail.position.set(-0.085, 0.015, 0); tail.rotation.z = Math.PI/2.5;
+      g.add(tail);
+      const tinyHat = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.06, 8), stdMat(hatColor||'#4a2f6b'));
+      tinyHat.position.set(0.1, 0.085, 0); g.add(tinyHat);
+      const eyeMat = new THREE.MeshStandardMaterial({ color:'#ffd27a', emissive:'#ffd27a', emissiveIntensity:0.5 });
+      [-0.02,0.02].forEach(z=>{ const e = new THREE.Mesh(new THREE.SphereGeometry(0.007,6,6), eyeMat); e.position.set(0.142,0.028,z); g.add(e); });
+      return g;
+    }
+    function makeBasketAccessory(){
+      const g = new THREE.Group();
+      const wood = stdMat('#8a6a4a');
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.072,0.05,0.085,10,1,true), wood);
+      bowl.material.side = THREE.DoubleSide;
+      g.add(bowl);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.072,0.008,6,14), wood);
+      rim.rotation.x = Math.PI/2; rim.position.y = 0.042; g.add(rim);
+      const handle = new THREE.Mesh(new THREE.TorusGeometry(0.065,0.008,6,12,Math.PI), wood);
+      handle.rotation.z = Math.PI/2; handle.position.y = 0.095; g.add(handle);
+      ['#ff6b6b','#ffd166','#6bd1a0'].forEach((col,i)=>{
+        const candy = new THREE.Mesh(new THREE.SphereGeometry(0.016,6,6), new THREE.MeshStandardMaterial({color:col}));
+        candy.position.set((i-1)*0.028, 0.055, (i%2)*0.018 - 0.005);
+        g.add(candy);
+      });
+      return g;
+    }
+
     // Ground-up proportions so feet land exactly on y=0 (the "ground" of this little
     // scene) instead of floating — hipY is derived FROM legLen + shoeH rather than
     // picked independently, so the two can never drift apart and leave a gap.
@@ -4558,7 +4992,8 @@
       const root = new THREE.Group();
 
       // ---- Legs (hip pivot so each leg can swing independently for the walk cycle) ----
-      const legMat = stdMat((cfg.legwear&&cfg.legwear.color)||'#555');
+      // Candy-corn striped leggings, matching the reference art for both looks.
+      const legMat = stdMat('#ffffff', { map: makeStripeTexture('#ff8a3d', (cfg.legwear&&cfg.legwear.color)||'#5a3690') });
       const shoeMat = stdMat((cfg.shoes&&cfg.shoes.color)||'#241a3a');
       function makeLeg(xSide){
         const pivot = limbPivot(HIP_Y);
@@ -4574,14 +5009,28 @@
       const leftLeg = makeLeg(-1), rightLeg = makeLeg(1);
 
       // ---- Robe (tapered cylinder flaring toward the hem — reads as a robe, not pants) ----
-      const robeMat = stdMat((cfg.top&&cfg.top.color)||'#6b3fa0');
-      const robeH = TORSO_H + 0.15;
-      const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.30, robeH, 10), robeMat);
-      robe.position.y = HIP_Y + TORSO_H/2 - 0.05;
+      // modelUrl aside, this is the one slot with a baked-in procedural texture rather than
+      // a flat color — see makeRobeTexture() for the moon/pumpkin/patch pattern and the
+      // U-coordinate convention it relies on.
+      const topKind = (cfg.top && cfg.top.kind) || 'robe';
+      const topColor = (cfg.top&&cfg.top.color)||'#6b3fa0', topTrim = (cfg.top&&cfg.top.trim)||'#442868';
+      // The earned "tee" top (level-100 unlock) is a short, barely-flared fitted shirt
+      // rather than a floor-length robe — different silhouette, same cylinder-plus-texture
+      // technique. Both variants anchor their TOP edge at the same shoulder-ish height so
+      // swapping tops never makes the character's neckline jump.
+      const isTee = topKind === 'tee';
+      const robeMat = stdMat('#ffffff', { map: isTee ? makeTeeTexture(topColor, topTrim) : makeRobeTexture(topColor, topTrim) });
+      const robeH = isTee ? (TORSO_H - 0.02) : (TORSO_H + 0.15);
+      const robeTopR = isTee ? 0.165 : 0.17, robeBottomR = isTee ? 0.19 : 0.30;
+      const robeTopEdgeY = (HIP_Y + TORSO_H/2 - 0.05) + (TORSO_H + 0.15)/2;
+      const robe = new THREE.Mesh(new THREE.CylinderGeometry(robeTopR, robeBottomR, robeH, 20), robeMat);
+      robe.position.y = robeTopEdgeY - robeH/2;
       root.add(robe);
-      const sash = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.025, 6, 16), stdMat((cfg.top&&cfg.top.trim)||'#442868'));
-      sash.rotation.x = Math.PI/2; sash.position.y = HIP_Y + 0.2;
-      root.add(sash);
+      if (!isTee){
+        const sash = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.025, 6, 16), stdMat(topTrim));
+        sash.rotation.x = Math.PI/2; sash.position.y = HIP_Y + 0.2;
+        root.add(sash);
+      }
 
       // ---- Arms (shoulder pivot) ----
       const skinMat = stdMat(cfg.skin||'#ffcf9e');
@@ -4620,21 +5069,27 @@
       hair.position.set(0, 0.03, 0.08);
       headGroup.add(hair);
 
-      // ---- Hat: pointed witch hat (female default) / shorter wizard cap (male default) ----
+      // ---- Hat: wide-brimmed pointed witch hat (female) / shorter wizard cap (male) ----
       if (cfg.hat){
-        const hatColor = cfg.hat.color||'#2c1a44', trimColor = cfg.hat.trim||hatColor;
-        const brim = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.02, 6, 16), stdMat(trimColor));
-        brim.rotation.x = Math.PI/2; brim.position.y = 0.19;
+        const hatColor = cfg.hat.color||'#2c1a44', trimColor = cfg.hat.trim||'#ffb347';
+        const brimR = cfg.hat.kind==='witchHat' ? 0.4 : 0.32;
+        // A short, wide, slightly-domed disc reads as an actual hat BRIM — the thin torus
+        // ring this replaced looked like a floating halo instead of a brim resting on the head.
+        const brim = new THREE.Mesh(new THREE.CylinderGeometry(brimR, brimR*0.94, 0.025, 20), stdMat(hatColor));
+        brim.position.y = 0.185;
         headGroup.add(brim);
-        const coneH = cfg.hat.kind==='witchHat' ? 0.42 : 0.3;
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.17, coneH, 10), stdMat(hatColor));
-        cone.position.y = 0.19 + coneH/2;
-        if (cfg.hat.kind==='witchHat'){ cone.position.z = 0.05; cone.rotation.x = 0.22; } // windswept, leaning back
+        const band = new THREE.Mesh(new THREE.TorusGeometry(brimR*0.52, 0.022, 6, 16), stdMat(trimColor));
+        band.rotation.x = Math.PI/2; band.position.y = 0.21;
+        headGroup.add(band);
+        const coneH = cfg.hat.kind==='witchHat' ? 0.36 : 0.26;
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(brimR*0.52, coneH, 10), stdMat(hatColor));
+        cone.position.y = 0.2 + coneH/2;
+        if (cfg.hat.kind==='witchHat'){ cone.position.z = 0.045; cone.rotation.x = 0.3; } // windswept, leaning back
         headGroup.add(cone);
         tryLoadRealModel(cfg.hat, headGroup); // no-op today — see header note
       }
 
-      // ---- Staff + glowing orb accessory, held at the right hand ----
+      // ---- Staff with a glowing jack-o'-lantern topper, held at the right hand ----
       if (cfg.accessory && cfg.accessory.kind==='staff'){
         const staffGroup = new THREE.Group();
         const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.95, 6), stdMat(cfg.accessory.color||'#6b4a2f'));
@@ -4642,12 +5097,28 @@
         staffGroup.add(pole);
         const orb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 10),
           new THREE.MeshStandardMaterial({ color: cfg.accessory.orb||'#ff8a3d', emissive: cfg.accessory.orb||'#ff8a3d', emissiveIntensity:0.9, roughness:0.3 }));
+        orb.scale.set(1, 0.85, 1);
         orb.position.y = 0.92;
         staffGroup.add(orb);
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.015, 0.03, 6), stdMat('#3f7d4a'));
+        stem.position.y = 0.92 + 0.055*0.85;
+        staffGroup.add(stem);
         staffGroup.position.set(0.26, -0.62, 0.02);
         rightArm.add(staffGroup);
         root.userData.orb = orb;
       }
+
+      // ---- Candy basket, held at the left hand ----
+      const basket = makeBasketAccessory();
+      basket.position.set(-0.26, -0.6, 0.03);
+      basket.rotation.z = 0.1;
+      leftArm.add(basket);
+
+      // ---- Black cat companion, perched on the back/shoulder ----
+      const cat = makeCatCompanion(cfg.hat && cfg.hat.color);
+      cat.position.set(0.21, SHOULDER_Y + 0.08, 0.14);
+      cat.rotation.y = -0.5;
+      root.add(cat);
 
       tryLoadRealModel(cfg.top, root); // no-op today — see header note
       root.userData.parts = { leftLeg, rightLeg, leftArm, rightArm, robe };
@@ -4675,11 +5146,32 @@
     }
 
     // ---------------- Per-canvas 3D viewport ----------------
+    // A soft blob shadow drawn INTO the 3D scene itself, right under the feet, rather than
+    // relying only on the separate CSS .player-shadow ellipse below the canvas — a second,
+    // closer visual anchor that she's standing on something, not floating in the canvas.
+    let groundShadowTex = null;
+    function getGroundShadowTexture(){
+      if (groundShadowTex) return groundShadowTex;
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(64,64,4, 64,64,62);
+      g.addColorStop(0, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,128,128);
+      groundShadowTex = new THREE.CanvasTexture(c);
+      return groundShadowTex;
+    }
+
     function initPlayer3D(canvas, gender){
       const scene = new THREE.Scene();
       scene.add(new THREE.HemisphereLight(0xfff1d6, 0x2a2045, 1.15));
       const key = new THREE.DirectionalLight(0xffddaa, 0.85); key.position.set(1.5, 3, 2); scene.add(key);
       const rim = new THREE.DirectionalLight(0x8f8fff, 0.35); rim.position.set(-2, 1.5, -2); scene.add(rim);
+      const groundShadow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.42, 20),
+        new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false })
+      );
+      groundShadow.rotation.x = -Math.PI/2; groundShadow.position.y = 0.004;
+      scene.add(groundShadow);
 
       const CANVAS_W = 92, CANVAS_H = 124;
       const camera = new THREE.PerspectiveCamera(45, CANVAS_W/CANVAS_H, 0.1, 20);
@@ -4703,9 +5195,14 @@
         const gs = window.__gameState;
         const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
         const rad = THREE.MathUtils.degToRad(orbitDeg);
-        const radius = 3.0, camHeight = 1.5;
+        // Tighter crop than the first pass — feet (y=0) now land close to the very bottom
+        // of the canvas instead of floating in a band of empty transparent space above the
+        // CSS ground shadow/ring below it, which is what actually made her look like she
+        // was hovering (the model itself was always correctly grounded — the framing
+        // just left air under her feet).
+        const radius = 2.75, camHeight = 1.45;
         camera.position.set(Math.sin(rad)*radius, camHeight, Math.cos(rad)*radius);
-        camera.lookAt(0, 1.05, 0);
+        camera.lookAt(0, 1.18, 0);
         const walking = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
         animatePlayerModel(group, performance.now()/1000, walking);
         renderer.render(scene, camera);
@@ -4723,7 +5220,91 @@
       };
     }
 
+    // ---------------- Wardrobe screen's own live preview ----------------
+    // A separate, bigger viewport with its own drag-to-orbit (independent of the map's
+    // state.viewOrbit) for the Character Styling screen — reuses buildPlayerModel/
+    // animatePlayerModel/getGroundShadowTexture rather than duplicating the model itself,
+    // but keeps its own scene/camera/render-loop since it has different sizing and input
+    // needs than the tiny fixed HUD marker in initPlayer3D() below.
+    function initWardrobePreview3D(canvas, gender){
+      const scene = new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xfff1d6, 0x2a2045, 1.15));
+      const key = new THREE.DirectionalLight(0xffddaa, 0.9); key.position.set(1.5, 3, 2); scene.add(key);
+      const rim = new THREE.DirectionalLight(0x8f8fff, 0.35); rim.position.set(-2, 1.5, -2); scene.add(rim);
+      const groundShadow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.42, 20),
+        new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false })
+      );
+      groundShadow.rotation.x = -Math.PI/2; groundShadow.position.y = 0.004;
+      scene.add(groundShadow);
+
+      const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 20);
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      function resize(){
+        const w = canvas.clientWidth || 200, h = canvas.clientHeight || 260;
+        renderer.setSize(w, h, false);
+        camera.aspect = w/h; camera.updateProjectionMatrix();
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      let group = buildPlayerModel(gender);
+      scene.add(group);
+
+      // Starts at a 3/4 angle (not dead-on front) so the silhouette reads as 3D the
+      // instant the panel opens, and auto-spins gently whenever the player isn't actively
+      // dragging — the live-rotating preview the brief asked for, without needing the
+      // player to discover the drag gesture first.
+      let orbitDeg = 200, dragging = false, lastX = 0;
+      canvas.addEventListener('pointerdown', e=>{ dragging = true; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
+      canvas.addEventListener('pointermove', e=>{ if (!dragging) return; orbitDeg += (e.clientX-lastX)*0.6; lastX = e.clientX; });
+      window.addEventListener('pointerup', ()=>{ dragging = false; });
+      canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
+
+      let stopped = false;
+      function frame(){
+        if (stopped) return;
+        requestAnimationFrame(frame);
+        const rad = THREE.MathUtils.degToRad(orbitDeg);
+        const radius = 2.6, camHeight = 1.5;
+        camera.position.set(Math.sin(rad)*radius, camHeight, Math.cos(rad)*radius);
+        camera.lookAt(0, 1.15, 0);
+        if (!dragging) orbitDeg += 0.15;
+        animatePlayerModel(group, performance.now()/1000, false);
+        renderer.render(scene, camera);
+      }
+      requestAnimationFrame(frame);
+
+      return {
+        rebuild(g){
+          scene.remove(group);
+          group.traverse(o=>{ if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+          group = buildPlayerModel(g);
+          scene.add(group);
+        },
+        dispose(){ stopped = true; renderer.dispose(); window.removeEventListener('resize', resize); }
+      };
+    }
+    window.mountWardrobePreview3D = function(canvas, gender){
+      if (!canvas) return;
+      if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
+      if (canvas.__wardrobe3d) canvas.__wardrobe3d.dispose();
+      canvas.__wardrobe3d = initWardrobePreview3D(canvas, gender==='male' ? 'male' : 'female');
+    };
+    window.rebuildWardrobePreview3D = function(canvas, gender){
+      if (!canvas) return;
+      if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
+      if (canvas.__wardrobe3d) canvas.__wardrobe3d.rebuild(gender==='male' ? 'male' : 'female');
+      else window.mountWardrobePreview3D(canvas, gender);
+    };
+
     window.mountPlayer3D = function(gender){
+      // Re-apply whatever's saved in state.equippedCosmetics on top of the catalog's own
+      // per-gender defaults every time we (re)mount — covers both "classic script loaded
+      // a profile before this module finished its async import" and "wardrobe screen just
+      // changed an equip and wants the model rebuilt", with one call site either way.
+      if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
       const holder = document.getElementById('player-avatar');
       if (!holder) return;
       const g = gender==='male' ? 'male' : 'female';
@@ -4744,6 +5325,216 @@
     }
   } catch (err){
     console.warn('3D player avatar unavailable — staying on the 2D sprite marker.', err);
+  }
+})();
+
+// ============================================================================
+// PHASE 2 — real 3D Totos on the overworld map (map only — battle's arena
+// sprite is completely untouched, per the brief).
+// ----------------------------------------------------------------------------
+// The classic game script above is wrapped in its own `(function(){...})()`,
+// so none of its internals (state, $, TOTO_IMG, spriteFor, appendTotoNode...)
+// are reachable from here except through the one thing it already exports —
+// window.__gameState — plus the live DOM it builds. That's deliberate: rather
+// than reaching into that script to hook spawn/catch/prune, this layer just
+// watches window.__gameState.wildTotos and each toto's own t._node every
+// frame and mounts/unmounts a 3D presence to match whatever's actually on
+// screen. Zero edits to the existing map/spawn/catch logic.
+//
+// Why one shared canvas instead of giving every toto its own <canvas> (the
+// way the player's single marker works): up to MAX_WILD_TOTOS (38) can be
+// alive at once, and most browsers cap the number of *simultaneous* live
+// WebGL contexts well below that (mobile Safari/Chrome can be as low as
+// 8-16) — a context-per-creature approach would start silently losing
+// contexts long before the map felt crowded. So instead this is ONE
+// orthographic-camera scene laid over the whole map viewport, where every
+// toto is a small group (its existing 2D sprite art as a lit billboard, plus
+// a real, glowing, tilted "dais" disc underneath for genuine 3D shading) and
+// every frame its on-screen position/size is read straight from its existing
+// marker's actual getBoundingClientRect() — so it rides along with the real
+// GPS/pan/zoom/tilt/rotate/wander math for free, without this layer having
+// to understand any of it.
+//
+// Honest scope note (same reasoning as the player's procedural model): there
+// are 50+ unique Toto species and hand-sculpting a real 3D model for each is
+// its own multi-week project. This reuses the existing painted 2D art as a
+// properly-lit, animated 3D billboard rather than leaving creatures as flat
+// stickers — a real step up, not a disguised no-op — while staying honest
+// that it isn't bespoke per-species 3D geometry.
+// ============================================================================
+(async () => {
+  try {
+    const probe = document.createElement('canvas');
+    const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+    if (!gl) return;
+    const canvas = document.getElementById('toto3d-canvas');
+    const mapView = document.getElementById('map-view');
+    if (!canvas || !mapView) return;
+
+    const THREE = await import('three');
+
+    const scene = new THREE.Scene();
+    scene.add(new THREE.HemisphereLight(0xfff1d6, 0x241c3a, 1.05));
+    const key = new THREE.DirectionalLight(0xffddaa, 0.95); key.position.set(1.2, 3, 2); scene.add(key);
+    const rim = new THREE.DirectionalLight(0x9a8fff, 0.4); rim.position.set(-2, 1.4, -1.5); scene.add(rim);
+
+    // Looking straight down -Z from a fixed distance — screen-space-matched ortho
+    // projection, no perspective math needed since we hand it final pixel positions.
+    const camera = new THREE.OrthographicCamera(0, 1, 0, 1, 1, 2000);
+    camera.position.z = 1000;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+
+    let vw = 1, vh = 1;
+    function resize(){
+      const r = mapView.getBoundingClientRect();
+      vw = Math.max(1, Math.round(r.width)); vh = Math.max(1, Math.round(r.height));
+      renderer.setSize(vw, vh, false);
+      camera.left = -vw/2; camera.right = vw/2; camera.top = vh/2; camera.bottom = -vh/2;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Matches the glow colors already used elsewhere for mythical/eternal (see
+    // .mythical-glow / .toni-glow) so a 3D toto's rarity reads consistently with
+    // every other rarity cue in the game.
+    const TIER_ACCENT = { normal:'#cbb8ff', legendary:'#ffcf6b', mythical:'#ff3b3b', eternal:'#ff5ad2' };
+
+    const spriteTexCache = {};
+    function getSpriteTexture(src){
+      let tex = spriteTexCache[src];
+      if (tex) return tex;
+      tex = new THREE.TextureLoader().load(src);
+      if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      spriteTexCache[src] = tex;
+      return tex;
+    }
+
+    // ---------------- per-toto 3D mount ----------------
+    const mounts = new Map(); // toto id -> mount record
+
+    function tryMountToto(t){
+      const bubbleEl = t._node.querySelector('.bubble');
+      const img = bubbleEl && bubbleEl.querySelector('img.creature-img');
+      if (!bubbleEl || !img) return null; // no flat sprite to borrow art from — leave 2D alone
+
+      const group = new THREE.Group();
+
+      // The glowing "standing on something" dais — a flat disc given a fixed artistic
+      // tilt so it reads as a foreshortened ground plate even though the camera itself
+      // is a plain head-on ortho projection (it never actually matches the map's own
+      // CSS tilt angle, which is a deliberate simplification, not a bug).
+      const accent = TIER_ACCENT[t.tier] || TIER_ACCENT.normal;
+      const dais = new THREE.Mesh(
+        new THREE.CircleGeometry(1, 24),
+        new THREE.MeshStandardMaterial({ color:accent, emissive:accent, emissiveIntensity:0.4, roughness:0.45, metalness:0.2, transparent:true, opacity:0.88 })
+      );
+      dais.rotation.x = -1.2;
+      group.add(dais);
+
+      // Thin extra ring for anything rarer than normal — same visual language as the
+      // cp-tag/glow treatment used everywhere else to call out a special catch.
+      let ring = null;
+      if (t.tier !== 'normal'){
+        ring = new THREE.Mesh(
+          new THREE.RingGeometry(1.15, 1.3, 28),
+          new THREE.MeshBasicMaterial({ color:accent, transparent:true, opacity:0.8, side:THREE.DoubleSide })
+        );
+        ring.rotation.x = -1.2;
+        group.add(ring);
+      }
+
+      const sprite = new THREE.Mesh(
+        new THREE.PlaneGeometry(1,1),
+        new THREE.MeshBasicMaterial({ map:getSpriteTexture(img.src), transparent:true, side:THREE.DoubleSide, depthWrite:false })
+      );
+      group.add(sprite);
+
+      scene.add(group);
+      t._node.classList.add('is-3d-mounted');
+
+      return { group, dais, ring, sprite, bubbleEl, img, lastSrc:img.src, bobSeed: Math.random()*Math.PI*2 };
+    }
+
+    function updateMountTransform(t, m, now){
+      if (m.img.src !== m.lastSrc){
+        m.sprite.material.map = getSpriteTexture(m.img.src);
+        m.sprite.material.needsUpdate = true;
+        m.lastSrc = m.img.src;
+      }
+      const nodeRect = t._node.getBoundingClientRect();
+      const bubbleRect = m.bubbleEl.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      if (!nodeRect.width || !bubbleRect.width) return; // mid-layout, skip a frame rather than snap to 0
+
+      const groundX = nodeRect.left + nodeRect.width/2 - canvasRect.left;
+      const groundY = nodeRect.bottom - canvasRect.top;
+      const spriteCX = bubbleRect.left + bubbleRect.width/2 - canvasRect.left;
+      const spriteCY = bubbleRect.top + bubbleRect.height/2 - canvasRect.top;
+
+      const gx = groundX - vw/2, gy = vh/2 - groundY;
+      const localX = (spriteCX - vw/2) - gx;
+      const localY = (vh/2 - spriteCY) - gy;
+      const bob = Math.sin(now*2 + m.bobSeed) * Math.min(3, bubbleRect.height*0.04);
+
+      m.group.position.set(gx, gy, groundY*0.1);
+      m.sprite.position.set(localX, localY + bob, 0.6);
+      m.sprite.scale.set(Math.max(1,bubbleRect.width), Math.max(1,bubbleRect.height), 1);
+
+      const daisW = Math.max(1, nodeRect.width*0.5);
+      m.dais.scale.set(daisW, daisW*0.42, 1);
+      m.dais.position.set(0, daisW*0.18, -0.3);
+      m.dais.rotation.z = now*0.5;
+      if (m.ring){
+        m.ring.scale.set(daisW, daisW*0.42, 1);
+        m.ring.position.copy(m.dais.position);
+        m.ring.rotation.z = -now*0.35;
+      }
+    }
+
+    function disposeMount(m){
+      scene.remove(m.group);
+      m.sprite.geometry.dispose(); m.sprite.material.dispose();
+      m.dais.geometry.dispose(); m.dais.material.dispose();
+      if (m.ring){ m.ring.geometry.dispose(); m.ring.material.dispose(); }
+    }
+
+    function syncFrame(){
+      requestAnimationFrame(syncFrame);
+      const gameScreen = document.querySelector('.screen[data-screen="game"]');
+      if (!gameScreen || !gameScreen.classList.contains('active')) return;
+      const gs = window.__gameState;
+      const list = gs && Array.isArray(gs.wildTotos) ? gs.wildTotos : [];
+
+      const r = mapView.getBoundingClientRect();
+      const rw = Math.max(1, Math.round(r.width)), rh = Math.max(1, Math.round(r.height));
+      if (rw !== vw || rh !== vh) resize();
+
+      const now = performance.now()/1000;
+      const liveIds = new Set();
+      list.forEach(t=>{
+        if (!t._node || !t._node.isConnected) return;
+        liveIds.add(t.id);
+        let m = mounts.get(t.id);
+        if (!m){
+          m = tryMountToto(t);
+          if (!m) return;
+          mounts.set(t.id, m);
+        }
+        updateMountTransform(t, m, now);
+      });
+      mounts.forEach((m, id)=>{
+        if (!liveIds.has(id)){ disposeMount(m); mounts.delete(id); }
+      });
+
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(syncFrame);
+  } catch (err){
+    console.warn('3D map Totos unavailable — staying on the 2D sprite markers.', err);
   }
 })();
 </script>
