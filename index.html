@@ -3558,8 +3558,8 @@
       +'way["highway"]('+bbox+');'
       +'way["building"]('+bbox+');'
       +'way["leisure"~"^(park|garden|pitch|playground|sports_centre|stadium|track|swimming_pool|golf_course|dog_park)$"]('+bbox+');'
-      +'way["landuse"~"^(recreation_ground|cemetery|forest|grass|meadow|village_green|reservoir)$"]('+bbox+');'
-      +'way["amenity"~"^(grave_yard|parking)$"]('+bbox+');'
+      +'way["landuse"~"^(recreation_ground|cemetery|forest|grass|meadow|village_green|reservoir|residential|commercial|retail|industrial|farmland|farmyard)$"]('+bbox+');'
+      +'way["amenity"~"^(grave_yard|parking|school|college|university|hospital|kindergarten|place_of_worship)$"]('+bbox+');'
       +'way["natural"~"^(water|wood)$"]('+bbox+');'
       +'way["waterway"~"^(river|stream|canal)$"]('+bbox+');'
       +'way["railway"="rail"]('+bbox+');'
@@ -3584,7 +3584,8 @@
     diag.lastRegionResult = data.elements.length+' elements';
 
     const project = (la, lo)=>{ const md = metersDelta(state.geoAnchor.lat, state.geoAnchor.lon, la, lo); return worldPosFromMeters(md.east, md.north); };
-    const art = renderTerrainArt(data.elements, project, key);
+    const b0 = worldPosFromMeters(eastMin, northMax), b1 = worldPosFromMeters(eastMax, northMin);
+    const art = renderTerrainArt(data.elements, project, key, { x0:b0.x, y0:b0.y, x1:b1.x, y1:b1.y });
     let g = null;
     if (art.svg){
       g = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -3732,9 +3733,12 @@
     shop:[92,170,1.1], hall:[100,170,1.1], church:[96,120,1.0], apartment:[84,132,1.0]
   };
 
-  function renderTerrainArt(elements, project, regionKeyStr){
+  function renderTerrainArt(elements, project, regionKeyStr, bounds){
     const L = { land:[], water:[], marks:[], lots:[], rail:[], roadCase:[], roadTop:[], pathCase:[], pathTop:[] };
     const props = [], parkCentroids = [], clearPolys = [];   // clearPolys: fields/courts trees must not stand on
+    // gathered for the house infill pass at the end
+    const roads = [], bldgs = [], noBuild = [], resPolys = [], farmPolys = [];
+    const withBB = P=>{ let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; P.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);}); return {P,x0,y0,x1,y1}; };
     const rnd = seededRand(Array.from(String(regionKeyStr)).reduce((h,c)=>h*31+c.charCodeAt(0),7));
     const M2 = GPS_SCALE*GPS_SCALE;
     elements.forEach(el=>{
@@ -3758,8 +3762,10 @@
         if (PATH_W[t.highway] !== undefined){
           const w = PATH_W[t.highway]; if (!w) return;
           L.pathCase.push(line('#1d1823', w+5)); L.pathTop.push(line('url(#pat-flag)', w));
+          roads.push({ P, half:w/2+2, path:true, hw:t.highway });
         } else {
           const w = ROAD_W[t.highway] || 48;
+          roads.push({ P, half:w/2+6, path:false, hw:t.highway });
           L.roadCase.push(line('#16121c', w+12)); L.roadCase.push(line('#3b3446', w+6));
           L.roadTop.push(line('url(#pat-cobble)', w));
           if (w >= 56) L.roadTop.push(line('#ffd9a0', 1.6, ' stroke-opacity="0.18" stroke-dasharray="14 18"'));
@@ -3776,6 +3782,7 @@
       if (t.building){
         L.lots.push(poly('#231d2e', '#4a405a', 3));
         const c = polyCentroid(P);
+        bldgs.push({ x:c.x, y:c.y, r:Math.sqrt(area/Math.PI) });
         const seed = Math.floor(rnd()*1e6);
         const kind = buildingKind(t, areaM2, seed);
         if (kind){
@@ -3785,6 +3792,11 @@
         }
         return;
       }
+      // land-use areas that only steer where filler houses may go (not drawn themselves)
+      if (t.landuse==='residential'){ resPolys.push(withBB(P)); return; }
+      if (t.landuse==='farmland' || t.landuse==='farmyard'){ farmPolys.push(withBB(P)); return; }
+      if (/^(commercial|retail|industrial)$/.test(t.landuse||'') || /^(school|college|university|hospital|kindergarten|place_of_worship)$/.test(t.amenity||'')){ noBuild.push(withBB(P)); return; }
+      noBuild.push(withBB(P));   // everything below (water, fields, parks, woods, lots…) stays house-free
       if (t.natural==='water' || t.landuse==='reservoir' || t.leisure==='swimming_pool'){
         L.water.push(poly(t.leisure==='swimming_pool' ? '#3d86b8' : '#2c4a72', '#4a6f9e', 4)); return;
       }
@@ -3819,6 +3831,7 @@
         return;
       }
     });
+    if (bounds) infillHouses();
     // keep trees/tombs off ball fields, courts and playgrounds
     const isGreenery = k=> k==='tree' || k==='deadtree' || k==='pine';
     const keptProps = props.filter(pr=> !isGreenery(pr.kind) || !clearPolys.some(P=> pointInPoly(pr.x, pr.y, P)));
@@ -3826,6 +3839,82 @@
     const svg = L.land.join('') + L.water.join('') + L.marks.join('') + L.lots.join('') + L.rail.join('')
       + L.pathCase.join('') + L.roadCase.join('') + L.pathTop.join('') + L.roadTop.join('');
     return { svg, props, parkCentroids };
+
+    // ---- filler houses ----
+    // OpenStreetMap usually has a town's streets, schools, shops and churches, but in a
+    // lot of neighbourhoods the individual homes were never traced — so the street is there
+    // and the houses aren't. Wherever a residential street has nothing mapped beside it,
+    // line it with houses on both sides: set back behind a front yard, a flagstone walk
+    // out to the road, now and then a tree out back. Real mapped buildings always win —
+    // nothing is added near one — and nothing goes on water, parks, fields, school or
+    // shop grounds. Positions come from the road geometry itself (not a per-region
+    // random roll), so neighbouring regions agree and each house is only made once.
+    function infillHouses(){
+      const CELL = 160;
+      const cellsOf = (x0,y0,x1,y1, fn)=>{ for (let cx=Math.floor(x0/CELL); cx<=Math.floor(x1/CELL); cx++) for (let cy=Math.floor(y0/CELL); cy<=Math.floor(y1/CELL); cy++) fn(cx+','+cy); };
+      const put = (g, x0,y0,x1,y1, item)=> cellsOf(x0,y0,x1,y1, k=>{ let a=g.get(k); if (!a) g.set(k, a=[]); a.push(item); });
+      const near = (g, x,y,rad, fn)=>{ let stop=false; cellsOf(x-rad,y-rad,x+rad,y+rad, k=>{ if (stop) return; const a=g.get(k); if (a) for (const it of a){ if (fn(it)){ stop=true; return; } } }); return stop; };
+      const segG = new Map(), bG = new Map(), hG = new Map();
+      roads.forEach(r=>{ for (let i=1;i<r.P.length;i++){ const a=r.P[i-1], b=r.P[i];
+        put(segG, Math.min(a.x,b.x)-r.half, Math.min(a.y,b.y)-r.half, Math.max(a.x,b.x)+r.half, Math.max(a.y,b.y)+r.half, {a,b,half:r.half,path:r.path}); } });
+      bldgs.forEach(b=> put(bG, b.x-b.r, b.y-b.r, b.x+b.r, b.y+b.r, b));
+      const segDist = (px,py,a,b)=>{ const dx=b.x-a.x, dy=b.y-a.y, L2=dx*dx+dy*dy; let u = L2 ? ((px-a.x)*dx+(py-a.y)*dy)/L2 : 0; u = Math.max(0,Math.min(1,u)); return Math.hypot(px-a.x-u*dx, py-a.y-u*dy); };
+      const inAny = (list,x,y)=> list.some(q=> x>=q.x0 && x<=q.x1 && y>=q.y0 && y<=q.y1 && pointInPoly(x,y,q.P));
+      const hfrac = (x,y,salt)=>{ let h = (Math.round(x)*73856093) ^ (Math.round(y)*19349663) ^ (salt*83492791); h = Math.imul(h ^ (h>>>13), 1274126177); h ^= h>>>16; return (h>>>0)/4294967296; };
+      const inBounds = (x,y)=> x>=bounds.x0 && x<bounds.x1 && y>=bounds.y0 && y<bounds.y1;
+      // how likely a lot along each kind of street holds a house (inside a mapped
+      // residential area every street type counts as fully built up)
+      const DENS = { residential:1, living_street:1, unclassified:0.6, tertiary:0.45, secondary:0.2, primary:0, road:0.5 };
+      const LOT = 96;                     // ~30 m frontage per house
+      const yardTrees = [];
+      roads.forEach(r=>{
+        if (r.path || DENS[r.hw]===undefined) return;
+        const P = r.P; let acc = 0, next = LOT*0.5;
+        for (let i=1;i<P.length;i++){
+          const a=P[i-1], b=P[i], dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy);
+          if (len < 1) continue;
+          const tx=dx/len, ty=dy/len, nx=-ty, ny=tx, ang = Math.atan2(ty,tx)*180/Math.PI;
+          while (next <= acc+len){
+            const u = next-acc, px=a.x+tx*u, py=a.y+ty*u;
+            next += LOT;
+            for (const side of [-1,1]){
+              const w = 58 + hfrac(px,py,side+5)*16, hh = w*0.42;
+              const off = r.half + 22 + hh;         // road edge + ~7 m front yard
+              const x = px+nx*side*off, y = py+ny*side*off;
+              if (!inBounds(x,y)) continue;
+              let dens = DENS[r.hw];
+              if (inAny(resPolys,x,y)) dens = 1;
+              else if (inAny(farmPolys,x,y)) dens *= 0.25;
+              if (hfrac(x,y,7) >= dens) continue;
+              if (inAny(noBuild,x,y)) continue;
+              if (near(bG, x,y, hh+60, it=> Math.hypot(it.x-x,it.y-y) < it.r+hh+18)) continue;
+              if (near(segG, x,y, hh+40, it=> segDist(x,y,it.a,it.b) < it.half + (it.path ? hh*0.5 : hh) + 3)) continue;
+              if (near(hG, x,y, LOT, it=> Math.hypot(it.x-x,it.y-y) < LOT*0.72)) continue;
+              put(hG, x,y,x,y, {x,y});
+              const seed = Math.floor(hfrac(x,y,13)*1e6);
+              props.push({ x, y, kind:['house1','house2','house3'][seed%3], w, seed });
+              // a yard under the house, squared to the street, and a walk out to the road
+              L.lots.push('<rect x="'+(-w*0.5).toFixed(1)+'" y="'+(-w*0.36).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+(w*0.72).toFixed(1)+'" rx="6" fill="#231d2e" stroke="#4a405a" stroke-width="3" transform="translate('+x.toFixed(1)+','+y.toFixed(1)+') rotate('+ang.toFixed(1)+')"/>');
+              const fx = x-nx*side*hh*0.5, fy = y-ny*side*hh*0.5, ex = px+nx*side*(r.half-6), ey = py+ny*side*(r.half-6);
+              L.lots.push('<path d="M'+fx.toFixed(1)+','+fy.toFixed(1)+' L'+ex.toFixed(1)+','+ey.toFixed(1)+'" stroke="#1d1823" stroke-width="12" stroke-linecap="round"/>'
+                + '<path d="M'+fx.toFixed(1)+','+fy.toFixed(1)+' L'+ex.toFixed(1)+','+ey.toFixed(1)+'" stroke="url(#pat-flag)" stroke-width="8"/>');
+              if (hfrac(x,y,17) < 0.32){
+                const d = hh + 26, along = (hfrac(x,y,19)-0.5)*36;
+                yardTrees.push({ x: x+nx*side*d+tx*along, y: y+ny*side*d+ty*along, w: 40+hfrac(x,y,23)*14, seed: Math.floor(hfrac(x,y,29)*1e6) });
+              }
+            }
+          }
+          acc += len;
+        }
+      });
+      yardTrees.forEach(t=>{
+        if (!inBounds(t.x,t.y) || inAny(noBuild,t.x,t.y)) return;
+        if (near(hG, t.x,t.y, 60, it=> Math.hypot(it.x-t.x,it.y-t.y) < 46)) return;
+        if (near(bG, t.x,t.y, 80, it=> Math.hypot(it.x-t.x,it.y-t.y) < it.r+16)) return;
+        if (near(segG, t.x,t.y, 60, it=> segDist(t.x,t.y,it.a,it.b) < it.half+14)) return;
+        props.push({ x:t.x, y:t.y, kind: hfrac(t.x,t.y,31)<0.2 ? 'deadtree' : 'tree', w:t.w, seed:t.seed });
+      });
+    }
   }
 
   // ---------------- SESSION SETUP (runs once per anchor) ----------------
