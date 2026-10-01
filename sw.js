@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v39';
+const CACHE_NAME = 'totoquest-v40';
 const ASSETS = [
 './index.html',
 './manifest.json',
@@ -7,6 +7,8 @@ const ASSETS = [
 './assets/loading-bg.jpg',
 './assets/battle/village.jpg',
 './assets/battle/village-blood.jpg',
+'./assets/wardrobe/tee-tex.jpg',
+'./assets/wardrobe/tee-thumb.png',
 './assets/vendor/three.module.min.js',
 './assets/vendor/GLTFLoader.js',
 './assets/girl-front.png',
@@ -114,8 +116,19 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
   // Network-first for the app shell so a new deploy is detected promptly;
   // falls back to the cached copy when offline.
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  // the in-app "is there a newer release?" check must always reach the server and is
+  // never worth keeping a copy of
+  if (url.pathname.endsWith('/version.json')) return;
+  // Pages, scripts and data always revalidate with the server (a quick 304 when nothing
+  // changed), so a new release shows up on the next launch rather than whenever the
+  // HTTP cache happens to expire. Images keep the normal cache.
+  const shell = url.origin === self.location.origin && (req.mode === 'navigate' || /\.(html|js|json)$/.test(url.pathname) || url.pathname.endsWith('/'));
+  const netReq = shell ? new Request(req, { cache: 'no-cache' }) : req;
   event.respondWith(
-    fetch(event.request).then((resp) => {
+    fetch(netReq).then((resp) => {
       const copy = resp.clone();
       caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(()=>{});
       return resp;

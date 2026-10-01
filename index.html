@@ -302,6 +302,8 @@
   .t3-pwr { background:rgba(20,16,32,0.78); color:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.35); }
   .t3-dist { background:rgba(0,0,0,0.45); color:#ffe9c2; }
   .t3-dist:empty { display:none; }
+  /* within catching range (40 m): the distance pill turns green */
+  .t3-dist.catchable, .dist-tag.catchable { background:rgba(46,158,70,0.9); color:#fff; }
   .toto-node, .gym-node { position:absolute; transform: translate(-50%,-100%); text-align:center; cursor:pointer; z-index:10; contain:layout style; }
   .node-spin { position:relative; z-index:2; transform: rotate(calc(-1 * var(--rot,0deg))); }
   /* Grounding ring under each map creature, same idea as the player's — a soft lit patch
@@ -441,7 +443,9 @@
   .wardrobe-item-card { background:#fff; border:2px solid #eee; border-radius:12px; padding:10px 4px; text-align:center; cursor:pointer; position:relative; }
   .wardrobe-item-card.sel { border-color:#ff8a3d; }
   .wardrobe-item-card.locked { opacity:0.55; }
-  .wi-icon { font-size:26px; }
+  .wi-icon { font-size:26px; position:relative; min-height:34px; display:flex; align-items:center; justify-content:center; }
+  .wi-thumb { width:58px; height:58px; object-fit:contain; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.25)); }
+  .wi-lock { position:absolute; right:6px; bottom:-2px; font-size:16px; }
   .wi-name { font-size:9.5px; font-weight:800; margin-top:4px; color:#555; line-height:1.2; }
   .wi-equipped-tag { position:absolute; top:3px; right:3px; background:#2e9e2e; color:#fff; font-size:7.5px; font-weight:800; padding:1px 5px; border-radius:6px; }
   .wardrobe-detail { background:#f6f1fb; border-radius:12px; padding:10px; font-size:12px; line-height:1.5; color:#444; min-height:54px; }
@@ -492,7 +496,31 @@
 
   .modal-back { position:absolute; inset:0; background:rgba(10,10,20,0.68); z-index:60; display:none; align-items:center; justify-content:center; padding:20px;}
   .modal-back.active { display:flex; }
-  .modal-card { background:#fff; border-radius:20px; padding:20px; width:100%; max-width:340px; text-align:center; }
+  .modal-card { background:#fff; border-radius:20px; padding:20px; width:100%; max-width:340px; text-align:center; max-height:100%; overflow-y:auto; }
+  /* Totos tab: sort by power */
+  .sort-bar { display:flex; align-items:center; gap:6px; margin-bottom:10px; font-size:11.5px; font-weight:800; color:#888; }
+  .sort-bar .sort-btn { border:none; border-radius:999px; padding:6px 11px; font-family:inherit; font-size:11.5px; font-weight:800; cursor:pointer; background:#f1ecff; color:#6b4fb8; }
+  .sort-bar .sort-btn.on { background:linear-gradient(135deg,#ff9a3d,#ff5470); color:#fff; box-shadow:0 3px 8px rgba(255,100,80,0.3); }
+  .toto-card .new-move-badge { position:absolute; top:-6px; left:50%; transform:translateX(-50%); white-space:nowrap; font-size:8px; font-weight:800; color:#fff; padding:2px 6px; border-radius:8px; background:linear-gradient(135deg,#7b5cff,#c04dff); box-shadow:0 2px 6px rgba(123,92,255,0.5); }
+  /* Toto detail: moves */
+  .moves-box { margin:6px 0 10px; text-align:left; }
+  .moves-title { font-weight:800; font-size:13px; color:#3a2a5a; margin-bottom:6px; }
+  .moves-title span { font-weight:700; font-size:10.5px; color:#999; }
+  .move-row { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:11px; background:#f6f3ff; margin-bottom:5px; border:1.5px solid transparent; }
+  .move-row.equipped { border-color:#ff8a3d; background:#fff4ea; }
+  .move-row.locked { opacity:0.55; }
+  .move-ic { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; background:var(--mc,#7b5cff); box-shadow:inset 0 -3px 0 rgba(0,0,0,0.18); }
+  .move-info { flex:1; min-width:0; }
+  .move-name { font-weight:800; font-size:12px; color:#2a2040; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .move-meta { font-size:10px; font-weight:700; color:#8a80a0; display:flex; align-items:center; gap:6px; }
+  .move-pow { flex:0 0 46px; height:5px; border-radius:3px; background:#e4ddf5; overflow:hidden; }
+  .move-pow i { display:block; height:100%; background:linear-gradient(90deg,#ff9a3d,#ff5470); }
+  .move-act { flex-shrink:0; border:none; border-radius:9px; padding:6px 10px; font-family:inherit; font-size:11px; font-weight:800; cursor:pointer; }
+  .move-act.learn { background:linear-gradient(135deg,#7b5cff,#c04dff); color:#fff; animation: movePulse 1.4s ease-in-out infinite; }
+  @keyframes movePulse { 0%,100%{ box-shadow:0 0 0 0 rgba(150,90,255,0.55); } 50%{ box-shadow:0 0 0 5px rgba(150,90,255,0); } }
+  .move-act.use { background:#ece6ff; color:#5a3fb0; }
+  .move-tag { flex-shrink:0; font-size:10.5px; font-weight:800; color:#ff7a2e; }
+  .move-lock { flex-shrink:0; font-size:10.5px; font-weight:800; color:#999; }
   .modal-sp { font-size:60px; margin-bottom:2px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));}
   .modal-name { font-weight:800; font-size:17px; }
   .modal-sub { font-size:11.5px; color:#888; font-weight:700; margin-bottom:8px; }
@@ -596,6 +624,7 @@
 
   /* ---- team roster (right column) ---- */
   .bx-roster { position:absolute; right:14px; top:106px; width:212px; display:flex; flex-direction:column; gap:6px; }
+  .bx-narrow .bx-roster { display:none; }
   .bx-card { position:relative; height:62px; display:flex; align-items:center; padding:0 9px 0 5px; gap:7px; border-radius:14px;
     background:linear-gradient(180deg, rgba(34,30,74,0.9), rgba(16,13,40,0.92)); border:2px solid #5c73c9; box-shadow: inset 0 0 14px rgba(90,120,255,0.16), 0 5px 12px rgba(0,0,0,0.45); transition: border-color 0.2s, box-shadow 0.2s; }
   .bx-card.active { border-color:#ffb347; box-shadow: 0 0 0 1px rgba(255,180,70,0.5), 0 0 14px rgba(255,150,40,0.7), inset 0 0 14px rgba(255,150,40,0.22); }
@@ -665,7 +694,7 @@
   .bx-boss-aura { position:absolute; left:50%; bottom:10px; width:340px; height:300px; transform:translateX(-50%); border-radius:50%;
     background:radial-gradient(circle at 50% 60%, rgba(255,110,40,0.45), rgba(170,40,255,0.18) 45%, rgba(0,0,0,0) 68%); animation: bxAura 3s ease-in-out infinite; }
   .bx-boss-shadow { position:absolute; left:50%; bottom:-8px; width:230px; height:40px; transform:translateX(-50%); border-radius:50%; background:radial-gradient(closest-side, rgba(0,0,0,0.7), rgba(0,0,0,0)); }
-  .bx-boss-sprite { width:340px; height:284px; z-index:2; animation: idleBreathe 2.8s ease-in-out infinite reverse;
+  .bx-boss-sprite { width:340px; height:266px; z-index:2; animation: idleBreathe 2.8s ease-in-out infinite reverse;
     filter: drop-shadow(0 0 4px rgba(255,170,90,0.9)) drop-shadow(0 0 16px rgba(255,90,30,0.55)) drop-shadow(0 10px 8px rgba(0,0,0,0.55)); }
   .bx-boss.lunge .bx-boss-sprite { animation: bxBossLunge 0.45s ease-in; }
   @keyframes bxBossLunge { 0%{ transform:translate(0,0) scale(1); } 40%{ transform:translate(-26px,30px) scale(1.1); } 100%{ transform:translate(0,0) scale(1); } }
@@ -716,6 +745,9 @@
     border:3px solid #ffb238; box-shadow: 0 0 0 2px #6a2a08, 0 0 18px rgba(255,140,40,0.85), inset 0 0 0 2px rgba(255,220,140,0.35), inset 0 -10px 18px rgba(0,0,0,0.45), inset 0 8px 14px rgba(255,120,60,0.35); }
   .bx-charge-energy { position:absolute; left:0; bottom:0; top:0; width:100%; background:linear-gradient(180deg, rgba(255,140,40,0.28), rgba(255,60,20,0.12)); transition:width 0.25s; }
   .bx-charge-ic { position:relative; width:40px; height:40px; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
+  .bx-charge-words { position:relative; display:flex; flex-direction:column; align-items:center; line-height:1; }
+  .bx-charge-move { margin-top:3px; font-size:11.5px; font-weight:800; letter-spacing:0.4px; color:#ffd9a0; text-shadow:0 1px 2px #2a0802; white-space:nowrap; }
+  .bx-charge-move:empty { display:none; }
   .bx-charge-text { position:relative; font-size:25px; font-weight:800; letter-spacing:0.6px; color:#ffe9b0; -webkit-text-stroke:1.5px #4a1006; paint-order:stroke fill; text-shadow:0 2px 0 #4a1006, 0 0 10px rgba(255,190,90,0.7); }
   .bx-charge.disabled { filter:grayscale(0.8) brightness(0.6); pointer-events:none; }
 
@@ -1266,7 +1298,13 @@
 
     <div class="panel-screen" data-panel="totos">
       <div class="panel-header">Your Totos <button class="transfer-toggle-btn" id="btn-transfer-mode">🔄 Transfer</button><span class="close-x" data-close>✕</span></div>
-      <div class="panel-body"><div class="toto-grid" id="toto-collection"></div></div>
+      <div class="panel-body">
+        <div class="sort-bar" id="toto-sort-bar">Sort:
+          <button class="sort-btn" data-sort="desc">⬇ Strongest first</button>
+          <button class="sort-btn" data-sort="asc">⬆ Weakest first</button>
+        </div>
+        <div class="toto-grid" id="toto-collection"></div>
+      </div>
       <div class="transfer-bar" id="transfer-bar" style="display:none;">
         <span id="transfer-count">0 selected</span>
         <span id="transfer-reward"></span>
@@ -1305,6 +1343,7 @@
         <div class="stat-row"><span>Totos caught</span><span id="profile-count">0</span></div>
         <div class="stat-row"><span>Gender</span><span id="profile-gender">-</span></div>
         <div class="stat-row"><span>Age</span><span id="profile-age">-</span></div>
+        <div class="stat-row"><span>App version</span><span id="profile-version">-</span></div>
         <button class="btn-store" id="btn-open-store">🛍️ Store</button>
         <div id="admin-panel" style="display:none;">
           <div class="admin-box">
@@ -1348,6 +1387,7 @@
       <div class="modal-name" id="det-name">Wisp</div>
       <div class="modal-sub" id="det-sub">Lv.1 · CP 320 · normal</div>
       <div class="stat-list" id="det-stats"></div>
+      <div class="moves-box"><div class="moves-title">Moves <span>· a new, stronger move every 10 levels</span></div><div id="det-moves"></div></div>
       <div class="auth-error" id="det-msg" style="text-align:center;"></div>
       <div class="btn-row">
         <button class="btn-cancel" data-close-det>Close</button>
@@ -1424,11 +1464,6 @@
       <div class="bx-team" id="bx-team"></div>
       <div class="bx-fx" id="bx-fx"></div>
 
-      <div class="bx-wave" id="wave-badge">
-        <div class="bx-wave-skull"><svg viewBox="0 0 32 32"><path d="M16 3C9 3 4.5 7.8 4.5 14c0 3.6 1.6 6.2 4 7.7V26c0 1.1.9 2 2 2h1.5v-3h2v3h4v-3h2v3H21.5c1.1 0 2-.9 2-2v-4.3c2.4-1.5 4-4.1 4-7.7C27.5 7.8 23 3 16 3z" fill="#f2ecff"/><circle cx="11.2" cy="14.5" r="3.4" fill="#1c1430"/><circle cx="20.8" cy="14.5" r="3.4" fill="#1c1430"/><path d="M16 17.5l-2 3.5h4z" fill="#1c1430"/></svg></div>
-        <div class="bx-wave-text"><div class="bx-wave-num" id="wave-num">Wave 1/1</div><div class="bx-wave-loc" id="wave-loc">Pumpkin Grove</div></div>
-      </div>
-
       <div class="bx-bossbar">
         <div class="bx-bossbar-portrait bx-portrait" id="bf-e-portrait"></div>
         <div class="bx-bossbar-body">
@@ -1455,7 +1490,6 @@
       <div class="bx-left-btns">
         <button class="bx-sq" id="btn-gear" title="Settings"><svg viewBox="0 0 32 32"><path d="M18.6 3.5l.6 3.3c.9.3 1.8.8 2.6 1.4l3.1-1.2 2.6 4.5-2.5 2.1c.1.9.1 1.9 0 2.8l2.5 2.1-2.6 4.5-3.1-1.2c-.8.6-1.7 1.1-2.6 1.4l-.6 3.3h-5.2l-.6-3.3c-.9-.3-1.8-.8-2.6-1.4l-3.1 1.2-2.6-4.5 2.5-2.1c-.1-.9-.1-1.9 0-2.8L4.9 11.5l2.6-4.5 3.1 1.2c.8-.6 1.7-1.1 2.6-1.4l.6-3.3z" fill="#e9e4ff"/><circle cx="16" cy="16" r="4.6" fill="#2a2150"/></svg></button>
         <button class="bx-sq bx-auto" id="btn-auto" title="Auto-battle">AUTO</button>
-        <button class="bx-sq bx-speed" id="btn-speed" title="Battle speed"><svg viewBox="0 0 32 32"><path d="M4 7l11 9-11 9zM16 7l11 9-11 9z" fill="#e9e4ff"/></svg><span id="bx-speed-label">×1</span></button>
       </div>
 
       <button class="bx-charge" id="btn-attack">
@@ -1463,7 +1497,7 @@
         <span class="bx-charge-inner">
           <span class="bx-charge-energy" id="bx-energy"></span>
           <svg class="bx-charge-ic" viewBox="0 0 48 48"><g stroke="#3a1206" stroke-width="2.4" stroke-linejoin="round"><path d="M8 6l4 1 20 20-3 3L9 10z" fill="#f4f1ea"/><path d="M40 6l-4 1-20 20 3 3 20-20z" fill="#e8e2d6"/><path d="M27 31l4-4 6 6-4 4zM21 31l-4-4-6 6 4 4z" fill="#ffc444"/><circle cx="36" cy="38" r="3.2" fill="#c0392b"/><circle cx="12" cy="38" r="3.2" fill="#c0392b"/></g></svg>
-          <span class="bx-charge-text">CHARGE ATTACK</span>
+          <span class="bx-charge-words"><span class="bx-charge-text">CHARGE ATTACK</span><span class="bx-charge-move" id="bx-move-name"></span></span>
         </span>
       </button>
 
@@ -1703,8 +1737,9 @@
       { id:'top_default', name:'Classic Robe', rarity:'Starter', unlock:'default',
         description:'The moon-and-pumpkin robe you started your journey in.' },
       { id:'top_level100_tee', name:'Commemorative TotoQuest Tee', rarity:'Epic', unlock:'level100',
-        description:'A legend-tier shirt celebrating TotoQuest achievements.',
-        preset:{ kind:'tee', color:'#3d2a5c', trim:'#d4af37' } },
+        description:'A legend-tier shirt celebrating TotoQuest achievements — "Master Achiever" on the front, "Level 100" on the back.',
+        thumb:'assets/wardrobe/tee-thumb.png',
+        preset:{ kind:'tee', color:'#3a2850', trim:'#d4af37' } },
     ],
     legwear: [
       { id:'legwear_default', name:'Candy-Corn Leggings', rarity:'Starter', unlock:'default',
@@ -1736,20 +1771,22 @@
   // model's own hardcoded per-gender defaults — exposed on window because the module script
   // that owns PLAYER_EQUIP_CATALOG can't see this classic script's top-level bindings
   // (it's wrapped in its own IIFE), only what's explicitly attached to window.
+  let cosmeticDefaults = null;
   window.applyEquippedCosmetics = function applyEquippedCosmetics(){
     if (!window.PLAYER_EQUIP_CATALOG || !state) return;
+    // First call: remember the model's own built-in look for every slot, so every later
+    // call starts from that clean default. (Merging onto whatever was there before meant
+    // that once a preset was applied it could never be taken off again.)
+    if (!cosmeticDefaults) cosmeticDefaults = JSON.parse(JSON.stringify(window.PLAYER_EQUIP_CATALOG));
     const g = state.avatar==='male' ? 'male' : 'female';
-    const target = window.PLAYER_EQUIP_CATALOG[g];
-    if (!target) return;
+    const target = window.PLAYER_EQUIP_CATALOG[g], base = cosmeticDefaults[g];
+    if (!target || !base) return;
     state.equippedCosmetics = state.equippedCosmetics || {};
     Object.keys(COSMETIC_CATALOG).forEach(slot=>{
       const equippedId = state.equippedCosmetics[slot];
       const item = equippedId && COSMETIC_CATALOG[slot].find(i=>i.id===equippedId);
-      if (item && item.preset && ownsCosmetic(item)){
-        target[slot] = Object.assign({}, target[slot], item.preset);
-      }
-      // No saved pick, pick not owned, or no preset on the item -> leave the model's own
-      // built-in default for that slot untouched.
+      const preset = (item && item.preset && ownsCosmetic(item)) ? item.preset : null;
+      target[slot] = base[slot] ? Object.assign({}, base[slot], preset || {}) : (preset ? Object.assign({}, preset) : base[slot]);
     });
   };
   function finalizeCatch(opp){
@@ -1765,7 +1802,7 @@
   const GPS_SCALE = 3.2;
   const CHUNK_SIZE_M = 350;   // each real-map data fetch covers one chunk
   const GYM_RADIUS_M = 3;     // ~10 feet
-  const WILD_RADIUS_M = 20;   // easier to actually reach a wild spawn in practice
+  const WILD_RADIUS_M = 40;   // wild Totos can be caught from up to 40 m away
   const DEFAULT_LAT = 42.9587, DEFAULT_LON = -83.8394; // Swartz Creek, MI — used only if real GPS can't be reached
   const ZOOM_MIN = 0.6, ZOOM_MAX = 1.9, TILT_MAX = 58;
 
@@ -3190,7 +3227,7 @@
   }
   function distanceMetersToWorldPoint(x, y){ return Math.hypot(x-state.playerWorldPos.x, y-state.playerWorldPos.y)/GPS_SCALE; }
   function refreshNodeDistances(){
-    (state.wildTotos||[]).forEach(t=>{ if (t._distEl) t._distEl.textContent = Math.round(distanceMetersToWorldPoint(t._x,t._y))+'m'; });
+    (state.wildTotos||[]).forEach(t=>{ if (t._distEl){ const d = distanceMetersToWorldPoint(t._x,t._y); t._distEl.textContent = Math.round(d)+'m'; t._distEl.classList.toggle('catchable', d <= WILD_RADIUS_M); } });
     (state.gyms||[]).forEach(g=>{ if (g._distEl) g._distEl.textContent = Math.round(distanceMetersToWorldPoint(g.x,g.y))+'m'; });
     const nearby = (state.wildTotos||[]).filter(t=> distanceMetersToWorldPoint(t._x,t._y) < 150).length;
     $('#hud-nearby').textContent = nearby;
@@ -4030,7 +4067,8 @@
       const owned = ownsCosmetic(item);
       const card = document.createElement('div');
       card.className = 'wardrobe-item-card' + (item.id===wardrobeUi.selectedId?' sel':'') + (!owned?' locked':'');
-      card.innerHTML = '<div class="wi-icon">'+(owned?'👕':'🔒')+'</div><div class="wi-name">'+item.name+'</div>' + (item.id===equippedId?'<div class="wi-equipped-tag">Worn</div>':'');
+      const icon = item.thumb ? '<img class="wi-thumb" src="'+item.thumb+'" alt="">' + (owned ? '' : '<span class="wi-lock">🔒</span>') : (owned?'👕':'🔒');
+      card.innerHTML = '<div class="wi-icon">'+icon+'</div><div class="wi-name">'+item.name+'</div>' + (item.id===equippedId?'<div class="wi-equipped-tag">Worn</div>':'');
       card.onclick = ()=>{ wardrobeUi.selectedId = item.id; renderWardrobeGrid(); };
       gridEl.appendChild(card);
     });
@@ -4114,17 +4152,24 @@
     refreshHUD(); markDirty(); saveNow(false); renderCollection();
     showToast('Transferred '+ids.length+' Toto'+(ids.length===1?'':'s')+' for '+reward+' candy!');
   };
+  // Strongest-first / weakest-first, by PWR (ties broken by level). The choice is
+  // remembered with the rest of your save.
+  $$('#toto-sort-bar .sort-btn').forEach(b=> b.onclick = ()=>{ state.totoSort = b.dataset.sort; markDirty(); renderCollection(); });
   function renderCollection(){
     const grid = $('#toto-collection'); grid.innerHTML='';
+    const dir = state.totoSort==='asc' ? 'asc' : 'desc';
+    $$('#toto-sort-bar .sort-btn').forEach(b=> b.classList.toggle('on', b.dataset.sort===dir));
     if (state.collection.length===0){ grid.innerHTML = '<p style="grid-column:1/-1; color:#999; font-weight:700; font-size:13px;">No Totos yet — battle a wild Toto on the map to catch one.</p>'; updateTransferBar(); return; }
-    state.collection.slice().sort((a,b)=>b.cp-a.cp).forEach(t=>{
+    const sign = dir==='asc' ? 1 : -1;
+    state.collection.slice().sort((a,b)=> sign*((a.cp-b.cp) || ((a.level||1)-(b.level||1)))).forEach(t=>{
       const card = document.createElement('div'); card.className='toto-card'+(transferMode?' transfer-mode':'')+(transferSelected.has(t.id)?' transfer-selected':'');
       card.style.position = 'relative';
       const ri = ROLE_INFO[t.role] || ROLE_INFO.attacker;
       card.innerHTML = '<div class="sp'+glowClassFor(t.tier)+'">'+spriteMarkup(t)+'</div><div class="nm">'+t.name+'</div>'
         + '<div class="role-badge" style="color:'+ri.color+';">'+ri.icon+' '+ri.label+'</div>'
         + '<div class="lv">Lv.'+t.level+'</div><div class="cp">PWR '+t.cp+'</div><div class="tier-badge tier-'+t.tier+'">'+t.tier+'</div>'
-        + (transferMode ? '<div class="transfer-check">'+(transferSelected.has(t.id)?'✓':'')+'</div>' : '');
+        + (transferMode ? '<div class="transfer-check">'+(transferSelected.has(t.id)?'✓':'')+'</div>' : '')
+        + (!transferMode && learnableMoves(t).length ? '<div class="new-move-badge">✨ NEW MOVE</div>' : '');
       card.onclick = ()=>{
         if (transferMode){
           if (transferSelected.has(t.id)) transferSelected.delete(t.id); else transferSelected.add(t.id);
@@ -4253,6 +4298,82 @@
     const pct = Math.max(4, Math.min(100, Math.round(val/max*100)));
     return '<div class="stat-line"><span class="lbl">'+label+'</span><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%; background:'+color+';"></div></div><span class="val">'+val+'</span></div>';
   }
+  // ---------------- TOTO MOVES ----------------
+  // Every Toto starts knowing one move and unlocks a new one at Lv 10, 20, 30, 40 and 50
+  // (Lv 50 is the max, so by then it can know all six). Each move hits harder than the
+  // one before it and gives more damage per point of energy, so the Lv 50 move is the
+  // strongest. Learning is done from the Toto's detail card; whichever move is "in use"
+  // is what CHARGE ATTACK fires in battle. Move names follow the Toto's theme.
+  const MOVE_LEVELS = [1, 10, 20, 30, 40, 50];
+  const MOVE_POWER  = [40, 50, 62, 76, 92, 112];       // damage x power/40
+  const MOVE_COST   = [10, 11, 12, 13, 14, 15];        // energy per CHARGE ATTACK
+  const MOVE_SETS = {
+    fire:    { ic:'🔥', c:'#ff7a2e', names:['Cinder Swipe','Scorch Lash','Ember Burst','Blaze Fang','Inferno Roar','Hellfire Nova'] },
+    frost:   { ic:'❄️', c:'#4da3ff', names:['Chill Nip','Rime Claw','Hailshard Volley','Blizzard Rend','Glacier Crash','Absolute Zero'] },
+    pumpkin: { ic:'🎃', c:'#ff8a3d', names:['Seed Spit','Gourd Bash','Lantern Flare',"Jack's Grin Blast",'Harvest Blaze','Great Pumpkin Rising'] },
+    sweet:   { ic:'🍬', c:'#ff6fae', names:['Candy Toss','Taffy Snare','Sour Burst','Caramel Crash','Sugar Storm','Trick-or-Treat Cataclysm'] },
+    toxic:   { ic:'☠️', c:'#5fbf3a', names:['Goo Splat','Venom Jab','Toxic Spray','Web Snare Strike','Plague Torrent','Nightshade Deluge'] },
+    nature:  { ic:'🌿', c:'#3bb36b', names:['Thorn Jab','Bramble Lash','Spore Burst','Hex Root','Wildwood Fury','Elder Grove Wrath'] },
+    arcane:  { ic:'✨', c:'#a46bff', names:['Hex Spark','Rune Bolt','Star Shard Volley','Moonfire Hex','Arcane Tempest','Grand Eclipse'] },
+    shadow:  { ic:'👻', c:'#6a5acd', names:['Shade Swipe','Dusk Rend','Soul Siphon','Phantom Reaper','Void Eclipse','Midnight Requiem'] },
+    feral:   { ic:'🐾', c:'#c9783a', names:['Feral Swipe','Pounce Crash','Howling Rush','Moonlit Maul','Wild Hunt','Alpha Nightmare'] }
+  };
+  function moveTheme(t){
+    const n = String(t.name||'').toLowerCase();
+    if (/frost|ice|crystal|snow/.test(n)) return 'frost';
+    if (/ember|blaze|cinder|flame|lava|inferno|candle|lantern/.test(n)) return 'fire';
+    if (/pumpkin|harvest|jack|scarecrow|toni/.test(n)) return 'pumpkin';
+    if (/candy|berry|sugar|sweet/.test(n)) return 'sweet';
+    if (/poison|toxic|slime|frog|spider|web|voodoo/.test(n)) return 'toxic';
+    if (/blossom|bloom|thorn|sprout|leaf|witchcap/.test(n)) return 'nature';
+    if (/witch|rune|pixie|star|moon|hex|arcane|nightcap|hana|vesper/.test(n)) return 'arcane';
+    if (/shadow|void|night|grim|reaper|soul|ghost|ghoul|banshee|wraith|specter|wisp|tomb|grave|coffin|bone|mummy|crow|raven|cursed|bat|drake|sovereign|translucent/.test(n)) return 'shadow';
+    return 'feral';
+  }
+  function totoMoves(t){
+    const set = MOVE_SETS[moveTheme(t)];
+    return MOVE_LEVELS.map((lv,i)=>({ i, name:set.names[i], ic:set.ic, c:set.c, level:lv, power:MOVE_POWER[i], cost:MOVE_COST[i], mult:MOVE_POWER[i]/MOVE_POWER[0] }));
+  }
+  function moveState(t){
+    if (!t.moves || !Array.isArray(t.moves.learned)) t.moves = { learned:[0], equipped:0 };
+    if (!t.moves.learned.includes(0)) t.moves.learned.unshift(0);
+    return t.moves;
+  }
+  function learnableMoves(t){ const ms = moveState(t); return totoMoves(t).filter(m=> m.level <= (t.level||1) && !ms.learned.includes(m.i)); }
+  function equippedMove(t){
+    const ms = moveState(t), all = totoMoves(t);
+    return (ms.learned.includes(ms.equipped) && all[ms.equipped]) || all[0];
+  }
+  window.__totoMoves = { totoMoves, equippedMove, learnableMoves };
+  function renderMoves(t){
+    const ms = moveState(t), eq = equippedMove(t);
+    $('#det-moves').innerHTML = totoMoves(t).map(m=>{
+      const learned = ms.learned.includes(m.i), unlocked = (t.level||1) >= m.level, isEq = eq.i===m.i;
+      const act = isEq ? '<span class="move-tag">★ In use</span>'
+        : learned ? '<button class="move-act use" data-use="'+m.i+'">Use</button>'
+        : unlocked ? '<button class="move-act learn" data-learn="'+m.i+'">Learn</button>'
+        : '<span class="move-lock">🔒 Lv '+m.level+'</span>';
+      return '<div class="move-row'+(isEq?' equipped':'')+(!learned && !unlocked?' locked':'')+'">'
+        + '<div class="move-ic" style="--mc:'+m.c+'">'+m.ic+'</div>'
+        + '<div class="move-info"><div class="move-name">'+m.name+'</div>'
+        + '<div class="move-meta"><span>PWR '+m.power+'</span><span class="move-pow"><i style="width:'+Math.round(m.power/MOVE_POWER[5]*100)+'%"></i></span><span>'+m.cost+' energy</span></div></div>'
+        + act + '</div>';
+    }).join('');
+    $$('#det-moves [data-learn]').forEach(b=> b.onclick = ()=>{
+      const m = totoMoves(t)[+b.dataset.learn];
+      if (!m || (t.level||1) < m.level) return;
+      if (!ms.learned.includes(m.i)) ms.learned.push(m.i);
+      // if the new move beats the one in use, switch to it straight away
+      if (m.power > equippedMove(t).power) ms.equipped = m.i;
+      Sound.playCatch && Sound.playCatch();
+      showToast(t.name+' learned '+m.name+'!');
+      markDirty(); saveNow(false); renderMoves(t); renderCollection();
+    });
+    $$('#det-moves [data-use]').forEach(b=> b.onclick = ()=>{
+      ms.equipped = +b.dataset.use; markDirty(); saveNow(false); renderMoves(t);
+      showToast(t.name+' will use '+equippedMove(t).name+' in battle');
+    });
+  }
   function openDetail(id){
     const t = state.collection.find(x=>x.id===id); if (!t) return;
     detailTarget = t;
@@ -4266,6 +4387,7 @@
     $('#btn-power-up').disabled = maxed; $('#btn-power-up').innerHTML = maxed ? '★ MAX LEVEL' : 'Power Up';
     const isAdmin = state.email && state.email.toLowerCase()===ADMIN_EMAIL;
     $('#btn-admin-max-toto').style.display = (isAdmin && !maxed) ? 'block' : 'none';
+    renderMoves(t);
     $('#detail-modal').classList.add('active');
   }
   $$('[data-close-det]').forEach(x=> x.onclick = ()=> $('#detail-modal').classList.remove('active'));
@@ -4276,10 +4398,12 @@
       $('#det-msg').innerHTML = 'Not enough! Need '+cost.candy+' '+candyIconHtml(14);
       return;
     }
+    const before = learnableMoves(detailTarget).length;
     state.candy -= cost.candy; applyPowerUp(detailTarget);
     refreshHUD(); markDirty(); saveNow(false);
-    openDetail(detailTarget.id);
-    showToast(detailTarget.name+' leveled up to Lv.'+detailTarget.level+'!');
+    openDetail(detailTarget.id); renderCollection();
+    const fresh = learnableMoves(detailTarget);
+    showToast(fresh.length > before ? ('✨ '+detailTarget.name+' reached Lv.'+detailTarget.level+' — it can learn '+fresh[fresh.length-1].name+'!') : (detailTarget.name+' leveled up to Lv.'+detailTarget.level+'!'));
   };
 
   // ---------------- ADMIN ----------------
@@ -4296,7 +4420,7 @@
     if (!detailTarget) return;
     applyLevelStats(detailTarget, TOTO_MAX_LEVEL);
     refreshHUD(); markDirty(); saveNow(false);
-    openDetail(detailTarget.id);
+    openDetail(detailTarget.id); renderCollection();
     showToast('Admin: '+detailTarget.name+' maxed to Lv.'+TOTO_MAX_LEVEL+'!');
   };
 
@@ -4631,7 +4755,8 @@
   }
   function fighterFromToto(t){
     return { ref:t, name:t.name, sprite:spriteMarkup(t), level:t.level, cp:t.cp, tier:t.tier, role:t.role||'attacker', maxHp:t.maxHp, hp:t.maxHp,
-             atk:t.atk, strength:t.strength||0, def:t.def, spd:t.spd, heal:t.heal||0, buff:t.buff||0, maxEnergy:t.maxEnergy, energy:t.maxEnergy, isToni:!!t.isToni };
+             atk:t.atk, strength:t.strength||0, def:t.def, spd:t.spd, heal:t.heal||0, buff:t.buff||0, maxEnergy:t.maxEnergy, energy:t.maxEnergy, isToni:!!t.isToni,
+             move: equippedMove(t) };
   }
   function strongestToto(){ return state.collection.length ? state.collection.slice().sort((a,b)=>b.cp-a.cp)[0] : null; }
 
@@ -4697,7 +4822,10 @@
     const rosterL = dw - 14 - 212;
     stage.style.setProperty('--bx-bossbar-x', Math.min(dw/2, rosterL - 166)+'px');
     const abilW = 4*60 + 3*9 + 18 + 4;
-    stage.style.setProperty('--bx-charge-x', ((14+3*50+2*9+14) + (dw - 14 - abilW - 14))/2 + 'px');
+    stage.style.setProperty('--bx-charge-x', ((14+2*50+9+14) + (dw - 14 - abilW - 14))/2 + 'px');
+    // narrow screens (tablets, the desktop phone-frame) drop the right-hand roster so the
+    // arena keeps enough room for the boss and the whole party side by side
+    stage.classList.toggle('bx-narrow', dw < 1080);
     if (battle) placeBattlers();
   }
   window.addEventListener('resize', ()=>{ if ($('#battle-screen').classList.contains('active')) layoutBattleScreen(); });
@@ -4771,6 +4899,7 @@
     $('#bx-active-name').textContent = p.name;
     $('#bx-active-role').textContent = pr.label; $('#bx-active-role').style.color = pr.c;
     $('#bx-active-lv').textContent = 'Lv. '+(p.level||1);
+    $('#bx-move-name').textContent = p.move ? (p.move.ic+' '+p.move.name+' · PWR '+p.move.power) : '';
     // ability buttons
     const abEl = $('#bx-abilities'); abEl.innerHTML = '';
     BX_ABILITIES.forEach((ab,i)=>{
@@ -4793,21 +4922,32 @@
   // Positions the boss and the line-up for the current design width.
   function placeBattlers(){
     const stage = $('#bx-stage'); const dw = parseFloat(stage.dataset.dw || 960);
-    const rosterL = dw - 14 - 212;
-    const fieldL = 30, fieldR = rosterL - 10;
+    const narrow = stage.classList.contains('bx-narrow');
+    const fieldL = 24, fieldR = narrow ? dw - 24 : dw - 14 - 212 - 12;
     const boss = $('#bx-boss');
-    const bossX = Math.min(dw*0.52, fieldR - 140);
-    boss.style.left = bossX+'px'; boss.style.top = '50px';
     const team = Array.from($('#bx-team').children);
     const n = team.length;
-    // a lone hero stands a bit bigger, front-left of the boss; a full party spreads across
-    // the field and shrinks only if the screen is too narrow for four side by side
-    const slot = (fieldR - fieldL)/Math.max(1,n);
-    const ms = n===1 ? 1.12 : Math.max(0.7, Math.min(1, slot/188));
+    // How wide the boss really is on screen: its picture is fitted into a 340x266 box, so
+    // a tall sitting dog is much narrower than a wide scarecrow. The party stands clear of
+    // that width (plus a little breathing room) — half to its left, half to its right.
+    const img = $('#bf-e-sprite img');
+    let bossW = 240;
+    if (img && img.naturalWidth && img.naturalHeight) bossW = Math.min(340, 266*img.naturalWidth/img.naturalHeight);
+    else if (img && !img.__bxWaitLoad){ img.__bxWaitLoad = true; img.addEventListener('load', ()=>{ if (battle) placeBattlers(); }, { once:true }); }
+    const gapHalf = bossW/2 + 26;
+    const nL = Math.ceil(n/2), nR = n - nL;
+    const fieldW = fieldR - fieldL;
+    const slot = Math.max(96, Math.min(220, (fieldW - 2*gapHalf) / Math.max(1,n)));
+    const total = n*slot + 2*gapHalf;
+    const x0 = fieldL + Math.max(0, (fieldW - total)/2);
+    const bossX = x0 + nL*slot + gapHalf;
+    boss.style.left = bossX+'px'; boss.style.top = '50px';
+    // the boss's health bar sits over the boss, kept clear of the top-right hero card
+    stage.style.setProperty('--bx-bossbar-x', Math.max(164, Math.min(bossX, dw - 14 - 232 - 12 - 150))+'px');
+    const ms = Math.max(0.6, Math.min(n===1 ? 1.12 : 1, slot/188));
+    // Field order (tank, support, attacker, healer) reads left→right across the gap.
     team.forEach((el,i)=>{
-      let x;
-      if (n===1) x = Math.max(fieldL + 90, bossX - 250);
-      else x = fieldL + slot*(i+0.5);
+      const x = i < nL ? x0 + slot*(i+0.5) : bossX + gapHalf + slot*(i-nL+0.5);
       // member box is 212 tall and scales from its bottom edge, so the nameplates always
       // finish just above the battle log / charge button
       el.style.left = x+'px'; el.style.top = '206px';
@@ -5020,9 +5160,7 @@
       ally.atk = s.atk; ally.def = s.def; ally.heal = s.heal||0; ally.buff = s.buff||0;
       ally.maxHp = s.hp; ally.hp = s.hp; ally.level = ally.level || TOTO_MAX_LEVEL;
     });
-    $('#btn-auto').classList.remove('on'); $('#btn-speed').classList.remove('on'); $('#bx-speed-label').textContent = '×1';
-    $('#wave-num').textContent = 'Wave 1/1';
-    $('#wave-loc').textContent = opts.shrineName || (opts.mode==='catch' ? 'Pumpkin Grove' : 'Raid');
+    $('#btn-auto').classList.remove('on');
     $('#bx-bg').style.backgroundImage = 'url(assets/battle/'+(battle.kind==='shrine' ? 'village-blood' : 'village')+'.jpg)';
     $('#bx-menu').classList.remove('show');
     $('#bx-banner').className = 'bx-banner';
@@ -5093,11 +5231,14 @@
   // CHARGE ATTACK: your Toto's basic strike (costs energy; a weak swipe when you're out).
   function doPlayerAttack(){
     if (!battle || battle.over || battle.spectating) return;
-    const cost = 10; let weak=false;
+    // CHARGE ATTACK fires your Toto's chosen move: stronger moves hit harder (and are
+    // allowed past the usual per-hit cap by the same factor) for a little more energy.
+    const mv = battle.player.move || { name:'Strike', mult:1, cost:10 };
+    const cost = mv.cost || 10; let weak=false;
     if (battle.player.energy < cost) weak=true; else battle.player.energy -= cost;
     const buffed = battle.buff && battle.buff.expiresAt > Date.now();
     const atkPower = (battle.player.atk+battle.player.strength) * (buffed ? battle.buff.atkMult : 1);
-    let dmg = computeDamage(atkPower, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
+    let dmg = computeDamage(atkPower*(weak ? 1 : mv.mult), battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode)*(weak ? 1 : mv.mult));
     if (weak) dmg = Math.round(dmg*0.35);
     battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
     Sound.playAttack();
@@ -5105,7 +5246,7 @@
     if (me) bxPulse(me, 'lunge', 420);
     setTimeout(()=>{ if (!battle) return; fxSpark(); bxPulse($('#bx-boss'), 'hit', 360); popNumber('boss', dmg, weak ? 'small' : 'hit'); }, 150);
     renderBattle();
-    battleLog(weak ? 'Out of energy — weak hit for '+fmt(dmg)+'.' : battle.player.name+' strikes for '+fmt(dmg)+'!');
+    battleLog(weak ? 'Out of energy — weak hit for '+fmt(dmg)+'.' : battle.player.name+' used '+mv.name+' for '+fmt(dmg)+'!');
     if (battle.enemy.hp<=0) setTimeout(()=> endBattle(true), 220);
   }
   $('#btn-attack').onclick = doPlayerAttack;
@@ -5114,13 +5255,6 @@
     battle.auto = !battle.auto;
     $('#btn-auto').classList.toggle('on', battle.auto);
     manageAutoTimer();
-  };
-  $('#btn-speed').onclick = ()=>{
-    if (!battle || battle.over) return;
-    battle.speedMult = battle.speedMult===1 ? 2 : 1;
-    $('#bx-speed-label').textContent = '×'+battle.speedMult;
-    $('#btn-speed').classList.toggle('on', battle.speedMult>1);
-    startBattleTimers();
   };
   function manageAutoTimer(){
     if (!battle) return;
@@ -5276,12 +5410,28 @@
   #tq-update-banner.updated { background:linear-gradient(135deg,#4dbf4d,#2e9e2e); cursor:default; }
 </style>
 <script>
+// Bump this together with version.json and sw.js's CACHE_NAME on every release.
+window.TQ_APP_VERSION = 'v40';
 (function(){
+  var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
   var banner = document.getElementById('tq-update-banner');
   var refreshing = false;
+  var newerVersion = null;
 
-  function checkNow(reg){ if (reg) reg.update().catch(function(){}); }
+  // Belt-and-braces update check: besides the service worker's own update cycle, ask the
+  // server for version.json directly (unique URL each time, so no browser/CDN cache can
+  // hand back an old answer). If it names a newer release than the one running, offer
+  // the update straight away — even if the service worker hasn't noticed yet.
+  function checkVersionFile(){
+    try {
+      fetch('version.json?t='+Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+        var num = function(v){ return parseInt(String(v||'').replace(/\D+/g,''), 10) || 0; };
+        if (j && j.version && num(j.version) > num(window.TQ_APP_VERSION)){ newerVersion = j.version; banner.classList.add('show'); }
+      }).catch(function(){});
+    } catch(e){}
+  }
+  function checkNow(reg){ if (reg) reg.update().catch(function(){}); checkVersionFile(); }
 
   navigator.serviceWorker.register('sw.js').then(function(reg){
     checkNow(reg);
@@ -5325,13 +5475,25 @@
       banner.classList.remove('updating');
       banner.classList.add('updated');
       banner.textContent = '✅ Updated! Restarting the app…';
-      setTimeout(function(){ window.location.reload(); }, 700);
+      setTimeout(function(){
+        try { var u = new URL(window.location.href); u.searchParams.set('v', newerVersion || String(Date.now())); window.location.replace(u.toString()); }
+        catch(e){ window.location.reload(); }
+      }, 700);
     }
 
     try {
       navigator.serviceWorker.getRegistration().then(function(reg){
-        if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
-        setTimeout(finishAndReload, 900);
+        if (reg && reg.waiting){ reg.waiting.postMessage('SKIP_WAITING'); setTimeout(finishAndReload, 900); return; }
+        // Nothing waiting yet (the version file spotted the release first): fetch the new
+        // service worker now and hand over as soon as it has installed.
+        if (reg){
+          reg.update().catch(function(){});
+          var tries = 0, iv = setInterval(function(){
+            tries++;
+            if (reg.waiting){ clearInterval(iv); reg.waiting.postMessage('SKIP_WAITING'); setTimeout(finishAndReload, 700); }
+            else if (tries > 10){ clearInterval(iv); finishAndReload(); }
+          }, 250);
+        } else finishAndReload();
       }).catch(finishAndReload);
     } catch(e){ finishAndReload(); }
     // Absolute last-resort fallback so a tap can never end up doing nothing.
@@ -5606,6 +5768,22 @@
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       teeTexCache[key] = tex;
+      return tex;
+    }
+
+    // The earned tee wears the real shirt artwork (front: TotoQuest / Master Achiever
+    // medallion, back: Level 100 filigree) laid out around the torso — print centred on
+    // the front, back print split across the seam. The male figure is mirrored as a
+    // whole (body.scale.x = -1), so he gets a horizontally flipped copy to keep the
+    // lettering reading the right way round.
+    const teePrintTex = {};
+    function getTeePrintTexture(mirrored){
+      const k = mirrored ? 'm' : 'n';
+      if (teePrintTex[k]) return teePrintTex[k];
+      const tex = new THREE.TextureLoader().load('assets/wardrobe/tee-tex.jpg');
+      tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.RepeatWrapping; tex.anisotropy = 4;
+      if (mirrored){ tex.repeat.x = -1; tex.offset.x = 1; }
+      teePrintTex[k] = tex;
       return tex;
     }
 
@@ -5949,18 +6127,28 @@
         coat = part(body, new THREE.LatheGeometry(prof, 40), toon('#ffffff', { map: makeCoatTexture(topColor, topTrim, !isFemale) }), { outline:0.016 });
         part(body, new THREE.TorusGeometry(0.305, 0.022, 8, 40), toon(topTrim), { pos:[0,0.37,0], rot:[Math.PI/2,0,0], outline:0.008 });
       } else {
-        const prof = [[0.22,0.66],[0.225,0.72],[0.215,0.82],[0.218,0.92],[0.225,1.0],[0.205,1.05],[0.15,1.09],[0.10,1.11]].map(([r,y])=> new THREE.Vector2(r,y));
-        coat = part(body, new THREE.LatheGeometry(prof, 40), toon('#ffffff', { map: makeTeeTexture(topColor, topTrim) }), { outline:0.016 });
-        // a short skirt under the tee so the silhouette still reads as the same character
-        const sk = [[0.27,0.44],[0.25,0.52],[0.225,0.62],[0.215,0.68]].map(([r,y])=> new THREE.Vector2(r,y));
-        part(body, new THREE.LatheGeometry(sk, 32), toon((cfg.legwear&&cfg.legwear.color) || '#3d2a5c'), { outline:0.012 });
+        // evenly spaced rings so the print maps on without stretching (lathe V follows the
+        // point index, not the distance between points)
+        const radii = [0.252,0.246,0.238,0.231,0.226,0.224,0.224,0.226,0.229,0.229,0.222,0.198,0.128];
+        const prof = radii.map((r,i)=> new THREE.Vector2(r, 0.50 + i*0.05));
+        coat = part(body, new THREE.LatheGeometry(prof, 48), toon('#ffffff', { map: getTeePrintTexture(!isFemale) }), { outline:0.016 });
+        // ribbed hem band
+        part(body, new THREE.TorusGeometry(0.25, 0.014, 6, 40), toon('#2c1e3e'), { pos:[0,0.505,0], rot:[Math.PI/2,0,0], outline:0.005 });
+        // a short skirt / shorts under the tee so the silhouette still reads as the same character
+        const sk = [[0.275,0.40],[0.262,0.45],[0.25,0.50],[0.24,0.55]].map(([r,y])=> new THREE.Vector2(r,y));
+        part(body, new THREE.LatheGeometry(sk, 32), toon(isFemale ? ((cfg.legwear&&cfg.legwear.color) || '#3d2a5c') : '#2a2238'), { outline:0.012 });
       }
 
       // ---- Collar: orange hood folded on the shoulders + bow + little bat brooch ----
-      part(body, new THREE.TorusGeometry(0.16, 0.06, 12, 28), toon(topTrim), { pos:[0,1.085,0.01], rot:[Math.PI/2,0,0], outline:0.01 });
-      part(body, new THREE.SphereGeometry(0.2, 18, 12, 0, Math.PI*2, 0, Math.PI/2), toon(topTrim, { side:THREE.DoubleSide }), { pos:[0,1.02,0.12], rot:[-1.3,0,0], scale:[1,0.7,0.8], outline:0.01 });
-      [-1,1].forEach(sx=> part(body, new THREE.ConeGeometry(0.045, 0.09, 8), toon(topTrim), { pos:[sx*0.05,1.06,-0.17], rot:[0,0,sx*Math.PI/2], outline:0.006 }));
-      part(body, new THREE.SphereGeometry(0.025, 10, 8), toon(topTrim), { pos:[0,1.06,-0.175], outline:0.005 });
+      if (!isTee){
+        part(body, new THREE.TorusGeometry(0.16, 0.06, 12, 28), toon(topTrim), { pos:[0,1.085,0.01], rot:[Math.PI/2,0,0], outline:0.01 });
+        part(body, new THREE.SphereGeometry(0.2, 18, 12, 0, Math.PI*2, 0, Math.PI/2), toon(topTrim, { side:THREE.DoubleSide }), { pos:[0,1.02,0.12], rot:[-1.3,0,0], scale:[1,0.7,0.8], outline:0.01 });
+        [-1,1].forEach(sx=> part(body, new THREE.ConeGeometry(0.045, 0.09, 8), toon(topTrim), { pos:[sx*0.05,1.06,-0.17], rot:[0,0,sx*Math.PI/2], outline:0.006 }));
+        part(body, new THREE.SphereGeometry(0.025, 10, 8), toon(topTrim), { pos:[0,1.06,-0.175], outline:0.005 });
+      } else {
+        // ribbed crew neck
+        part(body, new THREE.TorusGeometry(0.118, 0.022, 8, 28), toon('#2c1e3e'), { pos:[0,1.098,0], rot:[Math.PI/2,0,0], outline:0.006 });
+      }
       if (isFemale && !isTee){ const brooch = makeBat(0.07, '#2a1f3a'); brooch.position.set(0, 1.0, -0.215); body.add(brooch); }
 
       // ---- Arms: bell sleeves with trim cuffs, little hands (shoulder pivots) ----
@@ -5968,9 +6156,17 @@
       function makeArm(sx){
         const pivot = new THREE.Group(); pivot.position.set(sx*0.2, SHOULDER_Y, 0);
         pivot.rotation.z = sx*0.32;
-        const sl = [[0.055,0],[0.07,-0.08],[0.085,-0.18],[0.11,-0.27],[0.125,-0.31]].map(([r,y])=> new THREE.Vector2(r,y));
-        part(pivot, new THREE.LatheGeometry(sl, 18), sleeveMat, { outline:0.012 });
-        part(pivot, new THREE.TorusGeometry(0.122, 0.018, 8, 20), toon(topTrim), { pos:[0,-0.31,0], rot:[Math.PI/2,0,0], outline:0.006 });
+        if (!isTee){
+          const sl = [[0.055,0],[0.07,-0.08],[0.085,-0.18],[0.11,-0.27],[0.125,-0.31]].map(([r,y])=> new THREE.Vector2(r,y));
+          part(pivot, new THREE.LatheGeometry(sl, 18), sleeveMat, { outline:0.012 });
+          part(pivot, new THREE.TorusGeometry(0.122, 0.018, 8, 20), toon(topTrim), { pos:[0,-0.31,0], rot:[Math.PI/2,0,0], outline:0.006 });
+        } else {
+          // short T-shirt sleeve, then a bare arm down to the hand
+          const sl = [[0.07,0.03],[0.08,-0.04],[0.086,-0.11],[0.088,-0.15]].map(([r,y])=> new THREE.Vector2(r,y));
+          part(pivot, new THREE.LatheGeometry(sl, 18), sleeveMat, { outline:0.012 });
+          part(pivot, new THREE.TorusGeometry(0.086, 0.011, 6, 18), toon('#2c1e3e'), { pos:[0,-0.15,0], rot:[Math.PI/2,0,0], outline:0.004 });
+          part(pivot, new THREE.CapsuleGeometry(0.04, 0.17, 4, 10), skin, { pos:[0,-0.235,0], outline:0.008 });
+        }
         part(pivot, new THREE.SphereGeometry(0.055, 14, 10), skin, { pos:[0,-0.345,0], scale:[1,1.05,0.95], outline:0.008 });
         body.add(pivot);
         return pivot;
@@ -6871,6 +7067,8 @@
       const dist = t._distEl ? t._distEl.textContent : '';
       if (pwr !== m.lastPwr){ m.pwrEl.textContent = pwr; m.lastPwr = pwr; }
       if (dist !== m.lastDist){ m.distEl.textContent = dist; m.lastDist = dist; }
+      const catchable = !!(t._distEl && t._distEl.classList.contains('catchable'));
+      if (catchable !== m.lastCatchable){ m.distEl.classList.toggle('catchable', catchable); m.lastCatchable = catchable; }
       const ls = Math.max(0.8, Math.min(1.15, s));
       m.label.style.display = '';
       m.label.style.transform = 'translate(' + fx.toFixed(1) + 'px,' + (fy + R*k + 3).toFixed(1) + 'px) translateX(-50%) scale(' + ls.toFixed(2) + ')';
