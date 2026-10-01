@@ -89,6 +89,50 @@
   .divider { display:flex; align-items:center; gap:10px; color:#b3a6cf; font-size:10.5px; font-weight:700; margin: 1px 0; }
   .divider::before, .divider::after { content:''; flex:1; height:1px; background:#e5ddf7; }
 
+  /* ---------- PUMPKINSTOPS ---------- */
+  .stop-card { text-align:center; }
+  .stop-kicker { font-size:10.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#ff8a3d; }
+  .stop-art { position:relative; height:230px; margin:6px auto 2px; perspective:800px; }
+  .stop-art img { position:relative; height:100%; filter:drop-shadow(0 8px 10px rgba(0,0,0,0.4)); z-index:1; }
+  .stop-art img.spin { animation: stopSpin 1s cubic-bezier(.25,.7,.3,1); }
+  @keyframes stopSpin { from { transform:rotateY(0); } to { transform:rotateY(1080deg); } }
+  .stop-glow { position:absolute; left:50%; bottom:2px; width:180px; height:46px; transform:translateX(-50%); border-radius:50%; background:radial-gradient(rgba(255,150,40,0.55), rgba(255,150,40,0) 70%); }
+  .stop-rewards { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+  .stop-reward { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:800; color:#5a3a8a; animation: rewardPop .5s cubic-bezier(.2,1.6,.4,1) both; }
+  .stop-reward img, .stop-reward .ic { width:46px; height:46px; object-fit:contain; display:flex; align-items:center; justify-content:center; }
+  @keyframes rewardPop { from { transform:scale(0.2) translateY(30px); opacity:0; } to { transform:none; opacity:1; } }
+  .stop-msg { font-size:12px; font-weight:700; color:#777; margin:6px 0 2px; min-height:16px; }
+  /* ---------- ITEMS ---------- */
+  .item-card { display:flex; gap:12px; align-items:flex-start; background:#fff; border:2px solid #f0e6fa; border-radius:16px; padding:12px; margin-bottom:12px; }
+  .item-img { width:78px; height:78px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.25)); }
+  .item-info { flex:1; min-width:0; }
+  .item-name { font-weight:800; font-size:14.5px; color:#3a2358; }
+  .item-count { display:inline-block; margin-left:4px; background:#6b3fa0; color:#fff; border-radius:10px; padding:1px 8px; font-size:12px; }
+  .item-desc { font-size:12px; color:#555; line-height:1.4; margin-top:3px; }
+  .item-how { font-size:11px; color:#8a6ab0; font-weight:700; margin-top:4px; }
+  .item-use { margin-top:8px; border:none; border-radius:10px; padding:8px 18px; font-weight:800; font-size:13px; color:#fff; background:linear-gradient(135deg,#3fbf6a,#1f9a6a); cursor:pointer; font-family:inherit; }
+  .item-use:disabled { background:#c9c2d4; cursor:default; }
+  .heal-pick { margin-top:10px; border-top:1px dashed #e2d6f0; padding-top:8px; }
+  .heal-pick-title { font-size:11.5px; font-weight:800; color:#6b3fa0; margin-bottom:6px; }
+  .heal-pick-row { display:flex; align-items:center; gap:8px; padding:6px; border-radius:12px; background:#f7f2fc; margin-bottom:6px; cursor:pointer; }
+  .heal-pick-row:active { background:#efe4fa; }
+  .hp-sp { width:40px; height:40px; font-size:32px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .hp-sp img, .hp-sp svg { width:40px; height:40px; object-fit:contain; }
+  .hp-info { flex:1; min-width:0; }
+  .hp-nm { font-weight:800; font-size:12.5px; color:#333; } .hp-nm span { color:#999; font-size:11px; }
+  .hp-bar, .hp-mini { height:7px; background:#e5e0ec; border-radius:6px; overflow:hidden; margin-top:3px; }
+  .hp-bar > div, .hp-mini > div { height:100%; border-radius:6px; }
+  .hp-num { font-size:10.5px; font-weight:700; color:#777; margin-top:2px; }
+  .hp-go { font-size:22px; }
+  .hp-mini { margin:3px 6px 0; height:5px; }
+  .fainted-tag { position:absolute; top:4px; left:4px; background:#5a4a6a; color:#fff; font-size:8.5px; font-weight:800; padding:1px 6px; border-radius:8px; }
+  .det-heal-box { display:flex; align-items:center; justify-content:space-between; gap:8px; background:#fff3f3; border:1.5px solid #ffd2d2; border-radius:12px; padding:8px 10px; margin-top:8px; font-size:12.5px; font-weight:800; color:#b03a3a; }
+  .det-heal-box button { border:none; border-radius:10px; padding:7px 12px; font-weight:800; color:#fff; background:linear-gradient(135deg,#3fbf6a,#1f9a6a); font-family:inherit; cursor:pointer; }
+  .det-heal-box button:disabled { background:#c9c2d4; }
+  .team-card.fainted { opacity:0.45; filter:grayscale(0.7); }
+  .setup-pass { display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:800; color:#6b3fa0; margin:-2px 0 8px; }
+  .setup-pass img { width:30px; height:30px; object-fit:contain; }
+
   /* ---------- TUTORIAL ---------- */
   .tut-layer { position:absolute; inset:0; z-index:950; pointer-events:none; }
   .tut-block { position:absolute; pointer-events:auto; background:transparent; }
@@ -233,7 +277,7 @@
   @keyframes nodeShadowPulse { 0%,100%{ transform:translateX(-50%) scale(1); } 50%{ transform:translateX(-50%) scale(0.82); } }
   .deco-shadow { position:absolute; left:50%; bottom:-1px; border-radius:50%; background:radial-gradient(closest-side, rgba(0,10,0,0.35), rgba(0,10,0,0) 90%); transform:translateX(-50%); z-index:1; }
 
-  .player-pin { position:absolute; left:50%; top:58%; transform: translate(-50%,-100%); z-index:15; text-align:center; }
+  .player-pin { position:absolute; left:50%; top:58%; transform: translate(-50%,-100%) scale(var(--pz,1)); transform-origin:50% 100%; z-index:15; text-align:center; }
   .player-ring { position:absolute; left:50%; bottom:6px; width:90px; height:90px; transform:translate(-50%,50%); border-radius:50%; border:2px solid rgba(255,150,60,0.65); background:radial-gradient(circle, rgba(255,150,60,0.22), rgba(255,90,40,0.05) 70%, transparent 75%); pointer-events:none; z-index:-1; }
   .player-shadow { width:26px; height:9px; border-radius:50%; background:rgba(0,0,0,0.28); margin:2px auto 0; transition:transform 0.15s; }
   /* Standing still she should look planted on the ground, not hovering — so idle is just
@@ -455,7 +499,7 @@
   .pumpkin-fab { position:relative; width:58px; height:58px; border-radius:50%; border:3px solid #ffb347; background:radial-gradient(circle at 38% 32%, #ff9a3d, #d6540f 78%); font-size:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.45), inset 0 -4px 6px rgba(0,0,0,0.25); }
   .quick-menu-backdrop { position:absolute; inset:0; z-index:24; background:rgba(10,6,20,0.001); display:none; }
   .quick-menu-backdrop.show { display:block; }
-  .quick-menu { position:absolute; left:50%; bottom:82px; transform:translateX(-50%) translateY(12px); z-index:26; display:grid; grid-template-columns:repeat(3, 64px); gap:8px; background:rgba(30,20,45,0.94); border:1.5px solid rgba(255,160,60,0.5); border-radius:18px; padding:10px; box-shadow:0 14px 30px rgba(0,0,0,0.5); opacity:0; pointer-events:none; transition: opacity 0.18s ease, transform 0.18s ease; }
+  .quick-menu { position:absolute; left:50%; bottom:82px; transform:translateX(-50%) translateY(12px); z-index:26; display:grid; grid-template-columns:repeat(5, 60px); gap:6px; background:rgba(30,20,45,0.94); border:1.5px solid rgba(255,160,60,0.5); border-radius:18px; padding:10px; box-shadow:0 14px 30px rgba(0,0,0,0.5); opacity:0; pointer-events:none; transition: opacity 0.18s ease, transform 0.18s ease; }
   .quick-menu.show { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
   .nav-btn, .qm-btn { display:flex; flex-direction:column; align-items:center; gap:2px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; cursor:pointer; padding:8px 2px 6px; color:#e8dcff; font-size:10px; font-weight:800; }
   .nav-btn.active { color: var(--accent); }
@@ -468,7 +512,15 @@
   .panel-body { flex:1; overflow-y:auto; padding:14px; }
 
   /* ---------------- Character Styling / Wardrobe ---------------- */
-  .wardrobe-preview-canvas { width:200px; height:260px; touch-action:none; cursor:grab; background:radial-gradient(circle at 50% 30%, #3a2f55, #1c1630); border-radius:16px; }
+  .wardrobe-stage { position:relative; }
+  .wardrobe-preview-canvas { display:block; width:100%; height:min(48vh, 400px); touch-action:none; cursor:grab; background:radial-gradient(circle at 50% 35%, #463a68, #1c1630 75%); border-radius:18px; }
+  .wardrobe-view-btns { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); display:flex; gap:4px; background:rgba(20,14,34,0.72); border-radius:14px; padding:4px; }
+  .wardrobe-view-btns button, .wardrobe-zoom { border:none; background:transparent; color:#e8dcff; font-weight:800; font-size:12px; padding:7px 12px; border-radius:10px; cursor:pointer; font-family:inherit; }
+  .wardrobe-view-btns button.on { background:#ff8a3d; color:#fff; }
+  .wardrobe-zoom { position:absolute; right:10px; top:10px; background:rgba(20,14,34,0.72); }
+  .wardrobe-zoom.on { background:#ff8a3d; color:#fff; }
+  .wardrobe-tryon { position:absolute; left:10px; top:10px; max-width:60%; background:rgba(255,138,61,0.92); color:#fff; font-size:11px; font-weight:800; padding:5px 9px; border-radius:10px; }
+  .wardrobe-item-card .wi-thumb { width:56px; height:56px; object-fit:contain; }
   .wardrobe-preview-canvas:active { cursor:grabbing; }
   .wardrobe-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
   .wardrobe-tab-btn { flex:0 0 auto; background:#f1e9fa; border:2px solid transparent; border-radius:10px; padding:7px 12px; font-weight:800; font-size:12px; color:#6b3fa0; cursor:pointer; }
@@ -1338,6 +1390,7 @@
       </div>
       <div class="quick-menu" id="quick-menu">
         <button class="nav-btn qm-btn" data-tab="totos"><span class="nav-icon">🎃</span>Totos</button>
+        <button class="nav-btn qm-btn" data-tab="items"><span class="nav-icon">🎒</span>Items</button>
         <button class="nav-btn qm-btn" data-tab="dex"><span class="nav-icon">📖</span>Dex</button>
         <button class="nav-btn qm-btn" data-tab="battle"><span class="nav-icon">⚔️</span>Battle</button>
         <button class="nav-btn qm-btn" data-tab="challenger"><span class="nav-icon">🕯️</span>Challenger</button>
@@ -1384,6 +1437,11 @@
         <button class="btn-cancel" id="btn-transfer-cancel">Cancel</button>
         <button class="btn-catch" id="btn-transfer-confirm">Transfer</button>
       </div>
+    </div>
+
+    <div class="panel-screen" data-panel="items">
+      <div class="panel-header">Items <span class="close-x" data-close>✕</span></div>
+      <div class="panel-body"><div id="items-list"></div></div>
     </div>
 
     <div class="panel-screen" data-panel="battle">
@@ -1439,8 +1497,13 @@
     <div class="panel-screen" data-panel="wardrobe">
       <div class="panel-header">Character Styling <span class="close-x" data-close>✕</span></div>
       <div class="panel-body" style="display:flex; flex-direction:column; gap:10px;">
-        <div style="display:flex; justify-content:center;">
+        <div class="wardrobe-stage">
           <canvas id="wardrobe-preview-canvas" class="wardrobe-preview-canvas"></canvas>
+          <div class="wardrobe-view-btns" id="wardrobe-view-btns">
+            <button data-view="front">Front</button><button data-view="back">Back</button><button data-view="spin" class="on">⟳ Spin</button>
+          </div>
+          <button class="wardrobe-zoom" id="wardrobe-zoom">🔍 Close-up</button>
+          <div class="wardrobe-tryon" id="wardrobe-tryon" style="display:none;"></div>
         </div>
         <div class="wardrobe-tabs" id="wardrobe-tabs"></div>
         <div class="wardrobe-grid" id="wardrobe-grid"></div>
@@ -1462,12 +1525,29 @@
       <div class="xp-row" id="det-xp"></div>
       <div class="stat-list" id="det-stats"></div>
       <div class="moves-box"><div class="moves-title" id="det-ab-title">Abilities</div><div id="det-moves"></div></div>
+      <div id="det-heal"></div>
       <div class="auth-error" id="det-msg" style="text-align:center;"></div>
       <div class="btn-row">
         <button class="btn-cancel" data-close-det>Close</button>
         <button class="btn-catch" id="btn-power-up">Power Up</button>
       </div>
       <button class="admin-btn" id="btn-admin-max-toto" style="display:none; width:100%; margin-top:8px; background:#7b5cff;">👑 Admin: Max This Toto's Level</button>
+    </div>
+  </div>
+
+  <!-- PUMPKINSTOP (spin for candy + items, one spin every 10 minutes) -->
+  <div class="modal-back" id="stop-modal">
+    <div class="modal-card stop-card">
+      <div class="stop-kicker">🎃 PumpkinStop</div>
+      <div class="modal-name" id="stop-name">Park</div>
+      <div class="modal-sub" id="stop-sub">—</div>
+      <div class="stop-art"><div class="stop-glow"></div><img id="stop-img" src="assets/stops/stop.png" alt=""></div>
+      <div class="stop-rewards" id="stop-rewards"></div>
+      <div class="stop-msg" id="stop-msg"></div>
+      <div class="btn-row">
+        <button class="btn-cancel" data-close-stop>Close</button>
+        <button class="btn-catch" id="btn-stop-spin">🎃 Spin</button>
+      </div>
     </div>
   </div>
 
@@ -1809,12 +1889,16 @@
     hat: [
       { id:'hat_default', name:'Classic Witch Hat', rarity:'Starter', unlock:'default',
         description:'Your trusty wide-brimmed hat — comes with every trainer.' },
+      { id:'hat_prestige', name:'Prestige Witch Hat', rarity:'Level 100 Achievement', unlock:'level100',
+        description:'Midnight-blue velvet stitched with golden constellations, a braided gold band, crystal tip charms and the phoenix "Level 100 · Max Rank Achiever" crest. Only for trainers who reach Level 100.',
+        thumb:'assets/wardrobe/prestige-hat-thumb.png',
+        preset:{ kind:'prestigeHat', color:'#1d2766', trim:'#d9a93a' } },
     ],
     top: [
       { id:'top_default', name:'Classic Robe', rarity:'Starter', unlock:'default',
         description:'The moon-and-pumpkin robe you started your journey in.' },
-      { id:'top_level100_tee', name:'Commemorative TotoQuest Tee', rarity:'Epic', unlock:'level100',
-        description:'A legend-tier shirt celebrating TotoQuest achievements — "Master Achiever" on the front, "Level 100" on the back.',
+      { id:'top_level100_tee', name:'Level 100 Achievement Tee', rarity:'Level 100 Achievement', unlock:'level100',
+        description:'The TotoQuest "Master Achiever" medallion on the front and LEVEL 100 across the back. Only for trainers who reach Level 100.',
         thumb:'assets/wardrobe/tee-thumb.png',
         preset:{ kind:'tee', color:'#3a2850', trim:'#d4af37' } },
     ],
@@ -1837,10 +1921,13 @@
   // includes() check means it only ever grants an item once no matter how often this runs).
   function checkCosmeticUnlocks(){
     state.unlockedCosmetics = state.unlockedCosmetics || [];
-    if (state.charLevel >= PLAYER_MAX_LEVEL && !state.unlockedCosmetics.includes('top_level100_tee')){
-      state.unlockedCosmetics.push('top_level100_tee');
-      showToast('🏆 Unlocked the Commemorative TotoQuest Tee! Equip it from Customize Character.');
-      markDirty();
+    if (state.charLevel >= PLAYER_MAX_LEVEL){
+      const fresh = ['top_level100_tee','hat_prestige'].filter(id=> !state.unlockedCosmetics.includes(id));
+      if (fresh.length){
+        fresh.forEach(id=> state.unlockedCosmetics.push(id));
+        showToast('🏆 Level 100! Unlocked the Level 100 Achievement Tee and the Prestige Witch Hat — wear them from Customize Character.');
+        markDirty();
+      }
     }
   }
   // The 3D module calls this (via window.applyEquippedCosmetics) right before every
@@ -1849,7 +1936,7 @@
   // that owns PLAYER_EQUIP_CATALOG can't see this classic script's top-level bindings
   // (it's wrapped in its own IIFE), only what's explicitly attached to window.
   let cosmeticDefaults = null;
-  window.applyEquippedCosmetics = function applyEquippedCosmetics(){
+  window.applyEquippedCosmetics = function applyEquippedCosmetics(overrides){
     if (!window.PLAYER_EQUIP_CATALOG || !state) return;
     // First call: remember the model's own built-in look for every slot, so every later
     // call starts from that clean default. (Merging onto whatever was there before meant
@@ -1860,9 +1947,10 @@
     if (!target || !base) return;
     state.equippedCosmetics = state.equippedCosmetics || {};
     Object.keys(COSMETIC_CATALOG).forEach(slot=>{
-      const equippedId = state.equippedCosmetics[slot];
+      const tryId = overrides && overrides[slot];                 // "trying on" in the wardrobe
+      const equippedId = tryId || state.equippedCosmetics[slot];
       const item = equippedId && COSMETIC_CATALOG[slot].find(i=>i.id===equippedId);
-      const preset = (item && item.preset && ownsCosmetic(item)) ? item.preset : null;
+      const preset = (item && item.preset && (ownsCosmetic(item) || tryId === item.id)) ? item.preset : null;
       target[slot] = base[slot] ? Object.assign({}, base[slot], preset || {}) : (preset ? Object.assign({}, preset) : base[slot]);
     });
   };
@@ -2069,9 +2157,10 @@
   // artificially stronger than an attacker/tanker of the same real fighting weight.
   function powerLevelOf(s){ return (s.hp||0) + (s.atk||0) + (s.def||0) + (s.spd||0); }
   function applyLevelStats(t, level){
+    const ratio = (t.maxHp > 0 && t.hp != null && isFinite(t.hp)) ? Math.max(0, Math.min(1, t.hp / t.maxHp)) : 1;
     t.level = level;
     const s = statsForLevel(t.tier, t.role, level, t.statMult);
-    t.maxHp=s.hp; t.hp=s.hp; t.atk=s.atk; t.def=s.def; t.spd=s.spd;
+    t.maxHp=s.hp; t.hp=Math.round(s.hp*ratio); t.atk=s.atk; t.def=s.def; t.spd=s.spd;
     t.heal = s.heal || 0; t.buff = s.buff || 0;
     t.strength = t.atk; t.maxEnergy = 100; t.energy = 100; // legacy fields some UI/battle code still reads
     t.cp = powerLevelOf(s);
@@ -2594,7 +2683,7 @@
     // (see runLoadingSequence), that in-flight/loaded world data lives on the state
     // object too, and replacing state wholesale used to throw it all away and start over
     // right as you reached the map, which was a chunk of the "lag" getting into a new game.
-    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle: !!viaGoogle, tutorialDone:false });
+    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle: !!viaGoogle, tutorialDone:false, items:{ raidPass:3, elixir:5 }, stopCooldownUntil:0, lastPassDay:'' });
     const ok = await saveNow(true);
     await rememberEmail(email);
     if (!ok) $('#reg-error').textContent = 'Could not reach save storage — you can still play, it will retry automatically.';
@@ -2752,6 +2841,7 @@
     return Math.min(PLAYER_MAX_LEVEL, Math.max(natural, state.charLevel||1));
   }
   function refreshHUD(){
+    try { ensureItems(); syncStopRest(); } catch(e){}
     $('#hud-candy-chip').innerHTML = candyIconHtml(16)+' <span id="hud-candy">'+state.candy.toLocaleString()+'</span>';
     $('#hud-gems-chip').innerHTML = gemIconHtml(16)+' <span id="hud-gems">'+state.gems.toLocaleString()+'</span>';
     $('#profile-candy-label').innerHTML = candyIconHtml(15)+' Candy';
@@ -2864,6 +2954,9 @@
     // Every Toto/gym/tree marker counter-rotates against this so they always stay upright
     // and face you, no matter which way the camera is currently turned.
     $('#world').style.setProperty('--rot', state.cameraRotate+'deg');
+    // your trainer is part of the scene: zoom out and she gets smaller with everything else
+    const z = state.cameraZoom, pz = z < 1 ? z : 1 + (z-1)*0.35;
+    const pin = $('.player-pin'); if (pin) pin.style.setProperty('--pz', pz.toFixed(3));
     updatePlayerFacing();
   }
   // Your character herself never moves or slides on screen when you drag to rotate —
@@ -3686,9 +3779,13 @@
     try {
       const parks = await ensureRegionTerrain(cx, cy);
       if (gym && parks.length){
-        const spot = parks[Math.floor(rand(baseSeed+95)*parks.length)];
-        gym.x = spot.x; gym.y = spot.y; gym.atPark = true;
-        refreshGymNode(gym);
+        // the nearest park that doesn't already have a gym (two gyms never share a park)
+        const free = parks.filter(pk=> !state.gyms.some(o=> o !== gym && o.atPark && Math.hypot(o.x-pk.x, o.y-pk.y) < 60*GPS_SCALE))
+          .map(pk=> ({ pk, d:Math.hypot(pk.x-gym.x, pk.y-gym.y) })).filter(o=> o.d < 600*GPS_SCALE).sort((a,b)=> a.d-b.d);
+        if (free.length){
+          gym.x = free[0].pk.x; gym.y = free[0].pk.y; gym.atPark = true;
+          refreshGymNode(gym);
+        }
       }
     } catch(e){ console.warn('terrain fetch failed', e); }
 
@@ -3706,7 +3803,7 @@
   //    free map servers don't rate-limit us; a slow server gets backup from the next one
   //    and a failed tile is retried automatically (it used to stay blank until you walked).
   const TILE_LAT = 0.01, TILE_LON = 0.014;            // ≈1.1 km x 1.0–1.1 km
-  const MAP_DATA_VERSION = 2;                         // bump when the query changes
+  const MAP_DATA_VERSION = 3;                         // bump when the query changes (older saved tiles still draw, then refresh)
   const TILE_FRESH_MS = 3*24*3600*1000;               // older than this → refresh in the background
   const TILE_MAX_SAVED = 90;
   const OVERPASS_ENDPOINTS = [
@@ -3789,6 +3886,14 @@
       +'relation["natural"~"^(water|wood)$"]('+bbox+');'
       +'relation["building"]('+bbox+');'
       +'node["leisure"="pitch"]('+bbox+');'
+      // landmarks that get a PumpkinStop: churches, libraries, monuments, public art,
+      // playgrounds, trail signs … the same kind of spots other GPS games use
+      +'node["amenity"~"^(place_of_worship|library|townhall|fountain|post_office|community_centre|arts_centre|theatre|clock)$"]('+bbox+');'
+      +'node["historic"~"^(memorial|monument|statue|wayside_shrine|wayside_cross|milestone|cannon|ruins|building|church|marker|plaque)$"]('+bbox+');'
+      +'node["tourism"~"^(artwork|attraction|viewpoint|museum|information)$"]('+bbox+');'
+      +'node["leisure"~"^(playground|park|garden|fitness_station)$"]('+bbox+');'
+      +'node["man_made"~"^(water_tower|lighthouse|windmill|obelisk)$"]('+bbox+');'
+      +'way["tourism"~"^(attraction|museum|artwork)$"]('+bbox+');'
       +');out geom;';
   }
   // Ask the map servers, one at a time — but if the first is slow, bring in the next
@@ -3887,10 +3992,31 @@
       if (el.type === 'way'){ out.push(el); return; }
       if (el.type === 'relation'){ relationRings(el).forEach((ring,i)=> out.push({ type:'way', id:'r'+el.id+'_'+i, tags:el.tags, geometry:ring })); return; }
       if (el.type === 'node' && el.tags && el.tags.leisure === 'pitch') out.push(pitchFromNode(el));
+      else if (el.type === 'node' && el.tags && stopPoiName(el.tags)) out.push({ type:'poi', id:'n'+el.id, tags:el.tags, lat:el.lat, lon:el.lon });
     });
     // a way can come back twice (e.g. a ball field that's also matched by sport) — draw it once
     const seen = new Set();
     return out.filter(e=>{ const k = e.type+e.id; if (seen.has(k)) return false; seen.add(k); return true; });
+  }
+
+  // Is this map feature a landmark worth a PumpkinStop? Returns its sign name (or null).
+  const POI_LABEL = { place_of_worship:'Chapel', library:'Library', townhall:'Town Hall', fountain:'Fountain', post_office:'Post Office',
+    community_centre:'Community Center', arts_centre:'Arts Center', theatre:'Theater', clock:'Town Clock', museum:'Museum',
+    memorial:'Memorial', monument:'Monument', statue:'Statue', wayside_shrine:'Wayside Shrine', wayside_cross:'Wayside Cross', milestone:'Old Milestone',
+    cannon:'Old Cannon', ruins:'Ruins', marker:'Historic Marker', plaque:'Historic Plaque', artwork:'Public Art', attraction:'Landmark',
+    viewpoint:'Scenic View', information:'Trail Sign', playground:'Playground', fitness_station:'Fitness Trail', water_tower:'Water Tower',
+    lighthouse:'Lighthouse', windmill:'Windmill', obelisk:'Obelisk', park:'Park', garden:'Garden', church:'Old Church', building:'Historic Building' };
+  function stopPoiName(t){
+    if (!t) return null;
+    let k = null;
+    if (/^(place_of_worship|library|townhall|fountain|post_office|community_centre|arts_centre|theatre|clock)$/.test(t.amenity||'')) k = t.amenity;
+    else if (t.historic && t.historic !== 'no') k = POI_LABEL[t.historic] ? t.historic : 'marker';
+    else if (/^(artwork|attraction|viewpoint|museum)$/.test(t.tourism||'')) k = t.tourism;
+    else if (t.tourism === 'information' && (!t.information || /^(board|map)$/.test(t.information))) k = 'information';
+    else if (/^(water_tower|lighthouse|windmill|obelisk)$/.test(t.man_made||'')) k = t.man_made;
+    else if (/^(playground|park|garden|fitness_station)$/.test(t.leisure||'') && !t.building) k = t.leisure;
+    if (!k) return null;
+    return String(t.name || POI_LABEL[k] || 'Landmark').slice(0, 40);
   }
 
   function drawTile(key, t, elements){
@@ -3927,11 +4053,11 @@
     const anchorAt = state.geoAnchor;
     const p = (async ()=>{
       const saved = await MapCache.get(key);
-      const usable = saved && saved.v === MAP_DATA_VERSION && Array.isArray(saved.elements);
+      const usable = saved && saved.v >= 2 && Array.isArray(saved.elements);
       if (usable && state.geoAnchor === anchorAt){
         const parks = drawTile(key, t, saved.elements);
         diag.lastRegionResult = 'drawn from the phone ('+saved.elements.length+' map features)';
-        if (Date.now() - saved.ts > TILE_FRESH_MS){
+        if (saved.v !== MAP_DATA_VERSION || Date.now() - saved.ts > TILE_FRESH_MS){
           // old copy: show it now, swap in fresh data once it arrives
           queueTileDownload(t).then(els=>{
             if (!els.length) return;
@@ -4129,7 +4255,8 @@
   function buildingKind(t, areaM2, seed){
     const b = String(t.building||'yes').toLowerCase();
     if (/church|chapel|cathedral|temple|mosque|synagogue|shrine/.test(b) || t.amenity==='place_of_worship') return 'church';
-    if (/garage|shed|carport|hut|roof|kiosk|shelter|cabin|greenhouse/.test(b)) return areaM2 < 18 ? null : 'shed';
+    if (/garage|shed|carport|roof/.test(b)) return null;     // just its lot — it isn't another house
+    if (/hut|kiosk|shelter|cabin|greenhouse/.test(b)) return areaM2 < 18 ? null : 'shed';
     if (/apartments|dormitory/.test(b) || (b==='residential' && areaM2 > 600)) return 'apartment';
     if (/school|university|college|hospital|public|civic|government|townhall|library|fire_station|train_station|kindergarten/.test(b)) return areaM2 > 220 ? 'hall' : 'house1';
     if (/commercial|retail|supermarket|office|industrial|warehouse|hotel|shop|manufacture|service/.test(b)) return areaM2 > 200 ? 'shop' : 'house2';
@@ -4145,14 +4272,16 @@
   };
 
   function renderTerrainArt(elements, project, regionKeyStr, bounds){
-    const L = { land:[], water:[], marks:[], lots:[], rail:[], roadCase:[], roadTop:[], pathCase:[], pathTop:[] };
+    const L = { land:[], water:[], marks:[], lots:[], rail:[], roadCase:[], roadTop:[], pathCase:[], pathTop:[], bridge:[] };
     const props = [], parkCentroids = [], clearPolys = [];   // clearPolys: fields/courts trees must not stand on
-    // gathered for the house infill pass at the end
+    // gathered for the building and PumpkinStop passes at the end
     const roads = [], bldgs = [], noBuild = [], resPolys = [], farmPolys = [];
+    const stopCands = [], poiAreas = [], parkAreas = [];
     const withBB = P=>{ let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; P.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);}); return {P,x0,y0,x1,y1}; };
     const rnd = seededRand(Array.from(String(regionKeyStr)).reduce((h,c)=>h*31+c.charCodeAt(0),7));
     const M2 = GPS_SCALE*GPS_SCALE;
     elements.forEach(el=>{
+      if (el.type === 'poi'){ const q = project(el.lat, el.lon); stopCands.push({ x:q.x, y:q.y, pri:4, name:stopPoiName(el.tags), id:el.id }); return; }
       if (!el.geometry || el.geometry.length<2) return;
       const t = el.tags || {};
       let geom = el.geometry;
@@ -4170,13 +4299,16 @@
 
       if (t.highway){
         if (t.tunnel==='yes' || t.area==='yes') return;
+        const isBridge = !!t.bridge && t.bridge !== 'no';
         if (PATH_W[t.highway] !== undefined){
           const w = PATH_W[t.highway]; if (!w) return;
+          roads.push({ P, half:w/2+2, path:true, hw:t.highway, name:t.name||'', id:el.id });
+          if (isBridge){ woodenBridge(P, Math.max(w+6, 24)); return; }
           L.pathCase.push(line('#1d1823', w+5)); L.pathTop.push(line('url(#pat-flag)', w));
-          roads.push({ P, half:w/2+2, path:true, hw:t.highway });
         } else {
           const w = ROAD_W[t.highway] || 48;
-          roads.push({ P, half:w/2+6, path:false, hw:t.highway });
+          roads.push({ P, half:w/2+6, path:false, hw:t.highway, name:t.name||'', id:el.id });
+          if (isBridge){ woodenBridge(P, w); return; }
           L.roadCase.push(line('#16121c', w+12)); L.roadCase.push(line('#3b3446', w+6));
           L.roadTop.push(line('url(#pat-cobble)', w));
           if (w >= 56) L.roadTop.push(line('#ffd9a0', 1.6, ' stroke-opacity="0.18" stroke-dasharray="14 18"'));
@@ -4190,20 +4322,15 @@
       }
       if (!closed) return;
       const area = polyArea(P), areaM2 = area/M2;
+      const poiNm = (t.leisure==='park' || t.leisure==='garden' || t.leisure==='playground') ? null : stopPoiName(t);
+      if (poiNm){ const c = polyCentroid(P); poiAreas.push({ x:c.x, y:c.y, r:Math.sqrt(area/Math.PI), name:poiNm, id:el.id }); }
       if (t.building){
         L.lots.push(poly('#231d2e', '#4a405a', 3));
         const c = polyCentroid(P);
-        bldgs.push({ x:c.x, y:c.y, r:Math.sqrt(area/Math.PI) });
-        const seed = Math.floor(rnd()*1e6);
-        const kind = buildingKind(t, areaM2, seed);
-        if (kind){
-          const cfg = PROP_W[kind];
-          const w = Math.max(cfg[0], Math.min(cfg[1], Math.sqrt(area)*cfg[2]));
-          props.push({ x:c.x, y:c.y, kind, w, seed });
-        }
+        bldgs.push({ x:c.x, y:c.y, r:Math.sqrt(area/Math.PI), area, areaM2, t, seed:Math.floor(rnd()*1e6), P });
         return;
       }
-      // land-use areas that only steer where filler houses may go (not drawn themselves)
+      // land-use areas that aren't drawn themselves
       if (t.landuse==='residential'){ resPolys.push(withBB(P)); return; }
       if (t.landuse==='farmland' || t.landuse==='farmyard'){ farmPolys.push(withBB(P)); return; }
       if (/^(commercial|retail|industrial)$/.test(t.landuse||'') || /^(school|college|university|hospital|kindergarten|place_of_worship)$/.test(t.amenity||'')){ noBuild.push(withBB(P)); return; }
@@ -4233,103 +4360,157 @@
         return;
       }
       if (t.amenity==='parking'){ L.land.push(poly('#27232d', '#3a3442', 3)); return; }
-      if (t.leisure==='playground'){ L.land.push(poly('#6e5a3e', '#4a3b28', 3)); clearPolys.push(P); return; }
+      if (t.leisure==='playground'){ L.land.push(poly('#6e5a3e', '#4a3b28', 3)); clearPolys.push(P); const c = polyCentroid(P); stopCands.push({ x:c.x, y:c.y, pri:3, name:String(t.name||'Playground').slice(0,40), id:el.id }); return; }
       if (t.leisure==='track'){ L.land.push(poly('#8a4234', '#5a2a22', 3)); return; }
       if (t.leisure==='park' || t.leisure==='garden' || t.leisure==='dog_park' || t.leisure==='golf_course' || t.leisure==='sports_centre' || t.leisure==='stadium'
           || /^(recreation_ground|grass|meadow|village_green)$/.test(t.landuse||'')){
         L.land.push(poly('#38584a', '#27403a', 3));
         if (t.leisure==='park' || t.leisure==='garden' || t.landuse==='recreation_ground'){
           parkCentroids.push(polyCentroid(P));
+          parkAreas.push({ P, name:String(t.name||(t.leisure==='garden'?'Garden':'Park')).slice(0,40), id:el.id, areaM2 });
           scatterInPoly(P, Math.min(8, Math.max(1, Math.round(areaM2/1100))), rnd, 40).forEach(q=> props.push({ x:q.x, y:q.y, kind: rnd()<0.25 ? 'deadtree' : 'tree', w:44+rnd()*16, seed:Math.floor(rnd()*1e6) }));
         }
         return;
       }
     });
-    if (bounds) infillHouses();
+    placeBuildingProps();
+    placePumpkinStops();
     // keep trees/tombs off ball fields, courts and playgrounds
     const isGreenery = k=> k==='tree' || k==='deadtree' || k==='pine';
     const inTile = pr=> !bounds || (pr.x >= bounds.x0 && pr.x < bounds.x1 && pr.y >= bounds.y0 && pr.y < bounds.y1);
     const keptProps = props.filter(pr=> inTile(pr) && (!isGreenery(pr.kind) || !clearPolys.some(P=> pointInPoly(pr.x, pr.y, P))));
     props.length = 0; keptProps.forEach(pr=> props.push(pr));
     const svg = L.land.join('') + L.water.join('') + L.marks.join('') + L.lots.join('') + L.rail.join('')
-      + L.pathCase.join('') + L.roadCase.join('') + L.pathTop.join('') + L.roadTop.join('');
+      + L.pathCase.join('') + L.roadCase.join('') + L.pathTop.join('') + L.roadTop.join('') + L.bridge.join('');
     return { svg, props, parkCentroids };
 
-    // ---- filler houses ----
-    // OpenStreetMap usually has a town's streets, schools, shops and churches, but in a
-    // lot of neighbourhoods the individual homes were never traced — so the street is there
-    // and the houses aren't. Wherever a residential street has nothing mapped beside it,
-    // line it with houses on both sides: set back behind a front yard, a flagstone walk
-    // out to the road, now and then a tree out back. Real mapped buildings always win —
-    // nothing is added near one — and nothing goes on water, parks, fields, school or
-    // shop grounds. Positions come from the road geometry itself (not a per-region
-    // random roll), so neighbouring regions agree and each house is only made once.
-    function infillHouses(){
-      const CELL = 160;
-      const cellsOf = (x0,y0,x1,y1, fn)=>{ for (let cx=Math.floor(x0/CELL); cx<=Math.floor(x1/CELL); cx++) for (let cy=Math.floor(y0/CELL); cy<=Math.floor(y1/CELL); cy++) fn(cx+','+cy); };
-      const put = (g, x0,y0,x1,y1, item)=> cellsOf(x0,y0,x1,y1, k=>{ let a=g.get(k); if (!a) g.set(k, a=[]); a.push(item); });
-      const near = (g, x,y,rad, fn)=>{ let stop=false; cellsOf(x-rad,y-rad,x+rad,y+rad, k=>{ if (stop) return; const a=g.get(k); if (a) for (const it of a){ if (fn(it)){ stop=true; return; } } }); return stop; };
-      const segG = new Map(), bG = new Map(), hG = new Map();
-      roads.forEach(r=>{ for (let i=1;i<r.P.length;i++){ const a=r.P[i-1], b=r.P[i];
-        put(segG, Math.min(a.x,b.x)-r.half, Math.min(a.y,b.y)-r.half, Math.max(a.x,b.x)+r.half, Math.max(a.y,b.y)+r.half, {a,b,half:r.half,path:r.path}); } });
-      bldgs.forEach(b=> put(bG, b.x-b.r, b.y-b.r, b.x+b.r, b.y+b.r, b));
-      const segDist = (px,py,a,b)=>{ const dx=b.x-a.x, dy=b.y-a.y, L2=dx*dx+dy*dy; let u = L2 ? ((px-a.x)*dx+(py-a.y)*dy)/L2 : 0; u = Math.max(0,Math.min(1,u)); return Math.hypot(px-a.x-u*dx, py-a.y-u*dy); };
-      const inAny = (list,x,y)=> list.some(q=> x>=q.x0 && x<=q.x1 && y>=q.y0 && y<=q.y1 && pointInPoly(x,y,q.P));
-      const hfrac = (x,y,salt)=>{ let h = (Math.round(x)*73856093) ^ (Math.round(y)*19349663) ^ (salt*83492791); h = Math.imul(h ^ (h>>>13), 1274126177); h ^= h>>>16; return (h>>>0)/4294967296; };
-      const inBounds = (x,y)=> x>=bounds.x0 && x<bounds.x1 && y>=bounds.y0 && y<bounds.y1;
-      // how likely a lot along each kind of street holds a house (inside a mapped
-      // residential area every street type counts as fully built up)
-      const DENS = { residential:1, living_street:1, unclassified:0.6, tertiary:0.45, secondary:0.2, primary:0, road:0.5 };
-      const LOT = 96;                     // ~30 m frontage per house
-      const yardTrees = [];
-      roads.forEach(r=>{
-        if (r.path || DENS[r.hw]===undefined) return;
-        const P = r.P; let acc = 0, next = LOT*0.5;
-        for (let i=1;i<P.length;i++){
-          const a=P[i-1], b=P[i], dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy);
-          if (len < 1) continue;
-          const tx=dx/len, ty=dy/len, nx=-ty, ny=tx, ang = Math.atan2(ty,tx)*180/Math.PI;
-          while (next <= acc+len){
-            const u = next-acc, px=a.x+tx*u, py=a.y+ty*u;
-            next += LOT;
-            for (const side of [-1,1]){
-              const w = 58 + hfrac(px,py,side+5)*16, hh = w*0.42;
-              const off = r.half + 22 + hh;         // road edge + ~7 m front yard
-              const x = px+nx*side*off, y = py+ny*side*off;
-              if (!inBounds(x,y)) continue;
-              let dens = DENS[r.hw];
-              if (inAny(resPolys,x,y)) dens = 1;
-              else if (inAny(farmPolys,x,y)) dens *= 0.25;
-              if (hfrac(x,y,7) >= dens) continue;
-              if (inAny(noBuild,x,y)) continue;
-              if (near(bG, x,y, hh+60, it=> Math.hypot(it.x-x,it.y-y) < it.r+hh+18)) continue;
-              if (near(segG, x,y, hh+40, it=> segDist(x,y,it.a,it.b) < it.half + (it.path ? hh*0.5 : hh) + 3)) continue;
-              if (near(hG, x,y, LOT, it=> Math.hypot(it.x-x,it.y-y) < LOT*0.72)) continue;
-              put(hG, x,y,x,y, {x,y});
-              const seed = Math.floor(hfrac(x,y,13)*1e6);
-              props.push({ x, y, kind:['house1','house2','house3'][seed%3], w, seed });
-              // a yard under the house, squared to the street, and a walk out to the road
-              L.lots.push('<rect x="'+(-w*0.5).toFixed(1)+'" y="'+(-w*0.36).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+(w*0.72).toFixed(1)+'" rx="6" fill="#231d2e" stroke="#4a405a" stroke-width="3" transform="translate('+x.toFixed(1)+','+y.toFixed(1)+') rotate('+ang.toFixed(1)+')"/>');
-              const fx = x-nx*side*hh*0.5, fy = y-ny*side*hh*0.5, ex = px+nx*side*(r.half-6), ey = py+ny*side*(r.half-6);
-              L.lots.push('<path d="M'+fx.toFixed(1)+','+fy.toFixed(1)+' L'+ex.toFixed(1)+','+ey.toFixed(1)+'" stroke="#1d1823" stroke-width="12" stroke-linecap="round"/>'
-                + '<path d="M'+fx.toFixed(1)+','+fy.toFixed(1)+' L'+ex.toFixed(1)+','+ey.toFixed(1)+'" stroke="url(#pat-flag)" stroke-width="8"/>');
-              if (hfrac(x,y,17) < 0.32){
-                const d = hh + 26, along = (hfrac(x,y,19)-0.5)*36;
-                yardTrees.push({ x: x+nx*side*d+tx*along, y: y+ny*side*d+ty*along, w: 40+hfrac(x,y,23)*14, seed: Math.floor(hfrac(x,y,29)*1e6) });
-              }
-            }
-          }
-          acc += len;
+    // ---- wooden bridges ----
+    // Any road or path the map marks as a bridge is drawn as a timber bridge: a shadow on
+    // the water below, dark support beams, a plank deck (the planks run across the deck)
+    // and a post-and-rail fence along both edges. Drawn last, so it passes over the water,
+    // other roads and paths underneath.
+    function offsetLine(P, d){
+      const out = [];
+      for (let i=0;i<P.length;i++){
+        const a = P[Math.max(0,i-1)], b = P[Math.min(P.length-1,i+1)];
+        let dx = b.x-a.x, dy = b.y-a.y; const l = Math.hypot(dx,dy) || 1; dx/=l; dy/=l;
+        let k = 1;
+        if (i>0 && i<P.length-1){
+          const ax = P[i].x-P[i-1].x, ay = P[i].y-P[i-1].y, la = Math.hypot(ax,ay)||1;
+          const cos = (ax*dx + ay*dy)/la; k = 1/Math.max(0.5, cos);
         }
-      });
-      yardTrees.forEach(t=>{
-        if (!inBounds(t.x,t.y) || inAny(noBuild,t.x,t.y)) return;
-        if (near(hG, t.x,t.y, 60, it=> Math.hypot(it.x-t.x,it.y-t.y) < 46)) return;
-        if (near(bG, t.x,t.y, 80, it=> Math.hypot(it.x-t.x,it.y-t.y) < it.r+16)) return;
-        if (near(segG, t.x,t.y, 60, it=> segDist(t.x,t.y,it.a,it.b) < it.half+14)) return;
-        props.push({ x:t.x, y:t.y, kind: hfrac(t.x,t.y,31)<0.2 ? 'deadtree' : 'tree', w:t.w, seed:t.seed });
+        out.push({ x:P[i].x - dy*d*k, y:P[i].y + dx*d*k });
+      }
+      return out;
+    }
+    function woodenBridge(P, w){
+      const ptsOf = Q=> Q.map(q=> q.x.toFixed(1)+','+q.y.toFixed(1)).join(' ');
+      const pl = (Q, stroke, sw, extra)=> '<polyline points="'+ptsOf(Q)+'" fill="none" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linejoin="round"'+(extra||'')+'/>';
+      L.bridge.push('<g transform="translate(5,9)" opacity="0.45">'+pl(P, '#05040a', w+16)+'</g>');
+      L.bridge.push(pl(P, '#24160b', w+12));
+      L.bridge.push(pl(P, '#8a5a30', w));
+      L.bridge.push(pl(P, '#4f2f16', w, ' stroke-dasharray="1.6 5.2"'));
+      L.bridge.push(pl(P, '#c08a52', w*0.82, ' stroke-dasharray="1 5.8" stroke-dashoffset="3.4" stroke-opacity="0.5"'));
+      [-1,1].forEach(side=>{
+        const R = offsetLine(P, side*(w/2 + 3));
+        L.bridge.push(pl(R, '#2b1a0c', 6, ' stroke-linecap="round"'));
+        L.bridge.push(pl(R, '#b07a44', 2, ' stroke-opacity="0.75" stroke-linecap="round"'));
+        L.bridge.push(pl(R, '#1e1208', 9, ' stroke-dasharray="4 26"'));
       });
     }
+
+    // ---- buildings: only what's really on the map ----
+    // One standing building per real mapped building. A small untagged outbuilding right
+    // beside a much bigger one (a detached garage or shed) stays a lot outline, so a home
+    // with a garage doesn't show up as two houses.
+    function placeBuildingProps(){
+      bldgs.forEach(b=>{
+        const kind = buildingKind(b.t, b.areaM2, b.seed);
+        if (!kind) return;
+        const untyped = String(b.t.building||'yes').toLowerCase() === 'yes';
+        if ((kind==='shed' || (untyped && b.areaM2 < 70))
+            && bldgs.some(o=> o!==b && o.areaM2 >= b.areaM2*2 && Math.hypot(o.x-b.x, o.y-b.y) < o.r + b.r + 8*GPS_SCALE)) return;
+        const cfg = PROP_W[kind];
+        const w = Math.max(cfg[0], Math.min(cfg[1], Math.sqrt(b.area)*cfg[2]));
+        props.push({ x:b.x, y:b.y, kind, w, seed:b.seed });
+      });
+    }
+
+    // ---- PumpkinStops ----
+    // Landmarks (churches, libraries, monuments, public art, trail signs…), every
+    // playground, the entrance of every park, and one on every named street. Nearby
+    // candidates merge (landmarks win), so stops end up at least ~40 m apart.
+    function placePumpkinStops(){
+      const MP = GPS_SCALE;
+      const segs = [];
+      roads.forEach(r=>{ if (!r.path) for (let i=1;i<r.P.length;i++) segs.push({ a:r.P[i-1], b:r.P[i] }); });
+      const nearestRoad = (x, y, list)=>{
+        let best = null;
+        for (const s of (list || segs)){
+          const dx = s.b.x-s.a.x, dy = s.b.y-s.a.y, L2 = dx*dx+dy*dy;
+          let u = L2 ? ((x-s.a.x)*dx+(y-s.a.y)*dy)/L2 : 0; u = Math.max(0, Math.min(1, u));
+          const px = s.a.x+u*dx, py = s.a.y+u*dy, d = Math.hypot(x-px, y-py);
+          if (!best || d < best.d) best = { x:px, y:py, d };
+        }
+        return best;
+      };
+      // landmark buildings/areas: the stop stands out front, toward the street
+      poiAreas.forEach(a=>{
+        const nr = nearestRoad(a.x, a.y);
+        let x = a.x, y = a.y;
+        if (nr && nr.d > 1){ const k = Math.min(a.r + 5*MP, nr.d*0.8)/nr.d; x = a.x + (nr.x-a.x)*k; y = a.y + (nr.y-a.y)*k; }
+        stopCands.push({ x, y, pri:4, name:a.name, id:'a'+a.id });
+      });
+      // parks: at the entrance — the edge point closest to a street, a few steps inside
+      parkAreas.forEach(pk=>{
+        let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; pk.P.forEach(q=>{ x0=Math.min(x0,q.x); y0=Math.min(y0,q.y); x1=Math.max(x1,q.x); y1=Math.max(y1,q.y); });
+        const pad = 60*MP;
+        const near = segs.filter(s=> Math.max(s.a.x,s.b.x) > x0-pad && Math.min(s.a.x,s.b.x) < x1+pad && Math.max(s.a.y,s.b.y) > y0-pad && Math.min(s.a.y,s.b.y) < y1+pad);
+        const c = polyCentroid(pk.P);
+        let gate = null;
+        if (near.length) pk.P.forEach(v=>{ const nr = nearestRoad(v.x, v.y, near); if (nr && (!gate || nr.d < gate.d)) gate = { x:v.x, y:v.y, d:nr.d }; });
+        let x = c.x, y = c.y;
+        if (gate){ const dx = c.x-gate.x, dy = c.y-gate.y, l = Math.hypot(dx,dy)||1, k = Math.min(10*MP, l*0.5)/l; x = gate.x + dx*k; y = gate.y + dy*k; }
+        stopCands.push({ x, y, pri:3, name:pk.name, id:'p'+pk.id });
+      });
+      // one on every named street, at the middle of its longest stretch, on the roadside
+      const STREET = /^(residential|living_street|unclassified|tertiary|secondary|primary|pedestrian|road)$/;
+      const byName = new Map();
+      roads.forEach(r=>{
+        if (!r.name || (r.path && r.hw!=='pedestrian') || !STREET.test(r.hw)) return;
+        let len = 0; for (let i=1;i<r.P.length;i++) len += Math.hypot(r.P[i].x-r.P[i-1].x, r.P[i].y-r.P[i-1].y);
+        const cur = byName.get(r.name);
+        if (!cur || len > cur.len) byName.set(r.name, { r, len });
+      });
+      byName.forEach(({ r, len }, name)=>{
+        if (len < 40*MP) return;
+        let acc = 0, target = len/2;
+        for (let i=1;i<r.P.length;i++){
+          const a = r.P[i-1], b = r.P[i], sl = Math.hypot(b.x-a.x, b.y-a.y);
+          if (acc + sl >= target && sl > 0){
+            const u = (target-acc)/sl, px = a.x+(b.x-a.x)*u, py = a.y+(b.y-a.y)*u;
+            const nx = -(b.y-a.y)/sl, ny = (b.x-a.x)/sl;
+            let h = 0; for (const ch of name) h = (h*31 + ch.charCodeAt(0))|0;
+            const side = (h & 1) ? 1 : -1, off = r.half + 4*MP;
+            stopCands.push({ x:px+nx*side*off, y:py+ny*side*off, alt:{ x:px-nx*side*off, y:py-ny*side*off }, pri:1, name, id:'s'+r.id });
+            break;
+          }
+          acc += sl;
+        }
+      });
+      const inTileB = q=> !bounds || (q.x >= bounds.x0 && q.x < bounds.x1 && q.y >= bounds.y0 && q.y < bounds.y1);
+      const onBuilding = q=> bldgs.some(b=> Math.hypot(b.x-q.x, b.y-q.y) < b.r*2.5 + 3*MP && (pointInPoly(q.x, q.y, b.P) || Math.hypot(b.x-q.x, b.y-q.y) < Math.min(b.r, 6*MP)));
+      const kept = [];
+      stopCands.sort((a,b)=> (b.pri-a.pri) || String(a.id).localeCompare(String(b.id))).forEach(c=>{
+        let q = c;
+        if (onBuilding(q) && c.alt) q = c.alt;
+        if (!inTileB(q) || onBuilding(q)) return;
+        if (kept.some(k=> Math.hypot(k.x-q.x, k.y-q.y) < 40*MP)) return;
+        kept.push({ x:q.x, y:q.y, name:c.name, id:c.id });
+      });
+      kept.forEach(k=> props.push({ x:k.x, y:k.y, kind:'pstop', w:64, seed:Math.floor(rnd()*1e6), stop:{ id:String(k.id), name:k.name } }));
+    }
+
   }
 
   // ---------------- SESSION SETUP (runs once per anchor) ----------------
@@ -4403,6 +4584,7 @@
     if (tab==='map'){ $$('.panel-screen').forEach(p=>p.classList.remove('active')); return; }
     $$('.panel-screen').forEach(p=>p.classList.toggle('active', p.dataset.panel===tab));
     if (tab==='totos') renderCollection();
+    if (tab==='items'){ healPickOpen = false; renderItems(); }
     if (tab==='dex') renderDex();
     if (tab==='challenger') renderChallenger();
     if (tab==='battle') renderBattleList();
@@ -4418,7 +4600,37 @@
   $$('[data-close]').forEach(x=> x.onclick = ()=> openGamePanel('map'));
 
   // ---------------- WARDROBE (character customization) ----------------
-  let wardrobeUi = { slot:'hat', selectedId:null };
+  let wardrobeUi = { slot:'hat', selectedId:null, closeUp:false };
+  const SLOT_ICON = { hat:'🧙', top:'👕', legwear:'🧦', shoes:'🥾', accessory:'🪄' };
+  const SLOT_FOCUS = { hat:'head', top:'torso', legwear:'legs', shoes:'feet', accessory:'full' };
+  function wardrobePreview(){ const c = $('#wardrobe-preview-canvas'); return c && c.__wardrobe3d; }
+  // what the preview shows: the item you've tapped, even before you equip it
+  function wardrobeOverrides(){
+    const sel = wardrobeUi.selectedId, eq = wardrobeEquippedId(wardrobeUi.slot);
+    return (sel && sel !== eq) ? { [wardrobeUi.slot]: sel } : null;
+  }
+  function updateTryOnLabel(){
+    const el = $('#wardrobe-tryon'); if (!el) return;
+    const ov = wardrobeOverrides();
+    if (!ov){ el.style.display = 'none'; return; }
+    const item = (COSMETIC_CATALOG[wardrobeUi.slot]||[]).find(i=> i.id===wardrobeUi.selectedId);
+    el.textContent = '👀 Trying on: '+item.name+(ownsCosmetic(item) ? '' : ' 🔒');
+    el.style.display = '';
+  }
+  function refreshWardrobePreview(){
+    if (window.rebuildWardrobePreview3D) window.rebuildWardrobePreview3D($('#wardrobe-preview-canvas'), state.avatar, wardrobeOverrides());
+    updateTryOnLabel();
+  }
+  function wardrobeView(view){
+    const pv = wardrobePreview(); if (pv) pv.setView(view);
+    $$('#wardrobe-view-btns button').forEach(b=> b.classList.toggle('on', b.dataset.view===view));
+  }
+  function wardrobeFocus(){
+    const pv = wardrobePreview(); if (pv) pv.setFocus(wardrobeUi.closeUp ? SLOT_FOCUS[wardrobeUi.slot] : 'full');
+    const z = $('#wardrobe-zoom'); if (z){ z.classList.toggle('on', wardrobeUi.closeUp); z.textContent = wardrobeUi.closeUp ? '🧍 Whole body' : '🔍 Close-up'; }
+  }
+  $$('#wardrobe-view-btns button').forEach(b=> b.onclick = ()=> wardrobeView(b.dataset.view));
+  $('#wardrobe-zoom').onclick = ()=>{ wardrobeUi.closeUp = !wardrobeUi.closeUp; wardrobeFocus(); };
   const WARDROBE_SLOTS = ['hat','top','legwear','shoes','accessory'];
   function wardrobeEquippedId(slot){
     const items = COSMETIC_CATALOG[slot] || [];
@@ -4431,7 +4643,7 @@
       const b = document.createElement('button');
       b.className = 'wardrobe-tab-btn' + (slot===wardrobeUi.slot ? ' active' : '');
       b.textContent = COSMETIC_SLOT_LABEL[slot] || slot;
-      b.onclick = ()=>{ wardrobeUi.slot = slot; wardrobeUi.selectedId = null; renderWardrobeTabs(); renderWardrobeGrid(); };
+      b.onclick = ()=>{ wardrobeUi.slot = slot; wardrobeUi.selectedId = null; wardrobeUi.closeUp = true; renderWardrobeTabs(); renderWardrobeGrid(); refreshWardrobePreview(); wardrobeFocus(); wardrobeView('front'); };
       tabsEl.appendChild(b);
     });
   }
@@ -4445,9 +4657,12 @@
       const owned = ownsCosmetic(item);
       const card = document.createElement('div');
       card.className = 'wardrobe-item-card' + (item.id===wardrobeUi.selectedId?' sel':'') + (!owned?' locked':'');
-      const icon = item.thumb ? '<img class="wi-thumb" src="'+item.thumb+'" alt="">' + (owned ? '' : '<span class="wi-lock">🔒</span>') : (owned?'👕':'🔒');
+      const icon = item.thumb ? '<img class="wi-thumb" src="'+item.thumb+'" alt="">' + (owned ? '' : '<span class="wi-lock">🔒</span>') : (owned ? (SLOT_ICON[wardrobeUi.slot]||'👕') : '🔒');
       card.innerHTML = '<div class="wi-icon">'+icon+'</div><div class="wi-name">'+item.name+'</div>' + (item.id===equippedId?'<div class="wi-equipped-tag">Worn</div>':'');
-      card.onclick = ()=>{ wardrobeUi.selectedId = item.id; renderWardrobeGrid(); };
+      card.onclick = ()=>{
+        wardrobeUi.selectedId = item.id; wardrobeUi.closeUp = true;
+        renderWardrobeGrid(); refreshWardrobePreview(); wardrobeFocus(); wardrobeView('front');
+      };
       gridEl.appendChild(card);
     });
     renderWardrobeDetail();
@@ -4459,12 +4674,13 @@
     const item = items.find(i=>i.id===wardrobeUi.selectedId) || items[0];
     if (!item){ detailEl.innerHTML=''; equipBtn.disabled = true; return; }
     const owned = ownsCosmetic(item);
-    detailEl.innerHTML = '<b>ITEM:</b> '+item.name+'<br><b>RARITY:</b> '+item.rarity+'<br><b>DESCRIPTION:</b> '+item.description
-      + (owned ? '' : '<br><span style="color:#c0392b; font-weight:800;">🔒 Not yet unlocked</span>');
     const equippedId = wardrobeEquippedId(wardrobeUi.slot);
+    const worn = items.find(i=> i.id===equippedId);
+    detailEl.innerHTML = '<b>ITEM:</b> '+item.name+'<br><b>RARITY:</b> '+item.rarity+'<br><b>DESCRIPTION:</b> '+item.description
+      + (owned ? '' : '<br><span style="color:#c0392b; font-weight:800;">🔒 Unlocks at trainer Level 100 — you can still try it on here</span>');
     const alreadyWorn = item.id===equippedId;
     equipBtn.disabled = !owned || alreadyWorn;
-    equipBtn.textContent = alreadyWorn ? 'Equipped' : 'Equip';
+    equipBtn.textContent = alreadyWorn ? 'Wearing it' : ('Equip'+(worn ? ' (replaces '+worn.name+')' : ''));
     equipBtn.style.opacity = equipBtn.disabled ? '0.55' : '1';
   }
   function equipSelectedWardrobeItem(){
@@ -4472,18 +4688,20 @@
     const item = items.find(i=>i.id===wardrobeUi.selectedId);
     if (!item || !ownsCosmetic(item)) return;
     state.equippedCosmetics = state.equippedCosmetics || {};
-    state.equippedCosmetics[wardrobeUi.slot] = item.id;
+    const before = (COSMETIC_CATALOG[wardrobeUi.slot]||[]).find(i=> i.id===wardrobeEquippedId(wardrobeUi.slot));
+    state.equippedCosmetics[wardrobeUi.slot] = item.id;      // one item per slot: the new one replaces the old
     markDirty(); saveNow(false);
     if (window.mountPlayer3D) window.mountPlayer3D(state.avatar); // keep the map/HUD avatar in sync
     if (window.rebuildWardrobePreview3D) window.rebuildWardrobePreview3D($('#wardrobe-preview-canvas'), state.avatar);
-    renderWardrobeGrid();
-    showToast('Equipped: '+item.name);
+    renderWardrobeGrid(); updateTryOnLabel();
+    showToast('Equipped: '+item.name+(before && before.id !== item.id ? ' (replaced '+before.name+')' : ''));
   }
   function renderWardrobe(){
-    wardrobeUi = { slot:'hat', selectedId:null };
+    wardrobeUi = { slot:'hat', selectedId:null, closeUp:false };
     renderWardrobeTabs();
     renderWardrobeGrid();
     if (window.mountWardrobePreview3D) window.mountWardrobePreview3D($('#wardrobe-preview-canvas'), state.avatar);
+    updateTryOnLabel(); wardrobeFocus(); wardrobeView('spin');
   }
   $('#btn-wardrobe-equip').onclick = equipSelectedWardrobeItem;
   $('#btn-wardrobe-exit').onclick = ()=> openGamePanel('map');
@@ -4547,7 +4765,8 @@
         + '<div class="role-badge" style="color:'+ri.color+';">'+ri.icon+' '+ri.label+'</div>'
         + '<div class="lv">Lv.'+t.level+'</div><div class="cp">PWR '+t.cp+'</div><div class="tier-badge tier-'+t.tier+'">'+t.tier+'</div>'
         + (transferMode ? '<div class="transfer-check">'+(transferSelected.has(t.id)?'✓':'')+'</div>' : '')
-        + (!transferMode && learnableAbilities(t).length ? '<div class="new-move-badge">✨ NEW ABILITY</div>' : '');
+        + (!transferMode && learnableAbilities(t).length ? '<div class="new-move-badge">✨ NEW ABILITY</div>' : '')
+        + (hpOf(t) < t.maxHp ? '<div class="hp-mini"><div style="width:'+Math.round(hpOf(t)/Math.max(1,t.maxHp)*100)+'%;background:'+hpColor(Math.round(hpOf(t)/Math.max(1,t.maxHp)*100))+'"></div></div>'+(hpOf(t)<=0 ? '<div class="fainted-tag">💤 Fainted</div>' : '') : '');
       card.onclick = ()=>{
         if (transferMode){
           if (transferSelected.has(t.id)) transferSelected.delete(t.id); else transferSelected.add(t.id);
@@ -4641,6 +4860,131 @@
     });
   }
 
+  // ---------------- ITEMS ----------------
+  const ITEM_INFO = {
+    raidPass: { name:'Pumpkin Raid Pass', short:'Raid Pass', img:'assets/items/raid-pass.png',
+      desc:'Lets you battle a Gym champion. Walk up to a Gym (a pumpkin tower on the map) and tap it — one pass is used when the battle starts.',
+      how:'Spin PumpkinStops (your first spin each day always has one).' },
+    elixir: { name:"Witch's Brew Healing Elixir", short:'Healing Elixir', img:'assets/items/elixir.png',
+      desc:'Totos keep their injuries after a battle. One elixir heals a Toto back to full health — even one that fainted.',
+      how:'Spin PumpkinStops.' }
+  };
+  // every trainer starts with a few (older saves get them once too)
+  function ensureItems(){
+    if (!state.items || typeof state.items !== 'object') state.items = { raidPass:3, elixir:5 };
+    ['raidPass','elixir'].forEach(k=>{ if (typeof state.items[k] !== 'number') state.items[k] = 0; });
+    return state.items;
+  }
+  function hpOf(t){ return (t.hp != null && isFinite(t.hp)) ? Math.max(0, Math.min(t.maxHp, Math.round(t.hp))) : t.maxHp; }
+  function hpColor(pct){ return pct > 50 ? '#3fbf6a' : pct > 20 ? '#f0a020' : '#e04848'; }
+  function hurtTotos(){ return state.collection.filter(t=> hpOf(t) < t.maxHp).sort((a,b)=> hpOf(a)/a.maxHp - hpOf(b)/b.maxHp); }
+  let healPickOpen = false;
+  function healRowHtml(t){
+    const hp = hpOf(t), pct = Math.round(hp/Math.max(1,t.maxHp)*100);
+    return '<div class="heal-pick-row" data-id="'+t.id+'"><div class="hp-sp">'+spriteMarkup(t)+'</div><div class="hp-info"><div class="hp-nm">'+t.name+' <span>Lv.'+t.level+'</span></div>'
+      + '<div class="hp-bar"><div style="width:'+pct+'%;background:'+hpColor(pct)+'"></div></div><div class="hp-num">'+(hp<=0?'💤 Fainted · ':'')+hp+' / '+t.maxHp+' HP</div></div><div class="hp-go">🧪</div></div>';
+  }
+  function renderItems(){
+    const it = ensureItems(), el = $('#items-list'); if (!el) return;
+    el.innerHTML = ['raidPass','elixir'].map(k=>{
+      const I = ITEM_INFO[k], n = it[k]||0;
+      let extra = '';
+      if (k==='elixir'){
+        const hurt = hurtTotos();
+        extra = '<button class="item-use" data-use="elixir"'+(n && hurt.length ? '' : ' disabled')+'>'+(hurt.length ? (healPickOpen ? 'Cancel' : 'Use') : 'All your Totos are healthy')+'</button>';
+        if (healPickOpen && n && hurt.length) extra += '<div class="heal-pick"><div class="heal-pick-title">Heal which Toto?</div>'+hurt.map(healRowHtml).join('')+'</div>';
+      }
+      return '<div class="item-card" data-item="'+k+'"><img class="item-img" src="'+I.img+'" alt=""><div class="item-info"><div class="item-name">'+I.name+'<span class="item-count">×'+n+'</span></div>'
+        + '<div class="item-desc">'+I.desc+'</div><div class="item-how">Get more: '+I.how+'</div>'+extra+'</div></div>';
+    }).join('');
+    $$('[data-use="elixir"]', el).forEach(b=> b.onclick = ()=>{ healPickOpen = !healPickOpen; renderItems(); });
+    $$('.heal-pick-row', el).forEach(r=> r.onclick = ()=> useElixirOn(r.dataset.id));
+  }
+  function useElixirOn(id){
+    const t = state.collection.find(x=>x.id===id), it = ensureItems();
+    if (!t) return;
+    if (!it.elixir){ showToast('No Healing Elixirs left — spin PumpkinStops for more.'); return; }
+    it.elixir--; t.hp = t.maxHp;
+    Sound.playCatch && Sound.playCatch();
+    showToast('🧪 '+t.name+' is fully healed! ('+it.elixir+' left)');
+    if (!hurtTotos().length) healPickOpen = false;
+    markDirty(); saveNow(false); renderItems(); renderCollection();
+    if (detailTarget && detailTarget.id===id && $('#detail-modal').classList.contains('active')) openDetail(id);
+  }
+  // A Toto keeps whatever damage it took once the battle's over (heal it with an elixir).
+  function saveBattleHp(){
+    if (!battle || battle.hpSaved || !battle.player || !battle.player.ref) return;
+    battle.hpSaved = true;
+    const t = state.collection.find(x=> x.id === battle.player.ref.id); if (!t) return;
+    t.hp = Math.max(0, Math.min(t.maxHp, Math.round(battle.player.hp)));
+    markDirty(); renderCollection();
+    if (t.hp < t.maxHp) setTimeout(()=> showToast(t.hp <= 0 ? ('💤 '+t.name+' fainted — heal it with a Healing Elixir (Items)') : ('❤️ '+t.name+' has '+t.hp+'/'+t.maxHp+' HP — heal it in Items')), 2700);
+  }
+
+  // ---------------- PUMPKINSTOPS ----------------
+  // Real landmarks, park entrances and one on every street (placed from the map data, see
+  // placePumpkinStops). Walk within 40 m and spin one: 5 candy every time, usually a
+  // Healing Elixir, sometimes a Raid Pass (always on your first spin of the day). One spin
+  // every 10 minutes, at any stop.
+  const STOP_RADIUS_M = 40, STOP_COOLDOWN_MS = 10*60*1000;
+  function stopCooldownLeft(){ return Math.max(0, (state.stopCooldownUntil||0) - Date.now()); }
+  function syncStopRest(){ window.__stopRestingUntil = state.stopCooldownUntil || 0; }
+  function fmtMS(ms){ const s = Math.ceil(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+  function allStops(){ const out = []; window.__mapProps.groups.forEach(list=> list.forEach(pr=>{ if (pr.stop) out.push(pr); })); return out; }
+  function nearestStop(){
+    if (!state.playerWorldPos) return null;
+    let best = null, bd = Infinity;
+    allStops().forEach(pr=>{ const d = distanceMetersToWorldPoint(pr.x, pr.y); if (d < bd){ bd = d; best = pr; } });
+    return best ? { pr:best, d:bd } : null;
+  }
+  window.__nearestStop = nearestStop;
+  let openStop = null, stopTimer = null;
+  function renderStopModal(){
+    if (!openStop) return;
+    const d = distanceMetersToWorldPoint(openStop.x, openStop.y), left = stopCooldownLeft(), btn = $('#btn-stop-spin');
+    $('#stop-sub').textContent = Math.round(d)+' m away';
+    const src = (left && !openStop.spun) ? 'assets/stops/stop-rest.png' : 'assets/stops/stop.png';
+    if ($('#stop-img').getAttribute('src') !== src) $('#stop-img').setAttribute('src', src);
+    if (openStop.spun){ btn.disabled = true; btn.textContent = 'Spun!'; }
+    else if (left){ btn.disabled = true; btn.textContent = '⏳ '+fmtMS(left); $('#stop-msg').textContent = 'You can spin 1 PumpkinStop every 10 minutes — next spin in '+fmtMS(left)+'.'; }
+    else if (d > STOP_RADIUS_M){ btn.disabled = true; btn.textContent = 'Too far'; $('#stop-msg').textContent = 'Walk within '+STOP_RADIUS_M+' m of it to spin.'; }
+    else { btn.disabled = false; btn.textContent = '🎃 Spin'; $('#stop-msg').textContent = 'Spin it for candy and items!'; }
+    btn.style.opacity = btn.disabled ? '0.55' : '1';
+  }
+  window.__openPumpkinStop = pr=>{
+    openStop = { x:pr.x, y:pr.y, id:pr.stop.id, name:pr.stop.name, spun:false };
+    $('#stop-name').textContent = pr.stop.name; $('#stop-rewards').innerHTML = ''; $('#stop-msg').textContent = '';
+    renderStopModal();
+    $('#stop-modal').classList.add('active');
+    clearInterval(stopTimer);
+    stopTimer = setInterval(()=>{ if (!$('#stop-modal').classList.contains('active')){ clearInterval(stopTimer); return; } renderStopModal(); }, 1000);
+  };
+  $$('[data-close-stop]').forEach(b=> b.onclick = ()=>{ $('#stop-modal').classList.remove('active'); openStop = null; });
+  $('#btn-stop-spin').onclick = ()=>{
+    if (!openStop || openStop.spun) return;
+    if (stopCooldownLeft() || distanceMetersToWorldPoint(openStop.x, openStop.y) > STOP_RADIUS_M){ renderStopModal(); return; }
+    openStop.spun = true;
+    const img = $('#stop-img'); img.classList.remove('spin'); void img.offsetWidth; img.classList.add('spin');
+    const today = new Date().toDateString();
+    const got = [{ k:'candy', n:5 }];
+    if (Math.random() < 0.7) got.push({ k:'elixir', n:1 });
+    if (state.lastPassDay !== today || Math.random() < 0.25){ got.push({ k:'raidPass', n:1 }); state.lastPassDay = today; }
+    const it = ensureItems();
+    state.candy += 5;
+    got.forEach(g=>{ if (g.k !== 'candy') it[g.k] = (it[g.k]||0) + g.n; });
+    state.stopCooldownUntil = Date.now() + STOP_COOLDOWN_MS; syncStopRest();
+    state.stopSpins = (state.stopSpins||0) + 1;
+    refreshHUD(); markDirty(); saveNow(false);
+    renderStopModal();
+    setTimeout(()=>{
+      Sound.playCatch && Sound.playCatch();
+      $('#stop-rewards').innerHTML = got.map((g,i)=> '<div class="stop-reward" style="animation-delay:'+(i*0.14)+'s">'
+        + (g.k==='candy' ? '<span class="ic">'+candyIconHtml(40)+'</span>' : '<img src="'+ITEM_INFO[g.k].img+'" alt="">')
+        + '<span>+'+g.n+' '+(g.k==='candy' ? 'Candy' : ITEM_INFO[g.k].short)+'</span></div>').join('');
+      $('#stop-msg').textContent = 'Next spin in 10:00 — at any PumpkinStop.';
+    }, 950);
+  };
+
   // ---------------- PROXIMITY GATES ----------------
   let pendingCatch = null;
   function tryStartEncounter(t){
@@ -4674,6 +5018,7 @@
   function tryStartGymRaid(gym){
     const distM = distanceMetersToWorldPoint(gym.x, gym.y);
     if (distM > GYM_RADIUS_M){ showToast('Too far ('+Math.round(distM)+'m) — get within '+GYM_RADIUS_M+'m of the gym.'); return; }
+    if ((ensureItems().raidPass||0) <= 0){ showToast('🎟️ You need a Pumpkin Raid Pass to battle a Gym — spin PumpkinStops to get one.'); return; }
     openBattleSetup({ type:'gym', gym });
   }
 
@@ -4850,7 +5195,10 @@
       $('#det-xp').innerHTML = '<div class="xp-txt"><span>XP '+have.toLocaleString()+' / '+need.toLocaleString()+'</span><span>Lv '+(t.level+1)+' next</span></div>'
         + '<div class="xp-track"><div class="xp-fill" style="width:'+Math.round(have/need*100)+'%"></div></div>';
     }
-    $('#det-stats').innerHTML = statBarRow('HP', t.hp, Math.max(t.maxHp,1), '#4dbf4d') + statBarRow('Attack', t.atk, 1600, '#ff5470') +
+    const hpNow = hpOf(t), itNow = ensureItems();
+    $('#det-heal').innerHTML = hpNow < t.maxHp ? '<div class="det-heal-box"><span>'+(hpNow<=0 ? '💤 Fainted' : '❤️ Hurt')+' · '+hpNow+' / '+t.maxHp+' HP</span><button id="btn-det-heal"'+(itNow.elixir?'':' disabled')+'>🧪 Heal ('+itNow.elixir+')</button></div>' : '';
+    if ($('#btn-det-heal')) $('#btn-det-heal').onclick = ()=> useElixirOn(t.id);
+    $('#det-stats').innerHTML = statBarRow('HP', hpNow, Math.max(t.maxHp,1), '#4dbf4d') + statBarRow('Attack', t.atk, 1600, '#ff5470') +
       statBarRow('Strength', t.strength, 1600, '#ff8a3d') + statBarRow('Defense', t.def, 1300, '#4d7cff') +
       statBarRow('Speed', t.spd, 260, '#7b5cff');
     const maxed = t.level >= TOTO_MAX_LEVEL; const cost = powerUpCost(t);
@@ -5060,6 +5408,7 @@
     $('#setup-card').innerHTML =
       '<div class="setup-title">'+target.name+'</div>'+
       '<div class="setup-sub">'+target.label+': '+target.boss.name+' · PWR '+target.boss.cp+' · '+target.boss.tier+'</div>'+
+      (target.label==='Champion' ? '<div class="setup-pass"><img src="'+ITEM_INFO.raidPass.img+'" alt="">Uses 1 Raid Pass · you have '+(ensureItems().raidPass||0)+'</div>' : '')+
       '<div class="mode-options">'+
         '<div class="mode-card" id="mode-solo"><div class="mi">🧍</div><div class="mn">Solo Battle</div></div>'+
         '<div class="mode-card" id="mode-group"><div class="mi">👥</div><div class="mn">Group Battle</div></div>'+
@@ -5075,15 +5424,18 @@
     // Exactly one Toto goes into battle now — no bench. If it's defeated, you don't swap
     // to a backup; see endBattle()/spectate handling for what happens instead in a group
     // fight (you watch your teammates finish it, and still win if they pull it off).
-    const sorted = state.collection.slice().sort((a,b)=>b.cp-a.cp);
-    let selected = sorted.length ? sorted[0].id : null;
+    const sorted = state.collection.slice().sort((a,b)=> ((hpOf(b)>0) - (hpOf(a)>0)) || (b.cp-a.cp));
+    const healthy = sorted.filter(t=> hpOf(t) > 0);
+    let selected = healthy.length ? healthy[0].id : null;
     function cardsHtml(){
       return sorted.map(t=>{
         const isSel = selected===t.id; const ri = ROLE_INFO[t.role]||ROLE_INFO.attacker;
-        return '<div class="team-card'+(isSel?' sel':'')+'" data-id="'+t.id+'">'+
+        const hp = hpOf(t), pct = Math.round(hp/Math.max(1,t.maxHp)*100);
+        return '<div class="team-card'+(isSel?' sel':'')+(hp<=0?' fainted':'')+'" data-id="'+t.id+'">'+
           '<div class="sp">'+spriteMarkup(t)+'</div><div class="nm">'+t.name+'</div>'
           + '<div class="role-badge" style="color:'+ri.color+';">'+ri.icon+' '+ri.label+'</div>'
-          + '<div class="cp">PWR '+t.cp+'</div>'+
+          + '<div class="cp">PWR '+t.cp+'</div>'
+          + (hp < t.maxHp ? '<div class="hp-mini"><div style="width:'+pct+'%;background:'+hpColor(pct)+'"></div></div><div class="hp-num">'+(hp<=0?'💤 Fainted':hp+'/'+t.maxHp+' HP')+'</div>' : '')+
         '</div>';
       }).join('');
     }
@@ -5092,14 +5444,16 @@
       '<div class="setup-sub">Pick exactly 1 — this is who fights</div>'+
       '<div class="team-grid" id="team-grid">'+cardsHtml()+'</div>'+
       '<div class="btn-row"><button class="btn-cancel" id="team-cancel">Cancel</button><button class="btn-catch" id="team-confirm">Battle!</button></div>';
+    if (!healthy.length) $('#team-grid').insertAdjacentHTML('beforebegin', '<div class="setup-sub" style="color:#c0392b;">All your Totos have fainted — heal one with a Healing Elixir (Items) first.</div>');
     $$('.team-card', $('#team-grid')).forEach(card=>{
       card.onclick = ()=>{
+        if (card.classList.contains('fainted')){ showToast('💤 It fainted — heal it with a Healing Elixir first (Items).'); return; }
         selected = card.dataset.id;
         $$('.team-card', $('#team-grid')).forEach(c=> c.classList.toggle('sel', c.dataset.id===selected));
       };
     });
     $('#team-confirm').onclick = ()=>{
-      if (!selected){ showToast('You need a Toto to battle with!'); return; }
+      if (!selected){ showToast(healthy.length ? 'Pick a Toto to battle with!' : '💤 Your Totos need healing first — use a Healing Elixir (Items).'); return; }
       const team = [state.collection.find(t=>t.id===selected)].filter(Boolean);
       // Bots that joined the lobby before you picked (see renderLobbyStep) don't know
       // their role yet — now that we know YOUR role, hand each pending bot one of the
@@ -5238,7 +5592,7 @@
     const role = ROLE_KITS[t.role] ? t.role : 'attacker';
     const kit = allKnown ? abilityKit(t).filter(a=> (t.level||1) >= a.level) : learnedAbilities(t);
     return { ref:t, name:t.name, sprite: spriteHtml || spriteMarkup(t), level:t.level||1, cp:t.cp, tier:t.tier||'normal', role,
-             maxHp:t.maxHp, hp:t.maxHp, atk:Math.max(1,t.atk||1), def:Math.max(1,t.def||1), spd:t.spd||1, isToni:!!t.isToni,
+             maxHp:t.maxHp, hp:(t.hp != null && isFinite(t.hp)) ? Math.max(0, Math.min(t.maxHp, t.hp)) : t.maxHp, atk:Math.max(1,t.atk||1), def:Math.max(1,t.def||1), spd:t.spd||1, isToni:!!t.isToni,
              kit, cds:{}, fx:{}, used:{}, swingAt:0, thinkAt:0 };
   }
   // The boss: an Attacker-strength body for its tier/level, flavoured by its role (a tank
@@ -5254,7 +5608,10 @@
     return { ref:t, name:t.name, sprite:spriteMarkup(t), level:lvl, tier, role:t.role||'attacker', maxHp, hp:maxHp,
              atk: base.atk*fl.atk, def: base.def*fl.def, unit: hpBase*BOSS_HP_MULT.solo*DMG_P };
   }
-  function strongestToto(){ return state.collection.length ? state.collection.slice().sort((a,b)=>b.cp-a.cp)[0] : null; }
+  function strongestToto(){
+    const healthy = state.collection.filter(t=> hpOf(t) > 0), pool = healthy.length ? healthy : state.collection;
+    return pool.length ? pool.slice().sort((a,b)=>b.cp-a.cp)[0] : null;
+  }
 
   // ---------------- BATTLE VIEW: layout, icons, rendering ----------------
   // Role look (aura/ring/plate colours) and crisp SVG role icons — emoji role icons render
@@ -5599,6 +5956,7 @@
     return m;
   }
   function bossHitOn(f, mult){
+    if (battle.practice) return f.hp - f.maxHp*0.05 < f.maxHp*0.25 ? 1 : Math.max(1, Math.round(f.maxHp*0.05*(mult||1)));
     const e = battle.enemy;
     const g = e.atk/(e.atk + f.def);
     return Math.max(1, Math.round(e.atk * battle.bossK * g * mult * (1 - armorOf(f)) * bossPower() * (0.9 + Math.random()*0.2)));
@@ -5887,6 +6245,13 @@
     // For catch battles there's no team pick — just your strongest Toto, like before.
     const team = (opts.team && opts.team.length) ? opts.team : [strongestToto()].filter(Boolean);
     if (!team.length) return;
+    // a Gym battle uses up one Raid Pass
+    if (opts.kind === 'gym' && !opts.practice){
+      const it = ensureItems();
+      if ((it.raidPass||0) <= 0){ showToast('🎟️ You need a Pumpkin Raid Pass to battle a Gym.'); return; }
+      it.raidPass--; markDirty(); saveNow(false);
+      setTimeout(()=> showToast('🎟️ Used 1 Raid Pass ('+it.raidPass+' left)'), 700);
+    }
     const lead = team.slice().sort((a,b)=>b.cp-a.cp)[0];
     const group = !!(opts.allies && opts.allies.length);
     const mode = opts.mode==='catch' ? 'catch' : (group ? 'group' : 'solo');
@@ -6048,6 +6413,7 @@
   $('#bx-menu-sound').onclick = ()=>{ const mb = $('#btn-mute'); if (mb) mb.click(); $('#bx-menu-sound').textContent = (Sound.isMuted && Sound.isMuted() ? '🔇' : '🔊')+' Sound'; };
 
   function closeBattleScreen(){
+    saveBattleHp();      // retreating keeps the damage too
     if (battle && battle.practice) window.__tutorialPracticeDone = true;
     $('#bx-coach').classList.remove('show'); $('#bx-coach-hand').classList.remove('show');
     $('#battle-screen').classList.remove('active');
@@ -6086,6 +6452,7 @@
     if (!won && battle.group && battle.team.some(m=> m.hp > 0)){ battle.spectating = true; renderBattle(); return; }
     cancelTargeting();
     battle.over = true; clearBattleTimers(); renderBattle();
+    saveBattleHp();
     awardBattleXp(won);
     const banner = $('#bx-banner');
     banner.textContent = won ? 'VICTORY!' : 'DEFEAT';
@@ -6205,6 +6572,20 @@
       if ($('#detail-modal').classList.contains('active') || !state.collection.length) return;
       openGamePanel('totos'); openDetail(state.collection.slice().sort((a,b)=> (b.cp||0)-(a.cp||0))[0].id);
     }
+    // the PumpkinStop closest to you (the lesson points at it, and has you spin it if you can)
+    let tutStop = null;
+    function pickStop(){ tutStop = (window.__nearestStop && window.__nearestStop()) || null; return tutStop; }
+    function stopBox(){
+      const n = tutStop || pickStop(); if (!n) return null;
+      const h = window.__stopHitBox && window.__stopHitBox(n.pr.stop.id);
+      return h ? { left:h.x0, top:h.y0, width:h.x1-h.x0, height:h.y1-h.y0 } : null;
+    }
+    const canSpinNow = ()=>{ const n = tutStop || pickStop(); return !!n && n.d <= 40 && !((state.stopCooldownUntil||0) > Date.now()); };
+    const stopOpen = ()=> $('#stop-modal').classList.contains('active');
+    // a stop right behind your trainer would be hidden by her — let it show through
+    const ghostTrainer = on=>{ const pin = q('.player-pin'); if (pin) pin.style.opacity = on ? '0.28' : ''; };
+    const needsHeal = ()=> hurtTotos().length > 0;
+    const showMenu = ()=>{ if (!$('#quick-menu').classList.contains('show')){ $('#quick-menu').classList.add('show'); $('#quick-menu-backdrop').classList.add('show'); } };
     function makeSteps(){
       const name = state.username || 'Trainer';
       return [
@@ -6212,12 +6593,20 @@
         { title:'This is you', target:()=> q('#player-avatar'), text:'Your trainer stands where you are. Walk around in real life and your trainer walks with you. The map is your real neighbourhood — streets, houses, parks and ball fields.' },
         { title:'Look around', text:'Drag with one finger to turn the map. Pinch with two fingers to zoom in and out.' },
         { title:'A wild Toto!', enter: ensureTutorialToto, target:()=> totoBox(ensureTutorialToto()), text:'Wild Totos stand on glowing rings. The tag shows its power (PWR) and how far away it is. When the distance turns green you\'re close enough to catch it — within 40 m.' },
-        { title:'Catch it', target:()=> totoBox(ensureTutorialToto()), tap:true, text:'Tap the Toto.', until:()=> $('#encounter-modal').classList.contains('active') },
+        { title:'Catch it', enter:()=>{ const t = ensureTutorialToto(); if (t) t._hold = true; }, target:()=> totoBox(ensureTutorialToto()), tap:true, text:'Tap the Toto.', until:()=> $('#encounter-modal').classList.contains('active') },
         { title:'Throw!', target:()=> q('#btn-throw'), tap:true, cardAt:'top', text:'Tap Throw to catch it. Every Toto you catch starts at Lv 1 — you train it up yourself.', until:()=> state.collection.length > startCatches,
           keep:()=>{ if (!$('#encounter-modal').classList.contains('active') && state.collection.length <= startCatches) go(i-1); },   // ran away? try again
           leave:()=>{ if (tutToto) tutToto._hold = false; } },
         { title:'Totos nearby', target:()=> q('#hud-nearby-chip'), text:'This counts the Totos near you. Wild Totos wander off after 3 minutes, and a new one turns up in the same spot a minute later — so keep checking around!' },
-        { title:'Candy & gems', target:()=> q('#hud-candy-chip'), text:'Candy levels up your Totos. Grab the candy corn you spot on the map for free candy. Gems (just below) are for the Store.' },
+        { title:'PumpkinStops', enter:()=>{ pickStop(); ghostTrainer(true); }, target:stopBox,
+          text:()=> 'Glowing signposts like this are PumpkinStops — at parks, playgrounds, churches, monuments and on every street. Spin one for 5 candy, and usually a Healing Elixir or a Raid Pass too. You can spin 1 stop every 10 minutes.'
+            + (canSpinNow() ? ' There\'s one right by you — let\'s spin it!' : (stopBox() ? ' Walk within 40 m of one to spin it.' : ' There isn\'t one on screen right now — look out for them as you walk.')) },
+        { title:'Spin a PumpkinStop', skipIf:()=> !canSpinNow(), enter:()=> ghostTrainer(true), target:stopBox, tap:true, text:'Tap the PumpkinStop.', until:stopOpen, leave:()=> ghostTrainer(false) },
+        { title:'Spin!', skipIf:()=> !stopOpen(), target:()=> q('#btn-stop-spin'), tap:true, cardAt:'top', text:'Tap Spin.', until:()=> !!q('#stop-rewards .stop-reward'),
+          keep:()=>{ if (!stopOpen()) go(i-1); } },
+        { title:'Your rewards', skipIf:()=> !stopOpen(), target:()=> q('#stop-rewards'), cardAt:'top', text:'They go straight into your bag. The stop turns purple while you wait for your next spin.',
+          leave:()=>{ $('#stop-modal').classList.remove('active'); } },
+        { title:'Candy & gems', enter:()=> ghostTrainer(false), target:()=> q('#hud-candy-chip'), text:'Candy levels up your Totos. Grab the candy corn you spot on the map for free candy. Gems (just below) are for the Store.' },
         { title:'Real time & weather', target:()=> q('#hud-daynight'), text:'The map follows your real time of day and weather.' },
         { title:'The menu', target:()=> q('#btn-menu'), tap:true, text:'Tap the pumpkin to open the menu.', until:()=> $('#quick-menu').classList.contains('show') },
         { title:'Your Totos', target:()=> q('.qm-btn[data-tab="totos"]'), tap:true, text:'Tap Totos to see your collection.', until:()=> !!q('.panel-screen[data-panel="totos"].active'),
@@ -6228,16 +6617,26 @@
         { title:'Levels & XP', keep:keepDetail, target:()=> q('#det-xp') && q('#det-xp').innerHTML ? q('#det-xp') : q('#det-sub'), text:'Its level and XP. Totos earn XP from every battle they fight — or level up instantly with candy using Power Up.' },
         { title:'Abilities', keep:keepDetail, enter:()=>{ const b = q('.moves-box'); if (b) b.scrollIntoView({ block:'center' }); }, target:()=> q('.moves-box'),
           text:'Every Toto has a role — Attacker, Tank, Healer or Support — and learns a new role ability at Lv 10, 20, 30, 40 and 50. When one unlocks, tap Learn here. Learned abilities appear in battle.' },
-        { title:'Gyms', enter:()=>{ closeAll(); openGamePanel('battle'); }, target:()=> q('#battle-shrine-list > *') || q('.panel-screen[data-panel="battle"] .panel-header'),
-          text:'Pumpkin towers on the map are gyms — this list shows the ones near you. Walk right up to one to battle its champion. Win, and the champion joins your team.' },
-        { title:'Challenger Shrines', enter:()=> openGamePanel('challenger'), target:()=> q('#challenger-list > *') || q('.panel-screen[data-panel="challenger"] .panel-header'),
-          text:'Mighty Eternal guardians you can battle from anywhere — alone or in a group. They\'re tough: train your Totos first, or bring a team with a Tank, Healer and Support.' },
         { title:'Practice battle', enter:closeAll, text:'Let\'s try a quick practice battle with your Toto. I\'ll show you the controls.', nextLabel:'Start battle ⚔️' },
         { practice:true },
-        { title:'Teamwork', text:'In Group Battles, each Toto plays its role: Tanks can Taunt so the boss attacks only them, Healers keep everyone alive, Supports protect and power up the team, and Attackers deal the big damage. For a heal or shield, tap the ability, then tap who on the team list.' },
-        { title:'Your trainer', target:()=> q('#hud-avatar'), text:'Tap your picture to customize your outfit (earn new clothes as you level) or open your Profile, where the Store lives.' },
+        { title:'Ouch — your Toto got hurt', enter:closeAll, skipIf:()=> !needsHeal(),
+          text:'Totos keep their injuries after every battle, and one that faints can\'t battle again until it\'s healed. Let\'s heal yours with a Healing Elixir.' },
+        { title:'Open the menu', skipIf:()=> !needsHeal(), target:()=> q('#btn-menu'), tap:true, text:'Tap the pumpkin.', until:()=> $('#quick-menu').classList.contains('show') },
+        { title:'Items', skipIf:()=> !needsHeal(), target:()=> q('.qm-btn[data-tab="items"]'), tap:true, text:'Tap Items — this is your bag.', until:()=> !!q('.panel-screen[data-panel="items"].active'), keep:showMenu },
+        { title:'Healing Elixir', skipIf:()=> !needsHeal(), target:()=> q('[data-use="elixir"]'), tap:true, text:'Tap Use on the Healing Elixir.', until:()=> !!q('.heal-pick-row'),
+          keep:()=>{ if (!q('.panel-screen[data-panel="items"].active')) openGamePanel('items'); } },
+        { title:'Pick your Toto', skipIf:()=> !needsHeal(), target:()=> q('.heal-pick-row'), tap:true, text:'Tap your Toto to heal it back to full health.', until:()=> !needsHeal(),
+          keep:()=>{ if (!q('.heal-pick-row') && needsHeal()){ if (!q('.panel-screen[data-panel="items"].active')) openGamePanel('items'); healPickOpen = true; renderItems(); } } },
+        { title:'Raid Passes', enter:()=>{ if (!q('.panel-screen[data-panel="items"].active')){ closeAll(); openGamePanel('items'); } }, target:()=> q('.item-card[data-item="raidPass"]'),
+          text:'Gyms need a Pumpkin Raid Pass — one is used each time you battle a Gym champion. You start with 3, and PumpkinStops give you more (always on your first spin of the day).' },
+        { title:'Gyms', enter:()=>{ closeAll(); openGamePanel('battle'); }, target:()=> q('#battle-shrine-list > *') || q('.panel-screen[data-panel="battle"] .panel-header'),
+          text:'Pumpkin towers on the map are Gyms — this list shows the ones near you. Walk right up to one and tap it to battle its champion (that uses a Raid Pass). Win, and the champion joins your team.' },
+        { title:'Challenger Shrines', enter:()=> openGamePanel('challenger'), target:()=> q('#challenger-list > *') || q('.panel-screen[data-panel="challenger"] .panel-header'),
+          text:'Mighty Eternal guardians you can battle from anywhere, alone or in a group — no pass needed. They\'re tough: train your Totos first, or bring a team with a Tank, Healer and Support.' },
+        { title:'Teamwork', enter:closeAll, text:'In Group Battles, each Toto plays its role: Tanks can Taunt so the boss attacks only them, Healers keep everyone alive, Supports protect and power up the team, and Attackers deal the big damage. For a heal or shield, tap the ability, then tap who on the team list.' },
+        { title:'Your trainer', target:()=> q('#hud-avatar'), text:'Tap your picture to dress your trainer — new items replace what she\'s wearing, and you can try things on first. Reach trainer Level 100 to earn the Level 100 Achievement Tee and the Prestige Witch Hat. Your Profile and the Store are here too.' },
         { title:'More in the menu', enter:()=>{ $('#quick-menu').classList.add('show'); $('#quick-menu-backdrop').classList.add('show'); }, target:()=> q('#quick-menu'),
-          text:'Dex tracks every kind of Toto you\'ve found, Ranks shows the top trainers, and Tutorial plays this lesson again any time.', leave:closeAll },
+          text:'Items is your bag (Raid Passes and Healing Elixirs), Dex tracks every kind of Toto you\'ve found, Ranks shows the top trainers, and Tutorial plays this lesson again any time.', leave:closeAll },
         { title:'You\'re ready! 🎃', text:'Here are 100 candy to get you started. Go catch some Totos!', nextLabel:'Let\'s go!' }
       ];
     }
@@ -6298,7 +6697,7 @@
       layer.style.display = '';
       layer.querySelector('.tut-step').textContent = 'Tutorial · '+(i+1)+' / '+steps.length;
       layer.querySelector('.tut-title').textContent = s.title || '';
-      layer.querySelector('.tut-text').textContent = s.text || '';
+      layer.querySelector('.tut-text').textContent = (typeof s.text === 'function' ? s.text() : s.text) || '';
       const nb = layer.querySelector('.tut-next');
       nb.style.display = s.until ? 'none' : '';
       nb.textContent = s.nextLabel || (i === steps.length-1 ? 'Finish' : 'Next');
@@ -6309,6 +6708,7 @@
     function go(k){
       const prev = steps[i];
       if (prev && prev.leave) { try { prev.leave(); } catch(e){} }
+      if (k > i) while (k < steps.length && steps[k].skipIf && (()=>{ try { return steps[k].skipIf(); } catch(e){ return true; } })()) k++;
       i = k;
       if (i >= steps.length){ finish(false); return; }
       const s = steps[i]; s._fired = false;
@@ -6318,8 +6718,10 @@
     }
     function next(){ go(i+1); }
     function startPractice(){
-      const lead = state.collection.slice().sort((a,b)=> (b.cp||0)-(a.cp||0))[0];
+      const fit = state.collection.filter(t=> hpOf(t) > 0), pool = fit.length ? fit : state.collection;
+      const lead = pool.slice().sort((a,b)=> (b.cp||0)-(a.cp||0))[0];
       if (!lead){ setTimeout(next, 50); return; }
+      lead.hp = Math.max(hpOf(lead), Math.round(lead.maxHp*0.6));   // practice never starts on a fainted Toto
       const opp = makeToto('normal'); applyLevelStats(opp, 1);
       window.__tutorialPracticeDone = false;
       launchBattle({ mode:'solo', kind:'gym', opponent:opp, team:[lead], allies:[], practice:true });
@@ -6344,6 +6746,7 @@
     function finish(skipped){
       running = false; clearInterval(ticker); ticker = null;
       if (tutToto){ tutToto._hold = false; tutToto = null; }
+      tutStop = null; ghostTrainer(false);
       if (layer){ layer.remove(); layer = null; }
       closeAll();
       if (!state.tutorialDone && !skipped){ state.candy += 100; refreshHUD(); showToast('🎃 Tutorial complete — +100 candy!'); }
@@ -6428,7 +6831,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v44';
+window.TQ_APP_VERSION = 'v45';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -7005,6 +7408,69 @@ window.TQ_APP_VERSION = 'v44';
       hatTexCache[key] = tex;
       return tex;
     }
+    // ---- Prestige Witch Hat textures (navy velvet, gold constellations, runes, braid) ----
+    let prestigeConeTex = null, prestigeBrimTex = null, braidTex = null, prestigeBadgeTex = null;
+    function drawConstellations(ctx, W, H, seed, n){
+      let s = seed; const r = ()=>{ s = (s*9301+49297)%233280; return s/233280; };
+      for (let k=0;k<n;k++){
+        const pts = []; let x = r()*W, y = H*0.18 + r()*H*0.7;
+        for (let j=0;j<4+Math.floor(r()*3);j++){ pts.push([x,y]); x += (r()-0.4)*W*0.09; y += (r()-0.5)*H*0.16; }
+        ctx.strokeStyle = 'rgba(232,190,96,0.85)'; ctx.lineWidth = 1.6; ctx.beginPath(); pts.forEach(([px,py],i)=> i ? ctx.lineTo(px,py) : ctx.moveTo(px,py)); ctx.stroke();
+        pts.forEach(([px,py])=>{ ctx.fillStyle = '#ffe3a0'; ctx.beginPath(); ctx.arc(px, py, 2.6, 0, Math.PI*2); ctx.fill(); });
+      }
+      for (let k=0;k<70;k++){ ctx.fillStyle = 'rgba(255,230,170,'+(0.35+r()*0.5)+')'; ctx.beginPath(); ctx.arc(r()*W, r()*H, 0.8+r()*1.4, 0, Math.PI*2); ctx.fill(); }
+    }
+    const RUNE_GLYPHS = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
+    function makePrestigeConeTexture(){
+      if (prestigeConeTex) return prestigeConeTex;
+      const W = 512, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2a3790'); g.addColorStop(1,'#141c52'); ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      for (let i=0;i<8;i++){ ctx.fillStyle = 'rgba(0,0,10,0.16)'; ctx.fillRect(i*W/8+10, 0, 12, H); ctx.fillStyle = 'rgba(120,140,255,0.08)'; ctx.fillRect(i*W/8+24, 0, 8, H); }
+      drawConstellations(ctx, W, H*0.86, 7, 9);
+      ctx.fillStyle = '#121845'; ctx.fillRect(0, H-34, W, 26);
+      ctx.strokeStyle = '#e2b04a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(0,H-34); ctx.lineTo(W,H-34); ctx.moveTo(0,H-8); ctx.lineTo(W,H-8); ctx.stroke();
+      ctx.fillStyle = '#e8bf62'; ctx.font = 'bold 18px serif'; ctx.textBaseline = 'middle';
+      let i = 0; for (let x=4; x<W; x+=19){ ctx.fillText(RUNE_GLYPHS[i++ % RUNE_GLYPHS.length], x, H-21); }
+      const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+      return (prestigeConeTex = t);
+    }
+    function makePrestigeBrimTexture(){
+      if (prestigeBrimTex) return prestigeBrimTex;
+      const S = 512, c = document.createElement('canvas'); c.width = c.height = S;
+      const ctx = c.getContext('2d'), m = S/2;
+      const g = ctx.createRadialGradient(m,m,40, m,m,m); g.addColorStop(0,'#26338a'); g.addColorStop(1,'#151d55'); ctx.fillStyle = g; ctx.fillRect(0,0,S,S);
+      drawConstellations(ctx, S, S, 21, 12);
+      // gold rune band round the edge
+      ctx.strokeStyle = '#e2b04a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(m,m,m-6,0,Math.PI*2); ctx.stroke();
+      ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(m,m,m-34,0,Math.PI*2); ctx.stroke();
+      ctx.save(); ctx.translate(m,m);
+      ctx.fillStyle = '#e8bf62'; ctx.font = 'bold 18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (let i=0;i<64;i++){ ctx.save(); ctx.rotate(i/64*Math.PI*2); ctx.fillText(RUNE_GLYPHS[i % RUNE_GLYPHS.length], 0, -(m-20)); ctx.restore(); }
+      ctx.restore();
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+      return (prestigeBrimTex = t);
+    }
+    function makeBraidTexture(){
+      if (braidTex) return braidTex;
+      const W = 256, H = 32, c = document.createElement('canvas'); c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#8a5f17'; ctx.fillRect(0,0,W,H);
+      for (let x=-16; x<W+16; x+=16){
+        ctx.fillStyle = '#f2cd6a'; ctx.beginPath(); ctx.ellipse(x+8, 9, 9, 4.2, 0.6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#c99a35'; ctx.beginPath(); ctx.ellipse(x+16, 22, 9, 4.2, -0.6, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(60,35,5,0.6)'; ctx.lineWidth = 2; ctx.strokeRect(0,1,W,H-2);
+      const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.repeat.x = 3; t.colorSpace = THREE.SRGBColorSpace;
+      return (braidTex = t);
+    }
+    function getPrestigeBadgeTexture(){
+      if (prestigeBadgeTex) return prestigeBadgeTex;
+      const t = new THREE.TextureLoader().load('assets/wardrobe/prestige-badge.png');
+      t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+      return (prestigeBadgeTex = t);
+    }
+
     let weaveTex = null;
     function makeWeaveTexture(){
       if (weaveTex) return weaveTex;
@@ -7253,7 +7719,9 @@ window.TQ_APP_VERSION = 'v44';
       if (isFemale){
         // long curly locks falling past the shoulders, both sides + back
         // two staggered columns per lock so each reads as a fat ringlet, not a bead string
-        [[-1,0],[1,0],[-0.6,0.8],[0.6,0.8],[-0.25,1],[0.25,1]].forEach(([dx,dz],k)=>{
+        // (in the Level 100 tee her curls are swept forward over the shoulders, so the
+        //  LEVEL 100 lettering across the back of the shirt isn't hidden under them)
+        (isTee ? [[-1,0],[1,0],[-0.95,-0.25],[0.95,-0.25]] : [[-1,0],[1,0],[-0.6,0.8],[0.6,0.8],[-0.25,1],[0.25,1]]).forEach(([dx,dz],k)=>{
           for (let j=0;j<6;j++){
             const r = 0.082 - j*0.006;
             const wob = (j%2 ? 1 : -1)*0.03;
@@ -7268,10 +7736,11 @@ window.TQ_APP_VERSION = 'v44';
       // ---- Hat ----
       if (cfg.hat){
         const hatColor = cfg.hat.color || '#4a2f6b', hatTrim = cfg.hat.trim || '#ffb347';
-        const witch = cfg.hat.kind === 'witchHat';
+        const prestige = cfg.hat.kind === 'prestigeHat';
+        const witch = cfg.hat.kind === 'witchHat' || prestige;
         const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.62, 0.02); hatGroup.rotation.x = -0.12; headGroup.add(hatGroup);
         // wavy, drooping brim
-        const brimR = witch ? 0.56 : 0.44;
+        const brimR = prestige ? 0.6 : (witch ? 0.56 : 0.44);
         const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.03, 64, 1);
         const bp = brimGeo.attributes.position;
         for (let i=0;i<bp.count;i++){
@@ -7280,7 +7749,7 @@ window.TQ_APP_VERSION = 'v44';
           bp.setY(i, bp.getY(i) - f*(witch ? 0.07 : 0.035)*(0.7 + 0.3*Math.sin(a*3 + 0.6)));
         }
         brimGeo.computeVertexNormals();
-        part(hatGroup, brimGeo, toon(hatColor), { outline:0.012 });
+        part(hatGroup, brimGeo, prestige ? toon('#ffffff', { map: makePrestigeBrimTexture() }) : toon(hatColor), { outline:0.012 });
         // tall cone, bent back at the tip (classic crumpled witch hat)
         const H = witch ? 0.78 : 0.5, r0 = witch ? 0.235 : 0.22;
         const cprof = []; for (let i=0;i<=12;i++){ const t = i/12; cprof.push(new THREE.Vector2(Math.max(0.006, r0*(1-t)*(1-0.12*Math.sin(t*Math.PI*3))), t*H)); }
@@ -7293,10 +7762,33 @@ window.TQ_APP_VERSION = 'v44';
           cpp.setY(i, cpp.getY(i) - (witch ? 0.12 : 0.03)*Math.pow(t, 3));
         }
         coneGeo.computeVertexNormals();
-        part(hatGroup, coneGeo, toon('#ffffff', { map: makeHatTexture(hatColor, hatTrim) }), { outline:0.012 });
-        part(hatGroup, new THREE.CylinderGeometry(r0*1.0, r0*1.03, 0.07, 32, 1, true), toon(hatTrim, { side:THREE.DoubleSide }), { pos:[0,0.045,0], outline:0.008 });
-        part(hatGroup, new THREE.BoxGeometry(0.07, 0.06, 0.02), buckleMat, { pos:[0,0.045,-r0-0.01], outline:0.004 });
-        if (witch){ const hb = makeBat(0.09); hb.position.set(0.3, 0.03, -0.2); hb.rotation.set(0.2, 0.6, 0.15); hatGroup.add(hb); root.userData.hatBat = hb; }
+        part(hatGroup, coneGeo, toon('#ffffff', { map: prestige ? makePrestigeConeTexture() : makeHatTexture(hatColor, hatTrim) }), { outline:0.012 });
+        if (prestige){
+          // braided gold band with the phoenix "Level 100" crest on the front
+          part(hatGroup, new THREE.CylinderGeometry(r0*1.03, r0*1.07, 0.1, 40, 1, true), toon('#ffffff', { map: makeBraidTexture(), side:THREE.DoubleSide }), { pos:[0,0.055,0], outline:0.008 });
+          const crest = new THREE.Mesh(new THREE.PlaneGeometry(0.21, 0.26), new THREE.MeshBasicMaterial({ map: getPrestigeBadgeTexture(), transparent:true, alphaTest:0.35, side:THREE.DoubleSide }));
+          crest.position.set(0, 0.085, -r0*1.07 - 0.018); crest.rotation.set(-0.08, Math.PI, 0);
+          if (!isFemale) crest.scale.x = -1;        // the male figure is mirrored as a whole
+          hatGroup.add(crest);
+          // crystal cluster at the bent tip
+          const tip = new THREE.Group(); tip.position.set(0.10, H-0.12, 0.34); hatGroup.add(tip);
+          [['#8fe3ff',0,0.05,0,0],['#c78bff',-0.045,0.03,0.02,0.5],['#ffd66a',0.045,0.025,-0.02,-0.5]].forEach(([c,x,y,z,r])=>
+            part(tip, new THREE.OctahedronGeometry(0.034), toon(c, { emissive:c, emissiveIntensity:0.45 }), { pos:[x,y,z], rot:[0,0,r], scale:[0.7,1.7,0.7], outline:0.004 }));
+          part(tip, new THREE.TorusGeometry(0.03, 0.01, 6, 14), toon(hatTrim), { rot:[Math.PI/2,0,0], outline:0.003 });
+          // little gold stars and moons dangling from the brim
+          const goldM = toon('#e2b04a', { emissive:'#5a3c08', emissiveIntensity:0.4 });
+          [[-2.3,'star'],[-1.35,'moon'],[-0.5,'star'],[0.6,'moon'],[1.5,'star'],[2.45,'star']].forEach(([a, kind])=>{
+            const droop = 0.07*(0.7 + 0.3*Math.sin(a*3 + 0.6));
+            const hang = new THREE.Group(); hang.position.set(Math.cos(a)*brimR*0.95, -0.02 - droop*0.92, Math.sin(a)*brimR*0.95); hatGroup.add(hang);
+            part(hang, new THREE.CylinderGeometry(0.003, 0.003, 0.07, 4), goldM, { pos:[0,-0.035,0], outline:0 });
+            if (kind === 'star') part(hang, new THREE.OctahedronGeometry(0.03), goldM, { pos:[0,-0.085,0], scale:[1,1,0.35], rot:[0,0,0.4], outline:0.004 });
+            else part(hang, new THREE.TorusGeometry(0.024, 0.008, 6, 14, Math.PI*1.35), goldM, { pos:[0,-0.085,0], rot:[0,0,0.9], outline:0.003 });
+          });
+        } else {
+          part(hatGroup, new THREE.CylinderGeometry(r0*1.0, r0*1.03, 0.07, 32, 1, true), toon(hatTrim, { side:THREE.DoubleSide }), { pos:[0,0.045,0], outline:0.008 });
+          part(hatGroup, new THREE.BoxGeometry(0.07, 0.06, 0.02), buckleMat, { pos:[0,0.045,-r0-0.01], outline:0.004 });
+        }
+        if (witch && !prestige){ const hb = makeBat(0.09); hb.position.set(0.3, 0.03, -0.2); hb.rotation.set(0.2, 0.6, 0.15); hatGroup.add(hb); root.userData.hatBat = hb; }
         root.userData.hat = hatGroup;
         tryLoadRealModel(cfg.hat, headGroup);
       }
@@ -7333,7 +7825,11 @@ window.TQ_APP_VERSION = 'v44';
       leftArm.rotation.z = -0.38;
 
       // ---- Male look keeps its little shoulder cat from its own reference sheet ----
-      if (!isFemale){ const cat = makeCatCompanion(cfg.hat && cfg.hat.color); cat.scale.setScalar(1.6); cat.position.set(-0.27, SHOULDER_Y+0.02, 0.0); cat.rotation.y = 0.25; body.add(cat); }
+      if (!isFemale){
+        const cat = makeCatCompanion(cfg.hat && cfg.hat.color); cat.scale.setScalar(1.6);
+        // in the Level 100 tee the cat sits a little forward so its tail doesn't cover LEVEL 100 on the back
+        cat.position.set(-0.27, SHOULDER_Y+0.02, isTee ? -0.11 : 0.0); cat.rotation.y = isTee ? 0.9 : 0.25; body.add(cat);
+      }
       // His sheet is the mirror image of hers (staff in the left hand, cat on the right
       // shoulder) — mirror the whole figure rather than duplicating every placement.
       if (!isFemale) body.scale.x = -1;
@@ -7540,7 +8036,11 @@ window.TQ_APP_VERSION = 'v44';
       // dragging — the live-rotating preview the brief asked for, without needing the
       // player to discover the drag gesture first.
       let orbitDeg = 20, dragging = false, lastX = 0;   // idle pose faces +Z, so ~0° = front
-      canvas.addEventListener('pointerdown', e=>{ dragging = true; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
+      // Front / Back buttons glide the camera round; Spin turns slowly on its own; dragging
+      // takes over. Close-ups frame the slot you're dressing (head, torso, legs, feet).
+      let autoSpin = true, targetOrbit = null, focus = 'full', curH = 3.0, curCy = null;
+      const FOCUS = { full:{ h:3.0, cy:null }, head:{ h:1.5, cy:1.85 }, torso:{ h:1.25, cy:0.86 }, legs:{ h:1.1, cy:0.42 }, feet:{ h:0.8, cy:0.22 } };
+      canvas.addEventListener('pointerdown', e=>{ dragging = true; autoSpin = false; targetOrbit = null; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
       canvas.addEventListener('pointermove', e=>{ if (!dragging) return; orbitDeg += (e.clientX-lastX)*0.6; lastX = e.clientX; });
       window.addEventListener('pointerup', ()=>{ dragging = false; });
       canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
@@ -7549,10 +8049,18 @@ window.TQ_APP_VERSION = 'v44';
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
+        if (targetOrbit != null){
+          const d = ((targetOrbit - orbitDeg) % 360 + 540) % 360 - 180;
+          orbitDeg += d*0.14; if (Math.abs(d) < 0.2) orbitDeg = targetOrbit;
+        } else if (!dragging && autoSpin) orbitDeg += 0.3;
         const rad = THREE.MathUtils.degToRad(orbitDeg);
-        placePlayerCamera(camera, rad, 3.0, 20, ch);
+        const f = FOCUS[focus] || FOCUS.full;
+        const wantCy = f.cy == null ? (3.0/2 - 20*(3.0/ch)) : f.cy;
+        curH += (f.h - curH)*0.14; curCy = curCy == null ? wantCy : curCy + (wantCy - curCy)*0.14;
+        const dist = curH / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2));
+        camera.position.set(Math.sin(rad)*dist*Math.cos(FRAME_ELEV), curCy + dist*Math.sin(FRAME_ELEV), Math.cos(rad)*dist*Math.cos(FRAME_ELEV));
+        camera.lookAt(0, curCy, 0);
         rig.rotation.y = rad;
-        if (!dragging) orbitDeg += 0.15;
         animatePlayerModel(group, performance.now()/1000, false);
         renderer.render(scene, camera);
       }
@@ -7565,20 +8073,26 @@ window.TQ_APP_VERSION = 'v44';
           group = buildPlayerModel(g);
           scene.add(group);
         },
+        setView(v){ if (v === 'spin'){ autoSpin = true; targetOrbit = null; } else { autoSpin = false; targetOrbit = v === 'back' ? 180 : 0; } },
+        setFocus(name){ focus = FOCUS[name] ? name : 'full'; },
+        getView(){ return { orbitDeg, focus }; },
         dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); window.removeEventListener('resize', resize); }
       };
     }
-    window.mountWardrobePreview3D = function(canvas, gender){
+    window.mountWardrobePreview3D = function(canvas, gender, overrides){
       if (!canvas) return;
-      if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
+      if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(overrides); } catch(e){} }
       if (canvas.__wardrobe3d) canvas.__wardrobe3d.dispose();
       canvas.__wardrobe3d = initWardrobePreview3D(canvas, gender==='male' ? 'male' : 'female');
+      if (overrides && window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
     };
-    window.rebuildWardrobePreview3D = function(canvas, gender){
+    // overrides = items being tried on (preview only — the map avatar keeps what's equipped)
+    window.rebuildWardrobePreview3D = function(canvas, gender, overrides){
       if (!canvas) return;
-      if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
-      if (canvas.__wardrobe3d) canvas.__wardrobe3d.rebuild(gender==='male' ? 'male' : 'female');
-      else window.mountWardrobePreview3D(canvas, gender);
+      if (!canvas.__wardrobe3d){ window.mountWardrobePreview3D(canvas, gender, overrides); return; }
+      if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(overrides); } catch(e){} }
+      canvas.__wardrobe3d.rebuild(gender==='male' ? 'male' : 'female');
+      if (overrides && window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
     };
 
     window.mountPlayer3D = function(gender){
@@ -7884,6 +8398,9 @@ window.TQ_APP_VERSION = 'v44';
     // Textures are built lazily per kind from the SVG above (rasterised by the browser at
     // 2x the viewBox, so they stay crisp when you zoom in). One shared material per kind.
     const propTex = {};
+    // PumpkinStops are painted art (PNG), lit when you can spin and cooled-down purple after
+    PROP_ART.pstop = { w:256, h:542, src:'assets/stops/stop.png' };
+    PROP_ART.pstop_rest = { w:256, h:542, src:'assets/stops/stop-rest.png' };
     function getPropTex(kind){
       if (propTex[kind]) return propTex[kind];
       const art = PROP_ART[kind]; if (!art) return null;
@@ -7895,7 +8412,7 @@ window.TQ_APP_VERSION = 'v44';
         t.anisotropy = 4; t.needsUpdate = true;
         rec.mat = mat({ map:t });
       };
-      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(art.svg);
+      img.src = art.src || ('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(art.svg));
       propTex[kind] = rec;
       return rec;
     }
@@ -7965,7 +8482,7 @@ window.TQ_APP_VERSION = 'v44';
       if (!propShadowMat) propShadowMat = mat({ map:shadowTex, opacity:0.85 });
       want.forEach((pr,k)=>{
         if (propMeshes.has(k)) return;
-        const rec = getPropTex(pr.kind); if (!rec) return;
+        const rec = getPropTex(pr.stop && (window.__stopRestingUntil||0) > Date.now() ? 'pstop_rest' : pr.kind); if (!rec) return;
         const group = new THREE.Group();
         const shadow = new THREE.Mesh(GEO_DISC, propShadowMat);
         const sprite = new THREE.Mesh(GEO_SPRITE, rec.mat || propShadowMat);
@@ -7975,10 +8492,15 @@ window.TQ_APP_VERSION = 'v44';
       });
     }
     function updateProps(now){
+      const stopsResting = (window.__stopRestingUntil||0) > Date.now();
       propMeshes.forEach(m=>{
         const pr = m.p;
+        if (pr.stop){
+          const want = getPropTex(stopsResting ? 'pstop_rest' : 'pstop');
+          if (want && want.mat && m.rec !== want){ m.rec = want; m.sprite.material = want.mat; }
+        }
         const q = hmap(pr.x, pr.y); const sx = q[0], sy = q[1], w = q[2];
-        if (w <= 0.05 || sx < -260 || sx > vw+260 || sy < -60 || sy > vh+420){ m.group.visible = false; return; }
+        if (w <= 0.05 || sx < -260 || sx > vw+260 || sy < -60 || sy > vh+420){ m.group.visible = false; m.hit = null; return; }
         const qx = hmap(pr.x+1, pr.y); const ax = qx[0]-sx, ay = qx[1]-sy;
         const qy = hmap(pr.x, pr.y+1); const bx = qy[0]-sx, by = qy[1]-sy;
         const T = ax*ax+ay*ay+bx*bx+by*by, D = ax*by-ay*bx, disc = Math.sqrt(Math.max(0, T*T-4*D*D));
@@ -7992,6 +8514,7 @@ window.TQ_APP_VERSION = 'v44';
         // trees sway a touch in the night breeze; buildings stay put
         m.sprite.rotation.z = (pr.kind==='tree'||pr.kind==='pine'||pr.kind==='deadtree') ? Math.sin(now*0.9+m.sway)*0.018 : 0;
         m.shadow.scale.set(W*0.56, W*0.56*k, 1);
+        if (pr.stop) m.hit = { x0:sx - W*0.46, x1:sx + W*0.46, y0:sy - H*0.97, y1:sy + 8, depth:sy };
         const order = Math.round(sy)*6;
         m.shadow.renderOrder = order; m.sprite.renderOrder = order+3;
       });
@@ -8102,6 +8625,14 @@ window.TQ_APP_VERSION = 'v44';
 
     // where a creature is drawn on screen (the tutorial points at it)
     window.__toto3dHitBox = id=>{ const m = mounts.get(id); return m && m.hit && m.group.visible ? m.hit : null; };
+    // where a PumpkinStop is drawn on screen (viewport coords)
+    window.__stopHitBox = id=>{
+      const cr = canvas.getBoundingClientRect();
+      for (const m of propMeshes.values()){
+        if (m.p.stop && m.p.stop.id === id && m.hit && m.group.visible) return { x0:m.hit.x0+cr.left, x1:m.hit.x1+cr.left, y0:m.hit.y0+cr.top, y1:m.hit.y1+cr.top };
+      }
+      return null;
+    };
     // Taps on the drawn creature (which can extend above its invisible DOM marker now
     // that it stands upright) are routed back to that toto's own marker click.
     let downAt = null;
@@ -8119,6 +8650,14 @@ window.TQ_APP_VERSION = 'v44';
           if (!best || h.depth > best.depth){ best = h; bestT = t; }
         }
       });
+      // PumpkinStops: whichever drawn thing is in front wins
+      const cr = canvas.getBoundingClientRect(), cx = e.clientX - cr.left, cy = e.clientY - cr.top;
+      let bestStop = null;
+      propMeshes.forEach(m=>{
+        const h = m.hit; if (!m.p.stop || !h || !m.group.visible) return;
+        if (cx >= h.x0 && cx <= h.x1 && cy >= h.y0 && cy <= h.y1 && (!best || h.depth > best.depth) && (!bestStop || h.depth > bestStop.hit.depth)) bestStop = m;
+      });
+      if (bestStop && window.__openPumpkinStop){ window.__openPumpkinStop(bestStop.p); return; }
       if (bestT && bestT._node) bestT._node.click();
     });
 

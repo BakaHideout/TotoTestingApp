@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v44';
+const CACHE_NAME = 'totoquest-v45';
 const ASSETS = [
 './index.html',
 './manifest.json',
@@ -15,6 +15,12 @@ const ASSETS = [
 './assets/battle/village-blood.jpg',
 './assets/wardrobe/tee-tex.jpg',
 './assets/wardrobe/tee-thumb.png',
+'./assets/wardrobe/prestige-hat-thumb.png',
+'./assets/wardrobe/prestige-badge.png',
+'./assets/stops/stop.png',
+'./assets/stops/stop-rest.png',
+'./assets/items/raid-pass.png',
+'./assets/items/elixir.png',
 './assets/vendor/three.module.min.js',
 './assets/vendor/GLTFLoader.js',
 './assets/girl-front.png',
