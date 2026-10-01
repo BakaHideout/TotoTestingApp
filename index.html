@@ -220,17 +220,17 @@
      before, animation and all. */
   .player-avatar.is-3d { animation:none !important; filter:none; }
   .player-avatar.is-3d.walking { animation:none !important; }
-  .player-avatar-3d { display:block; width:170px; height:236px; }
-  /* The canvas frames her feet exactly 16px above its bottom edge (FRAME_FEET_PX in the
+  .player-avatar-3d { display:block; width:138px; height:192px; }
+  /* The canvas frames her feet exactly 13px above its bottom edge (FRAME_FEET_PX in the
      module script) — pulling the canvas down by that much plants her feet right on the
      pin's anchor point, which is also the centre of the ground ring below. */
-  .player-pin.has-3d .player-avatar.is-3d { margin-bottom:-16px; position:relative; z-index:2; }
+  .player-pin.has-3d .player-avatar.is-3d { margin-bottom:-13px; position:relative; z-index:2; }
   .player-pin.has-3d .player-shadow { display:none; }   /* the 3D scene casts its own */
-  .player-pin.has-3d .player-ring { bottom:0; width:168px; height:70px; border:2px solid rgba(255,224,165,0.85);
+  .player-pin.has-3d .player-ring { bottom:0; width:146px; height:61px; border:2px solid rgba(255,224,165,0.85);
     background: radial-gradient(closest-side, rgba(255,205,130,0.16), rgba(255,200,120,0.05) 72%, rgba(255,200,120,0) 100%);
     box-shadow: 0 0 12px rgba(255,190,110,0.35), inset 0 0 10px rgba(255,190,110,0.22); }
   /* warm pool of lantern light on the ground around her (Photo-2 style) */
-  .player-pin.has-3d::before { content:''; position:absolute; left:50%; bottom:0; width:340px; height:160px; transform:translate(-50%,50%);
+  .player-pin.has-3d::before { content:''; position:absolute; left:50%; bottom:0; width:300px; height:140px; transform:translate(-50%,50%);
     border-radius:50%; background: radial-gradient(closest-side, rgba(255,176,92,0.30), rgba(255,150,70,0.11) 55%, rgba(255,140,60,0) 100%);
     mix-blend-mode:screen; pointer-events:none; z-index:-2; }
   @keyframes idleStand { 0%,100%{ transform:translateY(0) scale(1,1); } 50%{ transform:translateY(0) scale(1.015,0.985); } }
@@ -401,7 +401,7 @@
   .pumpkin-tower { position:relative; width:60px; height:78px; margin:0 auto; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.4)); animation: floaty 2.6s ease-in-out infinite; }
   .tower-svg { width:100%; height:100%; display:block; }
   .tower-boss { position:absolute; top:-16px; left:50%; transform:translateX(-50%); width:34px; height:34px; }
-  .tower-boss svg { width:100%; height:100%; display:block; }
+  .tower-boss svg, .tower-boss img { width:100%; height:100%; display:block; object-fit:contain; }
   .gym-node .gym-label { background:var(--panel); font-size:9px; font-weight:800; padding:2px 7px; border-radius:8px; margin-top:2px; display:inline-block; }
   .dist-tag { display:block; font-size:8px; font-weight:800; color:#ffe9c2; background:rgba(0,0,0,0.5); border-radius:6px; padding:0 4px; margin-top:1px; }
   .gym-node .dist-tag { color:#333; background:rgba(255,255,255,0.85); }
@@ -533,6 +533,222 @@
   /* ---- battle screen ---- */
   .battle-back { position:absolute; inset:0; background: linear-gradient(#2b1f47, #120c1f); z-index:70; display:none; flex-direction:column; }
   .battle-back.active { display:flex; }
+  /* ================= BATTLE VIEW (landscape raid screen) =================
+     #battle-screen is sized/rotated by layoutBattleScreen(); .bx-stage inside it is a
+     fixed 540-unit-tall design canvas (its width follows the screen's aspect) scaled to
+     fit, so every size below is in design units, not device pixels. */
+  #battle-screen { left:0; top:0; right:auto; bottom:auto; transform-origin:0 0; background:#0c0818; overflow:hidden; }
+  .bx-stage { position:absolute; left:0; top:0; height:540px; transform-origin:0 0; overflow:hidden; font-family:'Baloo 2','Segoe UI',system-ui,sans-serif; color:#fff; user-select:none; -webkit-user-select:none; }
+  .bx-bg { position:absolute; inset:-12px; background:#1a1032 center 58% / cover no-repeat; transition:transform 0.06s; }
+  .bx-fog { position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(ellipse 60% 45% at 52% 52%, rgba(255,120,40,0.20), rgba(255,120,40,0) 70%),
+                linear-gradient(180deg, rgba(10,6,24,0.35) 0%, rgba(10,6,24,0) 26%, rgba(10,6,24,0) 62%, rgba(8,4,18,0.55) 100%); }
+  .bx-stage.shake { animation: bxShake 0.32s linear; }
+  @keyframes bxShake { 0%,100%{transform-origin:0 0;} 20%{ translate:-5px 2px; } 40%{ translate:4px -3px; } 60%{ translate:-3px 2px; } 80%{ translate:2px -1px; } }
+  .bx-embers { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .bx-ember { position:absolute; bottom:-8px; width:4px; height:4px; border-radius:50%; background:#ffb347; box-shadow:0 0 6px 2px rgba(255,150,50,0.7); opacity:0; animation: bxEmber linear infinite; }
+  @keyframes bxEmber { 0%{ transform:translate(0,0); opacity:0; } 12%{ opacity:0.9; } 100%{ transform:translate(30px,-420px); opacity:0; } }
+
+  /* ---- shared bits ---- */
+  .bx-portrait { border-radius:50%; overflow:hidden; background:radial-gradient(circle at 50% 35%, #4a3a7a, #1c1438); position:relative; }
+  .bx-portrait img, .bx-portrait svg { position:absolute; left:-30%; top:-8%; width:160%; height:160%; object-fit:contain; object-position:50% 0%; }
+  .bx-portrait .bx-emoji { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .bx-hp { position:relative; height:12px; border-radius:7px; background:#0d0a1c; border:1.5px solid rgba(0,0,0,0.65); box-shadow: inset 0 1px 2px rgba(0,0,0,0.7), 0 0 0 1px rgba(160,180,255,0.18); overflow:hidden; }
+  .bx-hp-fill { position:absolute; left:0; top:0; bottom:0; width:100%; border-radius:6px; background:linear-gradient(180deg,#7dffb0 0%,#2fe07a 45%,#13a855 100%); box-shadow: inset 0 -2px 3px rgba(0,60,20,0.35); transition: width 0.25s ease-out; }
+  .bx-hp-fill.low { background:linear-gradient(180deg,#ffd07a 0%,#ff9a2a 45%,#e0601a 100%); }
+  .bx-hp-fill.crit { background:linear-gradient(180deg,#ff9aa0 0%,#ff4d5e 45%,#c4142c 100%); }
+  .bx-hp-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:flex-end; padding-right:7px; font-size:10.5px; font-weight:800; letter-spacing:0.3px; color:#fff; text-shadow:0 0 2px #000,0 1px 2px #000; }
+  .bx-role-ic { display:inline-flex; width:17px; height:17px; flex-shrink:0; }
+  .bx-role-ic svg { width:100%; height:100%; }
+  .bx-panel { background:linear-gradient(180deg, rgba(34,30,74,0.92), rgba(16,13,40,0.94)); border:2px solid #5c73c9; border-radius:14px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 18px rgba(90,120,255,0.18), 0 6px 14px rgba(0,0,0,0.5); }
+
+  /* ---- wave badge (top-left) ---- */
+  .bx-wave { position:absolute; left:14px; top:12px; height:46px; padding:0 18px 0 6px; display:flex; align-items:center; gap:9px; border-radius:14px 26px 26px 14px;
+    background:linear-gradient(180deg, rgba(34,30,74,0.92), rgba(16,13,40,0.94)); border:2px solid #5c73c9; box-shadow: inset 0 0 18px rgba(90,120,255,0.18), 0 6px 14px rgba(0,0,0,0.5); }
+  .bx-wave-skull { width:34px; height:34px; border-radius:50%; background:radial-gradient(circle,#3b2f6e,#1a1335); border:1.5px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; }
+  .bx-wave-skull svg { width:24px; height:24px; }
+  .bx-wave-num { font-size:18px; font-weight:800; line-height:1; text-shadow:0 2px 3px rgba(0,0,0,0.7); }
+  .bx-wave-loc { font-size:11px; font-weight:700; color:#e3dcff; line-height:1.2; margin-top:2px; white-space:nowrap; }
+
+  /* ---- boss bar (top-centre) ---- */
+  .bx-bossbar { position:absolute; top:10px; left:var(--bx-bossbar-x, 50%); transform:translateX(-50%); width:300px; height:50px; display:flex; align-items:center; }
+  .bx-bossbar-portrait { position:relative; z-index:2; width:50px; height:50px; flex-shrink:0; border:3px solid #ff8a3d; box-shadow:0 0 10px rgba(255,120,40,0.7), 0 4px 8px rgba(0,0,0,0.6); }
+  .bx-bossbar-body { flex:1; margin-left:-10px; height:42px; padding:3px 12px 0 16px; border-radius:0 14px 14px 0;
+    background:linear-gradient(180deg, rgba(40,22,46,0.94), rgba(18,10,26,0.95)); border:2px solid #b0495a; box-shadow: inset 0 0 14px rgba(255,80,80,0.18), 0 6px 14px rgba(0,0,0,0.5); }
+  .bx-bossbar-row { display:flex; align-items:baseline; justify-content:space-between; gap:6px; }
+  .bx-bossbar-name { font-size:15px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 2px 3px rgba(0,0,0,0.7); }
+  .bx-bossbar-lv { font-size:11px; font-weight:800; color:#ffd9a0; flex-shrink:0; }
+  .bx-hp-boss { height:13px; margin-top:1px; }
+  .bx-hp-boss .bx-hp-fill { background:linear-gradient(180deg,#ff8a95 0%,#ff3d55 45%,#b30f2a 100%); }
+  .bx-hp-boss .bx-hp-text { justify-content:center; padding:0; }
+
+  /* ---- active hero card (top-right) ---- */
+  .bx-active { position:absolute; right:14px; top:8px; width:232px; height:86px; display:flex; align-items:center; }
+  .bx-active-portrait { position:relative; z-index:2; width:76px; height:76px; flex-shrink:0; border:3px solid #ffb347; box-shadow:0 0 12px rgba(255,170,60,0.75), 0 4px 10px rgba(0,0,0,0.6); }
+  .bx-active-body { flex:1; min-width:0; overflow:hidden; margin-left:-14px; height:72px; padding:4px 10px 0 20px; border-radius:0 16px 16px 0;
+    background:linear-gradient(180deg, rgba(34,30,74,0.94), rgba(16,13,40,0.95)); border:2px solid #5c73c9; box-shadow: inset 0 0 16px rgba(90,120,255,0.2), 0 6px 14px rgba(0,0,0,0.5); position:relative; }
+  .bx-active-name { display:flex; align-items:center; gap:4px; font-size:16px; font-weight:800; line-height:1.05; white-space:nowrap; overflow:hidden; text-shadow:0 2px 3px rgba(0,0,0,0.7); }
+  #bx-active-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .bx-active-sub { display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color:#d9d0ff; margin:1px 0 3px; text-transform:uppercase; letter-spacing:0.3px; }
+  .bx-active-hprow { display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; margin-top:1px; color:#fff; text-shadow:0 1px 2px #000; }
+  .bx-buffs { position:absolute; left:20px; bottom:-15px; display:flex; gap:4px; }
+  .bx-buff { font-size:9px; font-weight:800; padding:1px 6px; border-radius:7px; background:rgba(10,8,24,0.85); border:1px solid currentColor; white-space:nowrap; }
+
+  /* ---- team roster (right column) ---- */
+  .bx-roster { position:absolute; right:14px; top:106px; width:212px; display:flex; flex-direction:column; gap:6px; }
+  .bx-card { position:relative; height:62px; display:flex; align-items:center; padding:0 9px 0 5px; gap:7px; border-radius:14px;
+    background:linear-gradient(180deg, rgba(34,30,74,0.9), rgba(16,13,40,0.92)); border:2px solid #5c73c9; box-shadow: inset 0 0 14px rgba(90,120,255,0.16), 0 5px 12px rgba(0,0,0,0.45); transition: border-color 0.2s, box-shadow 0.2s; }
+  .bx-card.active { border-color:#ffb347; box-shadow: 0 0 0 1px rgba(255,180,70,0.5), 0 0 14px rgba(255,150,40,0.7), inset 0 0 14px rgba(255,150,40,0.22); }
+  .bx-card.active::before { content:''; position:absolute; left:-17px; top:50%; transform:translateY(-50%); border:9px solid transparent; border-left:12px solid #ffb347; filter:drop-shadow(0 0 4px rgba(255,150,40,0.9)); }
+  .bx-card.down { filter:grayscale(0.9) brightness(0.7); }
+  .bx-card .bx-portrait { width:50px; height:50px; flex-shrink:0; border:2.5px solid var(--rc,#888); }
+  .bx-card-body { flex:1; min-width:0; }
+  .bx-card-name { font-size:14px; font-weight:800; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 2px 3px rgba(0,0,0,0.7); }
+  .bx-card-sub { display:flex; align-items:center; gap:4px; font-size:9.5px; font-weight:800; color:#d9d0ff; text-transform:uppercase; letter-spacing:0.3px; margin:1px 0 3px; }
+  .bx-card-sub .bx-role-ic { width:13px; height:13px; }
+  .bx-card-sub .bx-lv { margin-left:auto; text-transform:none; color:#e8e2ff; font-size:10px; }
+  .bx-card .bx-hp { height:11px; }
+  .bx-card .bx-hp-text { font-size:9.5px; }
+
+  /* ---- the team standing in the arena ---- */
+  .bx-team { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; }
+  .bx-member { position:absolute; width:170px; transform:translateX(-50%) scale(var(--ms,1)); transform-origin:50% 100%; display:flex; flex-direction:column; align-items:center; }
+  .bx-member .bx-fig { position:relative; width:170px; height:166px; display:flex; align-items:flex-end; justify-content:center; }
+  .bx-aura { position:absolute; left:50%; bottom:6px; width:150px; height:150px; transform:translateX(-50%); border-radius:50%;
+    background:radial-gradient(circle at 50% 62%, var(--rc-a), rgba(0,0,0,0) 66%); opacity:0.75; animation: bxAura 2.6s ease-in-out infinite; }
+  @keyframes bxAura { 0%,100%{ opacity:0.6; transform:translateX(-50%) scale(0.96); } 50%{ opacity:0.9; transform:translateX(-50%) scale(1.04); } }
+  .bx-circle { position:absolute; left:50%; bottom:-10px; width:126px; height:36px; transform:translateX(-50%); border-radius:50%;
+    border:2px solid var(--rc); box-shadow: 0 0 12px var(--rc), inset 0 0 14px var(--rc); opacity:0.85; }
+  .bx-circle::after { content:''; position:absolute; inset:5px 12px; border-radius:50%; border:1.5px dashed var(--rc); opacity:0.7; animation: bxSpinDash 5s linear infinite; }
+  @keyframes bxSpinDash { to { transform:rotate(360deg); } }
+  .bx-spark { position:absolute; width:5px; height:5px; border-radius:50%; background:var(--rc); box-shadow:0 0 6px 2px var(--rc); bottom:10px; opacity:0; animation: bxSpark 2.4s ease-out infinite; }
+  @keyframes bxSpark { 0%{ transform:translateY(0) scale(1); opacity:0; } 15%{ opacity:1; } 100%{ transform:translateY(-110px) scale(0.4); opacity:0; } }
+  .bx-sprite { position:relative; display:flex; align-items:flex-end; justify-content:center; transform-origin:50% 100%; }
+  .bx-sprite img, .bx-sprite svg { display:block; width:auto; max-width:100%; height:100%; object-fit:contain; object-position:50% 100%; }
+  .bx-sprite .bx-emoji { font-size:90px; line-height:1; }
+  .bx-member .bx-sprite { width:156px; height:150px; z-index:2; animation: idleBreathe 2.2s ease-in-out infinite;
+    filter: drop-shadow(0 0 3px var(--rc)) drop-shadow(0 0 9px var(--rc-a)) drop-shadow(0 8px 6px rgba(0,0,0,0.5)); }
+  .bx-member.down .bx-sprite { filter:grayscale(1) brightness(0.55); opacity:0.55; animation:none; transform:rotate(-8deg) translateY(6px); }
+  .bx-member.down .bx-aura, .bx-member.down .bx-spark { display:none; }
+  .bx-member.me .bx-circle { border-width:2.5px; }
+  .bx-member.lunge .bx-sprite { animation: bxLunge 0.42s ease-out; }
+  @keyframes bxLunge { 0%{ transform:translate(0,0) scale(1); } 35%{ transform:translate(var(--lx,30px),-26px) scale(1.12); } 100%{ transform:translate(0,0) scale(1); } }
+  .bx-member.hit .bx-sprite { animation: bxHit 0.38s ease-out; }
+  @keyframes bxHit { 0%{ transform:translate(0,0); } 30%{ transform:translate(-9px,4px); } 60%{ transform:translate(5px,-2px); } 100%{ transform:translate(0,0); } }
+  /* the white hit-flash lives on the parent so it never fights the sprite's glow filter */
+  .bx-member.hit .bx-fig { animation: bxFlash 0.3s ease-out; }
+  @keyframes bxFlash { 0%{ filter:brightness(1.9); } 100%{ filter:brightness(1); } }
+  .bx-member.cast .bx-aura { animation: bxCast 0.7s ease-out; }
+  @keyframes bxCast { 0%{ opacity:1; transform:translateX(-50%) scale(0.8); filter:brightness(2); } 100%{ opacity:0.7; transform:translateX(-50%) scale(1.35); filter:brightness(1); } }
+  .bx-shield { position:absolute; left:50%; bottom:-4px; width:150px; height:150px; transform:translateX(-50%); border-radius:50% 50% 46% 46%; display:none;
+    background:radial-gradient(circle at 50% 40%, rgba(120,190,255,0.06), rgba(80,160,255,0.28) 70%, rgba(150,210,255,0.55) 76%, rgba(80,160,255,0) 80%); animation: bxShield 1.6s ease-in-out infinite; z-index:3; }
+  .bx-member.fortified .bx-shield { display:block; }
+  @keyframes bxShield { 0%,100%{ opacity:0.75; } 50%{ opacity:1; } }
+  .bx-member.buffed .bx-sprite { filter: drop-shadow(0 0 3px #d9a6ff) drop-shadow(0 0 12px rgba(190,110,255,0.9)) drop-shadow(0 8px 6px rgba(0,0,0,0.5)); }
+
+  /* nameplate under each team member */
+  .bx-plate { position:relative; margin-top:12px; width:178px; height:34px; display:flex; align-items:center; z-index:4; }
+  .bx-plate-ic { position:relative; z-index:2; width:32px; height:32px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 50% 35%, var(--rc), rgba(0,0,0,0.6) 140%); border:2px solid rgba(255,255,255,0.75); box-shadow:0 0 8px var(--rc); }
+  .bx-plate-ic svg { width:19px; height:19px; }
+  .bx-plate-body { flex:1; min-width:0; margin-left:-8px; height:30px; padding:1px 7px 0 12px; border-radius:0 11px 11px 0;
+    background:linear-gradient(180deg, rgba(30,26,66,0.92), rgba(14,11,34,0.94)); border:1.5px solid #5c73c9; }
+  .bx-member.me .bx-plate-body { border-color:#ffb347; }
+  .bx-plate-row { display:flex; justify-content:space-between; align-items:baseline; gap:4px; }
+  .bx-plate-name { font-size:12px; font-weight:800; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 2px #000; }
+  .bx-plate-lv { font-size:9px; font-weight:800; color:#e3dcff; flex-shrink:0; }
+  .bx-plate .bx-hp { height:9px; border-radius:5px; }
+  .bx-plate .bx-hp-text { font-size:8px; padding-right:4px; }
+
+  /* ---- the boss ---- */
+  .bx-boss { position:absolute; width:350px; height:300px; transform:translateX(-50%); display:flex; align-items:flex-end; justify-content:center; }
+  .bx-boss-aura { position:absolute; left:50%; bottom:10px; width:340px; height:300px; transform:translateX(-50%); border-radius:50%;
+    background:radial-gradient(circle at 50% 60%, rgba(255,110,40,0.45), rgba(170,40,255,0.18) 45%, rgba(0,0,0,0) 68%); animation: bxAura 3s ease-in-out infinite; }
+  .bx-boss-shadow { position:absolute; left:50%; bottom:-8px; width:230px; height:40px; transform:translateX(-50%); border-radius:50%; background:radial-gradient(closest-side, rgba(0,0,0,0.7), rgba(0,0,0,0)); }
+  .bx-boss-sprite { width:340px; height:284px; z-index:2; animation: idleBreathe 2.8s ease-in-out infinite reverse;
+    filter: drop-shadow(0 0 4px rgba(255,170,90,0.9)) drop-shadow(0 0 16px rgba(255,90,30,0.55)) drop-shadow(0 10px 8px rgba(0,0,0,0.55)); }
+  .bx-boss.lunge .bx-boss-sprite { animation: bxBossLunge 0.45s ease-in; }
+  @keyframes bxBossLunge { 0%{ transform:translate(0,0) scale(1); } 40%{ transform:translate(-26px,30px) scale(1.1); } 100%{ transform:translate(0,0) scale(1); } }
+  .bx-boss.hit .bx-boss-sprite { animation: bxBossHit 0.36s ease-out; }
+  .bx-boss.hit { animation: bxFlash 0.3s ease-out; }
+  @keyframes bxBossHit { 0%{ transform:translate(0,0); } 35%{ transform:translate(10px,-4px) scale(0.98); } 70%{ transform:translate(-5px,2px); } 100%{ transform:translate(0,0); } }
+  .bx-boss.down .bx-boss-sprite { animation: bxBossDown 0.9s ease-in forwards; }
+  @keyframes bxBossDown { to { transform:translateY(30px) scale(0.85) rotate(-6deg); opacity:0.25; filter:grayscale(1) brightness(0.6); } }
+
+  /* ---- floating combat text & spell effects ---- */
+  .bx-fx { position:absolute; inset:0; pointer-events:none; z-index:6; }
+  .bx-num { position:absolute; transform:translate(-50%,-50%); font-weight:800; font-size:26px; line-height:1; white-space:nowrap; letter-spacing:0.5px;
+    -webkit-text-stroke:2px #1a0a14; paint-order:stroke fill; text-shadow:0 3px 4px rgba(0,0,0,0.6); animation: bxNum 0.9s ease-out forwards; }
+  .bx-num.big { font-size:36px; }
+  .bx-num.small { font-size:18px; }
+  @keyframes bxNum { 0%{ opacity:0; transform:translate(-50%,-30%) scale(0.6); } 15%{ opacity:1; transform:translate(-50%,-60%) scale(1.15); } 30%{ transform:translate(-50%,-70%) scale(1); } 100%{ opacity:0; transform:translate(-50%,-160%) scale(0.95); } }
+  .bx-slash { position:absolute; width:260px; height:200px; transform:translate(-50%,-50%); }
+  .bx-slash path { fill:none; stroke-linecap:round; stroke-dasharray:420; stroke-dashoffset:420; animation: bxSlash 0.5s ease-out forwards; }
+  @keyframes bxSlash { 40%{ stroke-dashoffset:0; opacity:1; } 100%{ stroke-dashoffset:0; opacity:0; } }
+  .bx-burst { position:absolute; width:120px; height:120px; transform:translate(-50%,-50%) scale(0.2); border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,200,90,0.8) 30%, rgba(255,100,30,0) 70%); animation: bxBurst 0.4s ease-out forwards; }
+  @keyframes bxBurst { 60%{ opacity:1; } 100%{ transform:translate(-50%,-50%) scale(1.6); opacity:0; } }
+  .bx-rise { position:absolute; font-weight:800; font-size:22px; transform:translate(-50%,0); animation: bxRise 1s ease-out forwards; text-shadow:0 0 8px currentColor; }
+  @keyframes bxRise { 0%{ opacity:0; transform:translate(-50%,0) scale(0.5); } 20%{ opacity:1; } 100%{ opacity:0; transform:translate(-50%,-90px) scale(1.1); } }
+  .bx-ring { position:absolute; width:150px; height:46px; transform:translate(-50%,-50%) scale(0.4); border-radius:50%; border:3px solid currentColor; box-shadow:0 0 12px currentColor, inset 0 0 12px currentColor; animation: bxRing 0.8s ease-out forwards; }
+  @keyframes bxRing { 100%{ transform:translate(-50%,-50%) scale(1.5); opacity:0; } }
+
+  /* ---- bottom controls ---- */
+  .bx-left-btns { position:absolute; left:14px; bottom:14px; display:flex; gap:9px; }
+  .bx-sq { width:50px; height:50px; border-radius:13px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; cursor:pointer; padding:0;
+    background:linear-gradient(180deg, rgba(40,36,86,0.95), rgba(18,15,44,0.96)); border:2px solid #5c73c9; color:#efeaff; font-family:inherit; font-weight:800; font-size:13px; letter-spacing:0.4px;
+    box-shadow: inset 0 0 12px rgba(90,120,255,0.18), 0 5px 10px rgba(0,0,0,0.5); }
+  .bx-sq svg { width:24px; height:24px; }
+  .bx-sq:active { transform:scale(0.94); }
+  .bx-sq.on { border-color:#ffb347; color:#ffd27a; box-shadow:0 0 10px rgba(255,160,50,0.7), inset 0 0 12px rgba(255,160,50,0.25); }
+  .bx-speed { gap:0; }
+  .bx-speed svg { width:20px; height:20px; margin-bottom:-2px; }
+  .bx-speed span { font-size:10px; line-height:1; }
+
+  .bx-charge { position:absolute; bottom:12px; left:var(--bx-charge-x, 50%); transform:translateX(-50%); width:296px; height:74px; border:none; background:none; padding:0; cursor:pointer; font-family:inherit; }
+  .bx-charge:active .bx-charge-inner { transform:scale(0.96); }
+  .bx-charge-flames { position:absolute; inset:-12px -10px -4px; border-radius:30px; pointer-events:none;
+    background: radial-gradient(ellipse 30% 60% at 12% 70%, rgba(255,140,30,0.85), rgba(255,80,0,0) 70%), radial-gradient(ellipse 30% 60% at 88% 70%, rgba(255,140,30,0.85), rgba(255,80,0,0) 70%),
+                radial-gradient(ellipse 50% 40% at 50% 100%, rgba(255,170,40,0.7), rgba(255,80,0,0) 70%);
+    filter: blur(5px); animation: bxFlames 0.9s ease-in-out infinite alternate; }
+  @keyframes bxFlames { 0%{ opacity:0.75; transform:scaleY(0.96); } 100%{ opacity:1; transform:scaleY(1.06); } }
+  .bx-charge-inner { position:absolute; inset:0; border-radius:22px; display:flex; align-items:center; justify-content:center; gap:10px; overflow:hidden; transition:transform 0.08s;
+    background:linear-gradient(180deg, #5a0d10 0%, #8e1a14 40%, #5a0a0c 100%);
+    border:3px solid #ffb238; box-shadow: 0 0 0 2px #6a2a08, 0 0 18px rgba(255,140,40,0.85), inset 0 0 0 2px rgba(255,220,140,0.35), inset 0 -10px 18px rgba(0,0,0,0.45), inset 0 8px 14px rgba(255,120,60,0.35); }
+  .bx-charge-energy { position:absolute; left:0; bottom:0; top:0; width:100%; background:linear-gradient(180deg, rgba(255,140,40,0.28), rgba(255,60,20,0.12)); transition:width 0.25s; }
+  .bx-charge-ic { position:relative; width:40px; height:40px; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
+  .bx-charge-text { position:relative; font-size:25px; font-weight:800; letter-spacing:0.6px; color:#ffe9b0; -webkit-text-stroke:1.5px #4a1006; paint-order:stroke fill; text-shadow:0 2px 0 #4a1006, 0 0 10px rgba(255,190,90,0.7); }
+  .bx-charge.disabled { filter:grayscale(0.8) brightness(0.6); pointer-events:none; }
+
+  .bx-abilities { position:absolute; right:14px; bottom:10px; height:78px; padding:0 9px; display:flex; align-items:center; gap:9px; border-radius:16px;
+    background:linear-gradient(180deg, rgba(30,26,66,0.9), rgba(12,10,30,0.94)); border:2px solid #5c73c9; box-shadow: inset 0 0 16px rgba(90,120,255,0.18), 0 6px 14px rgba(0,0,0,0.5); }
+  .bx-ab { position:relative; width:60px; height:60px; border-radius:12px; padding:0; cursor:pointer; overflow:hidden; border:2px solid var(--abc-b);
+    background:radial-gradient(circle at 50% 35%, var(--abc-1), var(--abc-2) 70%); box-shadow:0 0 10px var(--abc-g), inset 0 0 10px rgba(0,0,0,0.35); }
+  .bx-ab svg.bx-ab-ic { position:absolute; inset:7px; width:42px; height:42px; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+  .bx-ab:active { transform:scale(0.93); }
+  .bx-ab-num { position:absolute; right:2px; bottom:2px; width:17px; height:17px; border-radius:50%; background:#120d26; border:1.5px solid rgba(255,255,255,0.75); font-size:11px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; line-height:1; z-index:3; }
+  .bx-ab-cd { position:absolute; inset:0; display:none; align-items:center; justify-content:center; font-size:19px; font-weight:800; color:#fff; text-shadow:0 1px 3px #000; z-index:2; }
+  .bx-ab.cooling .bx-ab-cd { display:flex; background:conic-gradient(rgba(8,6,20,0.78) var(--cdp,100%), rgba(8,6,20,0.25) 0); }
+  .bx-ab.cooling { box-shadow:none; filter:saturate(0.6); }
+  .bx-ab.offrole::after { content:''; position:absolute; left:3px; top:3px; width:8px; height:8px; border-radius:50%; background:#fff; opacity:0.55; }
+  .bx-ab.ready { animation: bxReady 1.6s ease-in-out infinite; }
+  @keyframes bxReady { 0%,100%{ box-shadow:0 0 8px var(--abc-g); } 50%{ box-shadow:0 0 16px var(--abc-g), 0 0 4px #fff; } }
+
+  .bx-log { position:absolute; bottom:94px; left:var(--bx-charge-x, 50%); transform:translateX(-50%); max-width:420px; padding:3px 14px; border-radius:12px; background:rgba(10,7,24,0.62);
+    font-size:12px; font-weight:700; color:#f3eeff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 2px #000; pointer-events:none; }
+  .bx-log:empty { display:none; }
+
+  .bx-menu { position:absolute; left:14px; bottom:74px; display:none; flex-direction:column; gap:6px; padding:9px; border-radius:14px; z-index:9;
+    background:linear-gradient(180deg, rgba(34,30,74,0.97), rgba(16,13,40,0.98)); border:2px solid #5c73c9; box-shadow:0 8px 20px rgba(0,0,0,0.6); }
+  .bx-menu.show { display:flex; }
+  .bx-menu-btn { min-width:150px; padding:8px 12px; border-radius:10px; border:1.5px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.08); color:#fff; font-family:inherit; font-weight:800; font-size:13px; text-align:left; cursor:pointer; }
+  .bx-menu-btn.danger { border-color:#ff6b6b; color:#ffd0d0; }
+
+  .bx-banner { position:absolute; left:50%; top:42%; transform:translate(-50%,-50%) scale(0.6); font-size:64px; font-weight:800; letter-spacing:2px; opacity:0; pointer-events:none; z-index:8;
+    -webkit-text-stroke:3px #2a0a06; paint-order:stroke fill; text-shadow:0 6px 0 #2a0a06, 0 0 30px rgba(255,170,60,0.8); white-space:nowrap; }
+  .bx-banner.show { animation: bxBanner 1.6s ease-out forwards; }
+  .bx-banner.win { color:#ffd76a; }
+  .bx-banner.lose { color:#c9c3ff; text-shadow:0 6px 0 #1a1030, 0 0 30px rgba(120,100,255,0.7); }
+  @keyframes bxBanner { 0%{ opacity:0; transform:translate(-50%,-50%) scale(0.5); } 18%{ opacity:1; transform:translate(-50%,-50%) scale(1.12); } 30%{ transform:translate(-50%,-50%) scale(1); } 85%{ opacity:1; } 100%{ opacity:0; transform:translate(-50%,-50%) scale(1.02); } }
   .battle-topbar { padding:12px 14px 4px; display:flex; justify-content:space-between; align-items:center; color:#fff; }
   .battle-title { font-weight:800; font-size:14px; }
   .battle-retreat { background:rgba(255,255,255,0.15); border:none; color:#fff; padding:6px 12px; border-radius:10px; font-weight:700; font-size:11.5px; cursor:pointer; }
@@ -1191,96 +1407,74 @@
     <div class="setup-card" id="setup-card"></div>
   </div>
 
-  <!-- BATTLE SCREEN -->
+  <!-- BATTLE SCREEN — landscape raid layout (see the "BATTLE VIEW" section in the script).
+       Everything inside .bx-stage is laid out in a fixed 540-unit-tall design space and
+       scaled to the screen, so it keeps the reference's proportions on any phone; when the
+       phone is held upright the whole screen is turned sideways for the fight. -->
   <div class="battle-back" id="battle-screen">
-    <div class="battle-topbar">
-      <div class="battle-title" id="battle-title">Wild Encounter</div>
-      <button class="battle-retreat" id="btn-retreat">Retreat</button>
-    </div>
-    <div class="battle-stage theme-catch" id="battle-stage">
-      <div class="stage-top-row">
-        <div class="wave-badge" id="wave-badge">
-          <span class="wave-badge-icon">💀</span>
-          <div class="wave-badge-text"><div class="wave-num">Wave 1/1</div><div class="wave-loc" id="wave-loc">Raid</div></div>
-        </div>
-        <div class="boss-banner">
-          <div class="boss-banner-row">
-            <span class="boss-name" id="bf-e-name">Enemy</span>
-          </div>
-          <div class="boss-banner-sub">
-            <span class="boss-level" id="bf-e-level">wild</span>
-            <span class="boss-cp" id="bf-e-cp">PWR 0</span>
-          </div>
-          <div class="hp-track-wrap">
-            <div class="boss-hp-track"><div class="fighter-hp-fill enemy" id="bf-e-hp" style="width:100%;"></div></div>
-            <span class="hp-frac" id="bf-e-hpfrac">100 / 100</span>
-          </div>
+    <div class="bx-stage" id="bx-stage">
+      <div class="bx-bg" id="bx-bg"></div>
+      <div class="bx-fog"></div>
+      <div class="bx-embers" id="bx-embers"></div>
+      <div class="bx-boss" id="bx-boss">
+        <div class="bx-boss-aura"></div>
+        <div class="bx-boss-shadow"></div>
+        <div class="bx-sprite bx-boss-sprite" id="bf-e-sprite"></div>
+      </div>
+      <div class="bx-team" id="bx-team"></div>
+      <div class="bx-fx" id="bx-fx"></div>
+
+      <div class="bx-wave" id="wave-badge">
+        <div class="bx-wave-skull"><svg viewBox="0 0 32 32"><path d="M16 3C9 3 4.5 7.8 4.5 14c0 3.6 1.6 6.2 4 7.7V26c0 1.1.9 2 2 2h1.5v-3h2v3h4v-3h2v3H21.5c1.1 0 2-.9 2-2v-4.3c2.4-1.5 4-4.1 4-7.7C27.5 7.8 23 3 16 3z" fill="#f2ecff"/><circle cx="11.2" cy="14.5" r="3.4" fill="#1c1430"/><circle cx="20.8" cy="14.5" r="3.4" fill="#1c1430"/><path d="M16 17.5l-2 3.5h4z" fill="#1c1430"/></svg></div>
+        <div class="bx-wave-text"><div class="bx-wave-num" id="wave-num">Wave 1/1</div><div class="bx-wave-loc" id="wave-loc">Pumpkin Grove</div></div>
+      </div>
+
+      <div class="bx-bossbar">
+        <div class="bx-bossbar-portrait bx-portrait" id="bf-e-portrait"></div>
+        <div class="bx-bossbar-body">
+          <div class="bx-bossbar-row"><span class="bx-bossbar-name" id="bf-e-name">Enemy</span><span class="bx-bossbar-lv" id="bf-e-level">Lv. 1</span></div>
+          <div class="bx-hp bx-hp-boss"><div class="bx-hp-fill" id="bf-e-hp"></div><div class="bx-hp-text" id="bf-e-hpfrac">0 / 0</div></div>
         </div>
       </div>
-      <div class="stage-body">
-        <div class="stage-row">
-          <!-- The boss stands big and centered — its own real art, not a fixed backdrop
-               photo, so whichever Toto you're actually fighting is unmistakably "the
-               giant picture" in the arena. -->
-          <div class="arena-mid" id="arena-mid">
-            <div class="sprite-wrap"><div class="sprite-glow enemy"></div><div class="arena-sprite enemy" id="bf-e-sprite">🎃</div></div>
-          </div>
-          <!-- The up to 4 Totos actually fighting the boss: you (always first, outlined) plus
-               real or computer allies in a group raid — a vertical party column down the
-               right edge, each its own slot with portrait, role icon+label, level and HP
-               bar, same idea as the reference raid screen's right-side party list. -->
-          <div class="roster-panel" id="roster-panel">
-          <div class="roster-slot me">
-            <div class="roster-portrait-wrap">
-              <span class="roster-portrait" id="bf-p-portrait">👻</span>
-              <span class="roster-role-badge" id="bf-p-role-badge">🔥</span>
-            </div>
-            <div class="roster-info">
-              <div class="roster-name-row"><span class="roster-name" id="bf-p-name">Your Toto</span><span class="roster-level" id="bf-p-level">Lv.1</span></div>
-              <div class="roster-role-row"><span class="roster-role-label" id="bf-p-role-label">Attacker</span></div>
-              <div class="hp-track-wrap">
-                <div class="fighter-hp-track"><div class="fighter-hp-fill" id="bf-p-hp" style="width:100%;"></div></div>
-                <span class="hp-frac small" id="bf-p-hpfrac">100 / 100</span>
-              </div>
-              <div class="fighter-nrg-track"><div class="fighter-nrg-fill" id="bf-p-nrg" style="width:100%;"></div></div>
-            </div>
-            <span class="roster-cp" id="bf-p-cp">PWR 0</span>
-          </div>
-          <div class="ally-row" id="ally-row"></div>
-        </div>
-        </div>
-        <!-- The whole active party's own real full-body sprites, standing together facing
-             the boss — you plus any real or computer allies, each tagged with name/level
-             and its own tiny HP bar, in one row spanning the full arena width so everyone
-             battling is clearly visible, matching the reference raid screen's "whole team
-             visible together" look instead of one lone sprite floating alone. -->
-        <div class="field-party" id="field-party">
-          <div class="field-row" id="field-row">
-            <div class="field-slot me" id="field-slot-p">
-              <div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player" id="bf-p-sprite">👻</div></div>
-              <div class="field-tag"><span class="field-name" id="bf-p-fname">Your Toto</span><span class="field-level" id="bf-p-flevel">Lv.1</span></div>
-              <div class="field-hp-track"><div class="field-hp-fill" id="bf-p-fhp" style="width:100%;"></div></div>
-              <span class="field-hp-frac" id="bf-p-fhpfrac">100/100</span>
-            </div>
-            <div class="ally-field-row" id="ally-field-row"></div>
-          </div>
+
+      <div class="bx-active" id="bx-active">
+        <div class="bx-active-portrait bx-portrait" id="bx-active-portrait"></div>
+        <div class="bx-active-body">
+          <div class="bx-active-name"><span class="bx-role-ic" id="bx-active-roleic"></span><span id="bx-active-name">Toto</span></div>
+          <div class="bx-active-sub"><span id="bx-active-role">Attacker</span><span id="bx-active-lv">Lv. 1</span></div>
+          <div class="bx-hp"><div class="bx-hp-fill" id="bx-active-hp"></div></div>
+          <div class="bx-active-hprow"><span>HP</span><span id="bx-active-hptext">0 / 0</span></div>
+          <div class="bx-buffs" id="bx-buffs"></div>
         </div>
       </div>
-      <div class="battle-log" id="battle-log">Tap ATTACK to fight!</div>
-    </div>
-    <div class="battle-controls">
-      <div class="bc-side bc-left">
-        <button class="bc-icon-btn gear" id="btn-gear" title="Settings">⚙️</button>
-        <button class="bc-icon-btn" id="btn-auto" title="Auto-battle">AUTO</button>
-        <button class="bc-icon-btn" id="btn-speed" title="Battle speed">1×</button>
+
+      <div class="bx-roster" id="bx-roster"></div>
+
+      <div class="bx-log" id="battle-log"></div>
+
+      <div class="bx-left-btns">
+        <button class="bx-sq" id="btn-gear" title="Settings"><svg viewBox="0 0 32 32"><path d="M18.6 3.5l.6 3.3c.9.3 1.8.8 2.6 1.4l3.1-1.2 2.6 4.5-2.5 2.1c.1.9.1 1.9 0 2.8l2.5 2.1-2.6 4.5-3.1-1.2c-.8.6-1.7 1.1-2.6 1.4l-.6 3.3h-5.2l-.6-3.3c-.9-.3-1.8-.8-2.6-1.4l-3.1 1.2-2.6-4.5 2.5-2.1c-.1-.9-.1-1.9 0-2.8L4.9 11.5l2.6-4.5 3.1 1.2c.8-.6 1.7-1.1 2.6-1.4l.6-3.3z" fill="#e9e4ff"/><circle cx="16" cy="16" r="4.6" fill="#2a2150"/></svg></button>
+        <button class="bx-sq bx-auto" id="btn-auto" title="Auto-battle">AUTO</button>
+        <button class="bx-sq bx-speed" id="btn-speed" title="Battle speed"><svg viewBox="0 0 32 32"><path d="M4 7l11 9-11 9zM16 7l11 9-11 9z" fill="#e9e4ff"/></svg><span id="bx-speed-label">×1</span></button>
       </div>
-      <button class="btn-attack" id="btn-attack">CHARGE ATTACK</button>
-      <div class="bc-side bc-right">
-        <button class="bc-ability" id="btn-special"><span class="bc-ability-num">1</span><span class="bc-ability-icon"></span><span class="bc-ability-cd"></span></button>
-        <button class="bc-ability" id="btn-special2"><span class="bc-ability-num">2</span><span class="bc-ability-icon"></span><span class="bc-ability-cd"></span></button>
-        <div class="bc-ability locked"><span class="bc-ability-num">3</span>🔒</div>
-        <div class="bc-ability locked"><span class="bc-ability-num">4</span>🔒</div>
+
+      <button class="bx-charge" id="btn-attack">
+        <span class="bx-charge-flames"></span>
+        <span class="bx-charge-inner">
+          <span class="bx-charge-energy" id="bx-energy"></span>
+          <svg class="bx-charge-ic" viewBox="0 0 48 48"><g stroke="#3a1206" stroke-width="2.4" stroke-linejoin="round"><path d="M8 6l4 1 20 20-3 3L9 10z" fill="#f4f1ea"/><path d="M40 6l-4 1-20 20 3 3 20-20z" fill="#e8e2d6"/><path d="M27 31l4-4 6 6-4 4zM21 31l-4-4-6 6 4 4z" fill="#ffc444"/><circle cx="36" cy="38" r="3.2" fill="#c0392b"/><circle cx="12" cy="38" r="3.2" fill="#c0392b"/></g></svg>
+          <span class="bx-charge-text">CHARGE ATTACK</span>
+        </span>
+      </button>
+
+      <div class="bx-abilities" id="bx-abilities"></div>
+
+      <div class="bx-menu" id="bx-menu">
+        <button class="bx-menu-btn" id="bx-menu-sound">🔊 Sound</button>
+        <button class="bx-menu-btn danger" id="btn-retreat">🏳️ Retreat</button>
+        <button class="bx-menu-btn" id="bx-menu-close">Back to battle</button>
       </div>
+      <div class="bx-banner" id="bx-banner"></div>
     </div>
     <div class="catch-choice-overlay" id="catch-choice-overlay">
       <div class="catch-choice-card">
@@ -3190,6 +3384,7 @@
       if (Math.max(Math.abs(cx-centerCx), Math.abs(cy-centerCy)) <= CHUNK_KEEP_RADIUS) return;
       els.deco.forEach(el=> el.remove());
       els.terrain.forEach(el=> el.remove());
+      dropMapProps('c:'+key);
       state.chunkEls.delete(key);
       state.loadedChunks.delete(key);
     });
@@ -3202,6 +3397,7 @@
     state.regionEls.forEach((entry, key)=>{
       if (Math.max(Math.abs(entry.rx-centerRx), Math.abs(entry.ry-centerRy)) <= keepRegionRadius) return;
       entry.els.forEach(el=> el.remove());
+      dropMapProps('r:'+key);
       state.regionEls.delete(key);
     });
   }
@@ -3244,20 +3440,21 @@
     const chunkEls = state.chunkEls.get(key) || { deco:[], terrain:[] };
     if (Math.abs(cx)+Math.abs(cy) < 40){ // sanity guard against runaway generation far off-map
       const decoLayer = $('#deco-layer');
-      const decoEmojis = ['🎃','🌲','🕸️','🍄','🥀','🪦'];
+      // A few standing Halloween props per chunk (atmosphere, not GPS-accurate) — drawn
+      // upright by the 3D layer like the houses/trees from the real map data, instead of
+      // the old flat emoji lying on the ground.
+      const DECO_KINDS = ['pumpkin','deadtree','pumpkin','tomb','tree','pine'];
+      const chunkProps = [];
       for (let i=0;i<4;i++){
         const s = baseSeed + i*17.3;
         const east = centerEast + (rand(s)-0.5)*CHUNK_SIZE_M;
         const north = centerNorth + (rand(s+1)-0.5)*CHUNK_SIZE_M;
         const pos = worldPosFromMeters(east, north);
-        const size = 18+rand(s+2)*16;
-        const el = document.createElement('div'); el.className='deco';
-        el.style.left = pos.x+'px'; el.style.top = pos.y+'px';
-        el.innerHTML = '<div class="deco-shadow" style="width:'+(size*0.7)+'px; height:'+(size*0.28)+'px;"></div>'
-          + '<span class="counter-rot" style="position:relative; z-index:2; display:inline-block; font-size:'+size+'px;">'+decoEmojis[Math.floor(rand(s+3)*decoEmojis.length)]+'</span>';
-        decoLayer.appendChild(el);
-        chunkEls.deco.push(el);
+        const kind = DECO_KINDS[Math.floor(rand(s+3)*DECO_KINDS.length)];
+        const w = kind==='pumpkin' ? 20+rand(s+2)*8 : (kind==='tomb' ? 18+rand(s+2)*6 : 42+rand(s+2)*14);
+        chunkProps.push({ x:pos.x, y:pos.y, kind, w, seed:Math.floor(rand(s+4)*1e6) });
       }
+      setMapProps('c:'+key, chunkProps);
       // Occasional candy corn scatter — a little scenery bonus you can tap for a few candies.
       if (rand(baseSeed+40) < 0.5){
         const s = baseSeed + 4*17.3;
@@ -3360,13 +3557,12 @@
     const query = '[out:json][timeout:25];('
       +'way["highway"]('+bbox+');'
       +'way["building"]('+bbox+');'
-      +'way["leisure"="park"]('+bbox+');'
-      +'way["leisure"="garden"]('+bbox+');'
-      +'way["landuse"="recreation_ground"]('+bbox+');'
-      +'way["natural"="water"]('+bbox+');'
-      +'way["landuse"="reservoir"]('+bbox+');'
-      +'way["waterway"="river"]('+bbox+');'
-      +'way["waterway"="stream"]('+bbox+');'
+      +'way["leisure"~"^(park|garden|pitch|playground|sports_centre|stadium|track|swimming_pool|golf_course|dog_park)$"]('+bbox+');'
+      +'way["landuse"~"^(recreation_ground|cemetery|forest|grass|meadow|village_green|reservoir)$"]('+bbox+');'
+      +'way["amenity"~"^(grave_yard|parking)$"]('+bbox+');'
+      +'way["natural"~"^(water|wood)$"]('+bbox+');'
+      +'way["waterway"~"^(river|stream|canal)$"]('+bbox+');'
+      +'way["railway"="rail"]('+bbox+');'
       +');out geom;';
     const endpoints = ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
     const ctrl = new AbortController();
@@ -3388,50 +3584,255 @@
     diag.lastRegionResult = data.elements.length+' elements';
 
     const project = (la, lo)=>{ const md = metersDelta(state.geoAnchor.lat, state.geoAnchor.lon, la, lo); return worldPosFromMeters(md.east, md.north); };
-    const smallRoads = new Set(['footway','path','pedestrian','track','cycleway','steps']);
-    const waterParts=[], parkParts=[], roadParts=[], buildingParts=[];
-    const parkCentroids = [];
+    const art = renderTerrainArt(data.elements, project, key);
+    let g = null;
+    if (art.svg){
+      g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.innerHTML = art.svg;
+      $('#terrain-svg').appendChild(g);
+    }
+    setMapProps('r:'+key, art.props);
+    state.regionEls.set(key, { els: g ? [g] : [], parks: art.parkCentroids, rx, ry });
+    return art.parkCentroids;
+  }
 
-    data.elements.forEach(el=>{
+  // ---------------- MAP ART: stone roads, real building lots, fields & parks ----------------
+  // Everything flat on the ground is SVG in #terrain-svg (world units: GPS_SCALE px per
+  // metre). Everything that STANDS on the ground — houses on real building footprints,
+  // trees in parks/woods, tombstones in cemeteries — is a "map prop" published on
+  // window.__mapProps (deliberately NOT on state: state is JSON-saved whole, and a town's
+  // worth of props would bloat every save) and drawn upright by the 3D layer at the
+  // bottom of the page, so it stands up properly at any camera tilt/rotation.
+  window.__mapProps = window.__mapProps || { groups:new Map(), version:0 };
+  function setMapProps(groupKey, list){ window.__mapProps.groups.set(groupKey, list||[]); window.__mapProps.version++; }
+  function dropMapProps(groupKey){ if (window.__mapProps.groups.delete(groupKey)) window.__mapProps.version++; }
+  function clearMapProps(){ window.__mapProps.groups.clear(); window.__mapProps.version++; }
+
+  const TERRAIN_DEFS = '<defs>'
+    // Cobblestones (world-aligned tile, ~9m) — irregular rounded stones on dark grout,
+    // each with a lit top edge so the road reads as cut stone under the night lighting.
+    + '<pattern id="pat-cobble" patternUnits="userSpaceOnUse" width="30" height="30">'
+    +   '<rect width="30" height="30" fill="#221c2a"/>'
+    +   '<g stroke="#8d859c" stroke-opacity="0.35" stroke-width="1.2">'
+    +     '<rect x="1.2" y="1.2" width="12" height="8.5" rx="3.6" fill="#625b72"/>'
+    +     '<rect x="14.8" y="1" width="14" height="8" rx="3.6" fill="#57506a"/>'
+    +     '<rect x="1" y="11.5" width="7.5" height="8" rx="3" fill="#514a62"/>'
+    +     '<rect x="10" y="11" width="11.5" height="8.6" rx="3.6" fill="#6a6380"/>'
+    +     '<rect x="23" y="11.2" width="6" height="8.4" rx="2.6" fill="#5a5368"/>'
+    +     '<rect x="1.5" y="21.4" width="13" height="7.4" rx="3.2" fill="#5f5872"/>'
+    +     '<rect x="16.2" y="21" width="12.6" height="7.8" rx="3.2" fill="#544d66"/>'
+    +   '</g>'
+    + '</pattern>'
+    // Flagstone footpaths — bigger, paler slabs.
+    + '<pattern id="pat-flag" patternUnits="userSpaceOnUse" width="24" height="24">'
+    +   '<rect width="24" height="24" fill="#3a3340"/>'
+    +   '<rect x="1" y="1" width="13" height="10" rx="2.5" fill="#8a7f86"/><rect x="15.5" y="1" width="7.5" height="10" rx="2.5" fill="#7b7178"/>'
+    +   '<rect x="1" y="12.5" width="8" height="10.5" rx="2.5" fill="#766c74"/><rect x="10.5" y="12.5" width="12.5" height="10.5" rx="2.5" fill="#857a82"/>'
+    + '</pattern>'
+    // Rail ties.
+    + '<pattern id="pat-ties" patternUnits="userSpaceOnUse" width="12" height="12"><rect width="12" height="12" fill="none"/></pattern>'
+    + '</defs>';
+  function ensureTerrainDefs(){
+    const svg = $('#terrain-svg');
+    if (!svg.querySelector('#pat-cobble')) svg.insertAdjacentHTML('afterbegin', TERRAIN_DEFS);
+  }
+
+  // Road widths in world px (3.2px = 1m). Deliberately chunkier than survey-true so a
+  // street reads at the same scale as your character and the creatures on it.
+  const ROAD_W = { motorway:80, trunk:76, primary:72, secondary:66, tertiary:62, motorway_link:52, trunk_link:52, primary_link:52,
+    secondary_link:48, tertiary_link:48, residential:58, unclassified:56, living_street:52, road:52, service:36, track:28, busway:44 };
+  const PATH_W = { footway:17, path:17, pedestrian:30, cycleway:17, steps:15, bridleway:17, corridor:0 };
+
+  function polyArea(ptsArr){ let a=0; for (let i=0,j=ptsArr.length-1;i<ptsArr.length;j=i++) a += (ptsArr[j].x+ptsArr[i].x)*(ptsArr[j].y-ptsArr[i].y); return Math.abs(a/2); }
+  function polyCentroid(ptsArr){ let x=0,y=0; ptsArr.forEach(p=>{x+=p.x;y+=p.y;}); return {x:x/ptsArr.length, y:y/ptsArr.length}; }
+  function pointInPoly(x, y, ptsArr){
+    let inside=false;
+    for (let i=0,j=ptsArr.length-1;i<ptsArr.length;j=i++){
+      const xi=ptsArr[i].x, yi=ptsArr[i].y, xj=ptsArr[j].x, yj=ptsArr[j].y;
+      if (((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/((yj-yi)||1e-9)+xi)) inside=!inside;
+    }
+    return inside;
+  }
+  // Oriented bounding box via the vertices' principal axis — lets a sports pitch get its
+  // markings laid out along the field's real long side, whichever way it faces.
+  function orientedBox(ptsArr){
+    const c = polyCentroid(ptsArr);
+    let sxx=0, syy=0, sxy=0;
+    ptsArr.forEach(p=>{ const dx=p.x-c.x, dy=p.y-c.y; sxx+=dx*dx; syy+=dy*dy; sxy+=dx*dy; });
+    const ang = 0.5*Math.atan2(2*sxy, sxx-syy);
+    const ux = Math.cos(ang), uy = Math.sin(ang);
+    let u0=Infinity,u1=-Infinity,v0=Infinity,v1=-Infinity;
+    ptsArr.forEach(p=>{ const dx=p.x-c.x, dy=p.y-c.y; const u=dx*ux+dy*uy, v=-dx*uy+dy*ux; u0=Math.min(u0,u);u1=Math.max(u1,u);v0=Math.min(v0,v);v1=Math.max(v1,v); });
+    const cu=(u0+u1)/2, cv=(v0+v1)/2;
+    return { cx:c.x+cu*ux-cv*uy, cy:c.y+cu*uy+cv*ux, len:u1-u0, wid:v1-v0, deg:ang*180/Math.PI };
+  }
+  function seededRand(seed){ let s = seed>>>0 || 1; return ()=>{ s = (s*1664525 + 1013904223)>>>0; return s/4294967296; }; }
+  function scatterInPoly(ptsArr, count, rnd, minSep){
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    ptsArr.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);});
+    const out=[];
+    for (let tries=0; tries<count*12 && out.length<count; tries++){
+      const x = x0+rnd()*(x1-x0), y = y0+rnd()*(y1-y0);
+      if (!pointInPoly(x,y,ptsArr)) continue;
+      if (minSep && out.some(q=>Math.hypot(q.x-x,q.y-y)<minSep)) continue;
+      out.push({x,y});
+    }
+    return out;
+  }
+  function pitchMarkings(ptsArr, sport){
+    const b = orientedBox(ptsArr);
+    if (b.len < 30 || b.wid < 20) return '';
+    const L = b.len, W = b.wid, line = 'fill="none" stroke="#f4f1e6" stroke-opacity="0.85" stroke-width="2.4"';
+    let inner = '';
+    if (/baseball|softball/.test(sport)){
+      const side = Math.min(88, Math.min(L, W)*0.42);            // 27.4m base paths, scaled to fit
+      const d = side/Math.SQRT2;
+      inner = '<circle cx="0" cy="'+(d*0.15)+'" r="'+(side*1.02)+'" fill="#8a5a3a" opacity="0.95"/>'
+        + '<rect x="'+(-side/2+3)+'" y="'+(-side/2+3)+'" width="'+(side-6)+'" height="'+(side-6)+'" fill="#3f7a4c" transform="rotate(45)"/>'
+        + '<rect x="'+(-side/2)+'" y="'+(-side/2)+'" width="'+side+'" height="'+side+'" '+line+' transform="rotate(45)"/>'
+        + '<circle cx="0" cy="0" r="'+(side*0.09)+'" fill="#a06a44" stroke="#f4f1e6" stroke-opacity="0.6" stroke-width="1"/>'
+        + [[0,-d],[d,0],[0,d],[-d,0]].map(([x,y],i)=>'<rect x="'+(x-3)+'" y="'+(y-3)+'" width="6" height="6" fill="#fffdf2" transform="rotate(45 '+x+' '+y+')"/>').join('')
+        + '<path d="M0,'+d+' L'+(-L*0.48)+','+(d-L*0.48)+' M0,'+d+' L'+(L*0.48)+','+(d-L*0.48)+'" '+line+' stroke-dasharray="6 4"/>';
+      return '<g transform="translate('+b.cx.toFixed(1)+','+b.cy.toFixed(1)+') rotate('+(b.deg+90).toFixed(1)+')">'+inner+'</g>';
+    }
+    if (/tennis/.test(sport)){
+      inner = '<rect x="'+(-L/2+3)+'" y="'+(-W/2+3)+'" width="'+(L-6)+'" height="'+(W-6)+'" fill="#3d6f96"/>'
+        + '<rect x="'+(-L/2+6)+'" y="'+(-W/2+6)+'" width="'+(L-12)+'" height="'+(W-12)+'" '+line+'/>'
+        + '<path d="M0,'+(-W/2+6)+' V'+(W/2-6)+' M'+(-L*0.27)+','+(-W/2+10)+' V'+(W/2-10)+' M'+(L*0.27)+','+(-W/2+10)+' V'+(W/2-10)+' M'+(-L*0.27)+',0 H'+(L*0.27)+'" '+line+'/>';
+    } else if (/basketball/.test(sport)){
+      inner = '<rect x="'+(-L/2+3)+'" y="'+(-W/2+3)+'" width="'+(L-6)+'" height="'+(W-6)+'" fill="#a8602e"/>'
+        + '<rect x="'+(-L/2+6)+'" y="'+(-W/2+6)+'" width="'+(L-12)+'" height="'+(W-12)+'" '+line+'/>'
+        + '<path d="M0,'+(-W/2+6)+' V'+(W/2-6)+'" '+line+'/><circle r="'+(W*0.16)+'" '+line+'/>'
+        + '<rect x="'+(-L/2+6)+'" y="'+(-W*0.17)+'" width="'+(L*0.2)+'" height="'+(W*0.34)+'" '+line+'/><rect x="'+(L/2-6-L*0.2)+'" y="'+(-W*0.17)+'" width="'+(L*0.2)+'" height="'+(W*0.34)+'" '+line+'/>';
+    } else {
+      // soccer / football / rugby / anything else on grass: touchlines, halfway line,
+      // centre circle and both penalty boxes
+      const bw = W*0.44, bd = Math.min(L*0.17, 60);
+      inner = '<rect x="'+(-L/2+5)+'" y="'+(-W/2+5)+'" width="'+(L-10)+'" height="'+(W-10)+'" '+line+'/>'
+        + '<path d="M0,'+(-W/2+5)+' V'+(W/2-5)+'" '+line+'/><circle r="'+Math.min(W*0.13, 30)+'" '+line+'/>'
+        + '<rect x="'+(-L/2+5)+'" y="'+(-bw/2)+'" width="'+bd+'" height="'+bw+'" '+line+'/><rect x="'+(L/2-5-bd)+'" y="'+(-bw/2)+'" width="'+bd+'" height="'+bw+'" '+line+'/>';
+    }
+    return '<g transform="translate('+b.cx.toFixed(1)+','+b.cy.toFixed(1)+') rotate('+b.deg.toFixed(1)+')">'+inner+'</g>';
+  }
+  function buildingKind(t, areaM2, seed){
+    const b = String(t.building||'yes').toLowerCase();
+    if (/church|chapel|cathedral|temple|mosque|synagogue|shrine/.test(b) || t.amenity==='place_of_worship') return 'church';
+    if (/garage|shed|carport|hut|roof|kiosk|shelter|cabin|greenhouse/.test(b)) return areaM2 < 18 ? null : 'shed';
+    if (/apartments|dormitory/.test(b) || (b==='residential' && areaM2 > 600)) return 'apartment';
+    if (/school|university|college|hospital|public|civic|government|townhall|library|fire_station|train_station|kindergarten/.test(b)) return areaM2 > 220 ? 'hall' : 'house1';
+    if (/commercial|retail|supermarket|office|industrial|warehouse|hotel|shop|manufacture|service/.test(b)) return areaM2 > 200 ? 'shop' : 'house2';
+    if (areaM2 < 26) return null;          // tiny outbuilding: just the stone lot
+    if (areaM2 < 48) return 'shed';
+    if (areaM2 > 1300) return 'shop';
+    if (areaM2 > 430) return 'manor';
+    return ['house1','house2','house3','house1','house2'][seed % 5];
+  }
+  const PROP_W = {  // [min, max, perSqrtArea] — sprite width in world px
+    house1:[52,92,1.5], house2:[54,94,1.5], house3:[52,90,1.5], shed:[32,50,1.3], manor:[92,132,1.3],
+    shop:[92,170,1.1], hall:[100,170,1.1], church:[96,120,1.0], apartment:[84,132,1.0]
+  };
+
+  function renderTerrainArt(elements, project, regionKeyStr){
+    const L = { land:[], water:[], marks:[], lots:[], rail:[], roadCase:[], roadTop:[], pathCase:[], pathTop:[] };
+    const props = [], parkCentroids = [], clearPolys = [];   // clearPolys: fields/courts trees must not stand on
+    const rnd = seededRand(Array.from(String(regionKeyStr)).reduce((h,c)=>h*31+c.charCodeAt(0),7));
+    const M2 = GPS_SCALE*GPS_SCALE;
+    elements.forEach(el=>{
       if (!el.geometry || el.geometry.length<2) return;
       const t = el.tags || {};
       let geom = el.geometry;
-      if (geom.length > 60){
-        const stride = Math.ceil(geom.length/60);
-        const thinned = [];
+      if (geom.length > 80){
+        const stride = Math.ceil(geom.length/80), thinned = [];
         for (let i=0;i<geom.length;i+=stride) thinned.push(geom[i]);
         if (thinned[thinned.length-1] !== geom[geom.length-1]) thinned.push(geom[geom.length-1]);
         geom = thinned;
       }
-      const pts = geom.map(pt=>{ const p = project(pt.lat, pt.lon); return p.x.toFixed(1)+','+p.y.toFixed(1); }).join(' ');
-      if (t.natural==='water' || t.landuse==='reservoir'){
-        waterParts.push('<polygon points="'+pts+'" fill="#3a4a78" stroke="#2a3660" stroke-width="3" opacity="0.9"/>');
-      } else if (t.waterway==='river' || t.waterway==='stream'){
-        waterParts.push('<polyline points="'+pts+'" fill="none" stroke="#3a4a78" stroke-width="'+(t.waterway==='river'?16:8)+'" stroke-linecap="round"/>');
-      } else if (t.leisure==='park' || t.leisure==='garden' || t.landuse==='recreation_ground'){
-        parkParts.push('<polygon points="'+pts+'" fill="#3d5a4f" stroke="#2c4239" stroke-width="2.5" opacity="0.85"/>');
-        parkCentroids.push(centroidOfGeometry(el.geometry, project));
-      } else if (t.highway){
-        const isSmall = smallRoads.has(t.highway);
-        roadParts.push('<polyline points="'+pts+'" fill="none" stroke="'+(isSmall?'#b99a68':'#caa877')+'" stroke-width="'+(isSmall?10:26)+'" stroke-linecap="round" stroke-linejoin="round"/>');
-      } else if (t.building){
-        buildingParts.push('<polygon points="'+pts+'" fill="#2f2a42" stroke="#1e1a2e" stroke-width="2"/>');
+      const P = geom.map(pt=> project(pt.lat, pt.lon));
+      const pts = P.map(p=> p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+      const closed = P.length>3 && Math.hypot(P[0].x-P[P.length-1].x, P[0].y-P[P.length-1].y) < 2;
+      const poly = (fill, stroke, sw, extra)=> '<polygon points="'+pts+'" fill="'+fill+'"'+(stroke?' stroke="'+stroke+'" stroke-width="'+sw+'"':'')+(extra||'')+'/>';
+      const line = (stroke, sw, extra)=> '<polyline points="'+pts+'" fill="none" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"'+(extra||'')+'/>';
+
+      if (t.highway){
+        if (t.tunnel==='yes' || t.area==='yes') return;
+        if (PATH_W[t.highway] !== undefined){
+          const w = PATH_W[t.highway]; if (!w) return;
+          L.pathCase.push(line('#1d1823', w+5)); L.pathTop.push(line('url(#pat-flag)', w));
+        } else {
+          const w = ROAD_W[t.highway] || 48;
+          L.roadCase.push(line('#16121c', w+12)); L.roadCase.push(line('#3b3446', w+6));
+          L.roadTop.push(line('url(#pat-cobble)', w));
+          if (w >= 56) L.roadTop.push(line('#ffd9a0', 1.6, ' stroke-opacity="0.18" stroke-dasharray="14 18"'));
+        }
+        return;
+      }
+      if (t.railway==='rail'){ L.rail.push(line('#2a2530', 16)); L.rail.push(line('#6f6878', 3.5, ' stroke-dasharray="3 7"')); L.rail.push(line('#9a93a6', 1.6)); return; }
+      if (t.waterway){
+        const w = t.waterway==='river' ? 30 : (t.waterway==='canal' ? 24 : 12);
+        L.water.push(line('#22385a', w+6)); L.water.push(line('#35577f', w)); return;
+      }
+      if (!closed) return;
+      const area = polyArea(P), areaM2 = area/M2;
+      if (t.building){
+        L.lots.push(poly('#231d2e', '#4a405a', 3));
+        const c = polyCentroid(P);
+        const seed = Math.floor(rnd()*1e6);
+        const kind = buildingKind(t, areaM2, seed);
+        if (kind){
+          const cfg = PROP_W[kind];
+          const w = Math.max(cfg[0], Math.min(cfg[1], Math.sqrt(area)*cfg[2]));
+          props.push({ x:c.x, y:c.y, kind, w, seed });
+        }
+        return;
+      }
+      if (t.natural==='water' || t.landuse==='reservoir' || t.leisure==='swimming_pool'){
+        L.water.push(poly(t.leisure==='swimming_pool' ? '#3d86b8' : '#2c4a72', '#4a6f9e', 4)); return;
+      }
+      if (t.leisure==='pitch'){
+        const sport = String(t.sport||'').toLowerCase();
+        L.land.push(poly(/tennis|basketball/.test(sport) ? '#3c4a44' : '#3f7048', '#2c4a34', 3));
+        L.marks.push(pitchMarkings(P, sport));
+        clearPolys.push(P);
+        return;
+      }
+      if (t.landuse==='cemetery' || t.amenity==='grave_yard'){
+        L.land.push(poly('#2f3f36', '#1c1a20', 5, ' stroke-dasharray="2 6"'));
+        scatterInPoly(P, Math.min(22, Math.max(3, Math.round(areaM2/160))), rnd, 16).forEach(q=> props.push({ x:q.x, y:q.y, kind:'tomb', w:16+rnd()*7, seed:Math.floor(rnd()*1e6) }));
+        scatterInPoly(P, Math.min(3, Math.round(areaM2/1500)), rnd, 40).forEach(q=> props.push({ x:q.x, y:q.y, kind:'deadtree', w:44+rnd()*14, seed:Math.floor(rnd()*1e6) }));
+        return;
+      }
+      if (t.landuse==='forest' || t.natural==='wood'){
+        L.land.push(poly('#24392f', '#1b2a23', 3));
+        scatterInPoly(P, Math.min(28, Math.max(2, Math.round(areaM2/260))), rnd, 22).forEach(q=> props.push({ x:q.x, y:q.y, kind: rnd()<0.55 ? 'pine' : 'tree', w:38+rnd()*16, seed:Math.floor(rnd()*1e6) }));
+        return;
+      }
+      if (t.amenity==='parking'){ L.land.push(poly('#27232d', '#3a3442', 3)); return; }
+      if (t.leisure==='playground'){ L.land.push(poly('#6e5a3e', '#4a3b28', 3)); clearPolys.push(P); return; }
+      if (t.leisure==='track'){ L.land.push(poly('#8a4234', '#5a2a22', 3)); return; }
+      if (t.leisure==='park' || t.leisure==='garden' || t.leisure==='dog_park' || t.leisure==='golf_course' || t.leisure==='sports_centre' || t.leisure==='stadium'
+          || /^(recreation_ground|grass|meadow|village_green)$/.test(t.landuse||'')){
+        L.land.push(poly('#38584a', '#27403a', 3));
+        if (t.leisure==='park' || t.leisure==='garden' || t.landuse==='recreation_ground'){
+          parkCentroids.push(polyCentroid(P));
+          scatterInPoly(P, Math.min(8, Math.max(1, Math.round(areaM2/1100))), rnd, 40).forEach(q=> props.push({ x:q.x, y:q.y, kind: rnd()<0.25 ? 'deadtree' : 'tree', w:44+rnd()*16, seed:Math.floor(rnd()*1e6) }));
+        }
+        return;
       }
     });
-
-    let g = null;
-    if (waterParts.length || parkParts.length || roadParts.length || buildingParts.length){
-      g = document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.innerHTML = waterParts.join('') + parkParts.join('') + roadParts.join('') + buildingParts.join('');
-      $('#terrain-svg').appendChild(g);
-    }
-    state.regionEls.set(key, { els: g ? [g] : [], parks: parkCentroids, rx, ry });
-    return parkCentroids;
+    // keep trees/tombs off ball fields, courts and playgrounds
+    const isGreenery = k=> k==='tree' || k==='deadtree' || k==='pine';
+    const keptProps = props.filter(pr=> !isGreenery(pr.kind) || !clearPolys.some(P=> pointInPoly(pr.x, pr.y, P)));
+    props.length = 0; keptProps.forEach(pr=> props.push(pr));
+    const svg = L.land.join('') + L.water.join('') + L.marks.join('') + L.lots.join('') + L.rail.join('')
+      + L.pathCase.join('') + L.roadCase.join('') + L.pathTop.join('') + L.roadTop.join('');
+    return { svg, props, parkCentroids };
   }
 
   // ---------------- SESSION SETUP (runs once per anchor) ----------------
   function buildWorld(){
     $('#terrain-svg').innerHTML = '';
+    ensureTerrainDefs();
+    clearMapProps();
     $('#deco-layer').innerHTML = '';
     $('#toto-layer').innerHTML = '';
     $('#gym-layer').innerHTML = '';
@@ -3961,7 +4362,7 @@
   function openBattleSetup(ctx){
     if (state.collection.length===0){ showToast('You need a Toto to battle with first!'); return; }
     pendingBattle = ctx;
-    if (ctx.type==='catch'){ renderCountdownStep('Wild Toto approaching!', ()=> launchBattle({mode:'catch', opponent: ctx.wildToto, allies:[]})); }
+    if (ctx.type==='catch'){ renderCountdownStep('Wild Toto approaching!', ()=> launchBattle({mode:'catch', kind:'catch', opponent: ctx.wildToto, allies:[]})); }
     else if (ctx.type==='gym'){ renderModeSelectStep({ name: ctx.gym.name, boss: ctx.gym.boss, label:'Champion' }); }
     else { renderModeSelectStep({ name: ctx.shrine.name, boss: ctx.shrine.guardian, label:'Guardian' }); }
     $('#setup-modal').classList.add('active');
@@ -4030,7 +4431,7 @@
           delete ally.pendingRole;
         });
       }
-      renderCountdownStep('Preparing battle…', ()=> launchBattle({mode, opponent: target.boss, allies, shrineName: target.name, team}));
+      renderCountdownStep('Preparing battle…', ()=> launchBattle({mode, kind: target.label==='Guardian' ? 'shrine' : 'gym', opponent: target.boss, allies, shrineName: target.name, team}));
     };
     $('#team-cancel').onclick = closeSetup;
   }
@@ -4126,26 +4527,13 @@
   // Percentage-based mitigation with a per-hit cap, instead of flat atk-minus-def — this is
   // what keeps a fight from being decided in one or two hits when CP levels are far apart,
   // and lets us deliberately pace gym/challenger raids to run longer than a wild scuffle.
-  // Lowered from 0.075/0.08 — these were letting a single hit (especially a 2.5x Charge
-  // Attack, or several allies chipping in on the same tick) take too big a bite out of a
-  // boss's health bar, which combined with the old HP multipliers below is why raids were
-  // getting cleared in just a few seconds. A smaller per-hit ceiling means more hits are
-  // needed regardless of how hard any one attack lands, which is what actually stretches
-  // a fight out instead of just inflating a number that a big enough hit cap ignores.
   function damageCapPct(mode){
     if (mode==='catch') return 0.34;
     if (mode==='challenge') return 0.04;
     return 0.045; // gym raids (solo/group)
   }
-  // Mitigation is a RATIO of attacker power to defender power (attackPower/(attackPower+def))
-  // rather than the old "70/(70+def)" constant-offset formula. That old formula was tuned
-  // for stats in the tens/hundreds; once every tier's real stats moved into the
-  // thousands-to-tens-of-thousands range (see ROLE_MAX_STATS), a def stat of e.g. 8000
-  // crushed the "+70" constant to irrelevance and every hit rounded down to almost nothing —
-  // which is why a team of strong Totos could grind on a Challenger boss forever without it
-  // ever losing a meaningful chunk of HP. The ratio form scales correctly at ANY stat
-  // magnitude: matched attack-vs-defense always lands around half the raw attack power,
-  // and a real tier advantage (e.g. 4 Mythicals vs 1 Eternal) still shows up as a real edge.
+  // Mitigation is a RATIO of attacker power to defender power (attackPower/(attackPower+def)),
+  // which scales correctly at any stat magnitude (see ROLE_MAX_STATS).
   function computeDamage(attackPower, defenderDef, defenderMaxHp, capPct){
     const mitigated = attackPower * (attackPower/(attackPower+Math.max(1,defenderDef)));
     let dmg = mitigated * (0.85 + Math.random()*0.3);
@@ -4153,296 +4541,456 @@
     return Math.max(2, Math.round(dmg));
   }
   function fighterFromToto(t){
-    return { ref:t, name:t.name, sprite:spriteMarkup(t), level:t.level, cp:t.cp, tier:t.tier, role:t.role||'attacker', maxHp:t.maxHp, hp:t.maxHp, atk:t.atk, strength:t.strength, def:t.def, spd:t.spd, maxEnergy:t.maxEnergy, energy:t.maxEnergy, isToni:!!t.isToni };
+    return { ref:t, name:t.name, sprite:spriteMarkup(t), level:t.level, cp:t.cp, tier:t.tier, role:t.role||'attacker', maxHp:t.maxHp, hp:t.maxHp,
+             atk:t.atk, strength:t.strength||0, def:t.def, spd:t.spd, heal:t.heal||0, buff:t.buff||0, maxEnergy:t.maxEnergy, energy:t.maxEnergy, isToni:!!t.isToni };
   }
   function strongestToto(){ return state.collection.length ? state.collection.slice().sort((a,b)=>b.cp-a.cp)[0] : null; }
 
+  // ---------------- BATTLE VIEW: layout, icons, rendering ----------------
+  // Role look (aura/ring/plate colours) and crisp SVG role icons — emoji role icons render
+  // differently on every phone, these don't.
+  const BX_ROLE = {
+    attacker: { c:'#ff7a2e', a:'rgba(255,110,30,0.55)', label:'Attacker' },
+    tanker:   { c:'#4da3ff', a:'rgba(60,140,255,0.55)', label:'Tank' },
+    supporter:{ c:'#c27bff', a:'rgba(176,100,255,0.55)', label:'Support' },
+    healer:   { c:'#3be07e', a:'rgba(50,220,120,0.5)',  label:'Healer' }
+  };
+  const BX_ICON = {
+    attacker:'<svg viewBox="0 0 24 24"><path d="M12.5 2c.6 3.2-1.4 4.7-2.7 6.4C8.4 10.2 7 12 7 14.6 7 18.6 9.9 22 13 22c3.7 0 6-3 6-6.6 0-2.6-1.3-4.6-2.7-6.1.2 1.6-.4 2.9-1.6 3.6.4-4.6-.6-8.6-2.2-10.9z" fill="#ffd27a" stroke="#7a2a06" stroke-width="1.3" stroke-linejoin="round"/><path d="M12.6 13.2c1.4 1.3 2.4 2.6 2.4 4.1 0 1.6-1.2 2.9-2.7 2.9s-2.6-1.2-2.6-2.7c0-1.6 1.4-2.7 2.9-4.3z" fill="#ff8a2a"/></svg>',
+    tanker:'<svg viewBox="0 0 24 24"><path d="M12 2.5l8 3v6.2c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V5.5z" fill="#cfe6ff" stroke="#123a7a" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 5.2l5.4 2v4.6c0 3.5-2.2 6-5.4 7.3z" fill="#5aa8ff"/></svg>',
+    supporter:'<svg viewBox="0 0 24 24"><path d="M12 2.4l2.8 6.1 6.6.7-5 4.5 1.4 6.6L12 17l-5.8 3.3 1.4-6.6-5-4.5 6.6-.7z" fill="#f1dcff" stroke="#4a1a7a" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+    healer:'<svg viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z" fill="#dcffe9" stroke="#0e5a2a" stroke-width="1.4" stroke-linejoin="round"/></svg>'
+  };
+  // The four command abilities, one per team role, in the reference's slot order.
+  const BX_ABILITIES = [
+    { role:'attacker',  name:'Inferno Slash', cd:10000, c1:'#ffb066', c2:'#a3240f', b:'#ffcf8a', g:'rgba(255,110,40,0.8)',
+      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><path d="M9 41C18 33 28 20 41 6c-6 12-13 23-26 37z" fill="#fff4d0"/><path d="M6 37c9-6 20-17 31-30-4 10-12 21-25 33z" fill="#ffb347" opacity="0.9"/><path d="M13 44c9-7 18-17 26-30-3 11-10 22-21 32z" fill="#ff6a1a" opacity="0.85"/><circle cx="40" cy="7" r="3" fill="#fff"/></svg>' },
+    { role:'supporter', name:'Arcane Boost',  cd:12000, c1:'#d9a6ff', c2:'#4b1a8c', b:'#e8c8ff', g:'rgba(176,100,255,0.85)',
+      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><circle cx="24" cy="25" r="13" fill="#7b3fe0" stroke="#f0dcff" stroke-width="2.5"/><circle cx="20" cy="21" r="4.5" fill="#f3e6ff" opacity="0.85"/><path d="M24 2l2.4 6 6.4.4-5 4 1.6 6.2L24 15.2l-5.4 3.4 1.6-6.2-5-4 6.4-.4z" fill="#fff6c8"/><path d="M8 34l1.4 3.2 3.4.3-2.6 2.2.8 3.3L8 41.2 5 43l.8-3.3-2.6-2.2 3.4-.3zM40 32l1.2 2.6 2.8.3-2.1 1.8.6 2.7-2.5-1.5-2.5 1.5.7-2.7-2.1-1.8 2.8-.3z" fill="#e8c8ff"/></svg>' },
+    { role:'healer',    name:'Mending Bloom', cd:10000, c1:'#8dffc0', c2:'#0e6b38', b:'#b6ffd4', g:'rgba(50,220,120,0.8)',
+      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><path d="M18 6h12v12h12v12H30v12H18V30H6V18h12z" fill="#eafff2" stroke="#0e5a2a" stroke-width="2.6" stroke-linejoin="round"/><path d="M21 9h6v12h12v6H27v12h-6V27H9v-6h12z" fill="#3be07e"/></svg>' },
+    { role:'tanker',    name:'Bulwark',       cd:12000, c1:'#8fd0ff', c2:'#123f8c', b:'#bfe4ff', g:'rgba(70,150,255,0.85)',
+      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><path d="M24 4l16 6v12c0 10-7 17.5-16 21C15 39.5 8 32 8 22V10z" fill="#d8ecff" stroke="#0e2f6b" stroke-width="2.6" stroke-linejoin="round"/><path d="M24 9l11 4.2V22c0 7.4-4.6 12.6-11 15.4z" fill="#3d8cff"/><path d="M24 9v28.4C17.6 34.6 13 29.4 13 22v-8.8z" fill="#7cb8ff"/></svg>' }
+  ];
+  function bxEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  // Sprite markup is either real art (<img>/<svg>) or, for real-player allies, just an emoji.
+  function bxArt(sprite){ const s = String(sprite||''); return /^\s*</.test(s) ? s : '<span class="bx-emoji">'+bxEsc(s||'❔')+'</span>'; }
+  function fmt(n){ return Math.max(0, Math.round(n)).toLocaleString(); }
+
+  // Landscape: the stage is laid out in a 540-unit-tall design space whose width follows the
+  // screen's aspect. When the phone is upright the whole battle screen is turned 90° so the
+  // fight plays sideways like the reference (and we try a real orientation lock first, which
+  // installed web apps on Android allow).
+  let bxOrientationLocked = false, bxRotated = false;
+  function layoutBattleScreen(){
+    const scr = $('#battle-screen'), stage = $('#bx-stage'), host = document.getElementById('toto-root');
+    if (!scr || !host) return;
+    // On a phone the fight always takes the whole real screen (fixed to the viewport), even
+    // if the phone is already sideways and the app's desktop "phone frame" has kicked in;
+    // a desktop browser window that's wider than tall gets the same treatment, so the fight
+    // plays in proper landscape instead of sideways inside the portrait phone frame.
+    const touch = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+    const full = touch || window.innerWidth > window.innerHeight;
+    scr.style.position = full ? 'fixed' : '';
+    const vw = full ? window.innerWidth : host.clientWidth, vh = full ? window.innerHeight : host.clientHeight;
+    const portrait = vh > vw;
+    bxRotated = portrait;
+    const W = portrait ? vh : vw, H = portrait ? vw : vh;
+    scr.style.width = W+'px'; scr.style.height = H+'px';
+    scr.style.transform = portrait ? 'translate('+vw+'px,0) rotate(90deg)' : 'none';
+    const scale = H/540;
+    const dw = Math.max(820, Math.min(1260, W/scale));
+    const fit = Math.min(scale, W/dw);
+    stage.style.width = dw+'px';
+    stage.style.transform = 'translate('+((W - dw*fit)/2)+'px,'+((H - 540*fit)/2)+'px) scale('+fit+')';
+    stage.dataset.dw = dw;
+    // horizontal anchors that depend on the design width
+    const rosterL = dw - 14 - 212;
+    stage.style.setProperty('--bx-bossbar-x', Math.min(dw/2, rosterL - 166)+'px');
+    const abilW = 4*60 + 3*9 + 18 + 4;
+    stage.style.setProperty('--bx-charge-x', ((14+3*50+2*9+14) + (dw - 14 - abilW - 14))/2 + 'px');
+    if (battle) placeBattlers();
+  }
+  window.addEventListener('resize', ()=>{ if ($('#battle-screen').classList.contains('active')) layoutBattleScreen(); });
+  function lockLandscape(){
+    try {
+      if (screen.orientation && screen.orientation.lock){
+        screen.orientation.lock('landscape').then(()=>{ bxOrientationLocked = true; setTimeout(layoutBattleScreen, 250); }).catch(()=>{});
+      }
+    } catch(e){}
+  }
+  function unlockOrientation(){
+    if (!bxOrientationLocked) return;
+    bxOrientationLocked = false;
+    try { screen.orientation.lock('portrait').catch(()=>{ try{ screen.orientation.unlock(); }catch(e){} }); } catch(e){}
+  }
+
+  // Everyone on your side, in one list: your Toto first, then real/computer allies.
+  function teamMembers(){
+    if (!battle) return [];
+    const list = [{ key:'p', f:battle.player, isPlayer:true }];
+    battle.allies.forEach((a,i)=> list.push({ key:'a'+i, f:a, isPlayer:false, idx:i }));
+    return list;
+  }
+  // Field order left→right follows the reference (tank, support, attacker, healer).
+  const BX_FIELD_ORDER = { tanker:0, supporter:1, attacker:2, healer:3 };
+
+  function buildBattleView(){
+    const team = teamMembers();
+    // arena line-up
+    const fieldEl = $('#bx-team'); fieldEl.innerHTML = '';
+    const ordered = team.slice().sort((a,b)=> (BX_FIELD_ORDER[a.f.role]??2) - (BX_FIELD_ORDER[b.f.role]??2));
+    ordered.forEach(m=>{
+      const r = BX_ROLE[m.f.role] || BX_ROLE.attacker;
+      const el = document.createElement('div');
+      el.className = 'bx-member' + (m.isPlayer ? ' me' : '');
+      el.style.setProperty('--rc', r.c); el.style.setProperty('--rc-a', r.a);
+      let sparks = '';
+      for (let i=0;i<4;i++) sparks += '<span class="bx-spark" style="left:'+(30+i*26)+'px; animation-delay:'+(i*0.55)+'s"></span>';
+      el.innerHTML = '<div class="bx-fig"><div class="bx-aura"></div><div class="bx-circle"></div>'+sparks
+        + '<div class="bx-sprite">'+bxArt(m.f.sprite)+'</div><div class="bx-shield"></div></div>'
+        + '<div class="bx-plate"><div class="bx-plate-ic">'+BX_ICON[m.f.role||'attacker']+'</div>'
+        + '<div class="bx-plate-body"><div class="bx-plate-row"><span class="bx-plate-name">'+bxEsc(m.f.name)+'</span><span class="bx-plate-lv">Lv. '+(m.f.level||1)+'</span></div>'
+        + '<div class="bx-hp"><div class="bx-hp-fill"></div><div class="bx-hp-text"></div></div></div></div>';
+      fieldEl.appendChild(el);
+      m.el = el; m.f._el = el;
+    });
+    // right-hand roster
+    const rosterEl = $('#bx-roster'); rosterEl.innerHTML = '';
+    team.forEach(m=>{
+      const r = BX_ROLE[m.f.role] || BX_ROLE.attacker;
+      const card = document.createElement('div');
+      card.className = 'bx-card' + (m.isPlayer ? ' active' : '');
+      card.style.setProperty('--rc', r.c);
+      card.innerHTML = '<div class="bx-portrait">'+bxArt(m.f.sprite)+'</div><div class="bx-card-body">'
+        + '<div class="bx-card-name">'+bxEsc(m.f.name)+'</div>'
+        + '<div class="bx-card-sub"><span class="bx-role-ic">'+BX_ICON[m.f.role||'attacker']+'</span><span>'+r.label+'</span><span class="bx-lv">Lv. '+(m.f.level||1)+'</span></div>'
+        + '<div class="bx-hp"><div class="bx-hp-fill"></div><div class="bx-hp-text"></div></div></div>';
+      rosterEl.appendChild(card);
+      m.f._card = card;
+    });
+    // boss + top bars
+    const e = battle.enemy;
+    setSpriteHtml($('#bf-e-sprite'), bxArt(e.sprite));
+    setSpriteHtml($('#bf-e-portrait'), bxArt(e.sprite));
+    $('#bf-e-name').textContent = e.name; $('#bf-e-level').textContent = 'Lv. '+(e.level||1);
+    $('#bx-boss').classList.remove('down','hit','lunge');
+    // active hero (you)
+    const p = battle.player, pr = BX_ROLE[p.role] || BX_ROLE.attacker;
+    setSpriteHtml($('#bx-active-portrait'), bxArt(p.sprite));
+    $('#bx-active-roleic').innerHTML = BX_ICON[p.role||'attacker'];
+    $('#bx-active-name').textContent = p.name;
+    $('#bx-active-role').textContent = pr.label; $('#bx-active-role').style.color = pr.c;
+    $('#bx-active-lv').textContent = 'Lv. '+(p.level||1);
+    // ability buttons
+    const abEl = $('#bx-abilities'); abEl.innerHTML = '';
+    BX_ABILITIES.forEach((ab,i)=>{
+      const b = document.createElement('button');
+      b.className = 'bx-ab'; b.dataset.i = i;
+      b.style.setProperty('--abc-1', ab.c1); b.style.setProperty('--abc-2', ab.c2); b.style.setProperty('--abc-b', ab.b); b.style.setProperty('--abc-g', ab.g);
+      b.innerHTML = ab.icon + '<span class="bx-ab-cd"></span><span class="bx-ab-num">'+(i+1)+'</span>';
+      b.onclick = ()=> useAbility(i, false);
+      abEl.appendChild(b);
+    });
+    // embers
+    const emb = $('#bx-embers'); emb.innerHTML = '';
+    for (let i=0;i<14;i++){
+      const d = document.createElement('span'); d.className = 'bx-ember';
+      d.style.left = (8+Math.random()*84)+'%'; d.style.animationDuration = (5+Math.random()*5)+'s'; d.style.animationDelay = (-Math.random()*8)+'s';
+      d.style.transform = 'scale('+(0.6+Math.random())+')';
+      emb.appendChild(d);
+    }
+  }
+  // Positions the boss and the line-up for the current design width.
+  function placeBattlers(){
+    const stage = $('#bx-stage'); const dw = parseFloat(stage.dataset.dw || 960);
+    const rosterL = dw - 14 - 212;
+    const fieldL = 30, fieldR = rosterL - 10;
+    const boss = $('#bx-boss');
+    const bossX = Math.min(dw*0.52, fieldR - 140);
+    boss.style.left = bossX+'px'; boss.style.top = '50px';
+    const team = Array.from($('#bx-team').children);
+    const n = team.length;
+    // a lone hero stands a bit bigger, front-left of the boss; a full party spreads across
+    // the field and shrinks only if the screen is too narrow for four side by side
+    const slot = (fieldR - fieldL)/Math.max(1,n);
+    const ms = n===1 ? 1.12 : Math.max(0.7, Math.min(1, slot/188));
+    team.forEach((el,i)=>{
+      let x;
+      if (n===1) x = Math.max(fieldL + 90, bossX - 250);
+      else x = fieldL + slot*(i+0.5);
+      // member box is 212 tall and scales from its bottom edge, so the nameplates always
+      // finish just above the battle log / charge button
+      el.style.left = x+'px'; el.style.top = '206px';
+      el.style.setProperty('--ms', ms.toFixed(3));
+      el.style.setProperty('--lx', ((bossX - x)*0.12).toFixed(0)+'px');
+    });
+  }
+
+  function setSpriteHtml(el, html){ if (el && el.__spriteHtml !== html){ el.innerHTML = html; el.__spriteHtml = html; } }
+  function setBar(fillEl, textEl, hp, maxHp, withMax){
+    const pct = Math.max(0, Math.min(100, hp/Math.max(1,maxHp)*100));
+    if (fillEl){ fillEl.style.width = pct+'%'; fillEl.classList.toggle('low', pct<50 && pct>=25); fillEl.classList.toggle('crit', pct<25); }
+    if (textEl) textEl.textContent = withMax===false ? fmt(hp) : (fmt(hp)+' / '+fmt(maxHp));
+  }
+  function renderBattle(){
+    if (!battle) return;
+    const e = battle.enemy;
+    const eFill = $('#bf-e-hp');
+    eFill.style.width = Math.max(0, e.hp/e.maxHp*100)+'%';
+    $('#bf-e-hpfrac').textContent = fmt(e.hp)+' / '+fmt(e.maxHp);
+    const now = Date.now();
+    const buffed = battle.buff && battle.buff.expiresAt > now, fortified = battle.fortify && battle.fortify.expiresAt > now;
+    teamMembers().forEach(m=>{
+      const f = m.f, down = f.hp <= 0;
+      if (f._el){
+        setBar(f._el.querySelector('.bx-hp-fill'), f._el.querySelector('.bx-hp-text'), f.hp, f.maxHp, true);
+        f._el.classList.toggle('down', down);
+        f._el.classList.toggle('fortified', !!fortified && !down);
+        f._el.classList.toggle('buffed', !!buffed && !down);
+      }
+      if (f._card){
+        setBar(f._card.querySelector('.bx-hp-fill'), f._card.querySelector('.bx-hp-text'), f.hp, f.maxHp, true);
+        f._card.classList.toggle('down', down);
+      }
+    });
+    const p = battle.player;
+    setBar($('#bx-active-hp'), null, p.hp, p.maxHp);
+    $('#bx-active-hptext').textContent = fmt(p.hp)+' / '+fmt(p.maxHp);
+    let buffs = '';
+    if (buffed) buffs += '<span class="bx-buff" style="color:#d9a6ff">ATK▲ '+Math.ceil((battle.buff.expiresAt-now)/1000)+'s</span>';
+    if (fortified) buffs += '<span class="bx-buff" style="color:#8fd0ff">DEF▲ '+Math.ceil((battle.fortify.expiresAt-now)/1000)+'s</span>';
+    $('#bx-buffs').innerHTML = buffs;
+    $('#bx-energy').style.width = Math.max(0, Math.min(100, p.energy/Math.max(1,p.maxEnergy)*100))+'%';
+    $('#btn-attack').classList.toggle('disabled', !!battle.spectating || !!battle.over);
+    updateAbilityButtons();
+  }
+
+  // ---------------- effects ----------------
+  // Centre of an element in the stage's own (unscaled, unrotated) design coordinates, so
+  // effects can be dropped onto it whichever way the screen is turned.
+  function bxCenterOf(el, fracY){
+    const fy = fracY==null ? 0.5 : fracY;
+    const st = $('#bx-stage'), r = el.getBoundingClientRect(), sr = st.getBoundingClientRect();
+    if (!bxRotated){
+      const s = sr.height/540 || 1;
+      return { x:(r.left + r.width/2 - sr.left)/s, y:(r.top + r.height*fy - sr.top)/s };
+    }
+    // turned 90° clockwise: stage x runs down the screen, stage y runs right-to-left
+    const s = sr.width/540 || 1;
+    return { x:(r.top + r.height/2 - sr.top)/s, y:(sr.right - (r.right - fy*r.width))/s };
+  }
+  function bxAt(el, fracY){ return el ? bxCenterOf(el, fracY) : { x:0, y:0 }; }
+  function bxFx(html, pos, life){
+    const fx = $('#bx-fx'); const d = document.createElement('div');
+    d.innerHTML = html; const node = d.firstChild;
+    node.style.left = pos.x+'px'; node.style.top = pos.y+'px';
+    fx.appendChild(node); setTimeout(()=> node.remove(), life||1000);
+    return node;
+  }
+  function popNumber(target, val, kind){
+    const el = target==='boss' ? $('#bf-e-sprite') : target;
+    if (!el) return;
+    const pos = bxAt(el, target==='boss' ? 0.45 : 0.35);
+    pos.x += (Math.random()-0.5)*40; pos.y += (Math.random()-0.5)*16;
+    const colors = { hit:'#ffffff', crit:'#ffd23d', hurt:'#ff5470', heal:'#5dff9a', small:'#ffe2b8' };
+    const cls = kind==='crit' ? ' big' : (kind==='small' ? ' small' : '');
+    const text = (kind==='heal' ? '+' : '-') + fmt(val);
+    bxFx('<div class="bx-num'+cls+'" style="color:'+(colors[kind]||'#fff')+'">'+text+'</div>', pos, 900);
+  }
+  function bxShake(){ const st = $('#bx-stage'); st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake'); }
+  function bxPulse(el, cls, ms){ if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(()=> el.classList.remove(cls), ms||450); }
+  function battleLog(msg){ const el = $('#battle-log'); el.textContent = msg; clearTimeout(el.__t); el.__t = setTimeout(()=>{ el.textContent=''; }, 2600); }
+  function fxSlash(){
+    const pos = bxAt($('#bf-e-sprite'), 0.45);
+    bxFx('<svg class="bx-slash" viewBox="0 0 260 200"><path d="M20 180 Q120 120 240 20" stroke="#fff6d0" stroke-width="14"/><path d="M30 190 Q130 130 250 34" stroke="#ff8a2a" stroke-width="7" opacity="0.9"/><path d="M10 168 Q110 108 228 10" stroke="#ffcf6a" stroke-width="4"/></svg>', pos, 600);
+    bxFx('<div class="bx-burst"></div>', pos, 420);
+  }
+  function fxSpark(){ bxFx('<div class="bx-burst" style="width:80px;height:80px"></div>', bxAt($('#bf-e-sprite'), 0.5+(Math.random()-0.5)*0.3), 420); }
+  function fxTeam(kind){
+    teamMembers().forEach(m=>{
+      if (!m.f._el || m.f.hp<=0) return;
+      const pos = bxAt(m.f._el.querySelector('.bx-fig'), 0.92);
+      if (kind==='heal'){ for (let i=0;i<3;i++) setTimeout(()=> bxFx('<div class="bx-rise" style="color:#5dff9a">✚</div>', { x:pos.x+(Math.random()-0.5)*70, y:pos.y-30-Math.random()*40 }, 1000), i*140); }
+      else if (kind==='buff'){ bxFx('<div class="bx-ring" style="color:#c98bff"></div>', pos, 800); setTimeout(()=> bxFx('<div class="bx-ring" style="color:#e6c8ff"></div>', pos, 800), 180); }
+      else if (kind==='shield'){ bxFx('<div class="bx-ring" style="color:#7cc0ff"></div>', pos, 800); }
+      bxPulse(m.f._el, 'cast', 700);
+    });
+  }
+
+  // ---------------- abilities (one per team role) ----------------
+  // Whoever on your team has a slot's role uses it at full power; if nobody does, your own
+  // Toto can still cast it, just weaker and on a longer cooldown — so all four always work.
+  function abilitySpecialist(role){ return teamMembers().find(m=> m.f.role===role && m.f.hp>0) || null; }
+  function abilityState(i){
+    const ab = BX_ABILITIES[i];
+    const spec = abilitySpecialist(ab.role);
+    const me = teamMembers()[0];
+    const caster = spec || (me && me.f.hp>0 ? me : teamMembers().find(m=>m.f.hp>0));
+    const readyAt = (battle.abilityReadyAt && battle.abilityReadyAt[i]) || 0;
+    return { ab, spec, caster, power: spec ? 1 : 0.6, cd: spec ? ab.cd : ab.cd*1.5, readyAt, left: Math.max(0, readyAt - Date.now()) };
+  }
+  function updateAbilityButtons(){
+    if (!battle) return;
+    $$('.bx-ab', $('#bx-abilities')).forEach(b=>{
+      const i = +b.dataset.i, st = abilityState(i);
+      const cooling = st.left > 0 || battle.over || !st.caster;
+      b.classList.toggle('cooling', cooling);
+      b.classList.toggle('ready', !cooling);
+      b.classList.toggle('offrole', !st.spec);
+      const cdEl = b.querySelector('.bx-ab-cd');
+      if (st.left > 0){ cdEl.textContent = Math.ceil(st.left/1000); b.style.setProperty('--cdp', (st.left/st.cd*100).toFixed(1)+'%'); }
+      else { cdEl.textContent = ''; b.style.setProperty('--cdp', '100%'); }
+      b.title = st.ab.name + (st.spec ? ' — '+st.spec.f.name : ' — your Toto (weaker, no '+(BX_ROLE[st.ab.role].label)+' on the team)');
+    });
+  }
+  function useAbility(i, auto){
+    if (!battle || battle.over) return false;
+    const st = abilityState(i);
+    if (!st.caster || st.left > 0) return false;
+    battle.abilityReadyAt = battle.abilityReadyAt || {};
+    battle.abilityReadyAt[i] = Date.now() + st.cd;
+    const c = st.caster.f, power = st.power, e = battle.enemy;
+    if (c._el){ bxPulse(c._el, 'cast', 700); if (st.ab.role==='attacker') bxPulse(c._el, 'lunge', 420); }
+    Sound.playAbility();
+    if (st.ab.role==='attacker'){
+      const atk = ((c.atk||1) + (c.strength||0)) * 2.5 * power * (battle.buff && battle.buff.expiresAt>Date.now() ? battle.buff.atkMult : 1);
+      const dmg = computeDamage(atk, e.def, e.maxHp, damageCapPct(battle.mode)*2);
+      e.hp = Math.max(0, e.hp-dmg);
+      setTimeout(()=>{ fxSlash(); bxPulse($('#bx-boss'), 'hit', 380); popNumber('boss', dmg, 'crit'); bxShake(); }, 160);
+      battleLog('🔥 '+c.name+' — Inferno Slash for '+fmt(dmg)+'!');
+      if (e.hp<=0) setTimeout(()=> endBattle(true), 260);
+    } else if (st.ab.role==='supporter'){
+      battle.buff = { atkMult: 1 + 0.3*power, defMult: 1 + 0.25*power, expiresAt: Date.now()+8000 };
+      fxTeam('buff');
+      battleLog('★ '+c.name+' — Arcane Boost! Team hits harder for 8s');
+    } else if (st.ab.role==='healer'){
+      let total = 0;
+      teamMembers().forEach(m=>{
+        const f = m.f; if (f.hp<=0) return;
+        const amt = Math.round(Math.max((c.heal||0)*0.35, f.maxHp*0.14) * power);
+        const before = f.hp; f.hp = Math.min(f.maxHp, f.hp + amt); total += f.hp-before;
+        if (f._el && f.hp>before) setTimeout(()=> popNumber(f._el.querySelector('.bx-sprite'), f.hp-before, 'heal'), 120);
+      });
+      fxTeam('heal');
+      battleLog('✚ '+c.name+' — Mending Bloom heals the team for '+fmt(total)+'!');
+    } else if (st.ab.role==='tanker'){
+      battle.fortify = { defMult: 1 + 0.6*power, expiresAt: Date.now()+8000 };
+      fxTeam('shield');
+      battleLog('🛡️ '+c.name+' — Bulwark! The team shrugs off hits for 8s');
+    }
+    renderBattle();
+    return true;
+  }
+  // Computer allies use their own role's skill when it makes sense — after it has sat ready
+  // for a moment, so the player gets first say over the button.
+  function botAbilityTick(){
+    if (!battle || battle.over) return;
+    BX_ABILITIES.forEach((ab,i)=>{
+      const st = abilityState(i);
+      if (!st.spec || st.spec.isPlayer || st.spec.f.isReal || st.left>0) return;
+      const readyFor = Date.now() - st.readyAt;
+      if (readyFor < 2500) return;
+      if (ab.role==='healer' && !teamMembers().some(m=> m.f.hp>0 && m.f.hp < m.f.maxHp*0.7)) return;
+      if (ab.role==='supporter' && battle.buff && battle.buff.expiresAt > Date.now()) return;
+      if (ab.role==='tanker' && battle.fortify && battle.fortify.expiresAt > Date.now()) return;
+      useAbility(i, true);
+    });
+  }
+  // AUTO plays your side completely: basic attacks plus every ability when it's useful.
+  function autoAbilityTick(){
+    if (!battle || battle.over || !battle.auto) return;
+    const lowest = teamMembers().filter(m=>m.f.hp>0).reduce((a,m)=> Math.min(a, m.f.hp/m.f.maxHp), 1);
+    const order = [];
+    if (lowest < 0.6) order.push(2);
+    if (!(battle.fortify && battle.fortify.expiresAt > Date.now())) order.push(3);
+    if (!(battle.buff && battle.buff.expiresAt > Date.now())) order.push(1);
+    order.push(0);
+    for (const i of order){ if (useAbility(i, true)) break; }
+  }
+
+  // ---------------- launch / timers / end ----------------
   function launchBattle(opts){
     // For catch battles there's no team pick — just your strongest Toto, like before.
     const team = (opts.team && opts.team.length) ? opts.team : [strongestToto()].filter(Boolean);
     if (!team.length) return;
     const lead = team.slice().sort((a,b)=>b.cp-a.cp)[0];
     const enemyFighter = fighterFromToto(opts.opponent);
-    // Gym champions and especially Challenger guardians fight tougher than their catchable
-    // stats — this only affects the battle copy, so the Toto you actually catch afterward
-    // has completely normal health for its tier, not this temporary raid buff. Raised well
-    // past the old 2.2x/2.8x (which, paired with the old looser per-hit damage cap above,
-    // was going down in about 5 seconds) so a real fight takes real effort — a big health
-    // pool rather than a punishing defense/attack stat, so it stays beatable, just longer.
+    // Gym champions and Challenger guardians fight with a raid-sized health pool (battle
+    // copy only — the Toto you catch afterwards has normal health for its tier).
     if (opts.mode==='solo' || opts.mode==='group'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*5.5); enemyFighter.hp = enemyFighter.maxHp; }
     else if (opts.mode==='challenge'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*7); enemyFighter.hp = enemyFighter.maxHp; }
-    battle = { mode:opts.mode, shrineName:opts.shrineName||null, team:team, player:fighterFromToto(lead), enemy:enemyFighter, opponentTemplate:opts.opponent, allies:opts.allies||[], group:(opts.allies&&opts.allies.length>0), over:false, buff:null, timers:{}, auto:false, speedMult:1 };
-    $('#btn-auto').classList.remove('active'); $('#btn-speed').classList.remove('active'); $('#btn-speed').textContent='1×';
-    // Allies (real players or bots) never send us their actual Toto's stats — we only know
-    // a name/sprite/role — so for combat-math purposes every ally fights as a max-level
-    // Mythical of its shown role (falling back to Attacker if no role is known at all, e.g.
-    // a real player who joined before picking). This is what lets a real squad of allies
-    // meaningfully chip into a boss's HP instead of the old flat few-points-per-tick scratch.
+    battle = { mode:opts.mode, kind:opts.kind||(opts.mode==='catch'?'catch':'gym'), shrineName:opts.shrineName||null, team:team, player:fighterFromToto(lead), enemy:enemyFighter,
+               opponentTemplate:opts.opponent, allies:opts.allies||[], group:(opts.allies&&opts.allies.length>0), over:false, buff:null, fortify:null, timers:{}, auto:false, speedMult:1, abilityReadyAt:{} };
+    // Allies (real players or bots) never send their real stats — each fights as a max-level
+    // Mythical of its shown role (Attacker if unknown), with real HP numbers now so their bars
+    // read like everyone else's.
     battle.allies.forEach(ally=>{
-      const s = statsForLevel(ally.tier||'mythical', ally.role||'attacker', TOTO_MAX_LEVEL);
-      ally.atk = s.atk; ally.def = s.def;
+      if (!ally.role) ally.role = 'attacker';
+      const s = statsForLevel(ally.tier||'mythical', ally.role, TOTO_MAX_LEVEL);
+      ally.atk = s.atk; ally.def = s.def; ally.heal = s.heal||0; ally.buff = s.buff||0;
+      ally.maxHp = s.hp; ally.hp = s.hp; ally.level = ally.level || TOTO_MAX_LEVEL;
     });
-    $('#battle-title').textContent = opts.mode==='catch' ? 'Wild Encounter' : (opts.shrineName ? (opts.shrineName+' Raid') : 'Raid');
-    $('#battle-stage').className = 'battle-stage ' + (opts.mode==='catch' ? 'theme-catch' : 'theme-raid');
-    const waveBadge = $('#wave-badge');
-    if (opts.mode==='catch'){ waveBadge.classList.remove('show'); }
-    else { $('#wave-loc').textContent = opts.shrineName || 'Raid'; waveBadge.classList.add('show'); }
-    spawnEmbers();
-    const row = $('#ally-row'); row.innerHTML='';
-    const fieldRow = $('#ally-field-row'); fieldRow.innerHTML='';
-    battle.allies.forEach((ally,i)=>{
-      const chip = document.createElement('div'); chip.className='ally-chip'+(ally.isReal?' real':'');
-      chip.title = (ally.name||'Ally')+(ally.isReal?' (real player)':' (bot)');
-      const ri = ally.role ? (ROLE_INFO[ally.role]||null) : null;
-      const ringColor = ri ? ri.color : '#999';
-      // Same circular-portrait + role-badge layout as your own roster slot, so allies read
-      // as full party members rather than a smaller, differently-styled row.
-      chip.innerHTML = '<div class="roster-portrait-wrap"><span class="roster-portrait" style="border-color:'+ringColor+';">'+ally.sprite+'</span>'
-        + (ri ? '<span class="roster-role-badge" style="background:'+ri.color+';">'+ri.icon+'</span>' : '')+'</div>'
-        + '<div class="roster-info"><div class="roster-name-row"><span class="roster-name">'+(ally.name||'Ally')+'</span>'
-        + (ally.level ? '<span class="roster-level">Lv.'+ally.level+'</span>' : '')+'</div>'
-        + (ri ? '<div class="roster-role-row"><span class="roster-role-label">'+ri.label+'</span></div>' : '')
-        + '<div class="ally-hp-track"><div class="ally-hp-fill" style="width:100%;"></div><span class="hp-frac small ally-hp-frac">100%</span></div></div>'
-        + (ally.isReal?'<span class="ally-live-dot"></span>':'');
-      row.appendChild(chip);
-      // Matching small full-body sprite standing in the arena beside your own, so the
-      // whole active party is visible together facing the boss (not just you).
-      const fslot = document.createElement('div'); fslot.className='field-slot';
-      fslot.innerHTML = '<div class="sprite-wrap"><div class="sprite-glow player"></div><div class="arena-sprite player">'+ally.sprite+'</div></div>'
-        + '<div class="field-tag"><span class="field-name">'+(ally.name||'Ally')+'</span>'+(ally.level?'<span class="field-level">Lv.'+ally.level+'</span>':'')+'</div>'
-        + '<div class="field-hp-track"><div class="field-hp-fill" style="width:100%;"></div></div>'
-        + '<span class="field-hp-frac">100%</span>';
-      fieldRow.appendChild(fslot);
-    });
-    renderBattle();
+    $('#btn-auto').classList.remove('on'); $('#btn-speed').classList.remove('on'); $('#bx-speed-label').textContent = '×1';
+    $('#wave-num').textContent = 'Wave 1/1';
+    $('#wave-loc').textContent = opts.shrineName || (opts.mode==='catch' ? 'Pumpkin Grove' : 'Raid');
+    $('#bx-bg').style.backgroundImage = 'url(assets/battle/'+(battle.kind==='shrine' ? 'village-blood' : 'village')+'.jpg)';
+    $('#bx-menu').classList.remove('show');
+    $('#bx-banner').className = 'bx-banner';
+    $('#battle-log').textContent = '';
     $('#battle-screen').classList.add('active');
+    layoutBattleScreen();
+    buildBattleView();
+    placeBattlers();
+    renderBattle();
+    lockLandscape();
+    battleLog(opts.mode==='catch' ? 'A wild '+enemyFighter.name+' appears!' : enemyFighter.name+' blocks the way!');
     startBattleTimers();
-  }
-  function spawnEmbers(){
-    const stage = $('#battle-stage');
-    $$('.ember', stage).forEach(e=>e.remove());
-    for (let i=0;i<6;i++){
-      const e = document.createElement('div'); e.className='ember'; e.textContent = Math.random()<0.5 ? '✨':'🍂';
-      e.style.left = (10+Math.random()*80)+'%'; e.style.animationDuration = (4+Math.random()*4)+'s'; e.style.animationDelay = (Math.random()*3)+'s';
-      stage.appendChild(e);
-    }
-  }
-  // renderBattle() runs on a 1-second timer (plus every attack/ability/damage tick) for
-  // the whole length of a fight. It used to unconditionally overwrite each sprite
-  // container's innerHTML with the exact same markup every single call — destroying and
-  // recreating the <img> element even though nothing changed, which forces a fresh
-  // decode/paint and drops it out of its GPU layer each time. At 1+ times a second for
-  // the whole battle that's exactly the kind of continuous repaint that shows up as
-  // flashing/glitching, especially on the now much bigger boss art. This only touches
-  // the DOM when the sprite markup actually differs from what's already there.
-  function setSpriteHtml(el, html){ if (el.__spriteHtml !== html){ el.innerHTML = html; el.__spriteHtml = html; } }
-  function renderBattle(){
-    if (!battle) return;
-    const p=battle.player, e=battle.enemy;
-    const pHpPct = Math.max(0,(p.hp/p.maxHp*100));
-    $('#bf-p-name').textContent=p.name; $('#bf-p-cp').textContent='PWR '+p.cp; $('#bf-p-level').textContent='Lv.'+p.level; setSpriteHtml($('#bf-p-sprite'), p.sprite);
-    $('#bf-p-sprite').classList.toggle('toni-glow', p.tier==='eternal'); $('#bf-p-sprite').classList.toggle('mythical-glow', p.tier==='mythical');
-    $('#bf-p-sprite').closest('.field-slot').classList.toggle('fainted', p.hp<=0);
-    $('#bf-p-hp').style.width=pHpPct+'%'; $('#bf-p-nrg').style.width=Math.max(0,(p.energy/p.maxEnergy*100))+'%';
-    $('#bf-p-hpfrac').textContent = Math.max(0,Math.round(p.hp)).toLocaleString()+' / '+Math.round(p.maxHp).toLocaleString();
-    // Portrait + field standee mirror the same sprite/name/level, just in the roster
-    // column and standing in the arena respectively.
-    setSpriteHtml($('#bf-p-portrait'), p.sprite); $('#bf-p-fname').textContent=p.name; $('#bf-p-flevel').textContent='Lv.'+p.level;
-    $('#bf-p-fhp').style.width=pHpPct+'%'; $('#bf-p-fhp').classList.toggle('low', pHpPct<30);
-    const pr = ROLE_INFO[p.role] || ROLE_INFO.attacker;
-    $('#bf-p-role-badge').textContent=pr.icon; $('#bf-p-role-badge').style.background=pr.color;
-    $('#bf-p-portrait').style.borderColor=pr.color; $('#bf-p-role-label').textContent=pr.label;
-    $('#bf-p-fhpfrac').textContent = Math.max(0,Math.round(p.hp)).toLocaleString()+'/'+Math.round(p.maxHp).toLocaleString();
-    $('#bf-e-name').textContent=e.name; $('#bf-e-cp').textContent='PWR '+e.cp; $('#bf-e-level').textContent='Lv.'+(e.level||1); setSpriteHtml($('#bf-e-sprite'), e.sprite);
-    $('#bf-e-sprite').classList.toggle('toni-glow', e.tier==='eternal'); $('#bf-e-sprite').classList.toggle('mythical-glow', e.tier==='mythical');
-    $('#bf-e-hp').style.width=Math.max(0,(e.hp/e.maxHp*100))+'%';
-    $('#bf-e-hpfrac').textContent = Math.max(0,Math.round(e.hp)).toLocaleString()+' / '+Math.round(e.maxHp).toLocaleString();
-    $('#btn-attack').style.display = battle.spectating ? 'none' : '';
-    updateSpecialButton();
-  }
-  // Every role gets a real active ability now, each on its own cooldown (not an energy
-  // cost) — Attacker's Charge Attack and Tanker's Fortify hit the same 10s cooldown as
-  // Supporter's Team Buff; Healer gets two: a fast single-target Heal (5s) and a slower
-  // Mass Heal (10s) that hits the whole team at once.
-  const ABILITY_COOLDOWN_MS = { attacker:10000, tanker:10000, supporter:10000, healerSingle:5000, healerAoe:10000 };
-  function abilityReady(t, key){ if (!t.cooldowns) t.cooldowns={}; return (Date.now()-(t.cooldowns[key]||0)) >= ABILITY_COOLDOWN_MS[key]; }
-  function cooldownLeftMs(t, key){ if (!t.cooldowns) t.cooldowns={}; return Math.max(0, ABILITY_COOLDOWN_MS[key]-(Date.now()-(t.cooldowns[key]||0))); }
-  // Ability slots now read as small numbered icon squares (icon + a corner cooldown
-  // badge) rather than full-width text buttons, matching the reference raid screen's
-  // bottom-right row of ability icons — the full name still shows as a tooltip.
-  function updateSpecialButton(){
-    const btn = $('#btn-special'), btn2 = $('#btn-special2');
-    if (!battle || battle.spectating){ btn.style.display='none'; btn2.style.display='none'; return; }
-    const role = battle.player.role;
-    btn.classList.remove('role-healer','role-supporter','role-attacker','role-tanker');
-    btn2.style.display = 'none';
-    const setSlot = (b, icon, name, key)=>{
-      const cd = cooldownLeftMs(battle.player, key);
-      b.style.display='flex';
-      b.querySelector('.bc-ability-icon').textContent = icon;
-      const cdEl = b.querySelector('.bc-ability-cd');
-      if (cd>0){ cdEl.textContent = Math.ceil(cd/1000)+'s'; cdEl.style.display='block'; } else { cdEl.style.display='none'; }
-      b.disabled = cd>0;
-      b.title = name + (cd>0 ? ' ('+Math.ceil(cd/1000)+'s)' : '');
-    };
-    if (role==='healer'){
-      btn.classList.add('role-healer'); setSlot(btn,'✚','Heal','healerSingle');
-      btn2.classList.add('role-healer'); setSlot(btn2,'✚✚','Mass Heal','healerAoe');
-    } else if (role==='supporter'){
-      btn.classList.add('role-supporter'); setSlot(btn,'★','Team Buff','supporter');
-    } else if (role==='attacker'){
-      btn.classList.add('role-attacker'); setSlot(btn,'⚡','Charge Attack','attacker');
-    } else if (role==='tanker'){
-      btn.classList.add('role-tanker'); setSlot(btn,'🛡️','Fortify','tanker');
-    } else {
-      btn.style.display='none';
-    }
-  }
-  $('#btn-special').onclick = ()=>{
-    if (!battle || battle.over || battle.spectating) return;
-    const role = battle.player.role, p = battle.player;
-    if (role==='healer'){
-      if (!abilityReady(p,'healerSingle')) return;
-      p.cooldowns.healerSingle = Date.now();
-      const healAmt = Math.max(1, Math.round((p.heal||0)*0.8));
-      p.hp = Math.min(p.maxHp, p.hp+healAmt);
-      Sound.playAbility(); flashCast('p'); renderBattle();
-      battleLog('✚ '+p.name+' heals for '+healAmt+' HP!');
-    } else if (role==='supporter'){
-      if (!abilityReady(p,'supporter')) return;
-      p.cooldowns.supporter = Date.now();
-      battle.buff = { atkMult:1.3, defMult:1.25, expiresAt: Date.now()+8000 };
-      Sound.playAbility(); flashCast('p'); renderBattle();
-      battleLog('★ '+p.name+' buffs the team — harder hits, sturdier defense for 8s!');
-    } else if (role==='attacker'){
-      if (!abilityReady(p,'attacker')) return;
-      p.cooldowns.attacker = Date.now();
-      const dmg = computeDamage(p.atk*2.5, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
-      battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
-      Sound.playAbility(); flashCast('p'); flashSprite('e'); popDamage('e', dmg, '#ffd23d'); renderBattle();
-      battleLog('⚡ '+p.name+' unleashes a CHARGE ATTACK for '+dmg+'!');
-      if (battle.enemy.hp<=0) endBattle(true);
-    } else if (role==='tanker'){
-      if (!abilityReady(p,'tanker')) return;
-      p.cooldowns.tanker = Date.now();
-      battle.fortify = { defMult:1.6, expiresAt: Date.now()+8000 };
-      Sound.playAbility(); flashCast('p'); renderBattle();
-      battleLog('🛡️ '+p.name+' fortifies — massive defense boost for 8s!');
-    }
-  };
-  $('#btn-special2').onclick = ()=>{
-    if (!battle || battle.over || battle.spectating) return;
-    const p = battle.player;
-    if (p.role!=='healer' || !abilityReady(p,'healerAoe')) return;
-    p.cooldowns.healerAoe = Date.now();
-    const healAmt = Math.max(1, Math.round((p.heal||0)*0.5));
-    p.hp = Math.min(p.maxHp, p.hp+healAmt);
-    let healedAllies = 0;
-    battle.allies.forEach((ally,i)=>{
-      if (ally.hp<=0) return;
-      ally.hp = Math.min(100, ally.hp+50);
-      syncAllyHp(i, ally.hp);
-      healedAllies++;
-    });
-    Sound.playAbility(); flashCast('p'); renderBattle();
-    battleLog('✚✚ '+p.name+' heals the whole team for '+healAmt+' HP each!');
-  };
-  function battleLog(msg){ $('#battle-log').textContent = msg; }
-  function flashSprite(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
-  function flashCast(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('cast'); void el.offsetWidth; el.classList.add('cast'); }
-  // Plays the attack-lunge on whichever side is throwing the hit (see .attacking/
-  // lungeToward in the CSS) — paired with flashSprite() on the side taking it, so every
-  // basic attack reads as one body jabbing forward and the other recoiling, not just a
-  // damage number appearing over two motionless sprites.
-  function flashAttack(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('attacking'); void el.offsetWidth; el.classList.add('attacking'); }
-  // Cosmetic "an ally just did something" pulse on its roster chip, called on a timer from
-  // the ally-damage tick so group fights don't look static even though ally combat itself
-  // is simulated rather than fully played out move-by-move.
-  function flashAllyChip(i){
-    const chip = $('#ally-row').children[i]; if (chip){ chip.classList.remove('acting'); void chip.offsetWidth; chip.classList.add('acting'); }
-    const fslot = $('#ally-field-row').children[i];
-    const fsprite = fslot && fslot.querySelector('.arena-sprite');
-    if (fsprite){ fsprite.classList.remove('cast'); void fsprite.offsetWidth; fsprite.classList.add('cast'); }
-  }
-  // Keeps an ally's roster-chip HP bar and its matching full-body standee in the arena in
-  // sync with each other (and marks both "down" once it hits 0), since the two are
-  // separate DOM elements showing the same underlying ally.
-  function syncAllyHp(i, hp){
-    const chip = $('#ally-row').children[i];
-    const fslot = $('#ally-field-row').children[i];
-    const low = hp < 30, down = hp <= 0;
-    if (chip){
-      const fill = chip.querySelector('.ally-hp-fill');
-      if (fill){ fill.style.width = Math.max(0,hp)+'%'; fill.classList.toggle('low', low); }
-      const frac = chip.querySelector('.ally-hp-frac'); if (frac) frac.textContent = Math.max(0,Math.round(hp))+'%';
-      chip.classList.toggle('fainted', down);
-    }
-    if (fslot){
-      const fill = fslot.querySelector('.field-hp-fill');
-      if (fill){ fill.style.width = Math.max(0,hp)+'%'; fill.classList.toggle('low', low); }
-      const frac = fslot.querySelector('.field-hp-frac'); if (frac) frac.textContent = Math.max(0,Math.round(hp))+'%';
-      fslot.classList.toggle('fainted', down);
-    }
-  }
-  function popDamage(who, val, color){
-    const anchor = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite');
-    const mid = $('#arena-mid'); const rect = anchor.getBoundingClientRect(); const parentRect = mid.getBoundingClientRect();
-    const span = document.createElement('div'); span.className='dmg-pop'; span.textContent='-'+Math.round(val); span.style.color=color;
-    span.style.left = (rect.left - parentRect.left + rect.width/2 - 10)+'px'; span.style.top = (rect.top - parentRect.top)+'px';
-    mid.appendChild(span); setTimeout(()=>span.remove(), 720);
   }
 
   function startBattleTimers(){
     clearBattleTimers();
     const sm = (battle.speedMult||1);
-    // spd is now a thousands-scale stat like everything else, so the old "*4" here would've
-    // floored this at 500ms for nearly every boss — bumping the floor to 900ms keeps raids
-    // from feeling like the boss is attacking faster than you can even watch it happen.
-    // The 2x-speed toggle (bottom-left, matching the reference raid screen) divides every
-    // tick's delay by the multiplier so the whole fight visibly plays out faster.
+    // The ×2 toggle divides every tick's delay so the whole fight visibly plays out faster.
     const enemyDelay = Math.max(900, 1500 - battle.enemy.spd*0.05) / sm;
     battle.timers.enemyTimer = setInterval(()=>{
       if (!battle || battle.over || battle.spectating) return;
-      // A Tanker up front reduces the whole team's incoming hit via the Buff/Fortify def
-      // bonus below same as anyone, but its real specialty is in the ally-damage loop just
-      // below this timer — allies simply don't take chip damage while a Tanker leads.
-      const buffed = battle.buff && battle.buff.expiresAt > Date.now();
-      const fortified = battle.fortify && battle.fortify.expiresAt > Date.now();
+      const now = Date.now();
+      const buffed = battle.buff && battle.buff.expiresAt > now;
+      const fortified = battle.fortify && battle.fortify.expiresAt > now;
       const defPower = battle.player.def * (buffed ? battle.buff.defMult : 1) * (fortified ? battle.fortify.defMult : 1);
       let dmg = computeDamage(battle.enemy.atk+battle.enemy.strength, defPower, battle.player.maxHp, damageCapPct(battle.mode));
       if (battle.group) dmg = Math.round(dmg*0.6);
       battle.player.hp = Math.max(0, battle.player.hp - dmg);
-      flashAttack('e'); flashSprite('p'); popDamage('p', dmg, '#ff5470'); renderBattle();
-      battleLog(battle.enemy.name+' hits for '+dmg+'!');
+      bxPulse($('#bx-boss'), 'lunge', 450);
+      setTimeout(()=>{
+        if (!battle) return;
+        const el = battle.player._el;
+        if (el){ bxPulse(el, 'hit', 380); popNumber(el.querySelector('.bx-sprite'), dmg, 'hurt'); }
+        bxShake();
+      }, 200);
+      renderBattle();
+      battleLog(battle.enemy.name+' strikes '+battle.player.name+' for '+fmt(dmg)+'!');
       if (battle.player.hp<=0) endBattle(false);
     }, enemyDelay);
     battle.timers.regenTimer = setInterval(()=>{ if (!battle||battle.over||battle.spectating) return; battle.player.energy = Math.min(battle.player.maxEnergy, battle.player.energy+2); renderBattle(); }, 1000/sm);
-    // Keeps ability cooldown countdowns ticking on-screen even when you're not the one
-    // pressing anything — otherwise "Heal (3s)" would just sit frozen until your next tap.
-    battle.timers.cooldownTicker = setInterval(()=>{ if (!battle||battle.over) return; updateSpecialButton(); }, 500);
+    // keeps cooldown sweeps and buff timers ticking on screen, and lets computer allies cast
+    battle.timers.cooldownTicker = setInterval(()=>{ if (!battle||battle.over) return; botAbilityTick(); renderBattle(); }, 250);
     if (battle.group){
       battle.timers.allyTimer = setInterval(()=>{
         if (!battle||battle.over) return;
-        // "The boss has to beat the tanks first": while your active Toto is a Tanker, it
-        // draws all the aggro — your allies land their hits same as always, but take none
-        // of the return damage, which otherwise would have chipped away at them here.
-        // While spectating (your own Toto already fell), there's no active Toto tanking —
-        // your team just has to weather it on their own.
-        const tanking = !battle.spectating && battle.player.role==='tanker';
-        // Real damage now, scaled down to this tick's cadence (900ms) against the ~3s a
-        // full "hit" is paced around elsewhere in this fight — so a Mythical ally with real
-        // Attacker stats actually puts a dent in an Eternal boss over time instead of the
-        // old flat 4-9 scratch that never mattered next to tens-of-thousands of boss HP.
+        const now = Date.now();
+        // A Tanker leading (or an active Bulwark) draws the boss's aggro — allies keep landing
+        // hits but take none of the return damage while it lasts.
+        const tanking = (!battle.spectating && battle.player.role==='tanker') || (battle.fortify && battle.fortify.expiresAt > now);
+        const buffed = battle.buff && battle.buff.expiresAt > now;
         battle.allies.forEach((ally,i)=>{
           if (ally.hp<=0) return;
-          const full = computeDamage(ally.atk||1, battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
+          const full = computeDamage((ally.atk||1)*(buffed ? battle.buff.atkMult : 1), battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
           const dmg = full * 0.18;
           battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
-          if (Math.random()<0.35) flashAllyChip(i); // occasional "acting" pulse, not every tick
-          if (!tanking){
-            ally.hp = Math.max(0, ally.hp-(2+Math.random()*4));
-            syncAllyHp(i, ally.hp);
-          }
+          if (Math.random()<0.35 && ally._el){ bxPulse(ally._el, 'lunge', 420); setTimeout(()=>{ fxSpark(); popNumber('boss', dmg, 'small'); }, 160); }
+          if (!tanking){ ally.hp = Math.max(0, ally.hp - ally.maxHp*(0.02+Math.random()*0.04)); }
         });
         renderBattle();
         if (battle.enemy.hp<=0){ endBattle(true); return; }
@@ -4453,8 +5001,7 @@
   }
   function clearBattleTimers(){ if (!battle) return; Object.values(battle.timers).forEach(t=>t&&clearInterval(t)); battle.timers={}; }
 
-  // Pulled out of the button's onclick so the AUTO toggle (bottom-left control, matching
-  // the reference raid screen) can throw the same punch on a timer without faking a click.
+  // CHARGE ATTACK: your Toto's basic strike (costs energy; a weak swipe when you're out).
   function doPlayerAttack(){
     if (!battle || battle.over || battle.spectating) return;
     const cost = 10; let weak=false;
@@ -4465,25 +5012,25 @@
     if (weak) dmg = Math.round(dmg*0.35);
     battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
     Sound.playAttack();
-    flashAttack('p'); flashSprite('e'); popDamage('e', dmg, '#fff'); renderBattle();
-    battleLog(weak ? 'Low energy! Weak hit for '+dmg+'.' : 'You strike for '+dmg+'!');
-    if (battle.enemy.hp<=0) endBattle(true);
+    const me = battle.player._el;
+    if (me) bxPulse(me, 'lunge', 420);
+    setTimeout(()=>{ if (!battle) return; fxSpark(); bxPulse($('#bx-boss'), 'hit', 360); popNumber('boss', dmg, weak ? 'small' : 'hit'); }, 150);
+    renderBattle();
+    battleLog(weak ? 'Out of energy — weak hit for '+fmt(dmg)+'.' : battle.player.name+' strikes for '+fmt(dmg)+'!');
+    if (battle.enemy.hp<=0) setTimeout(()=> endBattle(true), 220);
   }
   $('#btn-attack').onclick = doPlayerAttack;
-  // AUTO keeps throwing your basic attack on its own cadence — same idea as the reference
-  // raid screen's AUTO toggle — and 2x speeds up every timer in the fight (enemy hits,
-  // energy regen, ally chip damage, and AUTO's own cadence) via startBattleTimers' speedMult.
   $('#btn-auto').onclick = ()=>{
     if (!battle || battle.over) return;
     battle.auto = !battle.auto;
-    $('#btn-auto').classList.toggle('active', battle.auto);
+    $('#btn-auto').classList.toggle('on', battle.auto);
     manageAutoTimer();
   };
   $('#btn-speed').onclick = ()=>{
     if (!battle || battle.over) return;
     battle.speedMult = battle.speedMult===1 ? 2 : 1;
-    $('#btn-speed').textContent = battle.speedMult+'×';
-    $('#btn-speed').classList.toggle('active', battle.speedMult>1);
+    $('#bx-speed-label').textContent = '×'+battle.speedMult;
+    $('#btn-speed').classList.toggle('on', battle.speedMult>1);
     startBattleTimers();
   };
   function manageAutoTimer(){
@@ -4491,27 +5038,39 @@
     if (battle.timers.autoTimer){ clearInterval(battle.timers.autoTimer); battle.timers.autoTimer=null; }
     if (battle.auto){
       const sm = battle.speedMult||1;
-      battle.timers.autoTimer = setInterval(()=>{ if (!battle||battle.over||battle.spectating) return; doPlayerAttack(); }, Math.max(500, 1200/sm));
+      battle.timers.autoTimer = setInterval(()=>{ if (!battle||battle.over) return; autoAbilityTick(); if (!battle.spectating) doPlayerAttack(); }, Math.max(500, 1200/sm));
     }
   }
-  $('#btn-gear').onclick = ()=>{ showToast('Settings coming soon!'); };
+  $('#btn-gear').onclick = ()=>{ $('#bx-menu').classList.toggle('show'); $('#bx-menu-sound').textContent = (Sound.isMuted && Sound.isMuted() ? '🔇' : '🔊')+' Sound'; };
+  $('#bx-menu-close').onclick = ()=> $('#bx-menu').classList.remove('show');
+  $('#bx-menu-sound').onclick = ()=>{ const mb = $('#btn-mute'); if (mb) mb.click(); $('#bx-menu-sound').textContent = (Sound.isMuted && Sound.isMuted() ? '🔇' : '🔊')+' Sound'; };
+
+  function closeBattleScreen(){
+    $('#battle-screen').classList.remove('active');
+    $('#bx-menu').classList.remove('show');
+    unlockOrientation();
+    battle = null;
+  }
   let pendingEternalCatch = null;
   function endBattle(won){
     if (!battle || battle.over) return;
     // If your Toto goes down in a group fight and your team is still swinging, you don't
-    // just lose on the spot — you watch the rest of it play out, and still win if they
-    // pull it off (see the allyTimer's win/loss checks in startBattleTimers above).
+    // just lose on the spot — you watch (and command) the rest of it, and still win if
+    // they pull it off.
     if (!won && battle.group && !battle.spectating && battle.allies.some(a=>a.hp>0)){
       battle.spectating = true;
       if (battle.timers.enemyTimer){ clearInterval(battle.timers.enemyTimer); battle.timers.enemyTimer=null; }
       if (battle.timers.regenTimer){ clearInterval(battle.timers.regenTimer); battle.timers.regenTimer=null; }
-      battleLog(battle.player.name+' was defeated — watching your team fight on!');
-      showToast(battle.player.name+' fell. Your team fights on without you...');
+      battleLog(battle.player.name+' is down — your team fights on!');
       renderBattle();
       return;
     }
-    battle.over = true; clearBattleTimers();
+    battle.over = true; clearBattleTimers(); renderBattle();
+    const banner = $('#bx-banner');
+    banner.textContent = won ? 'VICTORY!' : 'DEFEAT';
+    banner.className = 'bx-banner show ' + (won ? 'win' : 'lose');
     if (won){
+      $('#bx-boss').classList.add('down');
       Sound.playVictory();
       const opp = battle.opponentTemplate;
       const teamCarried = !!battle.spectating;
@@ -4519,7 +5078,7 @@
         battleLog('Victory! '+opp.name+' stands before you, weakened...');
         pendingEternalCatch = opp;
         $('#ccc-name').textContent = opp.name;
-        $('#catch-choice-overlay').classList.add('show');
+        setTimeout(()=> $('#catch-choice-overlay').classList.add('show'), 1300);
         return;
       }
       finalizeCatch(opp);
@@ -4531,7 +5090,7 @@
       battleLog(battle.mode==='catch' ? (battle.opponentTemplate.name+' got away!') : (battle.spectating ? 'Your whole team was defeated...' : 'Your Toto was defeated — retreat!'));
       showToast('Defeated — better luck next time.');
     }
-    setTimeout(()=>{ $('#battle-screen').classList.remove('active'); battle=null; }, 900);
+    setTimeout(closeBattleScreen, 1700);
   }
   $('#btn-eternal-catch').onclick = ()=>{
     if (!pendingEternalCatch) return;
@@ -4551,9 +5110,9 @@
   function closeCatchChoice(){
     pendingEternalCatch = null;
     $('#catch-choice-overlay').classList.remove('show');
-    $('#battle-screen').classList.remove('active'); battle=null;
+    closeBattleScreen();
   }
-  $('#btn-retreat').onclick = ()=>{ if (battle){ clearBattleTimers(); battle=null; } $('#battle-screen').classList.remove('active'); };
+  $('#btn-retreat').onclick = ()=>{ if (battle){ clearBattleTimers(); } closeBattleScreen(); };
 
   // ---------------- BOOT: stay logged in until an explicit Logout ----------------
   // ---------------- LOADING SCREEN ----------------
@@ -5588,7 +6147,7 @@
     // elevated three-quarter "game camera" looking at the figure's middle. FRAME_FEET_PX
     // is how far above the canvas bottom the feet land, which the CSS uses to plant
     // them exactly on the player's ground ring (see .player-avatar.is-3d).
-    const PLAYER_CANVAS_W = 170, PLAYER_CANVAS_H = 236, FRAME_FEET_PX = 16;
+    const PLAYER_CANVAS_W = 138, PLAYER_CANVAS_H = 192, FRAME_FEET_PX = 13;
     const FRAME_FOV = 28, FRAME_ELEV = THREE.MathUtils.degToRad(15);
     const FRAME_VIEW_H = 2.86;   // world units visible top-to-bottom
     function placePlayerCamera(camera, orbitRad, viewH, feetPx, canvasH){
@@ -5848,6 +6407,292 @@
     const GEO_SPRITE = new THREE.PlaneGeometry(1, 1); GEO_SPRITE.translate(0, 0.5, 0); // origin at the feet
     function mat(opts){ return new THREE.MeshBasicMaterial(Object.assign({ transparent:true, depthTest:false, depthWrite:false }, opts)); }
 
+    // ---------------- Map prop art (SVG, drawn once into textures) ----------------
+    // Every piece is authored with its ground line on the bottom edge of the viewBox so the
+    // sprite's feet sit exactly on the map point. Halloween-village palette: cool slate
+    // walls, dark shingled roofs, warm candle-lit windows.
+    const PROP_ART = (function(){
+      const O = '#1a1222';
+      const glowDefs = '<filter id="gl" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>'
+        + '<linearGradient id="wa" x1="0" x2="1"><stop offset="0" stop-color="#635b84"/><stop offset="1" stop-color="#3e3759"/></linearGradient>'
+        + '<linearGradient id="wb" x1="0" x2="1"><stop offset="0" stop-color="#7a5852"/><stop offset="1" stop-color="#4b3331"/></linearGradient>'
+        + '<linearGradient id="wc" x1="0" x2="1"><stop offset="0" stop-color="#6d6a80"/><stop offset="1" stop-color="#47445c"/></linearGradient>'
+        + '<linearGradient id="ra" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4c3d6b"/><stop offset="1" stop-color="#261d38"/></linearGradient>'
+        + '<linearGradient id="rb" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6e3a34"/><stop offset="1" stop-color="#3a1c1c"/></linearGradient>'
+        + '<radialGradient id="wg"><stop offset="0" stop-color="#fff0a8"/><stop offset="0.55" stop-color="#ffc45a"/><stop offset="1" stop-color="#ff9026"/></radialGradient>';
+      const svg = (w, h, body)=> '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" width="'+(w*2)+'" height="'+(h*2)+'"><defs>'+glowDefs+'</defs>'+body+'</svg>';
+      // a lit window: blurred glow behind, warm pane, dark mullions
+      const win = (x, y, w, h, arched)=> '<rect x="'+(x-4)+'" y="'+(y-4)+'" width="'+(w+8)+'" height="'+(h+8)+'" fill="#ff9a2a" opacity="0.75" filter="url(#gl)"/>'
+        + (arched ? '<path d="M'+x+' '+(y+h)+' V'+(y+w/2)+' A'+(w/2)+' '+(w/2)+' 0 0 1 '+(x+w)+' '+(y+w/2)+' V'+(y+h)+' Z" fill="url(#wg)" stroke="'+O+'" stroke-width="3.5"/>'
+                  : '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="2" fill="url(#wg)" stroke="'+O+'" stroke-width="3.5"/>')
+        + '<path d="M'+(x+w/2)+' '+(y+2)+' V'+(y+h-1)+' M'+(x+1)+' '+(y+h*0.5)+' H'+(x+w-1)+'" stroke="'+O+'" stroke-width="2.5"/>';
+      const darkWin = (x, y, w, h)=> '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="2" fill="#2a2338" stroke="'+O+'" stroke-width="3.5"/><path d="M'+(x+w/2)+' '+y+' V'+(y+h)+'" stroke="'+O+'" stroke-width="2"/>';
+      // shingle rows clipped to a triangular roof (left eave, right eave, apex)
+      const roofLines = (xl, xr, xa, ya, yb, step)=>{ let d=''; for (let y=ya+step; y<yb-3; y+=step){ const f=(y-ya)/(yb-ya); d+='M'+(xa-(xa-xl)*f+4).toFixed(1)+' '+y+' H'+(xa+(xr-xa)*f-4).toFixed(1)+' '; } return '<path d="'+d+'" stroke="#1a1222" stroke-opacity="0.38" stroke-width="2"/>'; };
+      const pumpkin = (cx, cy, r)=> '<circle cx="'+cx+'" cy="'+cy+'" r="'+(r*1.6)+'" fill="#ff8a2a" opacity="0.55" filter="url(#gl)"/>'
+        + '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+(r*1.15)+'" ry="'+r+'" fill="#f07a20" stroke="'+O+'" stroke-width="2.5"/>'
+        + '<path d="M'+(cx-r*0.45)+' '+(cy-r*0.15)+' l'+(r*0.2)+' '+(-r*0.3)+' l'+(r*0.2)+' '+(r*0.3)+'Z M'+(cx+r*0.05)+' '+(cy-r*0.15)+' l'+(r*0.2)+' '+(-r*0.3)+' l'+(r*0.2)+' '+(r*0.3)+'Z M'+(cx-r*0.55)+' '+(cy+r*0.25)+' Q'+cx+' '+(cy+r*0.75)+' '+(cx+r*0.55)+' '+(cy+r*0.25)+' Q'+cx+' '+(cy+r*0.45)+' '+(cx-r*0.55)+' '+(cy+r*0.25)+'Z" fill="#ffe27a"/>'
+        + '<rect x="'+(cx-2)+'" y="'+(cy-r-5)+'" width="4" height="7" fill="#3f6b2a"/>';
+      const stoneBase = (x0, x1, y)=> '<rect x="'+x0+'" y="'+(y-10)+'" width="'+(x1-x0)+'" height="10" fill="#3a3346" stroke="'+O+'" stroke-width="3"/>';
+
+      const A = {};
+      // --- cosy cottage ---
+      A.house1 = { w:200, h:200, svg: svg(200,200,
+          '<rect x="128" y="34" width="18" height="46" fill="#3b3249" stroke="'+O+'" stroke-width="4"/><rect x="124" y="30" width="26" height="8" fill="#2c2438" stroke="'+O+'" stroke-width="3"/>'
+        + '<path d="M44 104 H156 V196 H44 Z" fill="url(#wa)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<path d="M22 114 L100 28 L178 114 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + roofLines(22, 178, 100, 28, 114, 13)
+        + '<path d="M22 114 L100 28 L178 114" fill="none" stroke="#6a5a8a" stroke-width="2" stroke-opacity="0.6"/>'
+        + win(88, 70, 24, 24, true)
+        + win(56, 124, 30, 30)
+        + '<path d="M112 196 V150 Q126 134 140 150 V196 Z" fill="#3d2416" stroke="'+O+'" stroke-width="4"/><circle cx="134" cy="174" r="2.6" fill="#ffb347"/>'
+        + stoneBase(44,156,196)
+        + pumpkin(102, 186, 9) )};
+      // --- two-storey gabled house with porch ---
+      A.house2 = { w:200, h:220, svg: svg(200,220,
+          '<path d="M46 84 H154 V216 H46 Z" fill="url(#wc)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M30 92 L100 22 L170 92 Z" fill="url(#rb)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + roofLines(30, 170, 100, 22, 92, 12)
+        + win(88, 50, 24, 26, true)
+        + win(58, 104, 26, 28) + darkWin(116, 104, 26, 28)
+        + '<path d="M38 160 L100 140 L162 160 Z" fill="#2c2438" stroke="'+O+'" stroke-width="4" stroke-linejoin="round"/>'
+        + '<path d="M48 160 V206 M152 160 V206" stroke="#e8dcc8" stroke-width="4"/>'
+        + win(60, 170, 22, 24)
+        + '<rect x="88" y="166" width="26" height="40" rx="3" fill="#3d2416" stroke="'+O+'" stroke-width="4"/><circle cx="108" cy="188" r="2.4" fill="#ffb347"/>'
+        + '<rect x="126" y="170" width="20" height="22" fill="#2a2338" stroke="'+O+'" stroke-width="3"/>'
+        + stoneBase(40,160,216)
+        + pumpkin(74, 206, 8) + pumpkin(130, 207, 7) )};
+      // --- crooked witch cottage ---
+      A.house3 = { w:200, h:210, svg: svg(200,210,
+          '<path d="M52 108 Q48 160 50 206 H152 Q156 160 150 108 Z" fill="url(#wb)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<path d="M60 130 q8 -6 16 0 M90 120 q8 -6 16 0 M120 136 q8 -6 16 0 M70 170 q8 -6 16 0 M112 182 q8 -6 16 0" stroke="#2e1d1c" stroke-width="2.5" fill="none" opacity="0.6"/>'
+        + '<path d="M28 118 Q70 92 92 40 Q100 18 128 10 Q112 30 116 52 Q140 92 176 116 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<path d="M60 102 Q86 80 98 54 M120 70 Q140 96 160 110" stroke="#6a5a8a" stroke-width="2" fill="none" opacity="0.7"/>'
+        + '<circle cx="128" cy="11" r="5" fill="#ffd27a" stroke="'+O+'" stroke-width="2.5"/>'
+        + '<circle cx="78" cy="146" r="17" fill="#ff9a2a" opacity="0.75" filter="url(#gl)"/><circle cx="78" cy="146" r="14" fill="url(#wg)" stroke="'+O+'" stroke-width="4"/><path d="M78 133 V159 M65 146 H91" stroke="'+O+'" stroke-width="2.5"/>'
+        + '<path d="M110 206 V162 Q122 146 136 160 L138 206 Z" fill="#2f1c12" stroke="'+O+'" stroke-width="4"/><circle cx="130" cy="184" r="2.4" fill="#ffb347"/>'
+        + '<path d="M50 206 Q60 196 70 206 M140 206 Q148 198 154 206" fill="#3f6b3a" stroke="'+O+'" stroke-width="2"/>'
+        + pumpkin(96, 198, 8) )};
+      // --- haunted manor with twin towers ---
+      A.manor = { w:260, h:240, svg: svg(260,240,
+          '<path d="M24 110 H74 V236 H24 Z M186 110 H236 V236 H186 Z" fill="url(#wc)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M16 116 L49 30 L82 116 Z M178 116 L211 30 L244 116 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<path d="M49 30 V14 M211 30 V14" stroke="'+O+'" stroke-width="3"/><path d="M49 14 l10 4 l-10 4 Z M211 14 l10 4 l-10 4 Z" fill="#ff8a2a" stroke="'+O+'" stroke-width="1.5"/>'
+        + '<path d="M70 104 H190 V236 H70 Z" fill="url(#wa)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M60 110 L130 50 L200 110 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + roofLines(60, 200, 130, 50, 110, 11)
+        + win(118, 70, 24, 26, true)
+        + win(36, 130, 26, 30, true) + darkWin(198, 132, 26, 28) + win(198, 180, 26, 28, true) + darkWin(36, 182, 26, 28)
+        + win(84, 124, 24, 28) + darkWin(152, 124, 24, 28)
+        + '<path d="M112 236 V184 Q130 164 148 184 V236 Z" fill="#3d2416" stroke="'+O+'" stroke-width="4"/><path d="M130 172 V236" stroke="'+O+'" stroke-width="2.5"/>'
+        + '<rect x="100" y="230" width="60" height="8" fill="#3a3346" stroke="'+O+'" stroke-width="3"/>'
+        + stoneBase(18,242,240)
+        + pumpkin(96, 228, 8) + pumpkin(166, 229, 7) )};
+      // --- shop / commercial block with an awning ---
+      A.shop = { w:260, h:190, svg: svg(260,190,
+          '<path d="M14 40 H246 V186 H14 Z" fill="url(#wb)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M8 30 H252 V44 H8 Z" fill="#2c2438" stroke="'+O+'" stroke-width="4"/>'
+        + '<rect x="70" y="50" width="120" height="22" rx="4" fill="#2a1f33" stroke="'+O+'" stroke-width="3"/><path d="M84 61 H176" stroke="#ffb347" stroke-width="4" stroke-dasharray="10 5"/>'
+        + win(28, 52, 30, 26) + win(202, 52, 30, 26)
+        + '<path d="M20 98 H240 L232 120 H28 Z" fill="#ff8a2a" stroke="'+O+'" stroke-width="4" stroke-linejoin="round"/>'
+        + '<path d="M48 98 L44 120 M76 98 L72 120 M104 98 L100 120 M132 98 L132 120 M160 98 L162 120 M188 98 L192 120 M216 98 L220 120" stroke="#5a2a7a" stroke-width="10"/>'
+        + win(30, 128, 80, 46) + win(150, 128, 80, 46)
+        + '<rect x="114" y="128" width="32" height="58" rx="2" fill="#3d2416" stroke="'+O+'" stroke-width="4"/>'
+        + stoneBase(10,250,190)
+        + pumpkin(70, 182, 7) + pumpkin(192, 182, 7) )};
+      // --- school / town hall ---
+      A.hall = { w:280, h:210, svg: svg(280,210,
+          '<path d="M20 80 H260 V206 H20 Z" fill="url(#wc)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M70 82 L140 26 L210 82 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<circle cx="140" cy="60" r="13" fill="#f2e6c8" stroke="'+O+'" stroke-width="3.5"/><path d="M140 60 V50 M140 60 L147 64" stroke="'+O+'" stroke-width="2.5"/>'
+        + '<path d="M12 80 H268 V92 H12 Z" fill="#2c2438" stroke="'+O+'" stroke-width="4"/>'
+        + win(34, 104, 26, 30) + darkWin(70, 104, 26, 30) + win(184, 104, 26, 30) + win(220, 104, 26, 30)
+        + win(34, 152, 26, 30) + win(70, 152, 26, 30) + darkWin(184, 152, 26, 30) + win(220, 152, 26, 30)
+        + '<path d="M108 98 V206 M124 98 V206 M156 98 V206 M172 98 V206" stroke="#e8dcc8" stroke-width="7"/>'
+        + '<path d="M128 206 V160 Q140 148 152 160 V206 Z" fill="#3d2416" stroke="'+O+'" stroke-width="4"/>'
+        + stoneBase(14,266,210) )};
+      // --- chapel with steeple ---
+      A.church = { w:200, h:270, svg: svg(200,270,
+          '<path d="M40 150 H160 V266 H40 Z" fill="url(#wc)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M28 158 L100 104 L172 158 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<path d="M80 110 H120 V170 H80 Z" fill="url(#wc)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M72 114 L100 30 L128 114 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<path d="M100 30 V8 M92 16 H108" stroke="#d8c08a" stroke-width="4" stroke-linecap="round"/>'
+        + win(90, 124, 20, 24, true)
+        + '<circle cx="100" cy="188" r="18" fill="#ff9a2a" opacity="0.8" filter="url(#gl)"/><circle cx="100" cy="188" r="15" fill="url(#wg)" stroke="'+O+'" stroke-width="4"/><path d="M100 173 V203 M85 188 H115 M89 177 L111 199 M111 177 L89 199" stroke="'+O+'" stroke-width="2"/>'
+        + win(52, 186, 18, 34, true) + win(130, 186, 18, 34, true)
+        + '<path d="M86 266 V226 Q100 210 114 226 V266 Z" fill="#3d2416" stroke="'+O+'" stroke-width="4"/>'
+        + stoneBase(34,166,270) )};
+      // --- apartment block ---
+      A.apartment = (function(){
+        let b = '<path d="M30 30 H170 V266 H30 Z" fill="url(#wa)" stroke="'+O+'" stroke-width="5"/><path d="M24 22 H176 V34 H24 Z" fill="#2c2438" stroke="'+O+'" stroke-width="4"/>'
+          + '<rect x="120" y="4" width="30" height="20" fill="#3b3249" stroke="'+O+'" stroke-width="3"/><path d="M124 4 V-2 M146 4 V-2" stroke="'+O+'" stroke-width="3"/>';
+        const lit = [1,0,1,1, 0,1,1,0, 1,1,0,1, 0,1,1,1];
+        for (let r=0;r<4;r++) for (let c=0;c<4;c++){
+          const x = 42+c*32, y = 46+r*44, k = lit[r*4+c];
+          b += k ? win(x, y, 22, 30) : darkWin(x, y, 22, 30);
+        }
+        b += '<rect x="84" y="226" width="32" height="40" rx="2" fill="#3d2416" stroke="'+O+'" stroke-width="4"/>' + stoneBase(24,176,270);
+        return { w:200, h:270, svg: svg(200,270,b) };
+      })();
+      // --- garden shed ---
+      A.shed = { w:140, h:120, svg: svg(140,120,
+          '<path d="M24 50 H116 V116 H24 Z" fill="url(#wb)" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M38 54 V116 M54 54 V116 M86 54 V116 M102 54 V116" stroke="#2e1d1c" stroke-width="2" opacity="0.5"/>'
+        + '<path d="M12 56 L70 18 L128 56 Z" fill="url(#ra)" stroke="'+O+'" stroke-width="5" stroke-linejoin="round"/>'
+        + '<rect x="56" y="70" width="28" height="46" fill="#3d2416" stroke="'+O+'" stroke-width="4"/><path d="M56 70 L84 116 M84 70 L56 116" stroke="'+O+'" stroke-width="2.5"/>' )};
+      // --- spooky oak (dark teal canopy) ---
+      A.tree = { w:180, h:210, svg: svg(180,210,
+          '<path d="M80 206 Q84 160 74 128 Q60 112 46 104 M96 206 Q92 164 104 130 Q118 116 134 108 M86 206 V120" stroke="'+O+'" stroke-width="22" stroke-linecap="round" fill="none"/>'
+        + '<path d="M80 206 Q84 160 74 128 Q60 112 46 104 M96 206 Q92 164 104 130 Q118 116 134 108 M86 206 V120" stroke="#4a3426" stroke-width="15" stroke-linecap="round" fill="none"/>'
+        // outline pass first, fill pass on top: the four lobes merge into one canopy silhouette
+        + '<g fill="'+O+'"><circle cx="54" cy="88" r="41"/><circle cx="126" cy="86" r="43"/><circle cx="90" cy="56" r="49"/><circle cx="92" cy="104" r="37"/></g>'
+        + '<g><circle cx="54" cy="88" r="38" fill="#2c5446"/><circle cx="126" cy="86" r="40" fill="#2a5044"/><circle cx="92" cy="104" r="34" fill="#28493e"/><circle cx="90" cy="56" r="46" fill="#336052"/></g>'
+        + '<g fill="#4b8068" opacity="0.8"><circle cx="76" cy="40" r="14"/><circle cx="110" cy="64" r="10"/><circle cx="44" cy="72" r="10"/><circle cx="130" cy="70" r="11"/></g>'
+        + '<circle cx="66" cy="86" r="4" fill="#ffb347"/><circle cx="118" cy="100" r="3" fill="#ffb347"/>' )};
+      // --- dead twisted tree ---
+      A.deadtree = { w:180, h:210, svg: svg(180,210,
+          '<g fill="none" stroke-linecap="round" stroke-linejoin="round">'
+        + '<path d="M90 206 Q84 160 92 120 Q98 90 86 60 M92 120 Q118 104 140 70 Q148 56 164 50 M88 150 Q60 130 40 96 Q34 82 18 76 M86 60 Q72 40 76 18 M140 70 Q132 48 138 30 M40 96 Q48 74 40 60" stroke="'+O+'" stroke-width="16"/>'
+        + '<path d="M90 206 Q84 160 92 120 Q98 90 86 60 M92 120 Q118 104 140 70 Q148 56 164 50 M88 150 Q60 130 40 96 Q34 82 18 76 M86 60 Q72 40 76 18 M140 70 Q132 48 138 30 M40 96 Q48 74 40 60" stroke="#3e3046" stroke-width="9"/>'
+        + '<path d="M90 206 Q84 160 92 120" stroke="#5a4866" stroke-width="3" opacity="0.6"/></g>'
+        + '<path d="M120 92 q6 -10 12 0 q-6 4 -12 0Z" fill="#1a1222"/>' )};
+      // --- dark pine ---
+      A.pine = { w:120, h:210, svg: svg(120,210,
+          '<rect x="52" y="168" width="16" height="40" fill="#4a3426" stroke="'+O+'" stroke-width="4"/>'
+        + '<g stroke="'+O+'" stroke-width="5" stroke-linejoin="round"><path d="M10 176 L60 96 L110 176 Z" fill="#1f4034"/><path d="M18 134 L60 54 L102 134 Z" fill="#244a3c"/><path d="M28 92 L60 14 L92 92 Z" fill="#2b5646"/></g>'
+        + '<path d="M60 18 L44 84 M60 58 L36 126 M60 100 L28 168" stroke="#4b8068" stroke-width="3" opacity="0.55"/>' )};
+      // --- tombstone ---
+      A.tomb = { w:90, h:110, svg: svg(90,110,
+          '<path d="M16 106 V44 Q16 10 45 10 Q74 10 74 44 V106 Z" fill="#7a7488" stroke="'+O+'" stroke-width="5"/>'
+        + '<path d="M22 100 V46 Q22 18 45 16" stroke="#a7a1b4" stroke-width="3" fill="none" opacity="0.7"/>'
+        + '<path d="M45 30 V70 M33 42 H57" stroke="#3c3648" stroke-width="5" stroke-linecap="round"/>'
+        + '<path d="M10 106 Q30 94 46 104 Q64 94 82 106 Z" fill="#3f6b3a" stroke="'+O+'" stroke-width="3"/>' )};
+      // --- jack-o'-lantern ---
+      A.pumpkin = { w:100, h:90, svg: svg(100,90,
+          '<circle cx="50" cy="56" r="44" fill="#ff8a2a" opacity="0.5" filter="url(#gl)"/>'
+        + '<g stroke="'+O+'" stroke-width="4"><ellipse cx="30" cy="58" rx="20" ry="28" fill="#e86e18"/><ellipse cx="70" cy="58" rx="20" ry="28" fill="#e86e18"/><ellipse cx="50" cy="56" rx="24" ry="31" fill="#f58223"/></g>'
+        + '<path d="M50 26 Q48 14 56 8" stroke="#3f6b2a" stroke-width="6" fill="none" stroke-linecap="round"/>'
+        + '<path d="M30 48 l8 -12 l8 12 Z M54 48 l8 -12 l8 12 Z M28 64 Q50 86 72 64 L64 66 L58 60 L50 68 L42 60 L36 66 Z" fill="#ffe27a" stroke="#ff9a2a" stroke-width="1"/>' )};
+      return A;
+    })();
+
+    // Textures are built lazily per kind from the SVG above (rasterised by the browser at
+    // 2x the viewBox, so they stay crisp when you zoom in). One shared material per kind.
+    const propTex = {};
+    function getPropTex(kind){
+      if (propTex[kind]) return propTex[kind];
+      const art = PROP_ART[kind]; if (!art) return null;
+      const rec = { mat:null, aspect: art.w/art.h };
+      const img = new Image();
+      img.onload = ()=>{
+        const t = new THREE.Texture(img);
+        if ('colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = 4; t.needsUpdate = true;
+        rec.mat = mat({ map:t });
+      };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(art.svg);
+      propTex[kind] = rec;
+      return rec;
+    }
+
+    // ---- world-plane -> screen projection ----
+    // The map is a flat plane run through several stacked CSS 3D transforms (tilt, pan,
+    // rotate, zoom, perspective). Rather than re-deriving that chain, four invisible marker
+    // points are parked on the plane around the player and their real on-screen positions
+    // are read back each frame — a plane seen in perspective maps to the screen by a
+    // homography, and four point pairs pin one down exactly. Every prop is then projected
+    // with plain arithmetic (no per-prop layout reads), however many there are.
+    const MK = 300;
+    let markerBox = null, markerEls = [], markerCenter = null, Hm = null;
+    function ensureMarkers(pos){
+      const world = document.getElementById('world'); if (!world || !pos) return false;
+      if (!markerBox || !markerBox.isConnected){
+        markerBox = document.createElement('div'); markerBox.id = 'proj-markers';
+        markerBox.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;';
+        markerEls = [0,1,2,3].map(()=>{ const d = document.createElement('div'); d.style.cssText = 'position:absolute;width:2px;height:2px;margin:-1px 0 0 -1px;'; markerBox.appendChild(d); return d; });
+        world.appendChild(markerBox); markerCenter = null;
+      }
+      if (!markerCenter || Math.hypot(pos.x-markerCenter.x, pos.y-markerCenter.y) > 120){
+        markerCenter = { x:pos.x, y:pos.y };
+        [[-1,-1],[1,-1],[1,1],[-1,1]].forEach((o,i)=>{ markerEls[i].style.left = (pos.x+o[0]*MK)+'px'; markerEls[i].style.top = (pos.y+o[1]*MK)+'px'; });
+      }
+      return true;
+    }
+    function solveHomography(src, dst){
+      const A = [], b = [];
+      for (let i=0;i<4;i++){
+        const x=src[i][0], y=src[i][1], u=dst[i][0], v=dst[i][1];
+        A.push([x,y,1,0,0,0,-u*x,-u*y]); b.push(u);
+        A.push([0,0,0,x,y,1,-v*x,-v*y]); b.push(v);
+      }
+      for (let c=0;c<8;c++){
+        let piv=c; for (let r=c+1;r<8;r++) if (Math.abs(A[r][c])>Math.abs(A[piv][c])) piv=r;
+        if (Math.abs(A[piv][c])<1e-9) return null;
+        if (piv!==c){ const ta=A[c]; A[c]=A[piv]; A[piv]=ta; const tb=b[c]; b[c]=b[piv]; b[piv]=tb; }
+        for (let r=0;r<8;r++){ if (r===c) continue; const f=A[r][c]/A[c][c]; if (!f) continue; for (let k=c;k<8;k++) A[r][k]-=f*A[c][k]; b[r]-=f*b[c]; }
+      }
+      return b.map((v,i)=> v/A[i][i]);
+    }
+    const _hp = [0,0,0];
+    function hmap(x, y){
+      const X=(x-markerCenter.x)/MK, Y=(y-markerCenter.y)/MK;
+      const w = Hm[6]*X + Hm[7]*Y + 1;
+      _hp[0] = (Hm[0]*X + Hm[1]*Y + Hm[2])/w; _hp[1] = (Hm[3]*X + Hm[4]*Y + Hm[5])/w; _hp[2] = w;
+      return _hp;
+    }
+
+    // ---- pooled prop meshes near the player ----
+    const propMeshes = new Map();
+    let propVer = -1, propSyncT = 0, propCenter = null;
+    const PROP_RADIUS = 1400, PROP_CAP = 420;
+    let propShadowMat = null;
+    function syncProps(pos, now){
+      const mp = window.__mapProps; if (!mp || !pos) return;
+      const moved = !propCenter || Math.hypot(pos.x-propCenter.x, pos.y-propCenter.y) > 80;
+      if (mp.version===propVer && !moved && now-propSyncT < 3) return;
+      propVer = mp.version; propSyncT = now; propCenter = { x:pos.x, y:pos.y };
+      const R2 = PROP_RADIUS*PROP_RADIUS;
+      let cand = [];
+      mp.groups.forEach((list, gk)=> list.forEach((pr, i)=>{ const dx=pr.x-pos.x, dy=pr.y-pos.y, d2=dx*dx+dy*dy; if (d2<R2) cand.push([gk+'#'+i, pr, d2]); }));
+      if (cand.length > PROP_CAP){ cand.sort((a,b)=>a[2]-b[2]); cand = cand.slice(0, PROP_CAP); }
+      const want = new Map(cand.map(c=>[c[0], c[1]]));
+      propMeshes.forEach((m,k)=>{ if (want.get(k)!==m.p){ scene.remove(m.group); propMeshes.delete(k); } });
+      if (!propShadowMat) propShadowMat = mat({ map:shadowTex, opacity:0.85 });
+      want.forEach((pr,k)=>{
+        if (propMeshes.has(k)) return;
+        const rec = getPropTex(pr.kind); if (!rec) return;
+        const group = new THREE.Group();
+        const shadow = new THREE.Mesh(GEO_DISC, propShadowMat);
+        const sprite = new THREE.Mesh(GEO_SPRITE, rec.mat || propShadowMat);
+        sprite.visible = !!rec.mat;
+        group.add(shadow, sprite); scene.add(group);
+        propMeshes.set(k, { group, shadow, sprite, rec, p:pr, sway:(pr.seed%1000)/1000*Math.PI*2 });
+      });
+    }
+    function updateProps(now){
+      propMeshes.forEach(m=>{
+        const pr = m.p;
+        const q = hmap(pr.x, pr.y); const sx = q[0], sy = q[1], w = q[2];
+        if (w <= 0.05 || sx < -260 || sx > vw+260 || sy < -60 || sy > vh+420){ m.group.visible = false; return; }
+        const qx = hmap(pr.x+1, pr.y); const ax = qx[0]-sx, ay = qx[1]-sy;
+        const qy = hmap(pr.x, pr.y+1); const bx = qy[0]-sx, by = qy[1]-sy;
+        const T = ax*ax+ay*ay+bx*bx+by*by, D = ax*by-ay*bx, disc = Math.sqrt(Math.max(0, T*T-4*D*D));
+        const sMax = Math.sqrt((T+disc)/2), sMin = Math.sqrt(Math.max(0,(T-disc)/2));
+        const k = Math.max(0.22, Math.min(0.6, sMin/(sMax||1)));
+        if (m.rec.mat && m.sprite.material !== m.rec.mat){ m.sprite.material = m.rec.mat; m.sprite.visible = true; }
+        m.group.visible = true;
+        const W = pr.w*sMax, H = W/m.rec.aspect;
+        m.group.position.set(sx - vw/2, vh/2 - sy, 0);
+        m.sprite.scale.set(W, H, 1);
+        // trees sway a touch in the night breeze; buildings stay put
+        m.sprite.rotation.z = (pr.kind==='tree'||pr.kind==='pine'||pr.kind==='deadtree') ? Math.sin(now*0.9+m.sway)*0.018 : 0;
+        m.shadow.scale.set(W*0.56, W*0.56*k, 1);
+        const order = Math.round(sy)*6;
+        m.shadow.renderOrder = order; m.sprite.renderOrder = order+3;
+      });
+    }
+
     const mounts = new Map(); // toto id -> mount record
 
     function tryMountToto(t){
@@ -5996,6 +6841,13 @@
       mounts.forEach((m, id)=>{
         if (!liveIds.has(id)){ disposeMount(m); mounts.delete(id); }
       });
+      // standing map props (houses, trees, tombstones…)
+      const ppos = gs && gs.playerWorldPos;
+      if (ppos && ensureMarkers(ppos)){
+        const dst = markerEls.map(d=>{ const r = d.getBoundingClientRect(); return [r.left+r.width/2-canvasRect.left, r.top+r.height/2-canvasRect.top]; });
+        Hm = solveHomography([[-1,-1],[1,-1],[1,1],[-1,1]], dst);
+        if (Hm){ syncProps(ppos, now); updateProps(now); }
+      }
       renderer.render(scene, camera);
     }
     requestAnimationFrame(syncFrame);

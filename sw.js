@@ -1,10 +1,12 @@
-const CACHE_NAME = 'totoquest-v37';
+const CACHE_NAME = 'totoquest-v38';
 const ASSETS = [
 './index.html',
 './manifest.json',
 './icon-192.png',
 './icon-512.png',
 './assets/loading-bg.jpg',
+'./assets/battle/village.jpg',
+'./assets/battle/village-blood.jpg',
 './assets/vendor/three.module.min.js',
 './assets/vendor/GLTFLoader.js',
 './assets/girl-front.png',
