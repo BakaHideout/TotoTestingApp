@@ -520,6 +520,14 @@
   @keyframes movePulse { 0%,100%{ box-shadow:0 0 0 0 rgba(150,90,255,0.55); } 50%{ box-shadow:0 0 0 5px rgba(150,90,255,0); } }
   .move-act.use { background:#ece6ff; color:#5a3fb0; }
   .move-tag { flex-shrink:0; font-size:10.5px; font-weight:800; color:#ff7a2e; }
+  .move-tag.on { color:#2e9e46; }
+  .move-row { align-items:flex-start; }
+  .move-row .move-act, .move-row .move-tag, .move-row .move-lock { align-self:center; }
+  .move-desc { font-size:10px; font-weight:700; color:#7a7090; line-height:1.3; margin-top:1px; white-space:normal; }
+  .move-lv { font-size:9.5px; font-weight:800; color:#a094c0; }
+  .ab-ic { position:relative; width:30px; height:30px; flex-shrink:0; border-radius:8px; border:1.5px solid var(--abc-b,#ccc); background:radial-gradient(circle at 50% 35%, var(--abc-1,#ddd), var(--abc-2,#777) 75%); box-shadow:inset 0 -3px 0 rgba(0,0,0,0.18); }
+  .ab-ic svg.bx-ab-ic { position:absolute; inset:2px; width:24px; height:24px; }
+  .ab-ic.basic { display:flex; align-items:center; justify-content:center; font-size:15px; background:linear-gradient(180deg,#5a0d10,#8e1a14); border-color:#ffb238; }
   .move-lock { flex-shrink:0; font-size:10.5px; font-weight:800; color:#999; }
   .modal-sp { font-size:60px; margin-bottom:2px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));}
   .modal-name { font-weight:800; font-size:17px; }
@@ -613,17 +621,17 @@
   /* ---- active hero card (top-right) ---- */
   .bx-active { position:absolute; right:14px; top:8px; width:232px; height:86px; display:flex; align-items:center; }
   .bx-active-portrait { position:relative; z-index:2; width:76px; height:76px; flex-shrink:0; border:3px solid #ffb347; box-shadow:0 0 12px rgba(255,170,60,0.75), 0 4px 10px rgba(0,0,0,0.6); }
-  .bx-active-body { flex:1; min-width:0; overflow:hidden; margin-left:-14px; height:72px; padding:4px 10px 0 20px; border-radius:0 16px 16px 0;
+  .bx-active-body { flex:1; min-width:0; overflow:visible; margin-left:-14px; height:72px; padding:4px 10px 0 20px; border-radius:0 16px 16px 0;
     background:linear-gradient(180deg, rgba(34,30,74,0.94), rgba(16,13,40,0.95)); border:2px solid #5c73c9; box-shadow: inset 0 0 16px rgba(90,120,255,0.2), 0 6px 14px rgba(0,0,0,0.5); position:relative; }
   .bx-active-name { display:flex; align-items:center; gap:4px; font-size:16px; font-weight:800; line-height:1.05; white-space:nowrap; overflow:hidden; text-shadow:0 2px 3px rgba(0,0,0,0.7); }
   #bx-active-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
   .bx-active-sub { display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color:#d9d0ff; margin:1px 0 3px; text-transform:uppercase; letter-spacing:0.3px; }
   .bx-active-hprow { display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; margin-top:1px; color:#fff; text-shadow:0 1px 2px #000; }
-  .bx-buffs { position:absolute; left:20px; bottom:-15px; display:flex; gap:4px; }
+  .bx-buffs { position:absolute; left:-64px; bottom:-17px; display:flex; gap:3px; }
   .bx-buff { font-size:9px; font-weight:800; padding:1px 6px; border-radius:7px; background:rgba(10,8,24,0.85); border:1px solid currentColor; white-space:nowrap; }
 
   /* ---- team roster (right column) ---- */
-  .bx-roster { position:absolute; right:14px; top:106px; width:212px; display:flex; flex-direction:column; gap:6px; }
+  .bx-roster { position:absolute; right:14px; top:116px; width:212px; display:flex; flex-direction:column; gap:6px; }
   .bx-narrow .bx-roster { display:none; }
   .bx-card { position:relative; height:62px; display:flex; align-items:center; padding:0 9px 0 5px; gap:7px; border-radius:14px;
     background:linear-gradient(180deg, rgba(34,30,74,0.9), rgba(16,13,40,0.92)); border:2px solid #5c73c9; box-shadow: inset 0 0 14px rgba(90,120,255,0.16), 0 5px 12px rgba(0,0,0,0.45); transition: border-color 0.2s, box-shadow 0.2s; }
@@ -765,6 +773,32 @@
   .bx-ab.ready { animation: bxReady 1.6s ease-in-out infinite; }
   @keyframes bxReady { 0%,100%{ box-shadow:0 0 8px var(--abc-g); } 50%{ box-shadow:0 0 16px var(--abc-g), 0 0 4px #fff; } }
 
+  /* role abilities in battle */
+  .bx-ab.locked { filter:grayscale(1) brightness(0.55); box-shadow:none; animation:none; }
+  .bx-ab-lock { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:15px; z-index:3; line-height:1; text-shadow:0 1px 2px #000; }
+  .bx-ab-lock b { font-size:10px; color:#fff; margin-top:3px; }
+  .bx-ab.used { filter:grayscale(0.7) brightness(0.7); animation:none; box-shadow:none; }
+  .bx-ab.used .bx-ab-cd { display:flex; font-size:20px; color:#9dffb0; }
+  .bx-ab.selecting { outline:3px solid #fff; outline-offset:2px; }
+  .bx-narrow .bx-abilities { height:70px; gap:7px; }
+  .bx-narrow .bx-ab { width:52px; height:52px; }
+  .bx-narrow .bx-ab svg.bx-ab-ic { inset:5px; width:42px; height:42px; }
+  /* tap a teammate to heal / protect them */
+  .bx-targeting .bx-card.pickable, #bx-active.pickable { cursor:pointer; animation: bxPick 0.9s ease-in-out infinite; border-radius:16px; }
+  @keyframes bxPick { 0%,100%{ box-shadow:0 0 0 2px rgba(93,255,154,0.9), 0 0 14px rgba(93,255,154,0.6); } 50%{ box-shadow:0 0 0 3px rgba(255,255,255,0.95), 0 0 22px rgba(93,255,154,0.9); } }
+  .bx-targeting .bx-member.pickable { pointer-events:auto; cursor:pointer; }
+  .bx-targeting .bx-member.pickable .bx-plate-body { border-color:#5dff9a; box-shadow:0 0 10px rgba(93,255,154,0.8); }
+  /* taunt + boss states */
+  .bx-member.taunting .bx-fig::after { content:'TAUNT'; position:absolute; left:50%; top:-4px; transform:translateX(-50%); font-size:10px; font-weight:800; letter-spacing:1px; color:#fff; background:linear-gradient(180deg,#ff5050,#a01818); border:1.5px solid #ffd0d0; border-radius:8px; padding:1px 7px; box-shadow:0 0 10px rgba(255,60,60,0.8); z-index:5; }
+  .bx-member.taunting .bx-circle { border-color:#ff5050; box-shadow:0 0 14px #ff5050, inset 0 0 14px #ff5050; }
+  .bx-card.taunting { border-color:#ff6060; }
+  .bx-boss.enraged .bx-boss-sprite { filter: drop-shadow(0 0 4px rgba(255,80,60,1)) drop-shadow(0 0 22px rgba(255,30,30,0.85)) drop-shadow(0 10px 8px rgba(0,0,0,0.55)); }
+  .bx-boss.hexed .bx-boss-aura { background:radial-gradient(circle at 50% 60%, rgba(170,80,255,0.65), rgba(90,30,160,0.25) 45%, rgba(0,0,0,0) 68%); }
+  .bx-boss.charging .bx-boss-aura { animation: bxCharge 0.5s ease-in-out infinite; background:radial-gradient(circle at 50% 60%, rgba(255,60,40,0.8), rgba(255,0,0,0.25) 45%, rgba(0,0,0,0) 70%); }
+  @keyframes bxCharge { 0%,100%{ opacity:0.7; transform:translateX(-50%) scale(0.95); } 50%{ opacity:1; transform:translateX(-50%) scale(1.12); } }
+  .bx-boss.bleeding .bx-boss-shadow { background:radial-gradient(closest-side, rgba(190,0,0,0.8), rgba(0,0,0,0)); }
+  .bx-shock { position:absolute; width:200px; height:70px; transform:translate(-50%,-50%) scale(0.3); border-radius:50%; border:6px solid rgba(255,90,60,0.95); box-shadow:0 0 30px rgba(255,60,30,0.9), inset 0 0 26px rgba(255,120,60,0.8); animation: bxShock 0.9s ease-out forwards; }
+  @keyframes bxShock { 100%{ transform:translate(-50%,-50%) scale(6); opacity:0; } }
   .bx-log { position:absolute; bottom:94px; left:var(--bx-charge-x, 50%); transform:translateX(-50%); max-width:420px; padding:3px 14px; border-radius:12px; background:rgba(10,7,24,0.62);
     font-size:12px; font-weight:700; color:#f3eeff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 2px #000; pointer-events:none; }
   .bx-log:empty { display:none; }
@@ -1387,7 +1421,7 @@
       <div class="modal-name" id="det-name">Wisp</div>
       <div class="modal-sub" id="det-sub">Lv.1 · CP 320 · normal</div>
       <div class="stat-list" id="det-stats"></div>
-      <div class="moves-box"><div class="moves-title">Moves <span>· a new, stronger move every 10 levels</span></div><div id="det-moves"></div></div>
+      <div class="moves-box"><div class="moves-title" id="det-ab-title">Abilities</div><div id="det-moves"></div></div>
       <div class="auth-error" id="det-msg" style="text-align:center;"></div>
       <div class="btn-row">
         <button class="btn-cancel" data-close-det>Close</button>
@@ -4169,7 +4203,7 @@
         + '<div class="role-badge" style="color:'+ri.color+';">'+ri.icon+' '+ri.label+'</div>'
         + '<div class="lv">Lv.'+t.level+'</div><div class="cp">PWR '+t.cp+'</div><div class="tier-badge tier-'+t.tier+'">'+t.tier+'</div>'
         + (transferMode ? '<div class="transfer-check">'+(transferSelected.has(t.id)?'✓':'')+'</div>' : '')
-        + (!transferMode && learnableMoves(t).length ? '<div class="new-move-badge">✨ NEW MOVE</div>' : '');
+        + (!transferMode && learnableAbilities(t).length ? '<div class="new-move-badge">✨ NEW ABILITY</div>' : '');
       card.onclick = ()=>{
         if (transferMode){
           if (transferSelected.has(t.id)) transferSelected.delete(t.id); else transferSelected.add(t.id);
@@ -4298,80 +4332,161 @@
     const pct = Math.max(4, Math.min(100, Math.round(val/max*100)));
     return '<div class="stat-line"><span class="lbl">'+label+'</span><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%; background:'+color+';"></div></div><span class="val">'+val+'</span></div>';
   }
-  // ---------------- TOTO MOVES ----------------
-  // Every Toto starts knowing one move and unlocks a new one at Lv 10, 20, 30, 40 and 50
-  // (Lv 50 is the max, so by then it can know all six). Each move hits harder than the
-  // one before it and gives more damage per point of energy, so the Lv 50 move is the
-  // strongest. Learning is done from the Toto's detail card; whichever move is "in use"
-  // is what CHARGE ATTACK fires in battle. Move names follow the Toto's theme.
-  const MOVE_LEVELS = [1, 10, 20, 30, 40, 50];
-  const MOVE_POWER  = [40, 50, 62, 76, 92, 112];       // damage x power/40
-  const MOVE_COST   = [10, 11, 12, 13, 14, 15];        // energy per CHARGE ATTACK
-  const MOVE_SETS = {
-    fire:    { ic:'🔥', c:'#ff7a2e', names:['Cinder Swipe','Scorch Lash','Ember Burst','Blaze Fang','Inferno Roar','Hellfire Nova'] },
-    frost:   { ic:'❄️', c:'#4da3ff', names:['Chill Nip','Rime Claw','Hailshard Volley','Blizzard Rend','Glacier Crash','Absolute Zero'] },
-    pumpkin: { ic:'🎃', c:'#ff8a3d', names:['Seed Spit','Gourd Bash','Lantern Flare',"Jack's Grin Blast",'Harvest Blaze','Great Pumpkin Rising'] },
-    sweet:   { ic:'🍬', c:'#ff6fae', names:['Candy Toss','Taffy Snare','Sour Burst','Caramel Crash','Sugar Storm','Trick-or-Treat Cataclysm'] },
-    toxic:   { ic:'☠️', c:'#5fbf3a', names:['Goo Splat','Venom Jab','Toxic Spray','Web Snare Strike','Plague Torrent','Nightshade Deluge'] },
-    nature:  { ic:'🌿', c:'#3bb36b', names:['Thorn Jab','Bramble Lash','Spore Burst','Hex Root','Wildwood Fury','Elder Grove Wrath'] },
-    arcane:  { ic:'✨', c:'#a46bff', names:['Hex Spark','Rune Bolt','Star Shard Volley','Moonfire Hex','Arcane Tempest','Grand Eclipse'] },
-    shadow:  { ic:'👻', c:'#6a5acd', names:['Shade Swipe','Dusk Rend','Soul Siphon','Phantom Reaper','Void Eclipse','Midnight Requiem'] },
-    feral:   { ic:'🐾', c:'#c9783a', names:['Feral Swipe','Pounce Crash','Howling Rush','Moonlit Maul','Wild Hunt','Alpha Nightmare'] }
+  // ---------------- ROLE ABILITIES ----------------
+  // Every Toto fights to its role. It always has its basic CHARGE ATTACK (attackers hit
+  // hardest by far, then tanks, supports and healers), and learns one role ability at
+  // Lv 10, 20, 30, 40 and 50 — five in all by max level:
+  //   Attacker — only damage abilities (the hardest hitters in the game)
+  //   Tank     — armour, one shield strike, a self-heal, team armour and (Lv 50) Taunt
+  //   Healer   — only heals, and the strongest heals in the game
+  //   Support  — protect one ally (e.g. your tank), heal one ally, team damage boost,
+  //              cooldown haste and a weakening hex on the boss
+  // Higher tiers learn the same abilities under their own names, a bit stronger:
+  // Normal x1.0, Legendary x1.1, Mythical x1.2, Eternal x1.3. Support heals are set so a
+  // support only matches a healer two tiers below it (eternal support ≈ legendary healer,
+  // mythical support ≈ normal healer) and is always weaker than a healer of its own tier.
+  const ABILITY_LEVELS = [10, 20, 30, 40, 50];
+  const TIER_IDX = { normal:0, legendary:1, mythical:2, eternal:3 };
+  const TIER_POWER = { normal:1.0, legendary:1.1, mythical:1.2, eternal:1.3 };
+  const ROLE_BASIC_MULT = { attacker:1.0, tanker:0.45, supporter:0.4, healer:0.3 };
+  const ROLE_KITS = {
+    attacker: [
+      { id:'strike',   glyph:'claw',    cd:6,  kind:'damage',  mult:2.2, names:['Fury Swipe','Fury Slicer','Fury Rend','Fury Annihilator'] },
+      { id:'bleed',    glyph:'gash',    cd:12, kind:'bleed',   mult:1.0, dot:0.45, names:['Gash','Deep Gash','Savage Gash','Eternal Laceration'] },
+      { id:'rage',     glyph:'rage',    cd:20, kind:'rage',    pct:0.40, dur:8, names:['Battle Rage','Blood Rage','Frenzied Rage','Undying Rage'] },
+      { id:'flurry',   glyph:'fangs',   cd:14, kind:'multi',   mult:1.15, hits:3, names:['Twin Fangs','Triple Fangs','Storm of Fangs','Thousand Fangs'] },
+      { id:'finisher', glyph:'execute', cd:30, kind:'execute', mult:3.5, names:['Final Strike','Doom Strike','Cataclysm Strike','Oblivion Strike'] }
+    ],
+    tanker: [
+      { id:'armor', glyph:'armor', cd:15, kind:'selfArmor', pct:0.40, dur:8, names:['Stone Skin','Iron Skin','Obsidian Skin','Eternal Bastion'] },
+      { id:'bash',  glyph:'slam',  cd:9,  kind:'damage',    mult:1.8, scale:0.8, names:['Shield Bash','Shield Slam','Titan Slam','Colossus Slam'] },
+      { id:'wind',  glyph:'heart', cd:20, kind:'selfHeal',  pct:0.08, names:['Second Wind','Stalwart Heart','Ironheart','Undying Heart'] },
+      { id:'guard', glyph:'aura',  cd:22, kind:'teamArmor', pct:0.30, dur:8, names:['Guard Aura','Bulwark Aura','Fortress Aura','Aegis of Ages'] },
+      { id:'taunt', glyph:'taunt', cd:0,  kind:'taunt',     pct:0.15, dur:6, once:true, names:['Challenge Roar','Provoking Roar','Dread Challenge','Eternal Challenge'] }
+    ],
+    healer: [
+      { id:'selfheal', glyph:'selfheal', cd:4,  kind:'selfHeal', pct:0.10, names:['Self Mend','Self Renewal','Self Restoration','Eternal Renewal'] },
+      { id:'touch',    glyph:'touch',    cd:10, kind:'allyHeal', pct:0.30, target:true, names:['Healing Touch','Healing Light','Healing Radiance','Divine Touch'] },
+      { id:'rain',     glyph:'rain',     cd:20, kind:'teamHot',  pct:0.03, ticks:8, names:['Soothing Rain','Soothing Bloom','Soothing Grace','Everbloom'] },
+      { id:'wave',     glyph:'wave',     cd:15, kind:'teamHeal', pct:0.50, names:['Healing Wave','Healing Tide','Healing Nova','Eternal Tide'] },
+      { id:'revive',   glyph:'revive',   cd:40, kind:'revive',   pct:0.35, target:true, names:['Spirit Revive','Spirit Return','Soul Rebirth','Eternal Rebirth'] }
+    ],
+    supporter: [
+      { id:'ward',  glyph:'ward',  cd:14, kind:'allyArmor', pct:0.35, dur:10, target:true, names:['Warding Charm','Warding Sigil','Warding Seal','Eternal Ward'] },
+      { id:'mend',  glyph:'mend',  cd:12, kind:'allyHeal',  pct:0.25, target:true, names:['Mend','Mending Light','Mending Grace','Eternal Mend'] },
+      { id:'hymn',  glyph:'hymn',  cd:20, kind:'teamDmgUp', pct:0.30, dur:10, names:['Battle Hymn','War Hymn','Valor Anthem','Anthem of Ages'] },
+      { id:'haste', glyph:'haste', cd:24, kind:'teamHaste', secs:4, names:['Quickening','Haste Charm','Time Warp','Eternal Haste'] },
+      { id:'hex',   glyph:'hex',   cd:28, kind:'bossHex',   pct:0.25, taken:0.20, dur:10, names:['Hex of Weakness','Curse of Weakness','Doom Hex','Eternal Hex'] }
+    ]
   };
-  function moveTheme(t){
-    const n = String(t.name||'').toLowerCase();
-    if (/frost|ice|crystal|snow/.test(n)) return 'frost';
-    if (/ember|blaze|cinder|flame|lava|inferno|candle|lantern/.test(n)) return 'fire';
-    if (/pumpkin|harvest|jack|scarecrow|toni/.test(n)) return 'pumpkin';
-    if (/candy|berry|sugar|sweet/.test(n)) return 'sweet';
-    if (/poison|toxic|slime|frog|spider|web|voodoo/.test(n)) return 'toxic';
-    if (/blossom|bloom|thorn|sprout|leaf|witchcap/.test(n)) return 'nature';
-    if (/witch|rune|pixie|star|moon|hex|arcane|nightcap|hana|vesper/.test(n)) return 'arcane';
-    if (/shadow|void|night|grim|reaper|soul|ghost|ghoul|banshee|wraith|specter|wisp|tomb|grave|coffin|bone|mummy|crow|raven|cursed|bat|drake|sovereign|translucent/.test(n)) return 'shadow';
-    return 'feral';
+  // One Toto's whole role kit (all five slots), named and scaled for its tier.
+  function abilityKit(t){
+    const role = ROLE_KITS[t && t.role] ? t.role : 'attacker';
+    const tier = TIER_IDX[t && t.tier] != null ? t.tier : 'normal';
+    const tp = TIER_POWER[tier];
+    return ROLE_KITS[role].map((a,i)=>{
+      const s = Object.assign({}, a, { slot:i, level:ABILITY_LEVELS[i], name:a.names[TIER_IDX[tier]], role, tier, tp });
+      if (a.mult) s.mult = +(a.mult*tp).toFixed(2);
+      if (a.dot) s.dot = +(a.dot*tp).toFixed(3);
+      if (a.pct) s.pct = Math.min(/Armor|taunt/.test(a.kind) ? 0.65 : 1, a.pct*tp);
+      if (a.taken) s.taken = a.taken*tp;
+      if (a.secs) s.secs = +(a.secs*tp).toFixed(1);
+      return s;
+    });
   }
-  function totoMoves(t){
-    const set = MOVE_SETS[moveTheme(t)];
-    return MOVE_LEVELS.map((lv,i)=>({ i, name:set.names[i], ic:set.ic, c:set.c, level:lv, power:MOVE_POWER[i], cost:MOVE_COST[i], mult:MOVE_POWER[i]/MOVE_POWER[0] }));
+  const pctTxt = v=> Math.round(v*100)+'%';
+  function abilityDesc(a){
+    switch(a.kind){
+      case 'damage':    return 'Strike the boss for '+a.mult+'× a basic hit.';
+      case 'bleed':     return 'Hit for '+a.mult+'×, then the boss bleeds for '+a.dot+'× every second for 6s.';
+      case 'rage':      return 'Your hits deal +'+pctTxt(a.pct)+' damage for '+a.dur+'s.';
+      case 'multi':     return a.hits+' rapid hits of '+a.mult+'× each.';
+      case 'execute':   return 'A '+a.mult+'× blow — 1.8× harder again when the boss is under 30% health.';
+      case 'selfArmor': return 'You take '+pctTxt(a.pct)+' less damage for '+a.dur+'s.';
+      case 'selfHeal':  return 'Heal yourself '+pctTxt(a.pct)+' of your max HP.';
+      case 'teamArmor': return 'The whole team takes '+pctTxt(a.pct)+' less damage for '+a.dur+'s.';
+      case 'taunt':     return 'Taunt: the boss attacks only you until you fall (+'+pctTxt(a.pct)+' armour for '+a.dur+'s).';
+      case 'allyHeal':  return 'Heal one ally '+pctTxt(a.pct)+' of their max HP — tap who on the team list.';
+      case 'teamHot':   return 'The whole team heals '+pctTxt(a.pct)+' every second for '+a.ticks+'s.';
+      case 'teamHeal':  return 'Heal the whole team '+pctTxt(a.pct)+' of their max HP.';
+      case 'revive':    return 'Bring a fallen ally back with '+pctTxt(a.pct)+' HP (or heal one ally that much).';
+      case 'allyArmor': return 'One ally takes '+pctTxt(a.pct)+' less damage for '+a.dur+'s — tap who (great on your tank).';
+      case 'teamDmgUp': return 'The whole team deals +'+pctTxt(a.pct)+' damage for '+a.dur+'s.';
+      case 'teamHaste': return "Everyone's abilities come back "+a.secs+'s sooner.';
+      case 'bossHex':   return 'The boss deals '+pctTxt(a.pct)+' less damage and takes '+pctTxt(a.taken)+' more for '+a.dur+'s.';
+    }
+    return '';
   }
-  function moveState(t){
-    if (!t.moves || !Array.isArray(t.moves.learned)) t.moves = { learned:[0], equipped:0 };
-    if (!t.moves.learned.includes(0)) t.moves.learned.unshift(0);
-    return t.moves;
+  function abilityCdTxt(a){ return a.once ? 'Once per battle.' : 'Every '+a.cd+'s.'; }
+  // Which slots a Toto has learned. (v40 "moves" learned at Lv 10-50 carry over.)
+  function abilityProgress(t){
+    if (!t.abilities || !Array.isArray(t.abilities.learned)){
+      const old = (t.moves && Array.isArray(t.moves.learned)) ? t.moves.learned.filter(i=> i>0).map(i=> i-1) : [];
+      t.abilities = { learned: old.filter(i=> i>=0 && i<ABILITY_LEVELS.length) };
+    }
+    return t.abilities;
   }
-  function learnableMoves(t){ const ms = moveState(t); return totoMoves(t).filter(m=> m.level <= (t.level||1) && !ms.learned.includes(m.i)); }
-  function equippedMove(t){
-    const ms = moveState(t), all = totoMoves(t);
-    return (ms.learned.includes(ms.equipped) && all[ms.equipped]) || all[0];
+  function learnableAbilities(t){ const p = abilityProgress(t); return abilityKit(t).filter(a=> (t.level||1) >= a.level && !p.learned.includes(a.slot)); }
+  function learnedAbilities(t){ const p = abilityProgress(t); return abilityKit(t).filter(a=> p.learned.includes(a.slot)); }
+  window.__totoAbilities = { abilityKit, learnedAbilities, learnableAbilities, abilityDesc };
+
+  // Ability icons (crisp SVG, same on every phone) and per-role button colours.
+  const ABG = inner=> '<svg class="bx-ab-ic" viewBox="0 0 48 48">'+inner+'</svg>';
+  const ABILITY_GLYPH = {
+    claw: ABG('<g fill="none" stroke-linecap="round"><path d="M12 40C17 28 24 17 36 7" stroke="#fff6dc" stroke-width="5"/><path d="M19 43C24 31 31 21 42 12" stroke="#ffd27a" stroke-width="4.5"/><path d="M6 35C11 24 17 14 28 5" stroke="#ffb347" stroke-width="4"/></g>'),
+    gash: ABG('<path d="M10 40L36 8l4 3-24 31z" fill="#f4f1ea" stroke="#5a1406" stroke-width="2"/><path d="M8 42l5-6 3 3-6 5z" fill="#7a3a12"/><path d="M34 26c0 3-2 5-4 5s-4-2-4-5 4-8 4-8 4 5 4 8zM42 34c0 2.4-1.6 4-3.2 4s-3.2-1.6-3.2-4 3.2-6.4 3.2-6.4 3.2 4 3.2 6.4zM26 38c0 2-1.3 3.3-2.7 3.3s-2.7-1.3-2.7-3.3 2.7-5.3 2.7-5.3 2.7 3.3 2.7 5.3z" fill="#ff3b3b" stroke="#5a0a0a" stroke-width="1.2"/>'),
+    rage: ABG('<path d="M25 4c1 6-3 9-5.5 12.5C17 20 14 23.5 14 29c0 8 5.7 14 11 14 7.3 0 12-6 12-13 0-5-2.6-9-5.3-12 .4 3.2-.8 5.6-3.2 7 .8-9-1.2-17-3.5-21z" fill="#ffd27a" stroke="#7a2a06" stroke-width="2" stroke-linejoin="round"/><path d="M25.3 26c2.8 2.6 4.7 5.2 4.7 8.2 0 3.2-2.4 5.8-5.4 5.8s-5.2-2.4-5.2-5.4c0-3.2 2.8-5.4 5.9-8.6z" fill="#ff5a1a"/>'),
+    fangs: ABG('<path d="M6 10h36l-4 5H10z" fill="#fff6dc" stroke="#5a1406" stroke-width="2" stroke-linejoin="round"/><path d="M10 15l4 22 5-22zM21 15l3 26 3-26zM29 15l5 22 4-22z" fill="#ffffff" stroke="#5a1406" stroke-width="2" stroke-linejoin="round"/>'),
+    execute: ABG('<path d="M24 3l3 5v22h-6V8z" fill="#f4f1ea" stroke="#3a1206" stroke-width="2" stroke-linejoin="round"/><path d="M14 30h20l-2 4H16z" fill="#ffc444" stroke="#3a1206" stroke-width="2"/><path d="M22 34h4v8h-4z" fill="#7a3a12" stroke="#3a1206" stroke-width="1.6"/><path d="M6 20l6 2-2-6M42 20l-6 2 2-6M8 40l6-4M40 40l-6-4" stroke="#fff3b0" stroke-width="2.4" stroke-linecap="round" fill="none"/>'),
+    armor: ABG('<path d="M24 4l15 5v12c0 10-6.6 17.4-15 21-8.4-3.6-15-11-15-21V9z" fill="#d8ecff" stroke="#0e2f6b" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 9l10 3.4V21c0 7-4.2 12.2-10 15z" fill="#3d8cff"/><circle cx="17" cy="15" r="1.8" fill="#0e2f6b"/><circle cx="31" cy="15" r="1.8" fill="#0e2f6b"/><path d="M15 24h18" stroke="#0e2f6b" stroke-width="2"/>'),
+    slam: ABG('<path d="M20 8l13 4.5v10c0 8.5-5.6 14.6-13 17.8C12.6 37.1 7 31 7 22.5v-10z" fill="#d8ecff" stroke="#0e2f6b" stroke-width="2.4" stroke-linejoin="round"/><path d="M20 12.5l8.5 3v7.5c0 6-3.6 10.4-8.5 12.8z" fill="#3d8cff"/><path d="M36 10l7-4M38 20h8M36 30l7 4" stroke="#fff3b0" stroke-width="3" stroke-linecap="round"/>'),
+    heart: ABG('<path d="M24 42S6 30.5 6 18.5C6 12 10.7 7 16.5 7c3.4 0 5.9 1.7 7.5 4.2C25.6 8.7 28.1 7 31.5 7 37.3 7 42 12 42 18.5 42 30.5 24 42 24 42z" fill="#ff6f8f" stroke="#5a0a22" stroke-width="2.4" stroke-linejoin="round"/><path d="M21 15h6v6h6v6h-6v6h-6v-6h-6v-6h6z" fill="#fff"/>'),
+    aura: ABG('<circle cx="24" cy="25" r="19" fill="none" stroke="#bfe4ff" stroke-width="2.5" stroke-dasharray="5 4"/><path d="M24 11l9 3.2v7c0 6.2-4 10.8-9 12.8-5-2-9-6.6-9-12.8v-7z" fill="#d8ecff" stroke="#0e2f6b" stroke-width="2.2" stroke-linejoin="round"/><path d="M10 30l5 1.8v4c0 3.4-2.2 5.9-5 7-2.8-1.1-5-3.6-5-7v-4zM38 30l5 1.8v4c0 3.4-2.2 5.9-5 7-2.8-1.1-5-3.6-5-7v-4z" fill="#8fd0ff" stroke="#0e2f6b" stroke-width="1.8" stroke-linejoin="round"/>'),
+    taunt: ABG('<path d="M24 3l5 9 10-3-3 10 9 5-9 5 3 10-10-3-5 9-5-9-10 3 3-10-9-5 9-5-3-10 10 3z" fill="#ff4d4d" stroke="#5a0a0a" stroke-width="2" stroke-linejoin="round"/><path d="M21.5 12h5l-1 15h-3z" fill="#fff"/><circle cx="24" cy="33" r="2.8" fill="#fff"/>'),
+    selfheal: ABG('<circle cx="24" cy="24" r="17" fill="none" stroke="#eafff2" stroke-width="3" stroke-dasharray="80 30" stroke-linecap="round"/><path d="M38 12l3 8-8-1z" fill="#eafff2"/><path d="M20 14h8v6h6v8h-6v6h-8v-6h-6v-8h6z" fill="#eafff2" stroke="#0e5a2a" stroke-width="2" stroke-linejoin="round"/>'),
+    touch: ABG('<path d="M18 6h12v12h12v12H30v12H18V30H6V18h12z" fill="#eafff2" stroke="#0e5a2a" stroke-width="2.6" stroke-linejoin="round"/><path d="M21 9h6v12h12v6H27v12h-6V27H9v-6h12z" fill="#3be07e"/>'),
+    rain: ABG('<path d="M13 24a7 7 0 0 1 1-13.9A10 10 0 0 1 33 9a8 8 0 0 1 2 15.8z" fill="#eafff2" stroke="#0e5a2a" stroke-width="2.2" stroke-linejoin="round"/><path d="M15 30l-2 6M24 30l-2 6M33 30l-2 6M19 38l-2 6M29 38l-2 6" stroke="#3be07e" stroke-width="3" stroke-linecap="round"/>'),
+    wave: ABG('<circle cx="24" cy="24" r="20" fill="none" stroke="#b6ffd4" stroke-width="2.4"/><circle cx="24" cy="24" r="14.5" fill="none" stroke="#eafff2" stroke-width="2.4" opacity="0.8"/><path d="M20.5 13h7v7.5H35v7h-7.5V35h-7v-7.5H13v-7h7.5z" fill="#eafff2" stroke="#0e5a2a" stroke-width="2" stroke-linejoin="round"/>'),
+    revive: ABG('<ellipse cx="24" cy="9" rx="9" ry="3.2" fill="none" stroke="#fff3b0" stroke-width="2.6"/><path d="M22 20C16 14 8 14 3 18c4 1 7 3 8 6-3-1-6 0-7 2 4 0 7 1 9 4 3-4 7-6 9-10zM26 20c6-6 14-6 19-2-4 1-7 3-8 6 3-1 6 0 7 2-4 0-7 1-9 4-3-4-7-6-9-10z" fill="#eafff2" stroke="#0e5a2a" stroke-width="1.8" stroke-linejoin="round"/><path d="M21 22h6v7h7v6h-7v7h-6v-7h-7v-6h7z" fill="#3be07e" stroke="#0e5a2a" stroke-width="1.6"/>'),
+    ward: ABG('<path d="M24 4l17 10v20L24 44 7 34V14z" fill="none" stroke="#f0dcff" stroke-width="2.6" stroke-linejoin="round"/><path d="M24 12l9 3.4v7.4c0 6.6-4 11.4-9 13.6-5-2.2-9-7-9-13.6v-7.4z" fill="#e8c8ff" stroke="#4a1a7a" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 16v17" stroke="#7b3fe0" stroke-width="2.4"/>'),
+    mend: ABG('<path d="M24 6c10 6 14 14 12 22-1.6 6.4-7 10-12 14-5-4-10.4-7.6-12-14C10 20 14 12 24 6z" fill="#e8c8ff" stroke="#4a1a7a" stroke-width="2.2" stroke-linejoin="round"/><path d="M21 17h6v6h6v6h-6v6h-6v-6h-6v-6h6z" fill="#fff"/>'),
+    hymn: ABG('<path d="M18 34V10l20-5v24" fill="none" stroke="#f0dcff" stroke-width="3.2" stroke-linejoin="round"/><ellipse cx="13.5" cy="35" rx="6" ry="4.6" fill="#f0dcff" transform="rotate(-18 13.5 35)"/><ellipse cx="33.5" cy="30" rx="6" ry="4.6" fill="#f0dcff" transform="rotate(-18 33.5 30)"/><path d="M18 15l20-5" stroke="#f0dcff" stroke-width="3.2"/>'),
+    haste: ABG('<path d="M12 5h24M12 43h24" stroke="#f0dcff" stroke-width="3.4" stroke-linecap="round"/><path d="M15 6c0 9 7 12 9 18-2 6-9 9-9 18h18c0-9-7-12-9-18 2-6 9-9 9-18z" fill="none" stroke="#f0dcff" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 41c1-5 4-7 6-9 2 2 5 4 6 9z" fill="#ffd27a"/><path d="M27 13l-5 7h4l-3 7 7-9h-4l3-5z" fill="#ffd27a"/>'),
+    hex: ABG('<path d="M4 24C10 14 17 10 24 10s14 4 20 14c-6 10-13 14-20 14S10 34 4 24z" fill="#e8c8ff" stroke="#4a1a7a" stroke-width="2.4" stroke-linejoin="round"/><circle cx="24" cy="24" r="8" fill="#7b3fe0"/><path d="M24 18c3 0 5 2.2 5 5 0 2.4-2 4-4 4s-3-1.4-3-3 1.2-2.4 2.2-2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>')
+  };
+  const ROLE_AB_COLORS = {
+    attacker:  { c1:'#ffb066', c2:'#a3240f', b:'#ffcf8a', g:'rgba(255,110,40,0.8)' },
+    tanker:    { c1:'#8fd0ff', c2:'#123f8c', b:'#bfe4ff', g:'rgba(70,150,255,0.85)' },
+    healer:    { c1:'#8dffc0', c2:'#0e6b38', b:'#b6ffd4', g:'rgba(50,220,120,0.8)' },
+    supporter: { c1:'#d9a6ff', c2:'#4b1a8c', b:'#e8c8ff', g:'rgba(176,100,255,0.85)' }
+  };
+  function abilityIconHtml(a){
+    const c = ROLE_AB_COLORS[a.role] || ROLE_AB_COLORS.attacker;
+    return '<span class="ab-ic" style="--abc-1:'+c.c1+';--abc-2:'+c.c2+';--abc-b:'+c.b+'">'+ABILITY_GLYPH[a.glyph]+'</span>';
   }
-  window.__totoMoves = { totoMoves, equippedMove, learnableMoves };
-  function renderMoves(t){
-    const ms = moveState(t), eq = equippedMove(t);
-    $('#det-moves').innerHTML = totoMoves(t).map(m=>{
-      const learned = ms.learned.includes(m.i), unlocked = (t.level||1) >= m.level, isEq = eq.i===m.i;
-      const act = isEq ? '<span class="move-tag">★ In use</span>'
-        : learned ? '<button class="move-act use" data-use="'+m.i+'">Use</button>'
-        : unlocked ? '<button class="move-act learn" data-learn="'+m.i+'">Learn</button>'
-        : '<span class="move-lock">🔒 Lv '+m.level+'</span>';
-      return '<div class="move-row'+(isEq?' equipped':'')+(!learned && !unlocked?' locked':'')+'">'
-        + '<div class="move-ic" style="--mc:'+m.c+'">'+m.ic+'</div>'
-        + '<div class="move-info"><div class="move-name">'+m.name+'</div>'
-        + '<div class="move-meta"><span>PWR '+m.power+'</span><span class="move-pow"><i style="width:'+Math.round(m.power/MOVE_POWER[5]*100)+'%"></i></span><span>'+m.cost+' energy</span></div></div>'
-        + act + '</div>';
+  function renderAbilities(t){
+    const p = abilityProgress(t), role = ROLE_KITS[t.role] ? t.role : 'attacker';
+    const ri = ROLE_INFO[role] || ROLE_INFO.attacker;
+    $('#det-ab-title').innerHTML = 'Abilities <span>· '+ri.label+' · '+(t.tier||'normal')+' versions · new one every 10 levels</span>';
+    const basic = '<div class="move-row equipped"><span class="ab-ic basic">⚔️</span><div class="move-info"><div class="move-name">Charge Attack</div>'
+      + '<div class="move-desc">Your basic hit, always ready.'+(role==='attacker' ? ' Attackers hit the hardest.' : '')+'</div></div><span class="move-tag on">Always</span></div>';
+    $('#det-moves').innerHTML = basic + abilityKit(t).map(a=>{
+      const learned = p.learned.includes(a.slot), unlocked = (t.level||1) >= a.level;
+      const act = learned ? '<span class="move-tag on">✓ Active</span>'
+        : unlocked ? '<button class="move-act learn" data-learn="'+a.slot+'">Learn</button>'
+        : '<span class="move-lock">🔒 Lv '+a.level+'</span>';
+      return '<div class="move-row'+(learned?' equipped':'')+(!learned && !unlocked?' locked':'')+'">'+abilityIconHtml(a)
+        + '<div class="move-info"><div class="move-name">'+a.name+' <span class="move-lv">Lv '+a.level+'</span></div>'
+        + '<div class="move-desc">'+abilityDesc(a)+' '+abilityCdTxt(a)+'</div></div>'+act+'</div>';
     }).join('');
     $$('#det-moves [data-learn]').forEach(b=> b.onclick = ()=>{
-      const m = totoMoves(t)[+b.dataset.learn];
-      if (!m || (t.level||1) < m.level) return;
-      if (!ms.learned.includes(m.i)) ms.learned.push(m.i);
-      // if the new move beats the one in use, switch to it straight away
-      if (m.power > equippedMove(t).power) ms.equipped = m.i;
+      const a = abilityKit(t)[+b.dataset.learn];
+      if (!a || (t.level||1) < a.level) return;
+      if (!p.learned.includes(a.slot)) p.learned.push(a.slot);
+      p.learned.sort((x,y)=> x-y);
       Sound.playCatch && Sound.playCatch();
-      showToast(t.name+' learned '+m.name+'!');
-      markDirty(); saveNow(false); renderMoves(t); renderCollection();
-    });
-    $$('#det-moves [data-use]').forEach(b=> b.onclick = ()=>{
-      ms.equipped = +b.dataset.use; markDirty(); saveNow(false); renderMoves(t);
-      showToast(t.name+' will use '+equippedMove(t).name+' in battle');
+      showToast(t.name+' learned '+a.name+'!');
+      markDirty(); saveNow(false); renderAbilities(t); renderCollection();
     });
   }
   function openDetail(id){
@@ -4381,13 +4496,13 @@
     $('#det-sub').textContent = 'Lv.'+t.level+' · PWR '+t.cp+' · '+t.tier;
     $('#det-stats').innerHTML = statBarRow('HP', t.hp, Math.max(t.maxHp,1), '#4dbf4d') + statBarRow('Attack', t.atk, 1600, '#ff5470') +
       statBarRow('Strength', t.strength, 1600, '#ff8a3d') + statBarRow('Defense', t.def, 1300, '#4d7cff') +
-      statBarRow('Speed', t.spd, 260, '#7b5cff') + statBarRow('Energy', t.energy, Math.max(t.maxEnergy,1), '#00c2a8');
+      statBarRow('Speed', t.spd, 260, '#7b5cff');
     const maxed = t.level >= TOTO_MAX_LEVEL; const cost = powerUpCost(t);
     $('#det-msg').innerHTML = maxed ? 'Max level for this tier!' : ('Power Up cost: '+cost.candy+' '+candyIconHtml(14));
     $('#btn-power-up').disabled = maxed; $('#btn-power-up').innerHTML = maxed ? '★ MAX LEVEL' : 'Power Up';
     const isAdmin = state.email && state.email.toLowerCase()===ADMIN_EMAIL;
     $('#btn-admin-max-toto').style.display = (isAdmin && !maxed) ? 'block' : 'none';
-    renderMoves(t);
+    renderAbilities(t);
     $('#detail-modal').classList.add('active');
   }
   $$('[data-close-det]').forEach(x=> x.onclick = ()=> $('#detail-modal').classList.remove('active'));
@@ -4398,11 +4513,11 @@
       $('#det-msg').innerHTML = 'Not enough! Need '+cost.candy+' '+candyIconHtml(14);
       return;
     }
-    const before = learnableMoves(detailTarget).length;
+    const before = learnableAbilities(detailTarget).length;
     state.candy -= cost.candy; applyPowerUp(detailTarget);
     refreshHUD(); markDirty(); saveNow(false);
     openDetail(detailTarget.id); renderCollection();
-    const fresh = learnableMoves(detailTarget);
+    const fresh = learnableAbilities(detailTarget);
     showToast(fresh.length > before ? ('✨ '+detailTarget.name+' reached Lv.'+detailTarget.level+' — it can learn '+fresh[fresh.length-1].name+'!') : (detailTarget.name+' leveled up to Lv.'+detailTarget.level+'!'));
   };
 
@@ -4737,26 +4852,48 @@
 
   // ================= BATTLE SCREEN =================
   let battle = null;
-  // Percentage-based mitigation with a per-hit cap, instead of flat atk-minus-def — this is
-  // what keeps a fight from being decided in one or two hits when CP levels are far apart,
-  // and lets us deliberately pace gym/challenger raids to run longer than a wild scuffle.
-  function damageCapPct(mode){
-    if (mode==='catch') return 0.34;
-    if (mode==='challenge') return 0.04;
-    return 0.045; // gym raids (solo/group)
-  }
-  // Mitigation is a RATIO of attacker power to defender power (attackPower/(attackPower+def)),
-  // which scales correctly at any stat magnitude (see ROLE_MAX_STATS).
+  // ================= COMBAT NUMBERS (role-based PvE) =================
+  // Tuned with a fight simulator so raids take a while and need the right team:
+  //  - A hero's hit is a share of the boss's health pool, scaled by its role (attackers
+  //    hit hardest) and by how its Attack stacks up against the boss's Defense — so a
+  //    basic hit is a few hundred on a guardian, abilities more, never a one-shot.
+  //  - The boss hits with its own Attack against each hero's Defense, much harder in a
+  //    group (it's built for four) than solo. Solo, an Eternal attacker can beat a
+  //    Challenger guardian; a group needs its tank, healer and support doing their jobs.
+  //  - Boss mechanics: a Shockwave on the whole team every 14s (group), an Enrage below
+  //    30% health, and after 4 minutes it keeps getting stronger, so a fight can't stall.
+  const DMG_P = 0.0045;
+  const BOSS_K = { solo:0.0055, group:0.13 };
+  const BOSS_HP_MULT = { solo:5.5, group:8, catch:1.5 };
+  const BOSS_ROLE_FLAVOR = { attacker:{atk:1,hp:1,def:1}, supporter:{atk:0.85,hp:1.15,def:1.1}, tanker:{atk:0.75,hp:1.4,def:1.3}, healer:{atk:0.7,hp:1.25,def:1.15} };
+  const SWING_MS = 1000, BOSS_SWING_MS = 1600, SWEEP_EVERY_MS = 14000, SWEEP_WARN_MS = 1700;
+  // Kept for any older callers: plain attack-vs-defence damage with a per-hit cap.
+  function damageCapPct(mode){ return mode==='catch' ? 0.34 : 0.04; }
   function computeDamage(attackPower, defenderDef, defenderMaxHp, capPct){
     const mitigated = attackPower * (attackPower/(attackPower+Math.max(1,defenderDef)));
-    let dmg = mitigated * (0.85 + Math.random()*0.3);
-    dmg = Math.min(dmg, defenderMaxHp*capPct);
-    return Math.max(2, Math.round(dmg));
+    return Math.max(2, Math.round(Math.min(mitigated*(0.85+Math.random()*0.3), defenderMaxHp*capPct)));
   }
-  function fighterFromToto(t){
-    return { ref:t, name:t.name, sprite:spriteMarkup(t), level:t.level, cp:t.cp, tier:t.tier, role:t.role||'attacker', maxHp:t.maxHp, hp:t.maxHp,
-             atk:t.atk, strength:t.strength||0, def:t.def, spd:t.spd, heal:t.heal||0, buff:t.buff||0, maxEnergy:t.maxEnergy, energy:t.maxEnergy, isToni:!!t.isToni,
-             move: equippedMove(t) };
+  // One member of your side. `allKnown` (bots / other trainers) knows every ability its
+  // level allows; your own Toto uses exactly what you've learned for it.
+  function fighterFromToto(t, allKnown, spriteHtml){
+    const role = ROLE_KITS[t.role] ? t.role : 'attacker';
+    const kit = allKnown ? abilityKit(t).filter(a=> (t.level||1) >= a.level) : learnedAbilities(t);
+    return { ref:t, name:t.name, sprite: spriteHtml || spriteMarkup(t), level:t.level||1, cp:t.cp, tier:t.tier||'normal', role,
+             maxHp:t.maxHp, hp:t.maxHp, atk:Math.max(1,t.atk||1), def:Math.max(1,t.def||1), spd:t.spd||1, isToni:!!t.isToni,
+             kit, cds:{}, fx:{}, used:{}, swingAt:0, thinkAt:0 };
+  }
+  // The boss: an Attacker-strength body for its tier/level, flavoured by its role (a tank
+  // boss is tougher but hits softer, a healer boss has more health, …) with a raid-sized
+  // health pool that's bigger for a group.
+  function bossFighter(t, mode){
+    const tier = TIER_IDX[t.tier] != null ? t.tier : 'eternal';
+    const lvl = t.level || TOTO_MAX_LEVEL;
+    const base = statsForLevel(tier, 'attacker', lvl, t.statMult || 1);
+    const fl = BOSS_ROLE_FLAVOR[t.role] || BOSS_ROLE_FLAVOR.attacker;
+    const hpBase = base.hp*fl.hp;
+    const maxHp = Math.round(hpBase*(BOSS_HP_MULT[mode] || BOSS_HP_MULT.solo));
+    return { ref:t, name:t.name, sprite:spriteMarkup(t), level:lvl, tier, role:t.role||'attacker', maxHp, hp:maxHp,
+             atk: base.atk*fl.atk, def: base.def*fl.def, unit: hpBase*BOSS_HP_MULT.solo*DMG_P };
   }
   function strongestToto(){ return state.collection.length ? state.collection.slice().sort((a,b)=>b.cp-a.cp)[0] : null; }
 
@@ -4775,17 +4912,6 @@
     supporter:'<svg viewBox="0 0 24 24"><path d="M12 2.4l2.8 6.1 6.6.7-5 4.5 1.4 6.6L12 17l-5.8 3.3 1.4-6.6-5-4.5 6.6-.7z" fill="#f1dcff" stroke="#4a1a7a" stroke-width="1.3" stroke-linejoin="round"/></svg>',
     healer:'<svg viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z" fill="#dcffe9" stroke="#0e5a2a" stroke-width="1.4" stroke-linejoin="round"/></svg>'
   };
-  // The four command abilities, one per team role, in the reference's slot order.
-  const BX_ABILITIES = [
-    { role:'attacker',  name:'Inferno Slash', cd:10000, c1:'#ffb066', c2:'#a3240f', b:'#ffcf8a', g:'rgba(255,110,40,0.8)',
-      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><path d="M9 41C18 33 28 20 41 6c-6 12-13 23-26 37z" fill="#fff4d0"/><path d="M6 37c9-6 20-17 31-30-4 10-12 21-25 33z" fill="#ffb347" opacity="0.9"/><path d="M13 44c9-7 18-17 26-30-3 11-10 22-21 32z" fill="#ff6a1a" opacity="0.85"/><circle cx="40" cy="7" r="3" fill="#fff"/></svg>' },
-    { role:'supporter', name:'Arcane Boost',  cd:12000, c1:'#d9a6ff', c2:'#4b1a8c', b:'#e8c8ff', g:'rgba(176,100,255,0.85)',
-      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><circle cx="24" cy="25" r="13" fill="#7b3fe0" stroke="#f0dcff" stroke-width="2.5"/><circle cx="20" cy="21" r="4.5" fill="#f3e6ff" opacity="0.85"/><path d="M24 2l2.4 6 6.4.4-5 4 1.6 6.2L24 15.2l-5.4 3.4 1.6-6.2-5-4 6.4-.4z" fill="#fff6c8"/><path d="M8 34l1.4 3.2 3.4.3-2.6 2.2.8 3.3L8 41.2 5 43l.8-3.3-2.6-2.2 3.4-.3zM40 32l1.2 2.6 2.8.3-2.1 1.8.6 2.7-2.5-1.5-2.5 1.5.7-2.7-2.1-1.8 2.8-.3z" fill="#e8c8ff"/></svg>' },
-    { role:'healer',    name:'Mending Bloom', cd:10000, c1:'#8dffc0', c2:'#0e6b38', b:'#b6ffd4', g:'rgba(50,220,120,0.8)',
-      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><path d="M18 6h12v12h12v12H30v12H18V30H6V18h12z" fill="#eafff2" stroke="#0e5a2a" stroke-width="2.6" stroke-linejoin="round"/><path d="M21 9h6v12h12v6H27v12h-6V27H9v-6h12z" fill="#3be07e"/></svg>' },
-    { role:'tanker',    name:'Bulwark',       cd:12000, c1:'#8fd0ff', c2:'#123f8c', b:'#bfe4ff', g:'rgba(70,150,255,0.85)',
-      icon:'<svg class="bx-ab-ic" viewBox="0 0 48 48"><path d="M24 4l16 6v12c0 10-7 17.5-16 21C15 39.5 8 32 8 22V10z" fill="#d8ecff" stroke="#0e2f6b" stroke-width="2.6" stroke-linejoin="round"/><path d="M24 9l11 4.2V22c0 7.4-4.6 12.6-11 15.4z" fill="#3d8cff"/><path d="M24 9v28.4C17.6 34.6 13 29.4 13 22v-8.8z" fill="#7cb8ff"/></svg>' }
-  ];
   function bxEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   // Sprite markup is either real art (<img>/<svg>) or, for real-player allies, just an emoji.
   function bxArt(sprite){ const s = String(sprite||''); return /^\s*</.test(s) ? s : '<span class="bx-emoji">'+bxEsc(s||'❔')+'</span>'; }
@@ -4821,11 +4947,12 @@
     // horizontal anchors that depend on the design width
     const rosterL = dw - 14 - 212;
     stage.style.setProperty('--bx-bossbar-x', Math.min(dw/2, rosterL - 166)+'px');
-    const abilW = 4*60 + 3*9 + 18 + 4;
-    stage.style.setProperty('--bx-charge-x', ((14+2*50+9+14) + (dw - 14 - abilW - 14))/2 + 'px');
     // narrow screens (tablets, the desktop phone-frame) drop the right-hand roster so the
     // arena keeps enough room for the boss and the whole party side by side
-    stage.classList.toggle('bx-narrow', dw < 1080);
+    const narrowStage = dw < 1080;
+    stage.classList.toggle('bx-narrow', narrowStage);
+    const abilW = narrowStage ? 5*52 + 4*7 + 18 + 4 : 5*60 + 4*9 + 18 + 4;   // five ability slots
+    stage.style.setProperty('--bx-charge-x', ((14+2*50+9+14) + (dw - 14 - abilW - 14))/2 + 'px');
     if (battle) placeBattlers();
   }
   window.addEventListener('resize', ()=>{ if ($('#battle-screen').classList.contains('active')) layoutBattleScreen(); });
@@ -4869,6 +4996,7 @@
         + '<div class="bx-plate"><div class="bx-plate-ic">'+BX_ICON[m.f.role||'attacker']+'</div>'
         + '<div class="bx-plate-body"><div class="bx-plate-row"><span class="bx-plate-name">'+bxEsc(m.f.name)+'</span><span class="bx-plate-lv">Lv. '+(m.f.level||1)+'</span></div>'
         + '<div class="bx-hp"><div class="bx-hp-fill"></div><div class="bx-hp-text"></div></div></div></div>';
+      el.onclick = ()=> pickTarget(m.f);
       fieldEl.appendChild(el);
       m.el = el; m.f._el = el;
     });
@@ -4883,6 +5011,7 @@
         + '<div class="bx-card-name">'+bxEsc(m.f.name)+'</div>'
         + '<div class="bx-card-sub"><span class="bx-role-ic">'+BX_ICON[m.f.role||'attacker']+'</span><span>'+r.label+'</span><span class="bx-lv">Lv. '+(m.f.level||1)+'</span></div>'
         + '<div class="bx-hp"><div class="bx-hp-fill"></div><div class="bx-hp-text"></div></div></div>';
+      card.onclick = ()=> pickTarget(m.f);
       rosterEl.appendChild(card);
       m.f._card = card;
     });
@@ -4899,15 +5028,20 @@
     $('#bx-active-name').textContent = p.name;
     $('#bx-active-role').textContent = pr.label; $('#bx-active-role').style.color = pr.c;
     $('#bx-active-lv').textContent = 'Lv. '+(p.level||1);
-    $('#bx-move-name').textContent = p.move ? (p.move.ic+' '+p.move.name+' · PWR '+p.move.power) : '';
-    // ability buttons
+    $('#bx-move-name').textContent = '';
+    // your Toto's five role-ability slots: learned ones ready to use, the rest locked
+    // with the level they unlock at
     const abEl = $('#bx-abilities'); abEl.innerHTML = '';
-    BX_ABILITIES.forEach((ab,i)=>{
+    const known = new Set(p.kit.map(a=> a.id));
+    abilityKit(p.ref).forEach((a,i)=>{
+      const c = ROLE_AB_COLORS[a.role] || ROLE_AB_COLORS.attacker;
       const b = document.createElement('button');
-      b.className = 'bx-ab'; b.dataset.i = i;
-      b.style.setProperty('--abc-1', ab.c1); b.style.setProperty('--abc-2', ab.c2); b.style.setProperty('--abc-b', ab.b); b.style.setProperty('--abc-g', ab.g);
-      b.innerHTML = ab.icon + '<span class="bx-ab-cd"></span><span class="bx-ab-num">'+(i+1)+'</span>';
-      b.onclick = ()=> useAbility(i, false);
+      b.className = 'bx-ab' + (known.has(a.id) ? '' : ' locked'); b.dataset.id = a.id;
+      b.style.setProperty('--abc-1', c.c1); b.style.setProperty('--abc-2', c.c2); b.style.setProperty('--abc-b', c.b); b.style.setProperty('--abc-g', c.g);
+      b.innerHTML = ABILITY_GLYPH[a.glyph] + '<span class="bx-ab-cd"></span><span class="bx-ab-num">'+(i+1)+'</span>'
+        + (known.has(a.id) ? '' : '<span class="bx-ab-lock">🔒<b>'+((p.level||1) >= a.level ? 'Learn' : 'Lv '+a.level)+'</b></span>');
+      b.title = a.name+' — '+abilityDesc(a);
+      b.onclick = ()=> onAbilityButton(a.id);
       abEl.appendChild(b);
     });
     // embers
@@ -4964,34 +5098,42 @@
   }
   function renderBattle(){
     if (!battle) return;
-    const e = battle.enemy;
-    const eFill = $('#bf-e-hp');
-    eFill.style.width = Math.max(0, e.hp/e.maxHp*100)+'%';
+    const e = battle.enemy, now = Date.now();
+    $('#bf-e-hp').style.width = Math.max(0, e.hp/e.maxHp*100)+'%';
     $('#bf-e-hpfrac').textContent = fmt(e.hp)+' / '+fmt(e.maxHp);
-    const now = Date.now();
-    const buffed = battle.buff && battle.buff.expiresAt > now, fortified = battle.fortify && battle.fortify.expiresAt > now;
+    const teamUp = !!(battle.teamDmgUp && battle.teamDmgUp.until > now);
     teamMembers().forEach(m=>{
       const f = m.f, down = f.hp <= 0;
       if (f._el){
         setBar(f._el.querySelector('.bx-hp-fill'), f._el.querySelector('.bx-hp-text'), f.hp, f.maxHp, true);
         f._el.classList.toggle('down', down);
-        f._el.classList.toggle('fortified', !!fortified && !down);
-        f._el.classList.toggle('buffed', !!buffed && !down);
+        f._el.classList.toggle('fortified', !down && armorOf(f) > 0);
+        f._el.classList.toggle('buffed', !down && (teamUp || !!fxOn(f,'rage')));
+        f._el.classList.toggle('taunting', !down && battle.taunter===f);
       }
       if (f._card){
         setBar(f._card.querySelector('.bx-hp-fill'), f._card.querySelector('.bx-hp-text'), f.hp, f.maxHp, true);
         f._card.classList.toggle('down', down);
+        f._card.classList.toggle('taunting', !down && battle.taunter===f);
       }
     });
     const p = battle.player;
     setBar($('#bx-active-hp'), null, p.hp, p.maxHp);
     $('#bx-active-hptext').textContent = fmt(p.hp)+' / '+fmt(p.maxHp);
+    const left = x=> Math.ceil((x.until-now)/1000)+'s';
     let buffs = '';
-    if (buffed) buffs += '<span class="bx-buff" style="color:#d9a6ff">ATK▲ '+Math.ceil((battle.buff.expiresAt-now)/1000)+'s</span>';
-    if (fortified) buffs += '<span class="bx-buff" style="color:#8fd0ff">DEF▲ '+Math.ceil((battle.fortify.expiresAt-now)/1000)+'s</span>';
+    if (p.hp > 0){
+      if (battle.taunter===p) buffs += '<span class="bx-buff" style="color:#ff7a7a">TAUNT</span>';
+      const arm = armorOf(p); if (arm > 0) buffs += '<span class="bx-buff" style="color:#8fd0ff">DEF ▲'+Math.round(arm*100)+'%</span>';
+      const rage = fxOn(p,'rage'); if (rage) buffs += '<span class="bx-buff" style="color:#ffb347">RAGE '+left(rage)+'</span>';
+      if (teamUp) buffs += '<span class="bx-buff" style="color:#d9a6ff">ATK ▲ '+left(battle.teamDmgUp)+'</span>';
+      if (battle.hots.length) buffs += '<span class="bx-buff" style="color:#5dff9a">REGEN</span>';
+    }
     $('#bx-buffs').innerHTML = buffs;
-    $('#bx-energy').style.width = Math.max(0, Math.min(100, p.energy/Math.max(1,p.maxEnergy)*100))+'%';
-    $('#btn-attack').classList.toggle('disabled', !!battle.spectating || !!battle.over);
+    // the glow along CHARGE ATTACK fills back up as your next hit recharges
+    const ready = 1 - Math.max(0, Math.min(1, (p.swingAt - now)/SWING_MS));
+    $('#bx-energy').style.width = (ready*100).toFixed(0)+'%';
+    $('#btn-attack').classList.toggle('disabled', !!battle.spectating || !!battle.over || p.hp <= 0);
     updateAbilityButtons();
   }
 
@@ -5029,7 +5171,13 @@
   }
   function bxShake(){ const st = $('#bx-stage'); st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake'); }
   function bxPulse(el, cls, ms){ if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(()=> el.classList.remove(cls), ms||450); }
-  function battleLog(msg){ const el = $('#battle-log'); el.textContent = msg; clearTimeout(el.__t); el.__t = setTimeout(()=>{ el.textContent=''; }, 2600); }
+  let bxLogHoldUntil = 0;
+  function battleLog(msg, important){
+    const el = $('#battle-log'), now = Date.now();
+    if (!important && now < bxLogHoldUntil) return;     // routine chatter never hides your last action / a warning
+    if (important) bxLogHoldUntil = now + 1500;
+    el.textContent = msg; clearTimeout(el.__t); el.__t = setTimeout(()=>{ el.textContent=''; }, 2600);
+  }
   function fxSlash(){
     const pos = bxAt($('#bf-e-sprite'), 0.45);
     bxFx('<svg class="bx-slash" viewBox="0 0 260 200"><path d="M20 180 Q120 120 240 20" stroke="#fff6d0" stroke-width="14"/><path d="M30 190 Q130 130 250 34" stroke="#ff8a2a" stroke-width="7" opacity="0.9"/><path d="M10 168 Q110 108 228 10" stroke="#ffcf6a" stroke-width="4"/></svg>', pos, 600);
@@ -5047,95 +5195,332 @@
     });
   }
 
-  // ---------------- abilities (one per team role) ----------------
-  // Whoever on your team has a slot's role uses it at full power; if nobody does, your own
-  // Toto can still cast it, just weaker and on a longer cooldown — so all four always work.
-  function abilitySpecialist(role){ return teamMembers().find(m=> m.f.role===role && m.f.hp>0) || null; }
-  function abilityState(i){
-    const ab = BX_ABILITIES[i];
-    const spec = abilitySpecialist(ab.role);
-    const me = teamMembers()[0];
-    const caster = spec || (me && me.f.hp>0 ? me : teamMembers().find(m=>m.f.hp>0));
-    const readyAt = (battle.abilityReadyAt && battle.abilityReadyAt[i]) || 0;
-    return { ab, spec, caster, power: spec ? 1 : 0.6, cd: spec ? ab.cd : ab.cd*1.5, readyAt, left: Math.max(0, readyAt - Date.now()) };
+  // ---------------- combat engine ----------------
+  function livingTeam(){ return battle ? battle.team.filter(f=> f.hp > 0) : []; }
+  function fxOn(f, key){ const e = f && f.fx[key]; return e && e.until > Date.now() ? e : null; }
+  function hpPct(f){ return f.hp / Math.max(1, f.maxHp); }
+  function lowestAlly(){ let best = null; livingTeam().forEach(m=>{ if (!best || hpPct(m) < hpPct(best)) best = m; }); return best; }
+  function teamTank(){ return (battle.taunter && battle.taunter.hp > 0) ? battle.taunter : (livingTeam().find(m=> m.role==='tanker') || (battle.bossTarget && battle.bossTarget.hp>0 ? battle.bossTarget : null)); }
+  // A hero's hit on the boss: share of the boss pool x role x (Attack vs boss Defense) x buffs.
+  function heroHit(f, mult, scale){
+    const e = battle.enemy, now = Date.now();
+    const r = f.atk/(f.atk + e.def);
+    let up = 1;
+    const rage = fxOn(f, 'rage'); if (rage) up += rage.pct;
+    if (battle.teamDmgUp && battle.teamDmgUp.until > now) up += battle.teamDmgUp.pct;
+    const hexed = (battle.hex && battle.hex.until > now) ? 1 + battle.hex.taken : 1;
+    const s = scale != null ? scale : (ROLE_BASIC_MULT[f.role] || 0.4);
+    return Math.max(1, Math.round(e.unit * s * r * mult * up * hexed * (0.9 + Math.random()*0.2)));
   }
-  function updateAbilityButtons(){
-    if (!battle) return;
-    $$('.bx-ab', $('#bx-abilities')).forEach(b=>{
-      const i = +b.dataset.i, st = abilityState(i);
-      const cooling = st.left > 0 || battle.over || !st.caster;
-      b.classList.toggle('cooling', cooling);
-      b.classList.toggle('ready', !cooling);
-      b.classList.toggle('offrole', !st.spec);
-      const cdEl = b.querySelector('.bx-ab-cd');
-      if (st.left > 0){ cdEl.textContent = Math.ceil(st.left/1000); b.style.setProperty('--cdp', (st.left/st.cd*100).toFixed(1)+'%'); }
-      else { cdEl.textContent = ''; b.style.setProperty('--cdp', '100%'); }
-      b.title = st.ab.name + (st.spec ? ' — '+st.spec.f.name : ' — your Toto (weaker, no '+(BX_ROLE[st.ab.role].label)+' on the team)');
-    });
+  function damageBoss(amount, kind){
+    if (!battle || battle.over) return;
+    const e = battle.enemy;
+    if (e.hp <= 0) return;
+    e.hp = Math.max(0, e.hp - amount);
+    popNumber('boss', amount, kind || 'hit');
+    if (!battle.enraged && e.hp > 0 && e.hp < e.maxHp*0.3){
+      battle.enraged = true; $('#bx-boss').classList.add('enraged');
+      battleLog('😡 '+e.name+' is enraged — it hits harder and faster!', true);
+    }
+    if (e.hp <= 0) setTimeout(()=> endBattle(true), 260);
   }
-  function useAbility(i, auto){
-    if (!battle || battle.over) return false;
-    const st = abilityState(i);
-    if (!st.caster || st.left > 0) return false;
-    battle.abilityReadyAt = battle.abilityReadyAt || {};
-    battle.abilityReadyAt[i] = Date.now() + st.cd;
-    const c = st.caster.f, power = st.power, e = battle.enemy;
-    if (c._el){ bxPulse(c._el, 'cast', 700); if (st.ab.role==='attacker') bxPulse(c._el, 'lunge', 420); }
-    Sound.playAbility();
-    if (st.ab.role==='attacker'){
-      const atk = ((c.atk||1) + (c.strength||0)) * 2.5 * power * (battle.buff && battle.buff.expiresAt>Date.now() ? battle.buff.atkMult : 1);
-      const dmg = computeDamage(atk, e.def, e.maxHp, damageCapPct(battle.mode)*2);
-      e.hp = Math.max(0, e.hp-dmg);
-      setTimeout(()=>{ fxSlash(); bxPulse($('#bx-boss'), 'hit', 380); popNumber('boss', dmg, 'crit'); bxShake(); }, 160);
-      battleLog('🔥 '+c.name+' — Inferno Slash for '+fmt(dmg)+'!');
-      if (e.hp<=0) setTimeout(()=> endBattle(true), 260);
-    } else if (st.ab.role==='supporter'){
-      battle.buff = { atkMult: 1 + 0.3*power, defMult: 1 + 0.25*power, expiresAt: Date.now()+8000 };
-      fxTeam('buff');
-      battleLog('★ '+c.name+' — Arcane Boost! Team hits harder for 8s');
-    } else if (st.ab.role==='healer'){
-      let total = 0;
-      teamMembers().forEach(m=>{
-        const f = m.f; if (f.hp<=0) return;
-        const amt = Math.round(Math.max((c.heal||0)*0.35, f.maxHp*0.14) * power);
-        const before = f.hp; f.hp = Math.min(f.maxHp, f.hp + amt); total += f.hp-before;
-        if (f._el && f.hp>before) setTimeout(()=> popNumber(f._el.querySelector('.bx-sprite'), f.hp-before, 'heal'), 120);
-      });
-      fxTeam('heal');
-      battleLog('✚ '+c.name+' — Mending Bloom heals the team for '+fmt(total)+'!');
-    } else if (st.ab.role==='tanker'){
-      battle.fortify = { defMult: 1 + 0.6*power, expiresAt: Date.now()+8000 };
-      fxTeam('shield');
-      battleLog('🛡️ '+c.name+' — Bulwark! The team shrugs off hits for 8s');
+  // Damage reduction from every armour source on a hero (they stack multiplicatively).
+  function armorOf(f){
+    const now = Date.now(); let keep = 1;
+    ['armor','ward','tauntArmor'].forEach(k=>{ const x = f.fx[k]; if (x && x.until > now) keep *= (1 - x.pct); });
+    if (battle.teamArmor && battle.teamArmor.until > now) keep *= (1 - battle.teamArmor.pct);
+    return Math.min(0.8, 1 - keep);
+  }
+  function bossPower(){
+    const now = Date.now();
+    let m = battle.enraged ? 1.3 : 1;
+    const secs = (now - battle.startedAt)/1000;
+    if (secs > 240) m *= Math.pow(1.5, Math.floor((secs-240)/30) + 1);   // no stalling forever
+    if (battle.hex && battle.hex.until > now) m *= (1 - battle.hex.pct);
+    return m;
+  }
+  function bossHitOn(f, mult){
+    const e = battle.enemy;
+    const g = e.atk/(e.atk + f.def);
+    return Math.max(1, Math.round(e.atk * battle.bossK * g * mult * (1 - armorOf(f)) * bossPower() * (0.9 + Math.random()*0.2)));
+  }
+  function hurtHero(f, dmg){
+    if (!battle || battle.over || f.hp <= 0) return;
+    f.hp = Math.max(0, f.hp - dmg);
+    if (f._el){ bxPulse(f._el, 'hit', 380); popNumber(f._el.querySelector('.bx-sprite'), dmg, 'hurt'); }
+    if (f.hp <= 0) heroDown(f);
+  }
+  function heroDown(f){
+    battleLog('💀 '+f.name+' is down!', true);
+    if (battle.taunter === f){
+      battle.taunter = null;
+      setTimeout(()=>{ if (battle && !battle.over) battleLog(battle.enemy.name+' breaks free of the taunt!', true); }, 1000);
+    }
+    if (f === battle.player){ cancelTargeting(); if (battle.group) battle.spectating = true; }
+    if (!livingTeam().length || (f === battle.player && !battle.group)) setTimeout(()=> endBattle(false), 450);
+  }
+  function healHero(f, amount){
+    if (!f || f.hp <= 0) return 0;
+    const before = f.hp; f.hp = Math.min(f.maxHp, f.hp + Math.round(amount));
+    const got = f.hp - before;
+    if (got > 0 && f._el) popNumber(f._el.querySelector('.bx-sprite'), got, 'heal');
+    return got;
+  }
+  function fxOnMember(f, kind){
+    if (!f || !f._el) return;
+    const pos = bxAt(f._el.querySelector('.bx-fig'), 0.92);
+    if (kind==='heal'){ for (let i=0;i<3;i++) setTimeout(()=> bxFx('<div class="bx-rise" style="color:#5dff9a">✚</div>', { x:pos.x+(Math.random()-0.5)*60, y:pos.y-30-Math.random()*40 }, 1000), i*140); }
+    else if (kind==='shield') bxFx('<div class="bx-ring" style="color:#7cc0ff"></div>', pos, 800);
+    else if (kind==='taunt') bxFx('<div class="bx-ring" style="color:#ff5050"></div>', pos, 900);
+    bxPulse(f._el, 'cast', 700);
+  }
+  function fxShockwave(){ bxFx('<div class="bx-shock"></div>', bxAt($('#bf-e-sprite'), 0.8), 900); }
+
+  function abilityReadyIn(f, a){
+    if (a.once && f.used[a.id]) return Infinity;
+    return Math.max(0, (f.cds[a.id]||0) - Date.now());
+  }
+  function canCast(f, a){ return !!battle && !battle.over && f.hp > 0 && abilityReadyIn(f, a) === 0; }
+  // Runs one ability for anyone on your side (you, a bot, or AUTO). `target` is the ally
+  // picked for single-target abilities.
+  function castAbility(f, a, target){
+    if (!canCast(f, a)) return false;
+    const e = battle.enemy, now = Date.now();
+    f.cds[a.id] = now + a.cd*1000; if (a.once) f.used[a.id] = true;
+    if (f._el) bxPulse(f._el, 'cast', 700);
+    if (f === battle.player) Sound.playAbility();
+    const mine = f === battle.player;
+    const who = mine ? '' : f.name+' — ';
+    const say = msg=> battleLog(msg, mine);
+    switch (a.kind){
+      case 'damage': {
+        if (f._el) bxPulse(f._el, 'lunge', 420);
+        const d = heroHit(f, a.mult, a.scale);
+        setTimeout(()=>{ if (!battle || battle.over) return; fxSlash(); bxPulse($('#bx-boss'), 'hit', 380); damageBoss(d, 'crit'); if (mine) bxShake(); }, 160);
+        say((f.role==='tanker'?'🛡️ ':'🔥 ')+who+a.name+' hits for '+fmt(d)+'!');
+        break;
+      }
+      case 'bleed': {
+        if (f._el) bxPulse(f._el, 'lunge', 420);
+        const d = heroHit(f, a.mult), tick = heroHit(f, a.dot);
+        battle.bleeds.push({ next: now+1000, left:6, dmg:tick });
+        setTimeout(()=>{ if (!battle || battle.over) return; fxSlash(); damageBoss(d, 'hit'); $('#bx-boss').classList.add('bleeding'); }, 160);
+        say('🩸 '+who+a.name+' — '+fmt(d)+' and the boss is bleeding!');
+        break;
+      }
+      case 'rage':
+        f.fx.rage = { pct:a.pct, until: now + a.dur*1000 };
+        say('🔥 '+who+a.name+'! +'+pctTxt(a.pct)+' damage for '+a.dur+'s');
+        break;
+      case 'multi': {
+        if (f._el) bxPulse(f._el, 'lunge', 420);
+        let total = 0;
+        for (let i=0;i<a.hits;i++){ const d = heroHit(f, a.mult); total += d; setTimeout(()=>{ if (!battle || battle.over) return; fxSpark(); bxPulse($('#bx-boss'), 'hit', 300); damageBoss(d, 'hit'); }, 150 + i*230); }
+        say('🔥 '+who+a.name+' — '+a.hits+' hits for '+fmt(total)+'!');
+        break;
+      }
+      case 'execute': {
+        if (f._el) bxPulse(f._el, 'lunge', 420);
+        const low = e.hp < e.maxHp*0.3;
+        const d = heroHit(f, a.mult*(low ? 1.8 : 1));
+        setTimeout(()=>{ if (!battle || battle.over) return; fxSlash(); damageBoss(d, 'crit'); bxShake(); }, 200);
+        say('💥 '+who+a.name+(low ? ' — finishing blow! ' : ' hits for ')+fmt(d)+'!');
+        break;
+      }
+      case 'selfArmor':
+        f.fx.armor = { pct:a.pct, until: now + a.dur*1000 }; fxOnMember(f, 'shield');
+        say('🛡️ '+who+a.name+' — '+pctTxt(a.pct)+' less damage for '+a.dur+'s');
+        break;
+      case 'selfHeal': {
+        const got = healHero(f, f.maxHp*a.pct); fxOnMember(f, 'heal');
+        say('✚ '+who+a.name+' +'+fmt(got));
+        break;
+      }
+      case 'teamArmor':
+        battle.teamArmor = { pct:a.pct, until: now + a.dur*1000 }; fxTeam('shield');
+        say('🛡️ '+who+a.name+' — the team takes '+pctTxt(a.pct)+' less damage');
+        break;
+      case 'taunt':
+        battle.taunter = f; f.fx.tauntArmor = { pct:a.pct, until: now + a.dur*1000 }; fxOnMember(f, 'taunt'); bxShake();
+        say('📣 '+(mine ? 'You' : f.name)+' taunted '+e.name+'! It will only attack '+f.name+' now.');
+        break;
+      case 'allyHeal': {
+        const tg = (target && target.hp > 0) ? target : lowestAlly();
+        if (!tg) break;
+        const got = healHero(tg, tg.maxHp*a.pct); fxOnMember(tg, 'heal');
+        say('✚ '+who+a.name+' heals '+(tg===battle.player && mine ? 'you' : tg.name)+' +'+fmt(got));
+        break;
+      }
+      case 'teamHot':
+        battle.hots.push({ next: now+1000, left:a.ticks, pct:a.pct }); fxTeam('heal');
+        say('🌧️ '+who+a.name+' — healing the team for '+a.ticks+'s');
+        break;
+      case 'teamHeal': {
+        let total = 0; livingTeam().forEach(m=> total += healHero(m, m.maxHp*a.pct)); fxTeam('heal');
+        say('✚ '+who+a.name+' heals the team +'+fmt(total)+'!');
+        break;
+      }
+      case 'revive': {
+        let tg = target || battle.team.find(m=> m.hp <= 0) || null;
+        if (tg && tg.hp <= 0){
+          tg.hp = Math.round(tg.maxHp*a.pct); tg.swingAt = now + 600;
+          if (tg === battle.player) battle.spectating = false;
+          fxOnMember(tg, 'heal');
+          say('✨ '+who+a.name+' — '+tg.name+' is back in the fight!');
+        } else {
+          tg = (tg && tg.hp > 0) ? tg : lowestAlly();
+          if (tg){ const got = healHero(tg, tg.maxHp*a.pct); fxOnMember(tg, 'heal'); say('✚ '+who+a.name+' heals '+tg.name+' +'+fmt(got)); }
+        }
+        break;
+      }
+      case 'allyArmor': {
+        const tg = (target && target.hp > 0) ? target : (teamTank() || f);
+        tg.fx.ward = { pct:a.pct, until: now + a.dur*1000 }; fxOnMember(tg, 'shield');
+        say('🔮 '+who+a.name+' on '+(tg===battle.player && mine ? 'you' : tg.name)+' — '+pctTxt(a.pct)+' less damage');
+        break;
+      }
+      case 'teamDmgUp':
+        battle.teamDmgUp = { pct:a.pct, until: now + a.dur*1000 }; fxTeam('buff');
+        say('🎵 '+who+a.name+' — team deals +'+pctTxt(a.pct)+' damage');
+        break;
+      case 'teamHaste':
+        livingTeam().forEach(m=>{ Object.keys(m.cds).forEach(k=>{ m.cds[k] -= a.secs*1000; }); m.swingAt = Math.min(m.swingAt, now); });
+        f.cds[a.id] = now + a.cd*1000;
+        fxTeam('buff');
+        say('⏳ '+who+a.name+' — abilities come back '+a.secs+'s sooner');
+        break;
+      case 'bossHex':
+        battle.hex = { pct:a.pct, taken:a.taken, until: now + a.dur*1000 }; $('#bx-boss').classList.add('hexed');
+        say('👁️ '+who+a.name+' — '+e.name+' is weakened!');
+        break;
     }
     renderBattle();
     return true;
   }
-  // Computer allies use their own role's skill when it makes sense — after it has sat ready
-  // for a moment, so the player gets first say over the button.
-  function botAbilityTick(){
-    if (!battle || battle.over) return;
-    BX_ABILITIES.forEach((ab,i)=>{
-      const st = abilityState(i);
-      if (!st.spec || st.spec.isPlayer || st.spec.f.isReal || st.left>0) return;
-      const readyFor = Date.now() - st.readyAt;
-      if (readyFor < 2500) return;
-      if (ab.role==='healer' && !teamMembers().some(m=> m.f.hp>0 && m.f.hp < m.f.maxHp*0.7)) return;
-      if (ab.role==='supporter' && battle.buff && battle.buff.expiresAt > Date.now()) return;
-      if (ab.role==='tanker' && battle.fortify && battle.fortify.expiresAt > Date.now()) return;
-      useAbility(i, true);
-    });
+
+  // Basic hit (CHARGE ATTACK) on a swing timer.
+  function heroSwing(f){
+    if (!battle || battle.over || f.hp <= 0) return false;
+    const now = Date.now();
+    if (now < f.swingAt) return false;
+    f.swingAt = now + SWING_MS*(f === battle.player ? 1 : 0.95 + Math.random()*0.3);
+    const crit = f.role==='attacker' && Math.random() < 0.12;
+    const d = heroHit(f, crit ? 1.6 : 1);
+    if (f._el) bxPulse(f._el, 'lunge', 420);
+    setTimeout(()=>{ if (!battle || battle.over) return; fxSpark(); bxPulse($('#bx-boss'), 'hit', 300); damageBoss(d, crit ? 'crit' : (f===battle.player ? 'hit' : 'small')); }, 150);
+    return d;
   }
-  // AUTO plays your side completely: basic attacks plus every ability when it's useful.
-  function autoAbilityTick(){
-    if (!battle || battle.over || !battle.auto) return;
-    const lowest = teamMembers().filter(m=>m.f.hp>0).reduce((a,m)=> Math.min(a, m.f.hp/m.f.maxHp), 1);
-    const order = [];
-    if (lowest < 0.6) order.push(2);
-    if (!(battle.fortify && battle.fortify.expiresAt > Date.now())) order.push(3);
-    if (!(battle.buff && battle.buff.expiresAt > Date.now())) order.push(1);
-    order.push(0);
-    for (const i of order){ if (useAbility(i, true)) break; }
+
+  // What a teammate (or you, on AUTO) does next — each role plays its own part.
+  function aiAct(f){
+    if (!battle || battle.over || f.hp <= 0) return false;
+    const e = battle.enemy, now = Date.now(), team = livingTeam();
+    const by = id=> f.kit.find(a=> a.id===id);
+    const tryA = (id, target)=>{ const a = by(id); return !!(a && canCast(f, a) && castAbility(f, a, target)); };
+    const hurt = th=> team.filter(m=> hpPct(m) < th);
+    switch (f.role){
+      case 'attacker':
+        if (e.hp < e.maxHp*0.3 && tryA('finisher')) return true;
+        return tryA('rage') || tryA('flurry') || tryA('strike') || tryA('bleed') || tryA('finisher');
+      case 'tanker':
+        if (battle.group && !battle.taunter && tryA('taunt')) return true;
+        if ((battle.bossTarget===f || battle.taunter===f || !battle.group) && !fxOn(f,'armor') && tryA('armor')) return true;
+        if (hpPct(f) < 0.75 && tryA('wind')) return true;
+        if (battle.group && (hurt(0.8).length >= 2 || battle.sweepWarned) && tryA('guard')) return true;
+        return tryA('bash');
+      case 'healer': {
+        const dead = battle.team.find(m=> m.hp <= 0);
+        if (dead && tryA('revive', dead)) return true;
+        if (hurt(0.65).length >= 2 && tryA('wave')) return true;
+        const low = lowestAlly();
+        if (low && hpPct(low) < 0.7 && tryA('touch', low)) return true;
+        if (hurt(0.85).length >= 2 && tryA('rain')) return true;
+        if (hpPct(f) < 0.85 && tryA('selfheal')) return true;
+        if (low && hpPct(low) < 0.45 && tryA('revive', low)) return true;
+        return false;
+      }
+      case 'supporter': {
+        const tank = teamTank();
+        if (tank && !fxOn(tank,'ward') && tryA('ward', tank)) return true;
+        const low = lowestAlly();
+        if (low && hpPct(low) < 0.65 && tryA('mend', low)) return true;
+        if (tryA('hex') || tryA('hymn')) return true;
+        if (team.some(m=> m!==f && Object.values(m.cds).some(t=> t - now > 4000)) && tryA('haste')) return true;
+        return false;
+      }
+    }
+    return false;
+  }
+
+  // ---- your ability buttons + picking a target on the team list ----
+  function onAbilityButton(id){
+    if (!battle || battle.over) return;
+    const f = battle.player;
+    if (battle.spectating || f.hp <= 0){ battleLog('Your Toto is down — your team fights on!', true); return; }
+    const a = f.kit.find(x=> x.id===id);
+    if (!a){
+      const k = abilityKit(f.ref).find(x=> x.id===id);
+      battleLog('🔒 '+(!k ? 'Locked' : ((f.level||1) >= k.level ? k.name+' is ready to learn — tap Learn in the Totos tab' : k.name+' unlocks at Lv '+k.level)), true);
+      return;
+    }
+    if (battle.targeting && battle.targeting.id===id){ cancelTargeting(); battleLog('Cancelled', true); return; }
+    const left = abilityReadyIn(f, a);
+    if (left === Infinity){ battleLog(a.name+' can only be used once per battle', true); return; }
+    if (left > 0){ battleLog(a.name+' is ready in '+Math.ceil(left/1000)+'s', true); return; }
+    if (a.target){
+      const anyDown = battle.team.some(m=> m.hp <= 0);
+      if (!battle.group || battle.team.length <= 1){ castAbility(f, a, a.kind==='revive' && anyDown ? battle.team.find(m=> m.hp<=0) : f); return; }
+      startTargeting(a);
+      return;
+    }
+    castAbility(f, a);
+  }
+  function startTargeting(a){
+    cancelTargeting();
+    battle.targeting = a;
+    $('#bx-stage').classList.add('bx-targeting');
+    const btn = $('.bx-ab[data-id="'+a.id+'"]'); if (btn) btn.classList.add('selecting');
+    const verb = a.kind==='allyArmor' ? 'protect' : (a.kind==='revive' ? 'revive or heal' : 'heal');
+    battleLog('👆 '+a.name+': tap who to '+verb+' on the team list', true);
+    battle.team.forEach(m=>{
+      const ok = a.kind==='revive' ? true : m.hp > 0;
+      if (m._card) m._card.classList.toggle('pickable', ok);
+      if (m._el) m._el.classList.toggle('pickable', ok);
+    });
+    $('#bx-active').classList.toggle('pickable', battle.player.hp > 0 || a.kind==='revive');
+    clearTimeout(battle.targetTimer); battle.targetTimer = setTimeout(cancelTargeting, 8000);
+  }
+  function cancelTargeting(){
+    if (!battle) return;
+    battle.targeting = null; clearTimeout(battle.targetTimer);
+    $('#bx-stage').classList.remove('bx-targeting');
+    $$('.bx-ab.selecting').forEach(b=> b.classList.remove('selecting'));
+    $('#bx-active').classList.remove('pickable');
+    battle.team.forEach(m=>{ if (m._card) m._card.classList.remove('pickable'); if (m._el) m._el.classList.remove('pickable'); });
+  }
+  function pickTarget(f){
+    if (!battle || !battle.targeting || !f) return;
+    const a = battle.targeting;
+    if (a.kind !== 'revive' && f.hp <= 0) return;
+    cancelTargeting();
+    castAbility(battle.player, a, f);
+  }
+  function updateAbilityButtons(){
+    if (!battle) return;
+    const f = battle.player;
+    $$('.bx-ab', $('#bx-abilities')).forEach(b=>{
+      const a = f.kit.find(x=> x.id===b.dataset.id);
+      if (!a) return;
+      const left = abilityReadyIn(f, a);
+      const usedUp = left === Infinity;
+      const cooling = left > 0 || battle.over || f.hp <= 0 || !!battle.spectating;
+      b.classList.toggle('cooling', cooling && !usedUp);
+      b.classList.toggle('used', usedUp);
+      b.classList.toggle('ready', !cooling);
+      const cdEl = b.querySelector('.bx-ab-cd');
+      if (left > 0 && !usedUp){ cdEl.textContent = Math.ceil(left/1000); b.style.setProperty('--cdp', Math.min(100, left/(Math.max(1,a.cd)*1000)*100).toFixed(1)+'%'); }
+      else { cdEl.textContent = usedUp ? '✓' : ''; b.style.setProperty('--cdp', '100%'); }
+    });
   }
 
   // ---------------- launch / timers / end ----------------
@@ -5144,128 +5529,127 @@
     const team = (opts.team && opts.team.length) ? opts.team : [strongestToto()].filter(Boolean);
     if (!team.length) return;
     const lead = team.slice().sort((a,b)=>b.cp-a.cp)[0];
-    const enemyFighter = fighterFromToto(opts.opponent);
-    // Gym champions and Challenger guardians fight with a raid-sized health pool (battle
-    // copy only — the Toto you catch afterwards has normal health for its tier).
-    if (opts.mode==='solo' || opts.mode==='group'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*5.5); enemyFighter.hp = enemyFighter.maxHp; }
-    else if (opts.mode==='challenge'){ enemyFighter.maxHp = Math.round(enemyFighter.maxHp*7); enemyFighter.hp = enemyFighter.maxHp; }
-    battle = { mode:opts.mode, kind:opts.kind||(opts.mode==='catch'?'catch':'gym'), shrineName:opts.shrineName||null, team:team, player:fighterFromToto(lead), enemy:enemyFighter,
-               opponentTemplate:opts.opponent, allies:opts.allies||[], group:(opts.allies&&opts.allies.length>0), over:false, buff:null, fortify:null, timers:{}, auto:false, speedMult:1, abilityReadyAt:{} };
-    // Allies (real players or bots) never send their real stats — each fights as a max-level
-    // Mythical of its shown role (Attacker if unknown), with real HP numbers now so their bars
-    // read like everyone else's.
-    battle.allies.forEach(ally=>{
-      if (!ally.role) ally.role = 'attacker';
-      const s = statsForLevel(ally.tier||'mythical', ally.role, TOTO_MAX_LEVEL);
-      ally.atk = s.atk; ally.def = s.def; ally.heal = s.heal||0; ally.buff = s.buff||0;
-      ally.maxHp = s.hp; ally.hp = s.hp; ally.level = ally.level || TOTO_MAX_LEVEL;
+    const group = !!(opts.allies && opts.allies.length);
+    const mode = opts.mode==='catch' ? 'catch' : (group ? 'group' : 'solo');
+    const enemy = bossFighter(opts.opponent, mode);
+    const player = fighterFromToto(lead); player.isPlayer = true;
+    // Teammates fight as Mythicals of their role at your Toto's level (other trainers as
+    // max-level attackers), knowing every ability that level allows.
+    const allies = (opts.allies||[]).map(a=>{
+      const role = ROLE_KITS[a.role] ? a.role : 'attacker';
+      const tier = TIER_IDX[a.tier] != null ? a.tier : 'mythical';
+      const lvl = a.isReal ? TOTO_MAX_LEVEL : Math.max(10, Math.min(TOTO_MAX_LEVEL, lead.level || a.level || 30));
+      const s = statsForLevel(tier, role, lvl);
+      const f = fighterFromToto({ name:a.name, tier, role, level:lvl, maxHp:s.hp, atk:s.atk, def:s.def, spd:s.spd }, true, a.sprite);
+      f.isBot = !a.isReal; f.isReal = !!a.isReal;
+      return f;
     });
+    const now = Date.now();
+    battle = { mode, kind:opts.kind||(opts.mode==='catch'?'catch':'gym'), shrineName:opts.shrineName||null, group, team:[player].concat(allies), player, allies, enemy,
+               opponentTemplate:opts.opponent, bossK: group ? BOSS_K.group : BOSS_K.solo,
+               taunter:null, bossTarget:null, hex:null, teamDmgUp:null, teamArmor:null, bleeds:[], hots:[], enraged:false,
+               startedAt:now, nextBossAt: now + 1800, nextSweepAt: now + SWEEP_EVERY_MS, sweepWarned:false,
+               timers:{}, auto:false, over:false, spectating:false, targeting:null };
+    allies.forEach((f,i)=>{ f.thinkAt = now + 1200 + i*400; f.swingAt = now + 500 + i*250; });
     $('#btn-auto').classList.remove('on');
     $('#bx-bg').style.backgroundImage = 'url(assets/battle/'+(battle.kind==='shrine' ? 'village-blood' : 'village')+'.jpg)';
     $('#bx-menu').classList.remove('show');
     $('#bx-banner').className = 'bx-banner';
     $('#battle-log').textContent = '';
+    $('#bx-boss').classList.remove('enraged','hexed','charging','bleeding');
     $('#battle-screen').classList.add('active');
     layoutBattleScreen();
     buildBattleView();
     placeBattlers();
     renderBattle();
     lockLandscape();
-    battleLog(opts.mode==='catch' ? 'A wild '+enemyFighter.name+' appears!' : enemyFighter.name+' blocks the way!');
+    battleLog(opts.mode==='catch' ? 'A wild '+enemy.name+' appears!' : enemy.name+' blocks the way!', true);
+    if (!player.kit.length) setTimeout(()=>{ if (battle && !battle.over) battleLog('Tip: your Toto learns its first ability at Lv 10 — check the Totos tab', true); }, 2600);
+    else if (!group && player.role !== 'attacker') setTimeout(()=>{ if (battle && !battle.over) battleLog('Tip: '+(ROLE_INFO[player.role]||{label:'This role'}).label+'s shine in Group Battles — attackers deal the damage', true); }, 2600);
     startBattleTimers();
   }
 
+  function bossTick(now){
+    const e = battle.enemy;
+    if (e.hp <= 0) return;
+    if (battle.group){
+      if (!battle.sweepWarned && now >= battle.nextSweepAt - SWEEP_WARN_MS){
+        battle.sweepWarned = true; $('#bx-boss').classList.add('charging');
+        battleLog('⚠️ '+e.name+' is winding up a Shockwave!', true);
+      }
+      if (now >= battle.nextSweepAt){
+        battle.sweepWarned = false; battle.nextSweepAt = now + SWEEP_EVERY_MS;
+        $('#bx-boss').classList.remove('charging');
+        bxPulse($('#bx-boss'), 'lunge', 450); bxShake(); fxShockwave();
+        livingTeam().forEach(m=> hurtHero(m, bossHitOn(m, 0.8)));
+        battleLog('💥 '+e.name+' hits the whole team with a Shockwave!', true);
+      }
+    }
+    if (now >= battle.nextBossAt){
+      battle.nextBossAt = now + BOSS_SWING_MS/(battle.enraged ? 1.2 : 1);
+      const tg = pickBossTarget(); if (!tg) return;
+      battle.bossTarget = tg;
+      const d = bossHitOn(tg, 1);
+      bxPulse($('#bx-boss'), 'lunge', 450);
+      setTimeout(()=>{ if (!battle || battle.over) return; hurtHero(tg, d); if (tg === battle.player) bxShake(); renderBattle(); }, 200);
+      battleLog(e.name+' strikes '+tg.name+' for '+fmt(d)+'!');
+    }
+  }
+  // Taunted: only the tank. Otherwise tanks draw most of the boss's attention anyway.
+  function pickBossTarget(){
+    const alive = livingTeam(); if (!alive.length) return null;
+    if (battle.taunter && battle.taunter.hp > 0) return battle.taunter;
+    const w = alive.map(m=> m.role==='tanker' ? 4 : 1);
+    let r = Math.random()*w.reduce((s,x)=> s+x, 0);
+    for (let i=0;i<alive.length;i++){ r -= w[i]; if (r <= 0) return alive[i]; }
+    return alive[alive.length-1];
+  }
+  // One heartbeat drives the whole fight: bleeds, heal-over-time, the boss, your
+  // teammates (and you, on AUTO), and the on-screen bars.
+  function battleLoop(){
+    if (!battle || battle.over) return;
+    const now = Date.now();
+    battle.bleeds.forEach(b=>{ if (b.left > 0 && now >= b.next){ b.left--; b.next += 1000; damageBoss(b.dmg, 'small'); } });
+    battle.bleeds = battle.bleeds.filter(b=> b.left > 0);
+    if (!battle || battle.over) return;
+    if (!battle.bleeds.length) $('#bx-boss').classList.remove('bleeding');
+    battle.hots.forEach(h=>{ if (h.left > 0 && now >= h.next){ h.left--; h.next += 1000; livingTeam().forEach(m=> healHero(m, m.maxHp*h.pct)); } });
+    battle.hots = battle.hots.filter(h=> h.left > 0);
+    if (battle.hex && battle.hex.until <= now){ battle.hex = null; $('#bx-boss').classList.remove('hexed'); }
+    bossTick(now);
+    battle.team.forEach(f=>{
+      if (!battle || battle.over || f.hp <= 0) return;
+      if (f === battle.player && !battle.auto) return;
+      if (now >= f.thinkAt){ f.thinkAt = now + 650 + Math.random()*350; aiAct(f); }
+      if (now >= f.swingAt) heroSwing(f);
+    });
+    if (battle && !battle.over && now - (battle.lastRender||0) > 200){ battle.lastRender = now; renderBattle(); }
+  }
   function startBattleTimers(){
     clearBattleTimers();
-    const sm = (battle.speedMult||1);
-    // The ×2 toggle divides every tick's delay so the whole fight visibly plays out faster.
-    const enemyDelay = Math.max(900, 1500 - battle.enemy.spd*0.05) / sm;
-    battle.timers.enemyTimer = setInterval(()=>{
-      if (!battle || battle.over || battle.spectating) return;
-      const now = Date.now();
-      const buffed = battle.buff && battle.buff.expiresAt > now;
-      const fortified = battle.fortify && battle.fortify.expiresAt > now;
-      const defPower = battle.player.def * (buffed ? battle.buff.defMult : 1) * (fortified ? battle.fortify.defMult : 1);
-      let dmg = computeDamage(battle.enemy.atk+battle.enemy.strength, defPower, battle.player.maxHp, damageCapPct(battle.mode));
-      if (battle.group) dmg = Math.round(dmg*0.6);
-      battle.player.hp = Math.max(0, battle.player.hp - dmg);
-      bxPulse($('#bx-boss'), 'lunge', 450);
-      setTimeout(()=>{
-        if (!battle) return;
-        const el = battle.player._el;
-        if (el){ bxPulse(el, 'hit', 380); popNumber(el.querySelector('.bx-sprite'), dmg, 'hurt'); }
-        bxShake();
-      }, 200);
-      renderBattle();
-      battleLog(battle.enemy.name+' strikes '+battle.player.name+' for '+fmt(dmg)+'!');
-      if (battle.player.hp<=0) endBattle(false);
-    }, enemyDelay);
-    battle.timers.regenTimer = setInterval(()=>{ if (!battle||battle.over||battle.spectating) return; battle.player.energy = Math.min(battle.player.maxEnergy, battle.player.energy+2); renderBattle(); }, 1000/sm);
-    // keeps cooldown sweeps and buff timers ticking on screen, and lets computer allies cast
-    battle.timers.cooldownTicker = setInterval(()=>{ if (!battle||battle.over) return; botAbilityTick(); renderBattle(); }, 250);
-    if (battle.group){
-      battle.timers.allyTimer = setInterval(()=>{
-        if (!battle||battle.over) return;
-        const now = Date.now();
-        // A Tanker leading (or an active Bulwark) draws the boss's aggro — allies keep landing
-        // hits but take none of the return damage while it lasts.
-        const tanking = (!battle.spectating && battle.player.role==='tanker') || (battle.fortify && battle.fortify.expiresAt > now);
-        const buffed = battle.buff && battle.buff.expiresAt > now;
-        battle.allies.forEach((ally,i)=>{
-          if (ally.hp<=0) return;
-          const full = computeDamage((ally.atk||1)*(buffed ? battle.buff.atkMult : 1), battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode));
-          const dmg = full * 0.18;
-          battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
-          if (Math.random()<0.35 && ally._el){ bxPulse(ally._el, 'lunge', 420); setTimeout(()=>{ fxSpark(); popNumber('boss', dmg, 'small'); }, 160); }
-          if (!tanking){ ally.hp = Math.max(0, ally.hp - ally.maxHp*(0.02+Math.random()*0.04)); }
-        });
-        renderBattle();
-        if (battle.enemy.hp<=0){ endBattle(true); return; }
-        if (battle.spectating && !battle.allies.some(a=>a.hp>0)) endBattle(false);
-      }, 900/sm);
-    }
-    manageAutoTimer();
+    battle.timers.loop = setInterval(battleLoop, 100);
   }
   function clearBattleTimers(){ if (!battle) return; Object.values(battle.timers).forEach(t=>t&&clearInterval(t)); battle.timers={}; }
 
-  // CHARGE ATTACK: your Toto's basic strike (costs energy; a weak swipe when you're out).
+  // CHARGE ATTACK: your Toto's basic hit. It recharges in a second (the glow along the
+  // button fills back up); attackers hit hardest and can crit.
   function doPlayerAttack(){
-    if (!battle || battle.over || battle.spectating) return;
-    // CHARGE ATTACK fires your Toto's chosen move: stronger moves hit harder (and are
-    // allowed past the usual per-hit cap by the same factor) for a little more energy.
-    const mv = battle.player.move || { name:'Strike', mult:1, cost:10 };
-    const cost = mv.cost || 10; let weak=false;
-    if (battle.player.energy < cost) weak=true; else battle.player.energy -= cost;
-    const buffed = battle.buff && battle.buff.expiresAt > Date.now();
-    const atkPower = (battle.player.atk+battle.player.strength) * (buffed ? battle.buff.atkMult : 1);
-    let dmg = computeDamage(atkPower*(weak ? 1 : mv.mult), battle.enemy.def, battle.enemy.maxHp, damageCapPct(battle.mode)*(weak ? 1 : mv.mult));
-    if (weak) dmg = Math.round(dmg*0.35);
-    battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
-    Sound.playAttack();
-    const me = battle.player._el;
-    if (me) bxPulse(me, 'lunge', 420);
-    setTimeout(()=>{ if (!battle) return; fxSpark(); bxPulse($('#bx-boss'), 'hit', 360); popNumber('boss', dmg, weak ? 'small' : 'hit'); }, 150);
-    renderBattle();
-    battleLog(weak ? 'Out of energy — weak hit for '+fmt(dmg)+'.' : battle.player.name+' used '+mv.name+' for '+fmt(dmg)+'!');
-    if (battle.enemy.hp<=0) setTimeout(()=> endBattle(true), 220);
+    if (!battle || battle.over) return;
+    if (battle.spectating || battle.player.hp <= 0){ battleLog('Your Toto is down — your team fights on!', true); return; }
+    const d = heroSwing(battle.player);
+    if (d){ Sound.playAttack(); renderBattle(); }
   }
   $('#btn-attack').onclick = doPlayerAttack;
   $('#btn-auto').onclick = ()=>{
     if (!battle || battle.over) return;
     battle.auto = !battle.auto;
     $('#btn-auto').classList.toggle('on', battle.auto);
-    manageAutoTimer();
+    if (battle.auto){ cancelTargeting(); battle.player.thinkAt = 0; }
+    battleLog(battle.auto ? 'AUTO on — your Toto fights and uses its abilities by itself' : 'AUTO off', true);
   };
-  function manageAutoTimer(){
-    if (!battle) return;
-    if (battle.timers.autoTimer){ clearInterval(battle.timers.autoTimer); battle.timers.autoTimer=null; }
-    if (battle.auto){
-      const sm = battle.speedMult||1;
-      battle.timers.autoTimer = setInterval(()=>{ if (!battle||battle.over) return; autoAbilityTick(); if (!battle.spectating) doPlayerAttack(); }, Math.max(500, 1200/sm));
-    }
-  }
   $('#btn-gear').onclick = ()=>{ $('#bx-menu').classList.toggle('show'); $('#bx-menu-sound').textContent = (Sound.isMuted && Sound.isMuted() ? '🔇' : '🔊')+' Sound'; };
   $('#bx-menu-close').onclick = ()=> $('#bx-menu').classList.remove('show');
+  $('#bx-active').onclick = ()=>{ if (battle) pickTarget(battle.player); };
   $('#bx-menu-sound').onclick = ()=>{ const mb = $('#btn-mute'); if (mb) mb.click(); $('#bx-menu-sound').textContent = (Sound.isMuted && Sound.isMuted() ? '🔇' : '🔊')+' Sound'; };
 
   function closeBattleScreen(){
@@ -5280,14 +5664,8 @@
     // If your Toto goes down in a group fight and your team is still swinging, you don't
     // just lose on the spot — you watch (and command) the rest of it, and still win if
     // they pull it off.
-    if (!won && battle.group && !battle.spectating && battle.allies.some(a=>a.hp>0)){
-      battle.spectating = true;
-      if (battle.timers.enemyTimer){ clearInterval(battle.timers.enemyTimer); battle.timers.enemyTimer=null; }
-      if (battle.timers.regenTimer){ clearInterval(battle.timers.regenTimer); battle.timers.regenTimer=null; }
-      battleLog(battle.player.name+' is down — your team fights on!');
-      renderBattle();
-      return;
-    }
+    if (!won && battle.group && battle.team.some(m=> m.hp > 0)){ battle.spectating = true; renderBattle(); return; }
+    cancelTargeting();
     battle.over = true; clearBattleTimers(); renderBattle();
     const banner = $('#bx-banner');
     banner.textContent = won ? 'VICTORY!' : 'DEFEAT';
@@ -5411,7 +5789,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v40';
+window.TQ_APP_VERSION = 'v41';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -6464,9 +6842,11 @@ window.TQ_APP_VERSION = 'v40';
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
-        // Only spend GPU time while the game/map screen is actually the one showing.
+        // Only spend GPU time while the game/map screen is actually the one showing (not
+        // under a battle or a full-screen panel).
         const gameScreen = document.querySelector('.screen[data-screen="game"]');
         if (!gameScreen || !gameScreen.classList.contains('active')) return;
+        if (document.querySelector('#battle-screen.active, .panel-screen.active')) return;
         const gs = window.__gameState;
         const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
         const rad = THREE.MathUtils.degToRad(orbitDeg);
@@ -7105,6 +7485,8 @@ window.TQ_APP_VERSION = 'v40';
       requestAnimationFrame(syncFrame);
       const gameScreen = document.querySelector('.screen[data-screen="game"]');
       if (!gameScreen || !gameScreen.classList.contains('active')) return;
+      // the map is fully covered during a battle or a full-screen panel: don't draw it
+      if (document.querySelector('#battle-screen.active, .panel-screen.active')) return;
       const gs = window.__gameState;
       const list = gs && Array.isArray(gs.wildTotos) ? gs.wildTotos : [];
 
