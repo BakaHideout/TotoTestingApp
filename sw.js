@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v41';
+const CACHE_NAME = 'totoquest-v42';
 const ASSETS = [
 './index.html',
 './manifest.json',
@@ -119,6 +119,10 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // other sites (map servers, weather) go straight to the network — the game keeps its
+  // own long-lived copy of the map on the phone, and caching those here only filled the
+  // app cache, which is wiped on every update anyway
+  if (url.origin !== self.location.origin) return;
   // the in-app "is there a newer release?" check must always reach the server and is
   // never worth keeping a copy of
   if (url.pathname.endsWith('/version.json')) return;

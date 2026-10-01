@@ -3463,10 +3463,9 @@
     // as any of its chunks are still within range, and dropped (so it can be re-queried
     // fresh) only once the whole 3x3 block is well outside it.
     if (!state.regionEls) return;
-    const {rx: centerRx, ry: centerRy} = regionCoordsFor(centerCx, centerCy);
-    const keepRegionRadius = Math.ceil(CHUNK_KEEP_RADIUS / REGION_CHUNKS) + 1;
+    const keepPx = 2200*GPS_SCALE, pp = state.playerWorldPos;
     state.regionEls.forEach((entry, key)=>{
-      if (Math.max(Math.abs(entry.rx-centerRx), Math.abs(entry.ry-centerRy)) <= keepRegionRadius) return;
+      if (!pp || Math.hypot(entry.wx - pp.x, entry.wy - pp.y) <= keepPx) return;
       entry.els.forEach(el=> el.remove());
       dropMapProps('r:'+key);
       state.regionEls.delete(key);
@@ -3582,11 +3581,9 @@
       renderBattleList();
     }
 
-    // Live roads/buildings/parks/water — fetched once per 3x3-chunk region (see
-    // ensureRegionTerrain) and shared by every chunk inside it, instead of one Overpass
-    // call per chunk. Walking into a fresh area used to fire up to 9 concurrent requests
-    // at a free public API that explicitly rate-limits/blocks exactly that pattern —
-    // this is what was leaving roads and buildings missing even on a plain browser.
+    // Live roads/buildings/parks/water — from the fixed map tile(s) this chunk touches
+    // (see ensureRegionTerrain): drawn straight from the phone when saved, otherwise
+    // downloaded through the shared, rate-limit-friendly queue.
     try {
       const parks = await ensureRegionTerrain(cx, cy);
       if (gym && parks.length){
@@ -3599,64 +3596,211 @@
     refreshNodeDistances();
   }
 
-  const REGION_CHUNKS = 3; // one Overpass query covers a REGION_CHUNKS x REGION_CHUNKS block of chunks
-  function regionCoordsFor(cx, cy){ return { rx: Math.floor(cx/REGION_CHUNKS), ry: Math.floor(cy/REGION_CHUNKS) }; }
-  function regionKey(rx, ry){ return rx+','+ry; }
-  // Fetches (or reuses) the terrain for the whole region a chunk sits in. Concurrent
-  // callers for chunks in the same still-loading region share one in-flight request
-  // instead of each firing their own.
-  function ensureRegionTerrain(cx, cy){
-    if (!state.regionEls) state.regionEls = new Map();
-    if (!state.regionPromises) state.regionPromises = new Map();
-    const {rx, ry} = regionCoordsFor(cx, cy);
-    const key = regionKey(rx, ry);
-    const cached = state.regionEls.get(key);
-    if (cached) return Promise.resolve(cached.parks);
-    const pending = state.regionPromises.get(key);
-    if (pending) return pending;
-    const p = fetchRegionTerrain(rx, ry, key).finally(()=> state.regionPromises.delete(key));
-    state.regionPromises.set(key, p);
-    return p;
+  // ---------------- REAL MAP DATA: fixed map tiles, saved on the phone ----------------
+  // Roads/buildings/parks come from OpenStreetMap (Overpass). They're fetched per fixed
+  // geographic tile (~1.1 x 1.1 km, the same grid every session, wherever the GPS anchor
+  // lands) and every tile is SAVED ON THE PHONE (IndexedDB). So:
+  //  - reopening the app — including right after an update — draws your neighbourhood
+  //    straight from the phone instead of waiting on the internet;
+  //  - a saved tile is quietly refreshed in the background once it's a few days old;
+  //  - downloads go through one small queue, nearest tile first, two at a time, so the
+  //    free map servers don't rate-limit us; a slow server gets backup from the next one
+  //    and a failed tile is retried automatically (it used to stay blank until you walked).
+  const TILE_LAT = 0.01, TILE_LON = 0.014;            // ≈1.1 km x 1.0–1.1 km
+  const MAP_DATA_VERSION = 2;                         // bump when the query changes
+  const TILE_FRESH_MS = 3*24*3600*1000;               // older than this → refresh in the background
+  const TILE_MAX_SAVED = 90;
+  const OVERPASS_ENDPOINTS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+  ];
+  let overpassCursor = 0;
+  const MapCache = (()=>{
+    let dbp = null;
+    function db(){
+      if (!dbp) dbp = new Promise((res, rej)=>{
+        try {
+          const r = indexedDB.open('totoquest-map', 1);
+          r.onupgradeneeded = ()=>{ if (!r.result.objectStoreNames.contains('tiles')) r.result.createObjectStore('tiles'); };
+          r.onsuccess = ()=> res(r.result); r.onerror = ()=> rej(r.error);
+        } catch(e){ rej(e); }
+      });
+      return dbp;
+    }
+    async function get(key){
+      try { const d = await db(); return await new Promise(res=>{ const q = d.transaction('tiles','readonly').objectStore('tiles').get(key); q.onsuccess = ()=> res(q.result||null); q.onerror = ()=> res(null); }); }
+      catch(e){ return null; }
+    }
+    async function put(key, val){
+      try {
+        const d = await db();
+        await new Promise(res=>{ const tx = d.transaction('tiles','readwrite'); tx.objectStore('tiles').put(val, key); tx.oncomplete = res; tx.onerror = res; tx.onabort = res; });
+        trim(d);
+      } catch(e){}
+    }
+    function trim(d){
+      try {
+        const rows = []; const tx = d.transaction('tiles','readwrite'); const st = tx.objectStore('tiles');
+        st.openCursor().onsuccess = ev=>{
+          const c = ev.target.result;
+          if (c){ rows.push({ k:c.key, ts:(c.value && c.value.ts) || 0 }); c.continue(); return; }
+          if (rows.length > TILE_MAX_SAVED){ rows.sort((a,b)=> a.ts-b.ts); rows.slice(0, rows.length-TILE_MAX_SAVED).forEach(r=> st.delete(r.k)); }
+        };
+      } catch(e){}
+    }
+    return { get, put };
+  })();
+
+  function tileKey(ilat, ilon){ return ilat+':'+ilon; }
+  function tileBox(ilat, ilon){ return { s:+(ilat*TILE_LAT).toFixed(6), n:+((ilat+1)*TILE_LAT).toFixed(6), w:+(ilon*TILE_LON).toFixed(6), e:+((ilon+1)*TILE_LON).toFixed(6) }; }
+  function mapProject(la, lo){ const md = metersDelta(state.geoAnchor.lat, state.geoAnchor.lon, la, lo); return worldPosFromMeters(md.east, md.north); }
+  // Every tile a chunk touches (usually one, at most four).
+  function tilesForChunk(cx, cy){
+    const a = latLonFromMeters(cx*CHUNK_SIZE_M, cy*CHUNK_SIZE_M), b = latLonFromMeters((cx+1)*CHUNK_SIZE_M, (cy+1)*CHUNK_SIZE_M);
+    const out = [];
+    for (let i=Math.floor(Math.min(a.lat,b.lat)/TILE_LAT); i<=Math.floor(Math.max(a.lat,b.lat)/TILE_LAT); i++)
+      for (let j=Math.floor(Math.min(a.lon,b.lon)/TILE_LON); j<=Math.floor(Math.max(a.lon,b.lon)/TILE_LON); j++) out.push({ ilat:i, ilon:j });
+    return out;
   }
-  async function fetchRegionTerrain(rx, ry, key){
-    const eastMin = rx*REGION_CHUNKS*CHUNK_SIZE_M, eastMax = eastMin + REGION_CHUNKS*CHUNK_SIZE_M;
-    const northMin = ry*REGION_CHUNKS*CHUNK_SIZE_M, northMax = northMin + REGION_CHUNKS*CHUNK_SIZE_M;
-    const c1 = latLonFromMeters(eastMin, northMin), c2 = latLonFromMeters(eastMax, northMax);
-    const south = Math.min(c1.lat, c2.lat), north = Math.max(c1.lat, c2.lat);
-    const west = Math.min(c1.lon, c2.lon), east = Math.max(c1.lon, c2.lon);
-    const bbox = south+','+west+','+north+','+east;
-    const query = '[out:json][timeout:25];('
+  function tileDistM(t){
+    if (!state.geo) return 0;
+    const bx = tileBox(t.ilat, t.ilon), d = metersDelta(state.geo.lat, state.geo.lon, (bx.s+bx.n)/2, (bx.w+bx.e)/2);
+    return Math.hypot(d.east, d.north);
+  }
+  function overpassQuery(bx){
+    const bbox = bx.s+','+bx.w+','+bx.n+','+bx.e;
+    const areas = '["leisure"~"^(park|garden|pitch|playground|sports_centre|stadium|track|swimming_pool|golf_course|dog_park)$"]';
+    const land = '["landuse"~"^(recreation_ground|cemetery|forest|grass|meadow|village_green|reservoir|residential|commercial|retail|industrial|farmland|farmyard)$"]';
+    return '[out:json][timeout:25];('
       +'way["highway"]('+bbox+');'
       +'way["building"]('+bbox+');'
-      +'way["leisure"~"^(park|garden|pitch|playground|sports_centre|stadium|track|swimming_pool|golf_course|dog_park)$"]('+bbox+');'
-      +'way["landuse"~"^(recreation_ground|cemetery|forest|grass|meadow|village_green|reservoir|residential|commercial|retail|industrial|farmland|farmyard)$"]('+bbox+');'
+      +'way'+areas+'('+bbox+');'
+      +'way'+land+'('+bbox+');'
       +'way["amenity"~"^(grave_yard|parking|school|college|university|hospital|kindergarten|place_of_worship)$"]('+bbox+');'
       +'way["natural"~"^(water|wood)$"]('+bbox+');'
       +'way["waterway"~"^(river|stream|canal)$"]('+bbox+');'
       +'way["railway"="rail"]('+bbox+');'
+      // areas drawn as multi-part "relations" (big parks, lakes, sports complexes, some ball
+      // fields) and ball fields that are only a single dot on the map
+      +'way["sport"~"baseball|softball"]('+bbox+');'
+      +'relation["leisure"~"^(park|pitch|sports_centre|stadium|playground|garden)$"]('+bbox+');'
+      +'relation["landuse"~"^(recreation_ground|cemetery|forest|grass|reservoir)$"]('+bbox+');'
+      +'relation["natural"~"^(water|wood)$"]('+bbox+');'
+      +'relation["building"]('+bbox+');'
+      +'node["leisure"="pitch"]('+bbox+');'
       +');out geom;';
-    const endpoints = ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
-    const ctrl = new AbortController();
-    const timer = setTimeout(()=>ctrl.abort(), 25000);
-    let data = null;
-    diag.lastRegionAttempt = new Date().toLocaleTimeString();
-    try {
-      data = await Promise.any(endpoints.map(base=>
-        fetch(base+'?data='+encodeURIComponent(query), {signal: ctrl.signal})
-          .then(resp=>{ if (!resp.ok) throw new Error('HTTP '+resp.status+' from '+new URL(base).hostname); return resp.json(); })
-      ));
-      diag.lastRegionError = null;
-    } catch(e){ diag.lastRegionError = describeFetchError(e); console.warn('region terrain fetch failed:', e); }
-    clearTimeout(timer);
-    if (!data || !data.elements || !data.elements.length){
-      diag.lastRegionResult = diag.lastRegionError ? 'failed' : 'got 0 elements back (query ran fine, but nothing in range)';
-      return []; // don't cache a failure — the next chunk-load into this region gets a fresh try
+  }
+  // Ask the map servers, one at a time — but if the first is slow, bring in the next
+  // one as well and take whichever answers first.
+  function overpassFetch(query){
+    return new Promise((resolve, reject)=>{
+      const N = OVERPASS_ENDPOINTS.length;
+      let started = 0, failed = 0, done = false, lastErr = null;
+      const ctrls = [];
+      const start = ()=>{
+        if (done || started >= N) return;
+        const idx = (overpassCursor + started) % N; started++;
+        const ctrl = new AbortController(); ctrls.push(ctrl);
+        const timer = setTimeout(()=> ctrl.abort(), 25000);
+        fetch(OVERPASS_ENDPOINTS[idx]+'?data='+encodeURIComponent(query), { signal: ctrl.signal })
+          .then(r=>{ if (!r.ok) throw new Error('HTTP '+r.status+' from '+new URL(OVERPASS_ENDPOINTS[idx]).hostname); return r.json(); })
+          .then(j=>{
+            clearTimeout(timer);
+            if (!j || !Array.isArray(j.elements)) throw new Error('unexpected reply');
+            if (j.remark && /error|timed out|out of memory/i.test(j.remark) && !j.elements.length) throw new Error(j.remark);
+            if (done) return;
+            done = true; overpassCursor = idx;
+            ctrls.forEach(c=>{ if (c !== ctrl) try { c.abort(); } catch(e){} });
+            resolve(j.elements);
+          })
+          .catch(err=>{
+            clearTimeout(timer);
+            if (done) return;
+            failed++; lastErr = err;
+            if (failed >= N){ done = true; reject(lastErr); } else start();
+          });
+        setTimeout(()=>{ if (!done) start(); }, 7000);   // slow server → hedge with the next one
+      };
+      start();
+    });
+  }
+  const netQueue = []; let netActive = 0;
+  const NET_MAX = 2;
+  function queueTileDownload(t){ return new Promise((res, rej)=>{ netQueue.push({ t, res, rej }); pumpTileDownloads(); }); }
+  function pumpTileDownloads(){
+    while (netActive < NET_MAX && netQueue.length){
+      netQueue.sort((a,b)=> tileDistM(a.t) - tileDistM(b.t));      // nearest to you first
+      const job = netQueue.shift(); netActive++;
+      diag.lastRegionAttempt = new Date().toLocaleTimeString();
+      overpassFetch(overpassQuery(tileBox(job.t.ilat, job.t.ilon)))
+        .then(els=>{ diag.lastRegionError = null; diag.lastRegionResult = els.length+' map features'; job.res(els); },
+              err=>{ diag.lastRegionError = describeFetchError(err); job.rej(err); })
+        .finally(()=>{ netActive--; pumpTileDownloads(); });
     }
-    diag.lastRegionResult = data.elements.length+' elements';
+  }
 
-    const project = (la, lo)=>{ const md = metersDelta(state.geoAnchor.lat, state.geoAnchor.lon, la, lo); return worldPosFromMeters(md.east, md.north); };
-    const b0 = worldPosFromMeters(eastMin, northMax), b1 = worldPosFromMeters(eastMax, northMin);
-    const art = renderTerrainArt(data.elements, project, key, { x0:b0.x, y0:b0.y, x1:b1.x, y1:b1.y });
+  // Multi-part areas ("relations") arrive as pieces of outline — stitch the outer pieces
+  // into closed rings so they draw like any other area.
+  function relationRings(rel){
+    const parts = (rel.members||[]).filter(m=> m.type==='way' && m.geometry && m.geometry.length > 1 && m.role !== 'inner').map(m=> m.geometry.slice());
+    const same = (a,b)=> Math.abs(a.lat-b.lat) < 1e-7 && Math.abs(a.lon-b.lon) < 1e-7;
+    const rings = [];
+    while (parts.length){
+      let ring = parts.shift(), grew = true;
+      while (!same(ring[0], ring[ring.length-1]) && grew){
+        grew = false;
+        for (let i=0;i<parts.length;i++){
+          const p = parts[i], end = ring[ring.length-1];
+          if (same(p[0], end)){ ring = ring.concat(p.slice(1)); }
+          else if (same(p[p.length-1], end)){ ring = ring.concat(p.slice(0,-1).reverse()); }
+          else if (same(p[p.length-1], ring[0])){ ring = p.slice(0,-1).concat(ring); }
+          else if (same(p[0], ring[0])){ ring = p.slice(1).reverse().concat(ring); }
+          else continue;
+          parts.splice(i,1); grew = true; break;
+        }
+      }
+      if (ring.length > 3) rings.push(ring);
+    }
+    return rings;
+  }
+  // A pitch mapped as a single point: give it a regulation-sized outline to draw.
+  function pitchFromNode(n){
+    const sport = String((n.tags||{}).sport||'');
+    const [w, h] = /baseball|softball/.test(sport) ? [80, 80] : /tennis/.test(sport) ? [24, 11] : /basketball/.test(sport) ? [28, 15] : [90, 55];
+    const mLat = 1/110540, mLon = 1/(111320*Math.cos(n.lat*Math.PI/180));
+    let g;
+    if (/baseball|softball/.test(sport)){
+      // a fan: home plate at the south, foul lines out to the north-east / north-west, arc outfield
+      g = [{ lat:n.lat - 0.35*h*mLat, lon:n.lon }];
+      for (let k=0;k<=8;k++){ const a = Math.PI/4 + k*(Math.PI/2)/8; g.push({ lat:n.lat - 0.35*h*mLat + Math.sin(a)*h*mLat, lon:n.lon + Math.cos(a)*w*mLon }); }
+    } else {
+      g = [[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,y])=> ({ lat:n.lat + y*h/2*mLat, lon:n.lon + x*w/2*mLon }));
+    }
+    g.push(g[0]);
+    return { type:'way', id:'n'+n.id, tags:n.tags, geometry:g };
+  }
+  // Everything Overpass gives back, as plain areas/lines renderTerrainArt understands.
+  function normalizeMapElements(elements){
+    const out = [];
+    (elements||[]).forEach(el=>{
+      if (el.type === 'way'){ out.push(el); return; }
+      if (el.type === 'relation'){ relationRings(el).forEach((ring,i)=> out.push({ type:'way', id:'r'+el.id+'_'+i, tags:el.tags, geometry:ring })); return; }
+      if (el.type === 'node' && el.tags && el.tags.leisure === 'pitch') out.push(pitchFromNode(el));
+    });
+    // a way can come back twice (e.g. a ball field that's also matched by sport) — draw it once
+    const seen = new Set();
+    return out.filter(e=>{ const k = e.type+e.id; if (seen.has(k)) return false; seen.add(k); return true; });
+  }
+
+  function drawTile(key, t, elements){
+    if (!state.geoAnchor) return [];
+    const bx = tileBox(t.ilat, t.ilon);
+    const p1 = mapProject(bx.n, bx.w), p2 = mapProject(bx.s, bx.e);
+    const art = renderTerrainArt(normalizeMapElements(elements), mapProject, key, { x0:p1.x, y0:p1.y, x1:p2.x, y1:p2.y });
+    const old = state.regionEls.get(key);
+    if (old) old.els.forEach(el=> el.remove());
     let g = null;
     if (art.svg){
       g = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -3664,9 +3808,65 @@
       $('#terrain-svg').appendChild(g);
     }
     setMapProps('r:'+key, art.props);
-    state.regionEls.set(key, { els: g ? [g] : [], parks: art.parkCentroids, rx, ry });
+    state.regionEls.set(key, { els: g ? [g] : [], parks: art.parkCentroids, ilat:t.ilat, ilon:t.ilon, wx:(p1.x+p2.x)/2, wy:(p1.y+p2.y)/2 });
     return art.parkCentroids;
   }
+  // Fetches (or reuses) the map for every tile a chunk touches; parks from all of them.
+  function ensureRegionTerrain(cx, cy){
+    return Promise.all(tilesForChunk(cx, cy).map(t=> ensureTile(t))).then(list=> [].concat(...list.map(x=> x||[])));
+  }
+  const tileRetryAt = new Map();      // key -> earliest time to try a failed tile again
+  function ensureTile(t){
+    if (!state.regionEls) state.regionEls = new Map();
+    if (!state.regionPromises) state.regionPromises = new Map();
+    const key = tileKey(t.ilat, t.ilon);
+    const have = state.regionEls.get(key);
+    if (have) return Promise.resolve(have.parks);
+    const pending = state.regionPromises.get(key);
+    if (pending) return pending;
+    if ((tileRetryAt.get(key)||0) > Date.now()) return Promise.resolve([]);
+    const anchorAt = state.geoAnchor;
+    const p = (async ()=>{
+      const saved = await MapCache.get(key);
+      const usable = saved && saved.v === MAP_DATA_VERSION && Array.isArray(saved.elements);
+      if (usable && state.geoAnchor === anchorAt){
+        const parks = drawTile(key, t, saved.elements);
+        diag.lastRegionResult = 'drawn from the phone ('+saved.elements.length+' map features)';
+        if (Date.now() - saved.ts > TILE_FRESH_MS){
+          // old copy: show it now, swap in fresh data once it arrives
+          queueTileDownload(t).then(els=>{
+            if (!els.length) return;
+            MapCache.put(key, { v:MAP_DATA_VERSION, ts:Date.now(), elements:els });
+            if (state.geoAnchor === anchorAt && state.regionEls.has(key)) drawTile(key, t, els);
+          }, ()=>{});
+        }
+        return parks;
+      }
+      try {
+        const els = await queueTileDownload(t);
+        tileRetryAt.delete(key);
+        if (els.length) MapCache.put(key, { v:MAP_DATA_VERSION, ts:Date.now(), elements:els });
+        if (state.geoAnchor !== anchorAt) return [];
+        return drawTile(key, t, els);
+      } catch(e){
+        const fails = (state.tileFails = state.tileFails || {});
+        fails[key] = (fails[key]||0) + 1;
+        tileRetryAt.set(key, Date.now() + Math.min(60000, 4000 * Math.pow(2, fails[key]-1)));
+        console.warn('map tile failed', key, e);
+        return [];
+      }
+    })().finally(()=> state.regionPromises.delete(key));
+    state.regionPromises.set(key, p);
+    return p;
+  }
+  // Keeps every tile around you loaded: anything missing (never fetched, or a download
+  // that failed) is asked for again — this is what fills in a map that came up half-drawn.
+  function ensureNearbyTiles(){
+    if (!state.geoAnchor || !state.loadedChunks) return;
+    const {cx, cy} = currentChunkCoords();
+    for (let dx=-1; dx<=1; dx++) for (let dy=-1; dy<=1; dy++) ensureRegionTerrain(cx+dx, cy+dy);
+  }
+  setInterval(ensureNearbyTiles, 5000);
 
   // ---------------- MAP ART: stone roads, real building lots, fields & parks ----------------
   // Everything flat on the ground is SVG in #terrain-svg (world units: GPS_SCALE px per
@@ -3750,6 +3950,47 @@
       out.push({x,y});
     }
     return out;
+  }
+  // A baseball/softball outline is a fan: two straight foul lines meeting at a right angle
+  // at home plate, closed by the outfield arc. Finds home plate and the direction to
+  // centre field, or null if the outline isn't fan-shaped.
+  function ballFieldApex(P){
+    let pts = P.slice();
+    if (pts.length > 3 && Math.hypot(pts[0].x-pts[pts.length-1].x, pts[0].y-pts[pts.length-1].y) < 2) pts.pop();
+    const n = pts.length; if (n < 4) return null;
+    const b = orientedBox(pts);
+    if (b.len < 80 || polyArea(pts) / Math.max(1, b.len*b.wid) > 0.86) return null;   // rectangles aren't ball fields
+    let maxD = 0, best = null;
+    for (let i=0;i<n;i++){
+      const prev = pts[(i-1+n)%n], cur = pts[i], next = pts[(i+1)%n];
+      const v1x = prev.x-cur.x, v1y = prev.y-cur.y, v2x = next.x-cur.x, v2y = next.y-cur.y;
+      const l1 = Math.hypot(v1x,v1y), l2 = Math.hypot(v2x,v2y);
+      if (l1 < 1 || l2 < 1) continue;
+      const ang = Math.acos(Math.max(-1, Math.min(1, (v1x*v2x+v1y*v2y)/(l1*l2)))) * 180/Math.PI;
+      if (ang < 65 || ang > 115) continue;
+      const leg = Math.min(l1, l2);
+      if (!best || leg > best.leg) best = { cur, leg, v1x:v1x/l1, v1y:v1y/l1, v2x:v2x/l2, v2y:v2y/l2 };
+    }
+    if (!best) return null;
+    pts.forEach(q=>{ maxD = Math.max(maxD, Math.hypot(q.x-best.cur.x, q.y-best.cur.y)); });
+    if (best.leg < 0.45*maxD) return null;
+    // centre field = straight down the middle of the two foul lines
+    let ux = best.v1x + best.v2x, uy = best.v1y + best.v2y; const ul = Math.hypot(ux,uy) || 1; ux/=ul; uy/=ul;
+    return { x:best.cur.x, y:best.cur.y, ux, uy, depth:maxD };
+  }
+  function ballFieldMarkings(a){
+    const side = Math.max(36, Math.min(88, a.depth*0.3));      // 27.4 m base paths, scaled to fit
+    const d = side/Math.SQRT2, line = 'fill="none" stroke="#f4f1e6" stroke-opacity="0.85" stroke-width="2.4"';
+    const r = side*1.45, c45 = Math.SQRT1_2;
+    const deg = Math.atan2(a.uy, a.ux)*180/Math.PI;
+    const inner = '<path d="M0,0 L'+(r*c45).toFixed(1)+','+(r*c45).toFixed(1)+' A'+r.toFixed(1)+','+r.toFixed(1)+' 0 0 0 '+(r*c45).toFixed(1)+','+(-r*c45).toFixed(1)+' Z" fill="#8a5a3a" opacity="0.95"/>'
+      + '<path d="M'+(d*0.16).toFixed(1)+',0 L'+d.toFixed(1)+','+(d*0.84).toFixed(1)+' L'+(2*d*0.92).toFixed(1)+',0 L'+d.toFixed(1)+','+(-d*0.84).toFixed(1)+' Z" fill="#3f7a4c"/>'
+      + '<path d="M0,0 L'+d.toFixed(1)+','+d.toFixed(1)+' L'+(2*d).toFixed(1)+',0 L'+d.toFixed(1)+','+(-d).toFixed(1)+' Z" '+line+'/>'
+      + '<circle cx="'+(side*0.67).toFixed(1)+'" cy="0" r="'+(side*0.09).toFixed(1)+'" fill="#a06a44" stroke="#f4f1e6" stroke-opacity="0.6" stroke-width="1"/>'
+      + '<circle cx="0" cy="0" r="'+(side*0.13).toFixed(1)+'" fill="#8a5a3a"/>'
+      + [[0,0],[d,d],[2*d,0],[d,-d]].map(([x,y])=>'<rect x="'+(x-3).toFixed(1)+'" y="'+(y-3).toFixed(1)+'" width="6" height="6" fill="#fffdf2" transform="rotate(45 '+x.toFixed(1)+' '+y.toFixed(1)+')"/>').join('')
+      + '<path d="M0,0 L'+(a.depth*0.7*c45).toFixed(1)+','+(a.depth*0.7*c45).toFixed(1)+' M0,0 L'+(a.depth*0.7*c45).toFixed(1)+','+(-a.depth*0.7*c45).toFixed(1)+'" '+line+' stroke-dasharray="6 4"/>';
+    return '<g transform="translate('+a.x.toFixed(1)+','+a.y.toFixed(1)+') rotate('+deg.toFixed(1)+')">'+inner+'</g>';
   }
   function pitchMarkings(ptsArr, sport){
     const b = orientedBox(ptsArr);
@@ -3871,10 +4112,13 @@
       if (t.natural==='water' || t.landuse==='reservoir' || t.leisure==='swimming_pool'){
         L.water.push(poly(t.leisure==='swimming_pool' ? '#3d86b8' : '#2c4a72', '#4a6f9e', 4)); return;
       }
-      if (t.leisure==='pitch'){
-        const sport = String(t.sport||'').toLowerCase();
+      const sportTag = String(t.sport||'').toLowerCase();
+      if (t.leisure==='pitch' || (/baseball|softball/.test(sportTag) && t.leisure!=='sports_centre' && t.leisure!=='park')){
+        let sport = sportTag;
+        const apex = ballFieldApex(P);
+        if (!sport && apex) sport = 'baseball';       // untagged, but shaped like a ball field
         L.land.push(poly(/tennis|basketball/.test(sport) ? '#3c4a44' : '#3f7048', '#2c4a34', 3));
-        L.marks.push(pitchMarkings(P, sport));
+        L.marks.push(/baseball|softball/.test(sport) && apex ? ballFieldMarkings(apex) : pitchMarkings(P, sport));
         clearPolys.push(P);
         return;
       }
@@ -3905,7 +4149,8 @@
     if (bounds) infillHouses();
     // keep trees/tombs off ball fields, courts and playgrounds
     const isGreenery = k=> k==='tree' || k==='deadtree' || k==='pine';
-    const keptProps = props.filter(pr=> !isGreenery(pr.kind) || !clearPolys.some(P=> pointInPoly(pr.x, pr.y, P)));
+    const inTile = pr=> !bounds || (pr.x >= bounds.x0 && pr.x < bounds.x1 && pr.y >= bounds.y0 && pr.y < bounds.y1);
+    const keptProps = props.filter(pr=> inTile(pr) && (!isGreenery(pr.kind) || !clearPolys.some(P=> pointInPoly(pr.x, pr.y, P))));
     props.length = 0; keptProps.forEach(pr=> props.push(pr));
     const svg = L.land.join('') + L.water.join('') + L.marks.join('') + L.lots.join('') + L.rail.join('')
       + L.pathCase.join('') + L.roadCase.join('') + L.pathTop.join('') + L.roadTop.join('');
@@ -4553,7 +4798,7 @@
       'GPS anchor: '+(a ? a.lat.toFixed(5)+', '+a.lon.toFixed(5) : 'NOT SET — this is why nothing else can load'),
       'Using default location: '+(a && state.geo && a.lat===DEFAULT_LAT && a.lon===DEFAULT_LON ? 'yes (real GPS hasn\'t come in)' : 'no'),
       'Chunks loaded: '+chunkCount+'   Queue waiting: '+chunkQueue.length,
-      'Regions with map data: '+regionCount,
+      'Map tiles drawn: '+regionCount+'   downloading: '+netActive+'   waiting: '+netQueue.length,
       'Wild totos on map: '+(state.wildTotos ? state.wildTotos.length : 0),
       '',
       'Last road/building fetch: '+(diag.lastRegionAttempt || 'never attempted'),
@@ -4577,8 +4822,11 @@
     locate();
     if (state.geoAnchor){
       const {cx, cy} = currentChunkCoords();
-      const {rx, ry} = regionCoordsFor(cx, cy);
-      state.regionEls.delete(regionKey(rx,ry)); // force a fresh attempt even if one already "succeeded" with 0 results
+      tilesForChunk(cx, cy).forEach(t=>{
+        const k = tileKey(t.ilat, t.ilon);
+        tileRetryAt.delete(k);
+        queueTileDownload(t).then(els=>{ if (els.length) MapCache.put(k, { v:MAP_DATA_VERSION, ts:Date.now(), elements:els }); drawTile(k, t, els); }, ()=>{});
+      });
       ensureChunksLoaded();
     }
     fetchWeather(true);
@@ -5789,7 +6037,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v41';
+window.TQ_APP_VERSION = 'v42';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
