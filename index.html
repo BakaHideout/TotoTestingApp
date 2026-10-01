@@ -244,21 +244,25 @@
   .toto-node .bubble, .gym-node .bubble { font-size:34px; animation: floaty 2.4s ease-in-out infinite; position:relative; z-index:2; }
   .toto-node .bubble svg, .gym-node .bubble svg, .toto-node .bubble img, .gym-node .bubble img { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
   @keyframes floaty { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
+  /* A true 3D tilt (rotateY) of a flat painted image just skews/warps the picture instead
+     of reading as a turning body — that's what made these look like flat paintings
+     flipping rather than characters standing, so this sticks to undistorting bob +
+     squash-and-stretch (the classic "alive, weighted body" cue) instead. */
   @keyframes totoFloat3d {
-    0%,100% { transform: translateY(0) rotateY(0deg); }
-    25% { transform: translateY(-4px) rotateY(10deg); }
-    50% { transform: translateY(-7px) rotateY(0deg); }
-    75% { transform: translateY(-4px) rotateY(-10deg); }
+    0%,100% { transform: translateY(0) scale(1,1); }
+    25% { transform: translateY(-4px) scale(1.02,0.98); }
+    50% { transform: translateY(-7px) scale(0.98,1.03); }
+    75% { transform: translateY(-4px) scale(1.02,0.98); }
   }
   .creature-img { filter: drop-shadow(0 6px 5px rgba(0,0,0,0.4)); }
-  /* The floaty 3D animation is expensive (GPU compositing) when dozens of cards render
+  /* The floaty animation is expensive (GPU compositing) when dozens of cards render
      at once (collection grid, Dex, gym/shrine lists), so it only plays in the few
-     "looking at one Toto up close" spots — battle arena, detail modal, starter picker —
-     plus the map markers, where the player specifically wants creatures to read as
-     standing 3D figures on the ground like their own avatar rather than flat cutouts.
-     A single rotateY transform per node is cheap (GPU-compositable), unlike the
-     per-limb SVG wiggle disabled just below, so this is fine even with lots on screen. */
-  .arena-sprite .creature-img, .modal-sp .creature-img, .starter-card .sp .creature-img,
+     "looking at one Toto up close" spots — detail modal, starter picker — plus the map
+     markers, where the player specifically wants creatures to read as standing figures
+     on the ground like their own avatar rather than flat cutouts. The battle arena's
+     sprite (.arena-sprite) handles its own idle motion on the OUTER wrapper instead (see
+     idleBreathe) so the inner image here isn't double-animated on top of it. */
+  .modal-sp .creature-img, .starter-card .sp .creature-img,
   .toto-node .creature-img, .gym-node .creature-img {
     animation: totoFloat3d 3.2s ease-in-out infinite;
   }
@@ -276,27 +280,26 @@
   .gym-node .cr-eye, .gym-node .cr-legL, .gym-node .cr-legR, .gym-node .cr-armL, .gym-node .cr-armR, .gym-node .cr-ghost { animation:none !important; }
 
   /* --- Standing-on-the-ground map markers (scoped to .toto-node/.gym-node only; the
-     shared totoFloat3d rule a few lines up is left untouched for the battle arena, Toto
-     detail modal and starter-card views, which were tuned separately). A rotateY spin
-     pivoting from an image's own center reads as a flat sticker tipping over on a table;
-     pivoting from the sprite's own base (50% 100%) instead, under a touch of perspective
-     on its immediate parent, reads as a figure rooted at its feet leaning/turning like it
-     is actually standing in the diorama. Applied to both the painted-art sprites
-     (.creature-img) and the hand-coded SVG bodies (.creature-svg) — the latter had zero
-     motion on the map before this (their per-limb wiggle is disabled here for
-     performance, see the rule just above), so this also fixes those species looking
-     completely static. */
-  .toto-node .bubble, .gym-node .tower-boss { perspective: 240px; }
+     shared totoFloat3d rule a few lines up is left untouched for the detail modal and
+     starter-card views, which were tuned separately). This used to pivot the flat art in
+     3D (rotateX/rotateY) to fake a figure leaning/turning — but tilting a flat painted
+     image in 3D just skews/warps the picture instead of reading as a body turning, which
+     is exactly what made these look like flat paintings tipping over rather than standing
+     characters. Anchoring at the sprite's own base (50% 100%) and animating with a plain
+     bob + squash-and-stretch + a few degrees of 2D weight-shift rotation instead keeps the
+     art undistorted while still reading as alive. Applied to both the painted-art sprites
+     (.creature-img) and the hand-coded SVG bodies (.creature-svg) so both kinds of
+     species get real idle motion on the map. */
   .toto-node .creature-img, .gym-node .creature-img,
   .toto-node .creature-svg, .gym-node .creature-svg {
     transform-origin: 50% 100%;
     animation: totoStandBob 3.4s ease-in-out infinite;
   }
   @keyframes totoStandBob {
-    0%,100% { transform: rotateX(10deg) translateY(0) rotateY(0deg); }
-    25%     { transform: rotateX(10deg) translateY(-3px) rotateY(7deg); }
-    50%     { transform: rotateX(10deg) translateY(-5px) rotateY(0deg); }
-    75%     { transform: rotateX(10deg) translateY(-3px) rotateY(-7deg); }
+    0%,100% { transform: translateY(0) scale(1,1) rotate(0deg); }
+    25%     { transform: translateY(-3px) scale(1.02,0.98) rotate(-3deg); }
+    50%     { transform: translateY(-6px) scale(0.97,1.04) rotate(0deg); }
+    75%     { transform: translateY(-3px) scale(1.02,0.98) rotate(3deg); }
   }
   /* Slow "wandering in a small circle" idle — there's no walk-cycle art, so this fakes a
      creature ambling around its own little patch of ground with a classic orbit trick:
@@ -536,18 +539,60 @@
   .arena-mid { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 2px 2px; position:relative; z-index:2; min-width:0; }
   .sprite-wrap { position:relative; display:flex; flex-direction:column; align-items:center; }
   .sprite-glow { position:absolute; width:70px; height:24px; border-radius:50%; bottom:-6px; filter:blur(4px); }
-  .sprite-glow.player { background:rgba(120,220,120,0.55); }
-  .sprite-glow.enemy { background:rgba(255,90,90,0.5); width:120px; height:34px; }
+  .sprite-glow.player { background:rgba(120,220,120,0.55); animation: shadowPulse 2.1s ease-in-out infinite; }
+  .sprite-glow.enemy { background:rgba(255,90,90,0.5); width:120px; height:34px; animation: shadowPulse 2.6s ease-in-out infinite reverse; }
+  /* The ground shadow breathes opposite the body above it — shrinking a touch as the
+     sprite rises, growing as it settles — the classic weight/gravity cue that ties a
+     bobbing sprite back down to the ground instead of letting it look like it's just
+     floating free. */
+  @keyframes shadowPulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(0.8); } }
   /* The boss's own real art (a full-size TOTO_IMG PNG, injected as #bf-e-sprite's
      innerHTML) rendered big and centered — this IS "the giant picture" the arena is
      built around, not a fixed background photo of a generic monster. */
   .arena-sprite { font-size:88px; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.4)); position:relative; z-index:2; }
   .arena-sprite.enemy { font-size:190px; }
   .arena-sprite svg, .modal-sp svg, .arena-sprite img, .modal-sp img { width:1em; height:1.2em; vertical-align:middle; object-fit:contain; }
-  .arena-sprite.player { animation: floaty 2s ease-in-out infinite; }
-  .arena-sprite.enemy { animation: floaty 2.3s ease-in-out infinite reverse; }
-  .arena-sprite.hit { animation: hitflash 0.25s; }
-  @keyframes hitflash { 0%{filter:brightness(2) drop-shadow(0 8px 8px rgba(0,0,0,0.4));} 100%{filter:brightness(1) drop-shadow(0 8px 8px rgba(0,0,0,0.4));} }
+  /* Idle "alive" motion: a bob paired with a squash-and-stretch and a few degrees of
+     side-to-side weight-shift rotation — reads as a solid body breathing/shifting its
+     weight. A true 3D tilt (rotateX/rotateY) of a flat painted image just skews the
+     picture, which is what made these read as "paintings" tipping over — plain rotate()
+     plus scale keeps the art undistorted while still looking alive. */
+  @keyframes idleBreathe {
+    0%,100% { transform: translateY(0) scale(1,1) rotate(0deg); }
+    25%     { transform: translateY(-2px) scale(1.015,0.985) rotate(-2deg); }
+    50%     { transform: translateY(-7px) scale(0.985,1.02) rotate(0deg); }
+    75%     { transform: translateY(-2px) scale(1.015,0.985) rotate(2deg); }
+  }
+  .arena-sprite.player { animation: idleBreathe 2.1s ease-in-out infinite; transform-origin:50% 100%; }
+  .arena-sprite.enemy { animation: idleBreathe 2.6s ease-in-out infinite reverse; transform-origin:50% 100%; }
+  /* Hit reaction: a quick recoil (knocked sideways a touch, not just a brightness flash)
+     so getting hit reads as a real impact rather than the sprite just blinking white. */
+  .arena-sprite.hit { animation: hitflash 0.35s ease-out; }
+  @keyframes hitflash {
+    0%   { transform:translateX(0) rotate(0deg); filter:brightness(2) drop-shadow(0 8px 8px rgba(0,0,0,0.4)); }
+    30%  { transform:translateX(-7px) rotate(-5deg); filter:brightness(1.6) drop-shadow(0 8px 8px rgba(0,0,0,0.4)); }
+    60%  { transform:translateX(5px) rotate(3deg); filter:brightness(1.15) drop-shadow(0 8px 8px rgba(0,0,0,0.4)); }
+    100% { transform:translateX(0) rotate(0deg); filter:brightness(1) drop-shadow(0 8px 8px rgba(0,0,0,0.4)); }
+  }
+  /* Attack lunge: the attacker thrusts toward its target with real weight behind it —
+     a forward/vertical jab, a squash on "impact", then a spring back to idle — instead
+     of standing still while only a damage number pops up. The player's own Toto and
+     every ally standee lunge upward toward the boss; the boss lunges downward toward
+     the party. */
+  @keyframes lungeToward {
+    0%   { transform: translateY(0) scale(1,1); }
+    35%  { transform: translateY(-20px) scale(0.92,1.1); }
+    55%  { transform: translateY(-24px) scale(1.14,0.84); }
+    100% { transform: translateY(0) scale(1,1); }
+  }
+  @keyframes lungeTowardDown {
+    0%   { transform: translateY(0) scale(1,1); }
+    35%  { transform: translateY(16px) scale(0.92,1.1); }
+    55%  { transform: translateY(20px) scale(1.14,0.84); }
+    100% { transform: translateY(0) scale(1,1); }
+  }
+  .arena-sprite.player.attacking { animation: lungeToward 0.4s ease-out; }
+  .arena-sprite.enemy.attacking { animation: lungeTowardDown 0.4s ease-out; }
   /* Plays on the player's sprite whenever an ability (Charge Attack/Heal/Buff/Fortify) is
      used, so a move reads as a distinct "cast" moment rather than looking identical to a
      plain attack. */
@@ -2751,8 +2796,8 @@
     $('#toto-layer').appendChild(node);
   }
   const RESPAWN_DELAY_MS = 3*60*1000; // a caught spot re-spawns something after ~3 minutes
-  const AMBIENT_SPAWN_INTERVAL_MS = 20*1000; // check fairly often, keeps the area from ever feeling empty
-  const NEARBY_KEEP_MIN = 5, NEARBY_KEEP_MAX = 7; // aim to always have this many within easy walking reach
+  const AMBIENT_SPAWN_INTERVAL_MS = 12*1000; // check fairly often, keeps the area from ever feeling empty
+  const NEARBY_KEEP_MIN = 6, NEARBY_KEEP_MAX = 9; // aim to always have this many within easy walking reach
   const NEARBY_RADIUS_M = 200;
   const PRUNE_RADIUS_M = 450; // Totos further than this than are quietly removed to keep the map light
   function removeTotoFromMap(t){
@@ -2774,6 +2819,22 @@
     state.wildTotos.push(t);
     appendTotoNode(t);
     refreshNodeDistances();
+  }
+  // Guarantees 4 wild Totos are standing right around the player the instant they log in,
+  // instead of waiting on the wider chunk system (which scatters its 5-7-per-chunk spawns
+  // anywhere across a 350m chunk, so the nearest one could easily start out well outside
+  // the visible screen). Called once as soon as the world is built around a fresh GPS
+  // anchor — close range (24-70m) so all 4 are on-screen immediately.
+  function spawnStartingTotosNearPlayer(){
+    if (!state.playerWorldPos) return;
+    const n = 4;
+    for (let i=0;i<n;i++){
+      const ang = (Math.PI*2*i/n) + (Math.random()-0.5)*0.7;
+      const distM = 24 + Math.random()*46;
+      const px = state.playerWorldPos.x + Math.cos(ang)*distM*GPS_SCALE;
+      const py = state.playerWorldPos.y + Math.sin(ang)*distM*GPS_SCALE;
+      spawnWildTotoAt(px, py, null);
+    }
   }
   if (!window.__totoAmbientSpawnTimer){
     window.__totoAmbientSpawnTimer = setInterval(()=>{
@@ -3184,6 +3245,7 @@
     renderChallenger(); renderBattleList();
 
     ensureChunksLoaded();
+    spawnStartingTotosNearPlayer();
   }
 
   function spawnClouds(){
@@ -3963,6 +4025,11 @@
   function battleLog(msg){ $('#battle-log').textContent = msg; }
   function flashSprite(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
   function flashCast(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('cast'); void el.offsetWidth; el.classList.add('cast'); }
+  // Plays the attack-lunge on whichever side is throwing the hit (see .attacking/
+  // lungeToward in the CSS) — paired with flashSprite() on the side taking it, so every
+  // basic attack reads as one body jabbing forward and the other recoiling, not just a
+  // damage number appearing over two motionless sprites.
+  function flashAttack(who){ const el = who==='p' ? $('#bf-p-sprite') : $('#bf-e-sprite'); el.classList.remove('attacking'); void el.offsetWidth; el.classList.add('attacking'); }
   // Cosmetic "an ally just did something" pulse on its roster chip, called on a timer from
   // the ally-damage tick so group fights don't look static even though ally combat itself
   // is simulated rather than fully played out move-by-move.
@@ -4020,7 +4087,7 @@
       let dmg = computeDamage(battle.enemy.atk+battle.enemy.strength, defPower, battle.player.maxHp, damageCapPct(battle.mode));
       if (battle.group) dmg = Math.round(dmg*0.6);
       battle.player.hp = Math.max(0, battle.player.hp - dmg);
-      flashSprite('p'); popDamage('p', dmg, '#ff5470'); renderBattle();
+      flashAttack('e'); flashSprite('p'); popDamage('p', dmg, '#ff5470'); renderBattle();
       battleLog(battle.enemy.name+' hits for '+dmg+'!');
       if (battle.player.hp<=0) endBattle(false);
     }, enemyDelay);
@@ -4073,7 +4140,7 @@
     if (weak) dmg = Math.round(dmg*0.35);
     battle.enemy.hp = Math.max(0, battle.enemy.hp-dmg);
     Sound.playAttack();
-    flashSprite('e'); popDamage('e', dmg, '#fff'); renderBattle();
+    flashAttack('p'); flashSprite('e'); popDamage('e', dmg, '#fff'); renderBattle();
     battleLog(weak ? 'Low energy! Weak hit for '+dmg+'.' : 'You strike for '+dmg+'!');
     if (battle.enemy.hp<=0) endBattle(true);
   }
