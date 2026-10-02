@@ -34,6 +34,11 @@ Everyone can read `leaderboard`. A trainer can only write their own row through
   Each product has one Payment Link with metadata `kind` and `amount`; their URLs are in
   `TQ_ONLINE.payLinks`.
 * Managed Payments is on, so Stripe is the seller of record and handles sales tax and VAT.
+* `google-auth` (an Edge Function, JWT verification off) checks "Sign in with Google" tokens with
+  Google, makes sure they were made for TotoQuest's Client ID (`private.settings.google_client_id`)
+  and says whether the account is the owner's (`private.settings.admin_email`). The owner's email
+  is never in the public game code. Owner tools only unlock after this check.
+* `delete_player()` backs "Delete my account" in Settings.
 * Supabase free projects pause after about a week with no visitors. Open the game, or restore the
   project in the Supabase dashboard, to wake it.
 

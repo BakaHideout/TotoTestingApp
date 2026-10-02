@@ -12,6 +12,14 @@
 <link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/brand/icon-192.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<script>
+  // Chrome/Edge/Samsung Internet say when the game can be installed; keep that moment so the
+  // in-game "Install app" button can open the real install prompt (the browser may also show
+  // its own banner). iPhone/iPad never send this: the button shows how to add it there.
+  window.__tqInstall = { prompt: null };
+  window.addEventListener('beforeinstallprompt', function(e){ window.__tqInstall.prompt = e; document.documentElement.classList.add('can-install'); });
+  window.addEventListener('appinstalled', function(){ window.__tqInstall.prompt = null; document.documentElement.classList.add('app-installed'); });
+</script>
 <style>
   html, body { margin:0; padding:0; background:#0e1420; height:100%; }
   /* The game's art can't be long-pressed to save/share, dragged out, or text-selected. */
@@ -111,6 +119,123 @@
   .legal-agree a, .legal-links a { color:#6b3fa0; font-weight:800; text-decoration:underline; }
   .store-legal { font-size:11px; font-weight:700; color:#8a7aa8; text-align:center; margin-top:8px; }
   .store-legal a { color:#6b3fa0; }
+
+  /* ---------- NEARBY TOTOS (bottom-right) ---------- */
+  .nearby-widget { position:absolute; right:14px; bottom:14px; z-index:22; pointer-events:auto; display:flex; align-items:center; gap:8px; height:58px; padding:0 12px 0 9px; border-radius:20px; background:linear-gradient(160deg, rgba(48,33,74,0.95), rgba(24,17,38,0.95)); border:2px solid #ffb347; box-shadow:0 0 0 3px rgba(255,140,40,0.22), 0 8px 18px rgba(0,0,0,0.45); color:#ffe9c2; cursor:pointer; font-family:inherit; }
+  .nearby-widget:active { transform:scale(0.97); }
+  .nearby-faces { display:flex; align-items:center; }
+  .nearby-face { width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 40% 35%, #5d4b8c, #251c3a); border:1.5px solid rgba(255,200,120,0.65); display:flex; align-items:center; justify-content:center; overflow:hidden; margin-left:-10px; box-shadow:0 2px 5px rgba(0,0,0,0.4); font-size:18px; }
+  .nearby-face:first-child { margin-left:0; }
+  .nearby-face .creature-img { width:112%; height:112%; object-fit:contain; margin-top:6px; }
+  .nearby-face.ghost { opacity:0.35; }
+  .nearby-num { display:flex; flex-direction:column; align-items:center; line-height:1; min-width:34px; }
+  .nearby-num b { font-size:18px; }
+  .nearby-num small { font-size:8.5px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; opacity:0.8; margin-top:3px; }
+  .nearby-widget.tracking { border-color:#7cf29a; box-shadow:0 0 0 3px rgba(124,242,154,0.25), 0 8px 18px rgba(0,0,0,0.45); }
+  .nearby-widget.catchable { background:linear-gradient(160deg, #2f8f4a, #1d5c30); }
+  .nearby-arrow { font-size:20px; color:#ffb347; display:inline-block; transition:transform 0.3s ease; }
+  .nearby-widget.tracking .nearby-arrow { color:#7cf29a; }
+  .nearby-sheet { position:absolute; right:12px; bottom:84px; z-index:27; width:min(340px, calc(100% - 24px)); max-height:62%; display:flex; flex-direction:column; background:rgba(30,20,45,0.97); border:1.5px solid rgba(255,160,60,0.5); border-radius:18px; box-shadow:0 14px 30px rgba(0,0,0,0.5); color:#f3e9ff; opacity:0; pointer-events:none; transform:translateY(12px); transition:opacity 0.16s ease, transform 0.16s ease; }
+  .nearby-sheet.show { opacity:1; pointer-events:auto; transform:none; }
+  .nearby-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px 8px; }
+  .nearby-head b { font-size:15px; } .nearby-head small { display:block; font-size:11px; font-weight:700; color:#bba9d6; }
+  .nearby-x { border:none; background:rgba(255,255,255,0.08); color:#e8dcff; width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer; flex:none; }
+  .nearby-list { overflow-y:auto; padding:0 8px 10px; }
+  .nearby-row { display:flex; align-items:center; gap:10px; padding:8px; border-radius:13px; background:rgba(255,255,255,0.05); margin-bottom:6px; cursor:pointer; border:1.5px solid transparent; }
+  .nearby-row.tracked { border-color:#7cf29a; background:rgba(124,242,154,0.08); }
+  .nr-sp { width:46px; height:46px; flex:none; border-radius:12px; background:radial-gradient(circle at 40% 35%, #4d3f78, #231a36); display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:26px; }
+  .nr-sp .creature-img { width:100%; height:100%; object-fit:contain; }
+  .nr-info { flex:1; min-width:0; }
+  .nr-name { font-weight:800; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .nr-sub { font-size:11px; font-weight:700; color:#bba9d6; }
+  .nr-go { flex:none; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:62px; font-weight:800; font-size:11.5px; color:#ffe9c2; }
+  .nr-btn { border:none; border-radius:10px; padding:6px 10px; font-weight:800; font-size:12px; cursor:pointer; font-family:inherit; background:rgba(255,179,71,0.18); color:#ffcf8a; }
+  .nr-btn.catch { background:#2e9e46; color:#fff; }
+  .nr-btn.on { background:#7cf29a; color:#123; }
+  .nearby-empty { padding:14px 16px 18px; text-align:center; color:#bba9d6; font-weight:700; font-size:12.5px; line-height:1.45; }
+  .t3-label.tracked { outline:2px solid #7cf29a; border-radius:8px; }
+  @media (max-width: 389px){ .nearby-face:nth-child(3) { display:none; } .nearby-widget { padding:0 10px 0 8px; gap:6px; } }
+  .toto-node.tracked .node-ring { border-color:#7cf29a; box-shadow:0 0 14px #7cf29a; }
+
+  /* ---------- PUMPKIN MENU ---------- */
+  #toto-root .quick-menu { display:flex; flex-direction:column; gap:6px; width:min(300px, calc(100% - 28px)); grid-template-columns:none; padding:12px; }
+  .qm-store { display:flex; align-items:center; gap:10px; width:100%; border:none; border-radius:14px; padding:10px 12px; cursor:pointer; font-family:inherit; text-align:left; color:#3a1d05; background:linear-gradient(135deg,#ffcf6b,#ff8a3d); box-shadow:0 4px 12px rgba(255,138,61,0.35); }
+  .qm-store-icon { font-size:24px; }
+  .qm-store-text { flex:1; display:flex; flex-direction:column; line-height:1.15; }
+  .qm-store-text b { font-size:15px; } .qm-store-text small { font-size:11px; font-weight:700; opacity:0.8; }
+  .qm-store-go { font-size:22px; font-weight:800; }
+  .qm-section { font-size:10px; font-weight:800; letter-spacing:0.09em; text-transform:uppercase; color:#bba9d6; margin:6px 2px 0; }
+  .qm-row { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
+  .qm-row .qm-btn { font-size:11px; padding:9px 2px 7px; }
+
+  /* ---------- PROFILE DRAWER (tap your picture) ---------- */
+  .drawer-back { position:absolute; inset:0; z-index:28; background:rgba(8,4,16,0.5); opacity:0; pointer-events:none; transition:opacity 0.2s ease; }
+  .drawer-back.show { opacity:1; pointer-events:auto; }
+  .profile-drawer { position:absolute; top:0; bottom:0; left:0; z-index:29; width:min(320px, 86%); display:flex; flex-direction:column; gap:12px; padding:18px 16px 20px; overflow-y:auto; color:#f3e9ff; background:linear-gradient(170deg, #33244f, #17111f 72%); border-right:2px solid rgba(255,179,71,0.55); box-shadow:10px 0 30px rgba(0,0,0,0.5); transform:translateX(-104%); transition:transform 0.24s ease; }
+  .profile-drawer.show { transform:none; }
+  .pd-close { position:absolute; top:12px; right:12px; border:none; background:rgba(255,255,255,0.08); color:#e8dcff; width:32px; height:32px; border-radius:50%; font-size:15px; cursor:pointer; }
+  .pd-top { display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; padding-top:6px; }
+  .pd-portrait { width:96px; height:96px; border-radius:50%; border:3px solid #ffb347; background:radial-gradient(circle at 35% 30%, #4a3f6e, #241c38); display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:64px; box-shadow:0 0 0 4px rgba(255,140,40,0.25), 0 8px 18px rgba(0,0,0,0.45); }
+  .pd-portrait .player-avatar-svg { width:0.85em; height:1.19em; }
+  .pd-portrait img { max-width:100%; max-height:100%; }
+  .pd-name { font-weight:800; font-size:20px; margin-top:6px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pd-lv { display:inline-block; background:linear-gradient(135deg,var(--accent),#ff5f6d); color:#fff; font-size:11.5px; font-weight:800; padding:2px 10px; border-radius:10px; }
+  .pd-next { font-size:11.5px; font-weight:700; color:#bba9d6; }
+  .pd-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .pd-stat { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px 12px; display:flex; flex-direction:column; gap:2px; }
+  .pd-stat b { font-size:18px; color:#ffcf8a; }
+  .pd-stat span { font-size:11px; font-weight:700; color:#bba9d6; display:flex; align-items:center; gap:4px; }
+  .pd-best { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.06); border-radius:14px; padding:8px 12px; }
+  .pd-best .nr-sp { width:42px; height:42px; }
+  .pd-best small { display:block; font-size:10.5px; font-weight:800; color:#bba9d6; text-transform:uppercase; letter-spacing:0.06em; }
+  .pd-best b { font-size:14px; }
+  .pd-action { display:flex; align-items:center; gap:12px; width:100%; border:none; border-radius:14px; padding:12px 14px; cursor:pointer; font-family:inherit; text-align:left; color:#f3e9ff; background:rgba(255,255,255,0.08); font-size:22px; }
+  .pd-action span { flex:1; display:flex; flex-direction:column; font-size:15px; font-weight:800; }
+  .pd-action small { font-size:11px; font-weight:700; color:#bba9d6; }
+  .pd-action i { font-style:normal; font-size:20px; color:#ffb347; }
+  .pd-owner { background:rgba(255,179,71,0.1); border:1px dashed rgba(255,179,71,0.5); border-radius:14px; padding:10px 12px; font-size:12px; font-weight:700; color:#ffcf8a; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; }
+  .profile-drawer .admin-box { margin-top:0; }
+
+  /* ---------- SETTINGS ---------- */
+  .settings-body { display:flex; flex-direction:column; gap:14px; padding-bottom:30px; }
+  .set-group { background:#fff; border-radius:16px; padding:6px 14px; box-shadow:0 3px 10px rgba(0,0,0,0.06); }
+  .set-title { font-size:12px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:#8a7aa8; padding:8px 0 4px; }
+  .set-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-top:1px solid #f1eaf8; font-weight:800; font-size:14px; color:#2d2440; width:100%; background:none; border-left:none; border-right:none; border-bottom:none; font-family:inherit; text-align:left; text-decoration:none; cursor:default; }
+  .set-title + .set-row { border-top:none; }
+  .set-row > span { display:flex; flex-direction:column; min-width:0; }
+  .set-row small { font-size:11.5px; font-weight:700; color:#8a7aa8; overflow:hidden; text-overflow:ellipsis; }
+  .set-btn { cursor:pointer; } .set-btn i { font-style:normal; color:#b8a6d4; font-size:18px; }
+  .set-col { flex-direction:column; align-items:stretch; }
+  .set-slider input[type=range] { flex:1; max-width:56%; accent-color:#ff8a3d; }
+  .set-slider output { min-width:42px; text-align:right; font-size:12.5px; color:#6b3fa0; }
+  .seg { display:flex; background:#f1eaf8; border-radius:12px; padding:3px; gap:3px; }
+  .seg button { flex:1; border:none; background:none; border-radius:9px; padding:7px 8px; font-weight:800; font-size:12px; color:#6b5a86; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .seg button.on { background:#fff; color:#d6540f; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+  .set-hint { font-size:11.5px; font-weight:700; color:#8a7aa8; }
+  .switch { position:relative; width:48px; height:28px; flex:none; border:none; border-radius:14px; background:#d9d0e6; cursor:pointer; transition:background 0.15s; }
+  .switch::after { content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.2); transition:transform 0.15s; }
+  .switch.on { background:#ff8a3d; } .switch.on::after { transform:translateX(20px); }
+  .set-link { border:none; background:#f1eaf8; color:#6b3fa0; font-weight:800; font-size:12.5px; border-radius:10px; padding:7px 12px; cursor:pointer; font-family:inherit; flex:none; }
+  .set-form { display:none; flex-direction:column; gap:8px; padding:4px 0 12px; }
+  .set-form.open { display:flex; }
+  .set-form input { border:1.5px solid #e4dbf0; border-radius:11px; padding:10px 12px; font-size:14px; font-family:inherit; font-weight:700; color:#2d2440; background:#fbf8ff; }
+  .set-form input:focus { outline:none; border-color:#ff8a3d; }
+  .set-err { font-size:11.5px; font-weight:800; color:#e0405c; min-height:14px; }
+  .set-form-btns { display:flex; gap:8px; } .set-form-btns button { flex:1; }
+  .set-wide { width:100%; border:none; border-radius:12px; padding:12px; margin:10px 0 4px; font-weight:800; font-size:14px; cursor:pointer; font-family:inherit; background:#f1eaf8; color:#6b3fa0; }
+  .set-wide.danger { background:none; color:#e0405c; margin-top:0; font-size:13px; }
+  .set-version { text-align:center; font-size:11.5px; font-weight:700; color:#8a7aa8; padding:4px 0 10px; }
+  #toto-root.no-weatherfx .weather-fx, #toto-root.no-weatherfx .clouds, #toto-root.gfx-low .clouds { display:none !important; }
+
+  /* ---------- SIGN-IN ---------- */
+  .google-slot { display:flex; justify-content:center; min-height:44px; }
+  .g-fallback { font-size:11.5px; font-weight:700; color:#8a7aa8; text-align:center; padding:10px 0; }
+  .reg-google-note { display:none; font-size:11.5px; font-weight:700; color:#2e7d43; background:#e7f8ec; border-radius:10px; padding:8px 10px; text-align:center; line-height:1.4; }
+  .reg-google-note.show { display:block; }
+  .reg-google-note a { color:#6b3fa0; font-weight:800; cursor:pointer; text-decoration:underline; }
+  .install-pill { display:none; align-items:center; gap:8px; border:1.5px solid rgba(255,179,71,0.7); background:rgba(30,20,45,0.85); color:#ffe9c2; font-weight:800; font-size:13px; padding:9px 16px; border-radius:999px; cursor:pointer; font-family:inherit; box-shadow:0 6px 16px rgba(0,0,0,0.35); z-index:2; }
+  .install-pill.show { display:inline-flex; }
+  .install-steps { text-align:left; margin:6px 0 0; padding-left:20px; font-size:13px; line-height:1.5; }
   .divider { display:flex; align-items:center; gap:10px; color:#b3a6cf; font-size:10.5px; font-weight:700; margin: 1px 0; }
   .divider::before, .divider::after { content:''; flex:1; height:1px; background:#e5ddf7; }
 
@@ -1269,21 +1394,23 @@
         </div>
         <div id="login-fields">
           <div class="field-label">EMAIL</div>
-          <div class="field-wrap"><span class="field-icon">✉️</span><input class="field-input" id="login-email" placeholder="you@example.com" /></div>
+          <div class="field-wrap"><span class="field-icon">✉️</span><input class="field-input" id="login-email" type="email" autocomplete="email" placeholder="you@example.com" /></div>
           <div class="field-label">PASSWORD</div>
-          <div class="field-wrap"><span class="field-icon">🔒</span><input class="field-input" id="login-password" type="password" placeholder="••••••••" /></div>
+          <div class="field-wrap"><span class="field-icon">🔒</span><input class="field-input" id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
           <div class="auth-error" id="login-error"></div>
           <button class="btn-primary" id="btn-login">Log In</button>
-          <div class="divider">or</div>
-          <button class="btn-google" id="btn-google-login">🟢 Continue with Google</button>
+          <div class="google-only"><div class="divider">or</div><div class="google-slot" id="google-login-slot"></div></div>
         </div>
         <div id="register-fields" style="display:none;">
           <div class="field-label">USERNAME</div>
           <div class="field-wrap"><span class="field-icon">🧙</span><input class="field-input" id="reg-username" placeholder="TrainerName" /></div>
           <div class="field-label">EMAIL</div>
-          <div class="field-wrap"><span class="field-icon">✉️</span><input class="field-input" id="reg-email" placeholder="you@example.com" /></div>
-          <div class="field-label">PASSWORD</div>
-          <div class="field-wrap"><span class="field-icon">🔒</span><input class="field-input" id="reg-password" type="password" placeholder="••••••••" /></div>
+          <div class="field-wrap"><span class="field-icon">✉️</span><input class="field-input" id="reg-email" type="email" autocomplete="email" placeholder="you@example.com" /></div>
+          <div id="reg-password-wrap">
+            <div class="field-label">PASSWORD</div>
+            <div class="field-wrap"><span class="field-icon">🔒</span><input class="field-input" id="reg-password" type="password" autocomplete="new-password" placeholder="6+ characters" /></div>
+          </div>
+          <div class="reg-google-note" id="reg-google-note"></div>
           <div class="row2">
             <div style="flex:1.4;">
               <div class="field-label">GENDER</div>
@@ -1299,12 +1426,12 @@
           </div>
           <div class="auth-error" id="reg-error"></div>
           <button class="btn-primary" id="btn-register">Create Account</button>
-          <div class="divider">or</div>
-          <button class="btn-google" id="btn-google-register">🟢 Sign up with Google</button>
+          <div class="google-only"><div class="divider">or</div><div class="google-slot" id="google-register-slot"></div></div>
           <div class="legal-agree">By creating an account you agree to our <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</div>
         </div>
         <div class="legal-links"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a></div>
       </div>
+      <button class="install-pill" id="btn-install-auth">📲 Install the TotoQuest app</button>
     </div>
   </div>
 
@@ -1346,10 +1473,6 @@
         <div class="currency-stack">
           <div class="hud-chip" id="hud-candy-chip"><span id="hud-candy">100</span></div>
           <div class="hud-chip" id="hud-gems-chip"><span id="hud-gems">0</span></div>
-          <div class="scroll-chip" id="hud-nearby-chip" title="Nearby Totos">
-            <span class="scroll-icon">📜</span><span class="scroll-glyphs">👻🦇</span>
-            <span class="scroll-count"><span id="hud-nearby">0</span></span>
-          </div>
           <div class="hud-chip env-chip" id="hud-daynight" title="Local time of day, based on your GPS position">
             <span id="daynight-icon">🌙</span><span id="daynight-label">Night</span>
           </div>
@@ -1433,21 +1556,69 @@
         <div class="level-badge" id="hud-level">Lv 1</div>
       </div>
       <div class="quick-menu" id="quick-menu">
-        <button class="nav-btn qm-btn" data-tab="totos"><span class="nav-icon">🎃</span>Totos</button>
-        <button class="nav-btn qm-btn" data-tab="items"><span class="nav-icon">🎒</span>Items</button>
-        <button class="nav-btn qm-btn" data-tab="dex"><span class="nav-icon">📖</span>Dex</button>
-        <button class="nav-btn qm-btn" data-tab="battle"><span class="nav-icon">⚔️</span>Battle</button>
-        <button class="nav-btn qm-btn" data-tab="challenger"><span class="nav-icon">🕯️</span>Challenger</button>
-        <button class="nav-btn qm-btn" data-tab="profile"><span class="nav-icon">👤</span>Profile</button>
-        <button class="qm-btn" id="btn-leaderboard"><span class="nav-icon">🏆</span>Ranks</button>
-        <button class="qm-btn" id="btn-diagnostics"><span class="nav-icon">🛠️</span>Map Status</button>
-        <button class="qm-btn" id="btn-mute"><span class="nav-icon" id="btn-mute-icon">🔊</span>Sound</button>
-        <button class="qm-btn" id="btn-tutorial"><span class="nav-icon">📘</span>Tutorial</button>
+        <button class="qm-store" id="btn-menu-store"><span class="qm-store-icon">🛍️</span><span class="qm-store-text"><b>Store</b><small>Get candy &amp; gems</small></span><span class="qm-store-go">›</span></button>
+        <div class="qm-section">Collection</div>
+        <div class="qm-row">
+          <button class="nav-btn qm-btn" data-tab="totos"><span class="nav-icon">🎃</span>Totos</button>
+          <button class="nav-btn qm-btn" data-tab="dex"><span class="nav-icon">📖</span>Dex</button>
+          <button class="nav-btn qm-btn" data-tab="items"><span class="nav-icon">🎒</span>Items</button>
+        </div>
+        <div class="qm-section">Battle</div>
+        <div class="qm-row">
+          <button class="nav-btn qm-btn" data-tab="battle"><span class="nav-icon">⚔️</span>Gyms</button>
+          <button class="nav-btn qm-btn" data-tab="challenger"><span class="nav-icon">🕯️</span>Challenger</button>
+          <button class="qm-btn" id="btn-leaderboard"><span class="nav-icon">🏆</span>Ranks</button>
+        </div>
       </div>
       <div class="pumpkin-fab-wrap">
         <div class="pumpkin-glow"></div>
         <button class="pumpkin-fab" id="btn-menu" title="Menu">🎃</button>
       </div>
+
+      <!-- NEARBY TOTOS: the closest wild Totos; tap for the list, tap one to catch or track it -->
+      <button class="nearby-widget" id="nearby-widget" aria-label="Nearby Totos"></button>
+      <div class="nearby-sheet" id="nearby-sheet" role="dialog" aria-label="Nearby Totos">
+        <div class="nearby-head"><div><b>Nearby Totos</b><small id="nearby-sub">Within 200 m of you</small></div><button class="nearby-x" id="nearby-close" aria-label="Close">✕</button></div>
+        <div class="nearby-list" id="nearby-list"></div>
+      </div>
+
+      <!-- PROFILE DRAWER: tap your picture -->
+      <div class="drawer-back" id="profile-drawer-back"></div>
+      <aside class="profile-drawer" id="profile-drawer" aria-label="Your profile">
+        <button class="pd-close" id="pd-close" aria-label="Close">✕</button>
+        <div class="pd-top">
+          <div class="pd-portrait" id="profile-avatar">🧙‍♀️</div>
+          <div class="pd-name" id="profile-name">Trainer</div>
+          <div><span class="pd-lv">Trainer Lv <span id="profile-charlevel">1</span></span></div>
+          <div class="pd-next" id="pd-next"></div>
+        </div>
+        <div class="pd-stats">
+          <div class="pd-stat"><b id="profile-power">0</b><span>⚡ Power</span></div>
+          <div class="pd-stat"><b id="profile-count">0</b><span>🎃 Totos caught</span></div>
+          <div class="pd-stat"><b id="profile-candy">0</b><span id="profile-candy-label">Candy</span></div>
+          <div class="pd-stat"><b id="profile-gems">0</b><span id="profile-gems-label">Gems</span></div>
+        </div>
+        <div class="pd-best" id="pd-best" style="display:none;"></div>
+        <button class="pd-action" id="btn-open-wardrobe">👗<span>Wardrobe<small>Dress your trainer</small></span><i>›</i></button>
+        <button class="pd-action" id="btn-open-settings">⚙️<span>Settings<small>Sound, display &amp; account</small></span><i>›</i></button>
+        <div class="pd-owner" id="pd-owner" style="display:none;">
+          <div>🔐 Owner tools unlock after you sign in with Google.</div>
+          <div class="google-slot" id="google-unlock-slot"></div>
+        </div>
+        <div id="admin-panel" style="display:none;">
+          <div class="admin-box">
+            <div class="admin-title">🛠️ OWNER TOOLS</div>
+            <div class="admin-grid">
+              <button class="admin-btn" data-give="normal">+ Normal Toto</button>
+              <button class="admin-btn" data-give="legendary">+ Legendary Toto</button>
+              <button class="admin-btn" data-give="mythical">+ Mythical Toto</button>
+              <button class="admin-btn" data-give="eternal">+ Eternal Toto</button>
+            </div>
+            <button class="admin-btn" style="width:100%; margin-top:8px; background:#ff8a3d;" id="btn-admin-energy">+1,000,000 Candy &amp; Gems</button>
+            <button class="admin-btn" style="width:100%; margin-top:8px; background:#7b5cff;" id="btn-admin-max-player">👑 Max My Player Level (100)</button>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <div class="diag-overlay" id="diag-overlay">
@@ -1504,37 +1675,58 @@
       </div>
     </div>
 
-    <div class="panel-screen" data-panel="profile">
-      <div class="panel-header">Profile <span class="close-x" data-close>✕</span></div>
-      <div class="panel-body">
-        <div class="profile-card">
-          <div class="av" id="profile-avatar">🧙‍♀️</div>
-          <div><div style="font-weight:800; font-size:16px;" id="profile-name">Trainer</div><div style="font-size:12px; color:#888;" id="profile-email">email</div></div>
+    <div class="panel-screen" data-panel="settings">
+      <div class="panel-header">Settings <span class="close-x" data-close>✕</span></div>
+      <div class="panel-body settings-body">
+        <div class="set-group">
+          <div class="set-title">🔊 Sound</div>
+          <div class="set-row"><span>Sound<small>Music and effects</small></span><button class="switch" id="btn-mute" role="switch" aria-label="Sound on"><span id="btn-mute-icon" hidden></span></button></div>
+          <label class="set-row set-slider"><span>Music</span><input type="range" min="0" max="100" step="5" id="set-music"><output id="set-music-val"></output></label>
+          <label class="set-row set-slider"><span>Sound effects</span><input type="range" min="0" max="100" step="5" id="set-sfx"><output id="set-sfx-val"></output></label>
         </div>
-        <div class="stat-row"><span>Trainer Level</span><span id="profile-charlevel" style="color:#ff8a3d;">1</span></div>
-        <div class="stat-row"><span id="profile-candy-label">Candy</span><span id="profile-candy">100</span></div>
-        <div class="stat-row"><span id="profile-gems-label">Gems</span><span id="profile-gems">0</span></div>
-        <div class="stat-row"><span>Power Level</span><span id="profile-power" style="color:#ff8a3d;">0</span></div>
-        <div class="stat-row"><span>Totos caught</span><span id="profile-count">0</span></div>
-        <div class="stat-row"><span>Gender</span><span id="profile-gender">-</span></div>
-        <div class="stat-row"><span>Age</span><span id="profile-age">-</span></div>
-        <div class="stat-row"><span>App version</span><span id="profile-version">-</span></div>
-        <button class="btn-store" id="btn-open-store">🛍️ Store</button>
-        <div id="admin-panel" style="display:none;">
-          <div class="admin-box">
-            <div class="admin-title">🛠️ ADMIN TOOLS (TyeMax)</div>
-            <div class="admin-grid">
-              <button class="admin-btn" data-give="normal">+ Normal Toto</button>
-              <button class="admin-btn" data-give="legendary">+ Legendary Toto</button>
-              <button class="admin-btn" data-give="mythical">+ Mythical Toto</button>
-              <button class="admin-btn" data-give="eternal">+ Eternal Toto</button>
-            </div>
-            <button class="admin-btn" style="width:100%; margin-top:8px; background:#ff8a3d;" id="btn-admin-energy">+1,000,000 Candy &amp; Gems</button>
-            <button class="admin-btn" style="width:100%; margin-top:8px; background:#7b5cff;" id="btn-admin-max-player">👑 Max My Player Level (100)</button>
+        <div class="set-group">
+          <div class="set-title">🖥️ Display</div>
+          <label class="set-row set-slider"><span>Brightness</span><input type="range" min="60" max="140" step="5" id="set-brightness"><output id="set-brightness-val"></output></label>
+          <div class="set-row set-col"><span>Graphics</span><div class="seg" id="set-graphics"><button data-v="low">Battery saver</button><button data-v="medium">Balanced</button><button data-v="high">High</button></div><small class="set-hint" id="set-graphics-hint"></small></div>
+          <div class="set-row"><span>Weather effects<small>Rain, snow and lightning on the map</small></span><button class="switch" id="set-weatherfx" role="switch" aria-label="Weather effects"></button></div>
+          <div class="set-row"><span>Distances</span><div class="seg" id="set-units"><button data-v="m">Meters</button><button data-v="ft">Feet</button></div></div>
+        </div>
+        <div class="set-group">
+          <div class="set-title">👤 Account</div>
+          <div class="set-row"><span>Username<small id="set-username-val">—</small></span><button class="set-link" data-edit="username">Change</button></div>
+          <div class="set-form" data-form="username">
+            <input id="set-new-username" maxlength="20" autocomplete="off" placeholder="New username">
+            <div class="set-err" id="set-username-err"></div>
+            <div class="set-form-btns"><button class="btn-cancel" data-cancel-form>Cancel</button><button class="btn-catch" id="btn-save-username">Save</button></div>
           </div>
+          <div class="set-row"><span>Email<small id="set-email-val">—</small></span><button class="set-link" data-edit="email" id="set-email-btn">Change</button></div>
+          <div class="set-form" data-form="email">
+            <input id="set-new-email" type="email" autocomplete="email" placeholder="New email">
+            <input id="set-email-pw" type="password" autocomplete="current-password" placeholder="Your password">
+            <div class="set-err" id="set-email-err"></div>
+            <div class="set-form-btns"><button class="btn-cancel" data-cancel-form>Cancel</button><button class="btn-catch" id="btn-save-email">Save</button></div>
+          </div>
+          <div class="set-row" id="set-pw-row"><span>Password<small id="set-pw-val">—</small></span><button class="set-link" data-edit="password" id="set-pw-btn">Change</button></div>
+          <div class="set-form" data-form="password">
+            <input id="set-pw-current" type="password" autocomplete="current-password" placeholder="Current password">
+            <input id="set-pw-new" type="password" autocomplete="new-password" placeholder="New password (6+ characters)">
+            <input id="set-pw-new2" type="password" autocomplete="new-password" placeholder="Type the new password again">
+            <div class="set-err" id="set-pw-err"></div>
+            <div class="set-form-btns"><button class="btn-cancel" data-cancel-form>Cancel</button><button class="btn-catch" id="btn-save-pw">Save</button></div>
+          </div>
+          <div class="set-row"><span>Signed in with<small id="set-signin-val">—</small></span></div>
+          <button class="set-wide" id="btn-logout">Log Out</button>
+          <button class="set-wide danger" id="btn-delete-account">Delete my account</button>
         </div>
-        <button class="btn-logout" id="btn-logout">Log Out</button>
-        <div class="legal-links" style="margin-top:12px;"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a></div>
+        <div class="set-group">
+          <div class="set-title">❓ Help</div>
+          <button class="set-row set-btn" id="btn-install-settings" style="display:none;"><span>📲 Install the app<small>Play full screen from your home screen</small></span><i>›</i></button>
+          <button class="set-row set-btn" id="btn-tutorial"><span>📘 Replay the tutorial</span><i>›</i></button>
+          <button class="set-row set-btn" id="btn-diagnostics"><span>🛠️ Map status</span><i>›</i></button>
+          <a class="set-row set-btn" href="mailto:totoquestofficial@yahoo.com?subject=TotoQuest%20help"><span>✉️ Contact support<small>totoquestofficial@yahoo.com</small></span><i>›</i></a>
+          <div class="legal-links" style="padding:10px 0 4px;"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a></div>
+          <div class="set-version">TotoQuest <span id="profile-version">-</span></div>
+        </div>
       </div>
     </div>
 
@@ -1611,18 +1803,6 @@
   </div>
 
   <!-- LEADERBOARD -->
-  <!-- Tapping the HUD avatar circle (bottom-left) opens this little chooser instead of
-       going straight to a panel — "Customize Character" leads to the wardrobe, "View
-       Profile" is the same destination the quick-menu's own Profile button already uses. -->
-  <div class="modal-back" id="avatar-menu-modal">
-    <div class="modal-card" style="max-width:300px;">
-      <div class="modal-name" style="margin-bottom:12px;">Your Character</div>
-      <button class="btn-primary" style="width:100%; margin-bottom:10px;" id="btn-avatar-customize">🎨 Customize Character</button>
-      <button class="btn-primary" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg,#7b5cff,#4d7cff);" id="btn-avatar-viewprofile">👤 View Profile</button>
-      <button class="btn-cancel" style="width:100%;" data-close-avatar-menu>Cancel</button>
-    </div>
-  </div>
-
   <div class="modal-back" id="leaderboard-modal">
     <div class="modal-card" style="max-width:360px; text-align:left;">
       <div class="modal-name" style="text-align:center; margin-bottom:2px;">🏆 Power Leaderboard</div>
@@ -1727,7 +1907,14 @@
 
 <script>
 (function(){
-  const ADMIN_EMAIL = "tyeandmaxgates@gmail.com";
+  // The owner's email is never written in this public file, only a one-way fingerprint of it, so
+  // the game knows that address needs Google sign-in. Owner tools unlock only after a Google
+  // sign-in that the server confirms (server/supabase/functions/google-auth).
+  const OWNER_EMAIL_SHA256 = 'cbb3a7ca59a2024a269d2f288deb242841d9a0e5fe4fe687a1986fcfc3df0b36';
+  // "Sign in with Google" Client ID from Google Cloud (public, not a secret). Blank = Google
+  // buttons stay hidden and players use email + password.
+  const TQ_GOOGLE_CLIENT_ID = '' || (window.__TQ_GOOGLE_TEST && window.__TQ_GOOGLE_TEST.clientId) || '';
+  let trackedId = null;             // the wild Toto the Nearby widget is pointing you to
   const root = document.getElementById('toto-root');
   const $ = (sel, ctx) => (ctx||root).querySelector(sel);
   const $$ = (sel, ctx) => Array.from((ctx||root).querySelectorAll(sel));
@@ -1740,14 +1927,15 @@
   // procedural stingers. Everything respects one mute toggle, persisted in localStorage
   // (a device setting, not account data, so it isn't part of the save-game payload).
   const Sound = (function(){
-    let ctx = null, master = null, musicGain = null, musicTimer = null, started = false;
+    let ctx = null, master = null, musicGain = null, sfxGain = null, musicTimer = null, started = false, musicVol = 0.7, sfxVol = 0.85;
     let muted = (function(){ try { return localStorage.getItem('totoquest_muted')==='1'; } catch(e){ return false; } })();
     function ensureCtx(){
       if (ctx) return ctx;
       try {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
         master = ctx.createGain(); master.gain.value = muted ? 0 : 0.6; master.connect(ctx.destination);
-        musicGain = ctx.createGain(); musicGain.gain.value = 0.35; musicGain.connect(master);
+        musicGain = ctx.createGain(); musicGain.gain.value = 0.35*musicVol; musicGain.connect(master);
+        sfxGain = ctx.createGain(); sfxGain.gain.value = sfxVol; sfxGain.connect(master);
       } catch(e){ ctx = null; }
       return ctx;
     }
@@ -1756,7 +1944,7 @@
       const c = ensureCtx(); if (!c) return;
       const osc = c.createOscillator(); osc.type = opts.type||'sine'; osc.frequency.value = freq;
       const g = c.createGain(); g.gain.value = 0;
-      osc.connect(g); g.connect(opts.bus||master);
+      osc.connect(g); g.connect(opts.bus||sfxGain||master);
       const t0 = c.currentTime + startAt;
       const peak = opts.gain!=null ? opts.gain : 0.5;
       g.gain.setValueAtTime(0, t0);
@@ -1774,7 +1962,7 @@
       const src = c.createBufferSource(); src.buffer = buf;
       const filt = c.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value = opts.freq||1200;
       const g = c.createGain(); g.gain.value = opts.gain!=null?opts.gain:0.35;
-      src.connect(filt); filt.connect(g); g.connect(master);
+      src.connect(filt); filt.connect(g); g.connect(sfxGain||master);
       src.start(c.currentTime+startAt);
     }
     // Short, cheerful ascending chime — plays when you catch a Toto.
@@ -1834,10 +2022,45 @@
       if (master) master.gain.value = muted ? 0 : 0.6;
     }
     function isMuted(){ return muted; }
+    function setVolumes(m, s){ musicVol = m; sfxVol = s; if (musicGain) musicGain.gain.value = 0.35*m; if (sfxGain) sfxGain.gain.value = s; }
     function resumeIfNeeded(){ if (ctx && ctx.state==='suspended') ctx.resume(); }
-    return { playCatch, playAttack, playAbility, playVictory, playDefeat, startMusic, stopMusic, setMuted, isMuted, resumeIfNeeded, ensureCtx };
+    return { playCatch, playAttack, playAbility, playVictory, playDefeat, startMusic, stopMusic, setMuted, isMuted, setVolumes, resumeIfNeeded, ensureCtx };
   })();
-  function updateMuteIcon(){ const el = document.getElementById('btn-mute-icon'); if (el) el.textContent = Sound.isMuted() ? '🔇' : '🔊'; }
+  function updateMuteIcon(){
+    const on = !Sound.isMuted(), b = document.getElementById('btn-mute');
+    if (b){ b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); }
+  }
+  // ---------------- DEVICE SETTINGS (this phone only, not part of the save) ----------------
+  const SETTINGS_KEY = 'totoquest_settings';
+  const Settings = (function(){
+    const defaults = { music:70, sfx:85, brightness:100, graphics:'high', weatherFx:true, units:'m' };
+    let s = Object.assign({}, defaults);
+    try { s = Object.assign(s, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch(e){}
+    return {
+      get: k=> s[k],
+      set(k, v){ s[k] = v; try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch(e){} applySettings(); },
+      all: ()=> Object.assign({}, s),
+    };
+  })();
+  // distances everywhere in the game: meters (default) or feet, from Settings
+  function fmtDist(m){
+    m = Math.max(0, +m || 0);
+    if (Settings.get('units') === 'ft'){ const ft = m*3.28084; return ft < 1000 ? Math.round(ft)+'ft' : (m/1609.34).toFixed(1)+'mi'; }
+    return m < 1000 ? Math.round(m)+'m' : (m/1000).toFixed(1)+'km';
+  }
+  // Graphics: Battery saver draws at normal resolution and half the frame rate; Balanced is
+  // a bit sharper; High is full sharpness (up to 2x on high-density screens).
+  window.__tqPixelRatio = ()=>{ const dpr = window.devicePixelRatio || 1, g = Settings.get('graphics'); return g === 'low' ? 1 : g === 'medium' ? Math.min(dpr, 1.5) : Math.min(dpr, 2); };
+  window.__tqLowFps = ()=> Settings.get('graphics') === 'low';
+  function applySettings(){
+    Sound.setVolumes(Settings.get('music')/100, Settings.get('sfx')/100);
+    const mv = document.getElementById('map-view'), b = Settings.get('brightness');
+    if (mv) mv.style.filter = b === 100 ? '' : 'brightness('+(b/100).toFixed(2)+')';
+    root.classList.toggle('no-weatherfx', !Settings.get('weatherFx'));
+    root.classList.toggle('gfx-low', Settings.get('graphics') === 'low');
+    if (window.__tqApplyGraphics) window.__tqApplyGraphics();
+  }
+  applySettings();
   // Audio can't start until a real user gesture on most browsers — piggyback on the very
   // first tap/click anywhere in the game to unlock the AudioContext and kick off music.
   document.addEventListener('pointerdown', function firstGesture(){
@@ -1944,9 +2167,9 @@
       { id:'top_default', name:'Classic Robe', rarity:'Starter', unlock:'default',
         description:'The moon-and-pumpkin robe you started your journey in.' },
       { id:'top_level100_tee', name:'Level 100 Achievement Tee', rarity:'Level 100 Achievement', unlock:'level100',
-        description:'The TotoQuest "Master Achiever" medallion on the front and LEVEL 100 across the back. Only for trainers who reach Level 100.',
+        description:'Royal purple with gold trim: the TotoQuest "Master Achiever" medallion big across the front and a gold LEVEL 100 on the back. Only for trainers who reach Level 100.',
         thumb:'assets/wardrobe/tee-thumb.png',
-        preset:{ kind:'tee', color:'#3a2850', trim:'#d4af37' } },
+        preset:{ kind:'tee', color:'#5c3296', trim:'#e8b94a' } },
     ],
     legwear: [
       { id:'legwear_default', name:'Candy-Corn Leggings', rarity:'Starter', unlock:'default',
@@ -1959,6 +2182,10 @@
     accessory: [
       { id:'accessory_default', name:'Jack-o-Staff & Basket', rarity:'Starter', unlock:'default',
         description:'Your enchanted staff and candy basket.' },
+      { id:'acc_l100_broom', name:'Level 100 Pumpkin Broom', rarity:'Level 100 Achievement', unlock:'level100',
+        description:'A witch\'s broom wrapped in a golden ribbon, topped with a glowing pumpkin that reads LEVEL 100. Only for trainers who reach Level 100.',
+        thumb:'assets/wardrobe/l100broom-thumb.png',
+        preset:{ kind:'l100broom', color:'#5a341c', orb:'#ffb020' } },
     ],
   };
   const COSMETIC_SLOT_LABEL = { hat:'Hat', top:'Top', legwear:'Legwear', shoes:'Shoes', accessory:'Accessory' };
@@ -1968,10 +2195,11 @@
   function checkCosmeticUnlocks(){
     state.unlockedCosmetics = state.unlockedCosmetics || [];
     if (state.charLevel >= PLAYER_MAX_LEVEL){
-      const fresh = ['top_level100_tee','hat_prestige'].filter(id=> !state.unlockedCosmetics.includes(id));
+      const fresh = ['top_level100_tee','hat_prestige','acc_l100_broom'].filter(id=> !state.unlockedCosmetics.includes(id));
       if (fresh.length){
         fresh.forEach(id=> state.unlockedCosmetics.push(id));
-        showToast('🏆 Level 100! Unlocked the Level 100 Achievement Tee and the Level 100 Witch Hat — wear them from Customize Character.');
+        const names = { top_level100_tee:'Achievement Tee', hat_prestige:'Witch Hat', acc_l100_broom:'Pumpkin Broom' };
+        showToast('🏆 Level 100 reward'+(fresh.length > 1 ? 's' : '')+' unlocked: '+fresh.map(id=> names[id]).join(', ')+'. Wear '+(fresh.length > 1 ? 'them' : 'it')+' from your profile → Wardrobe.');
         markDirty();
       }
     }
@@ -2698,14 +2926,14 @@
 
   // In-game message boxes. The browser's own confirm()/prompt() pop-ups show the website's
   // address ("bakahideout.github.io says"), so the game asks its questions itself.
-  function gameDialog({ title='', message='', ok='OK', cancel='Cancel', input=null }){
+  function gameDialog({ title='', message='', ok='OK', cancel='Cancel', input=null, inputType='email' }){
     return new Promise(resolve=>{
       const back = $('#game-dialog'), inp = $('#gd-input'), rootEl = document.getElementById('toto-root');
       if (back.parentNode !== rootEl) rootEl.appendChild(back);      // above every screen, even the tutorial
       $('#gd-title').textContent = title; $('#gd-msg').textContent = message;
       $('#gd-ok').textContent = ok;
       $('#gd-cancel').textContent = cancel || ''; $('#gd-cancel').style.display = cancel ? '' : 'none';
-      inp.style.display = input ? '' : 'none'; inp.value = ''; if (input) inp.placeholder = input;
+      inp.style.display = input ? '' : 'none'; inp.value = ''; inp.type = inputType || 'email'; if (input) inp.placeholder = input;
       const done = val=>{ back.classList.remove('show'); $('#gd-ok').onclick = $('#gd-cancel').onclick = null; resolve(val); };
       $('#gd-ok').onclick = ()=> done(input ? (inp.value.trim() || null) : true);
       $('#gd-cancel').onclick = ()=> done(input ? null : false);
@@ -2719,27 +2947,148 @@
   document.addEventListener('contextmenu', e=>{ if (!(e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); }, true);
   document.addEventListener('dragstart', e=>{ if (e.target && /^(IMG|CANVAS|svg)$/i.test(e.target.tagName||'')) e.preventDefault(); }, true);
 
-  function showScreen(name){ $$('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name)); }
+  function showScreen(name){
+    $$('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
+    if (name === 'auth') setTimeout(()=> setupGoogleButtons(), 60);
+  }
   function showToast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
 
   // ---------------- AUTH ----------------
-  $('#tab-login').onclick = ()=>{ $('#tab-login').classList.add('active'); $('#tab-register').classList.remove('active'); $('#login-fields').style.display='block'; $('#register-fields').style.display='none'; };
-  $('#tab-register').onclick = ()=>{ $('#tab-register').classList.add('active'); $('#tab-login').classList.remove('active'); $('#register-fields').style.display='block'; $('#login-fields').style.display='none'; };
+  $('#tab-login').onclick = ()=>{ $('#tab-login').classList.add('active'); $('#tab-register').classList.remove('active'); $('#login-fields').style.display='block'; $('#register-fields').style.display='none'; setupGoogleButtons(); };
+  $('#tab-register').onclick = ()=>{ $('#tab-register').classList.add('active'); $('#tab-login').classList.remove('active'); $('#register-fields').style.display='block'; $('#login-fields').style.display='none'; setupGoogleButtons(); };
   $$('.auth-wrap').forEach(w=> w.addEventListener('scroll', ()=>{ if (w.scrollLeft) w.scrollLeft = 0; }));   // older browsers without overflow:clip
   $$('#gender-select .pill-btn').forEach(btn=>{ btn.onclick = ()=>{ $$('#gender-select .pill-btn').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }; });
 
-  async function doLogin(email){
-    if (!email){ $('#login-error').textContent='Enter your email.'; return; }
-    $('#login-error').textContent='Checking…';
-    const prof = await loadProfileByEmail(email.trim().toLowerCase());
-    if (!prof){ $('#login-error').textContent='No account found — register first.'; return; }
-    $('#login-error').textContent='';
+  // ---------------- ACCOUNTS: passwords, Google sign-in, owner tools ----------------
+  // Saves live on the device. A password is stored only as a salted PBKDF2 hash inside the save.
+  const PW_MIN = 6;
+  const hexOf = b=> Array.from(b, x=> x.toString(16).padStart(2,'0')).join('');
+  const bytesOf = h=> new Uint8Array((String(h).match(/../g) || []).map(x=> parseInt(x, 16)));
+  async function sha256Hex(s){ return hexOf(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))); }
+  async function isOwnerEmail(email){ try { return (await sha256Hex(String(email||'').trim().toLowerCase())) === OWNER_EMAIL_SHA256; } catch(e){ return false; } }
+  async function hashPassword(pw, saltHex){
+    const salt = saltHex ? bytesOf(saltHex) : crypto.getRandomValues(new Uint8Array(16));
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(String(pw)), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', salt, iterations:150000 }, key, 256);
+    return { pwSalt: hexOf(salt), pwHash: hexOf(new Uint8Array(bits)) };
+  }
+  async function checkPassword(pw, prof){
+    if (!prof || !prof.pwHash) return true;
+    try { return (await hashPassword(pw || '', prof.pwSalt)).pwHash === prof.pwHash; } catch(e){ return false; }
+  }
+  function usernameError(name){
+    if (name.length < 2 || name.length > 20) return 'Usernames are 2 to 20 characters.';
+    if (!/^[A-Za-z0-9 _.'-]+$/.test(name)) return 'Use letters, numbers, spaces, dots, dashes or underscores.';
+    return '';
+  }
+  const validEmail = e=> /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+
+  // Owner tools: only after the server confirmed a Google sign-in for the owner's account, and
+  // only for this session (signing in again with Google brings them back).
+  let ownerVerifiedEmail = '', loggedInIsOwnerEmail = false;
+  function isAdminSession(){ return !!ownerVerifiedEmail && !!state.loggedIn && state.email === ownerVerifiedEmail; }
+  async function checkOwnerEmail(){ loggedInIsOwnerEmail = await isOwnerEmail(state.email); }
+  function applyOwnerUi(){
+    const admin = isAdminSession();
+    const ap = $('#admin-panel'); if (ap) ap.style.display = admin ? 'block' : 'none';
+    const po = $('#pd-owner'); if (po) po.style.display = (!admin && loggedInIsOwnerEmail && googleReady()) ? '' : 'none';
+    if (po && po.style.display !== 'none') setupGoogleButtons();
+  }
+
+  // "Sign in with Google": Google's button gives the game a signed token; the google-auth
+  // function checks it with Google and answers with the confirmed email address.
+  const googleReady = ()=> !!TQ_GOOGLE_CLIENT_ID && onlineOn();
+  let gisLoad = null, gisInit = false, pendingGoogle = null;
+  function loadGis(){
+    if (window.google && google.accounts && google.accounts.id) return Promise.resolve();
+    if (!gisLoad) gisLoad = new Promise((res, rej)=>{
+      const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+      s.onload = ()=> res(); s.onerror = ()=>{ gisLoad = null; rej(new Error('blocked')); };
+      document.head.appendChild(s);
+    });
+    return gisLoad;
+  }
+  async function setupGoogleButtons(){
+    $$('.google-only').forEach(el=> el.style.display = googleReady() ? '' : 'none');
+    if (!googleReady()) return;
+    try { await loadGis(); }
+    catch(e){ $$('.google-slot').forEach(el=>{ if (!el.dataset.done) el.innerHTML = '<div class="g-fallback">Google sign-in couldn\'t load. Check your connection and try again.</div>'; }); return; }
+    if (!gisInit){
+      google.accounts.id.initialize({ client_id: TQ_GOOGLE_CLIENT_ID, callback: onGoogleCredential, ux_mode:'popup', auto_select:false, cancel_on_tap_outside:true });
+      gisInit = true;
+    }
+    [['google-login-slot','signin_with'], ['google-register-slot','signup_with'], ['google-unlock-slot','continue_with']].forEach(([id, text])=>{
+      const el = document.getElementById(id);
+      if (!el || el.dataset.done || !el.offsetParent) return;          // render once, when it's on screen
+      const w = Math.max(200, Math.min(320, Math.round(el.getBoundingClientRect().width) || 280));
+      try { google.accounts.id.renderButton(el, { type:'standard', theme:'outline', size:'large', shape:'pill', text, width:w, logo_alignment:'left' }); el.dataset.done = '1'; } catch(e){}
+    });
+  }
+  async function verifyGoogle(credential){
+    const r = await fetch(TQ_ONLINE.url.replace(/\/$/, '') + '/functions/v1/google-auth', {
+      method:'POST', headers:{ 'Content-Type':'application/json', apikey: TQ_ONLINE.anonKey }, body: JSON.stringify({ credential }) });
+    let j = null; try { j = await r.json(); } catch(e){}
+    if (!r.ok || !j || !j.ok) throw new Error((j && j.error) || 'Google sign-in didn\'t go through. Try again.');
+    return j;
+  }
+  async function onGoogleCredential(resp){
+    const inGame = !!state.loggedIn, regTab = $('#tab-register').classList.contains('active');
+    const say = t=>{ if (inGame) showToast(t); else $(regTab ? '#reg-error' : '#login-error').textContent = t; };
+    if (!inGame) say('Checking with Google…');
+    let who;
+    try { who = await verifyGoogle(resp && resp.credential); }
+    catch(e){ say(e.message || 'Google sign-in didn\'t go through. Try again.'); return; }
+    if (inGame){                                     // unlocking owner tools on the account you're playing
+      if (who.email !== state.email){ showToast('That Google account isn\'t the one you\'re playing on.'); return; }
+      ownerVerifiedEmail = who.admin ? who.email : '';
+      if (state.authProvider !== 'google'){ state.authProvider = 'google'; state.googleSub = who.sub; markDirty(); saveNow(false); }
+      applyOwnerUi(); showToast(who.admin ? '🔓 Owner tools unlocked' : 'Signed in with Google'); return;
+    }
+    ownerVerifiedEmail = who.admin ? who.email : '';
+    const prof = await loadProfileByEmail(who.email);
+    if (prof){
+      say('');
+      state = Object.assign({}, state, prof, { loggedIn:true, authProvider:'google', googleSub: who.sub });
+      await rememberEmail(state.email); enterGame(false); return;
+    }
+    // a new trainer: Google confirmed the email, so only the username and age are left
+    pendingGoogle = who;
+    $('#tab-register').click();
+    $('#reg-email').value = who.email; $('#reg-email').readOnly = true;
+    if (!$('#reg-username').value.trim()) $('#reg-username').value = String(who.given_name || who.email.split('@')[0]).replace(/[^A-Za-z0-9 _.'-]/g, '').slice(0, 20);
+    $('#reg-password-wrap').style.display = 'none';
+    $('#reg-google-note').innerHTML = 'Signed in with Google as <b>'+escapeHtml(who.email)+'</b>. Check your username, enter your age, then tap <b>Create Account</b>. <a id="reg-google-cancel">Use a different email</a>';
+    $('#reg-google-note').classList.add('show');
+    $('#reg-error').textContent = '';
+    $('#reg-google-cancel').onclick = cancelPendingGoogle;
+  }
+  function cancelPendingGoogle(){
+    pendingGoogle = null; ownerVerifiedEmail = '';
+    $('#reg-email').readOnly = false; $('#reg-email').value = '';
+    $('#reg-password-wrap').style.display = ''; $('#reg-google-note').classList.remove('show');
+  }
+
+  async function doLogin(email, password){
+    const err = t=> $('#login-error').textContent = t;
+    email = (email||'').trim().toLowerCase();
+    if (!email){ err('Enter your email.'); return; }
+    err('Checking…');
+    const prof = await loadProfileByEmail(email);
+    if (!prof){ err((await isOwnerEmail(email)) ? 'This account signs in with Google.' : 'No account found — register first.'); return; }
+    if (prof.authProvider === 'google'){ err('This account uses Sign in with Google. Tap the Google button below.'); return; }
+    if (prof.pwHash){
+      if (!password){ err('Enter your password.'); return; }
+      if (!(await checkPassword(password, prof))){ err('Wrong password.'); return; }
+    }
+    err('');
     state = Object.assign({}, state, prof, {loggedIn:true});
+    $('#login-password').value = '';
     await rememberEmail(state.email);
     enterGame(false);
+    if (!prof.pwHash) setTimeout(()=> showToast('🔒 Add a password in Settings to protect your account'), 4000);
   }
-  $('#btn-login').onclick = ()=> doLogin($('#login-email').value);
-  $('#btn-google-login').onclick = async ()=> doLogin((await gamePrompt('Enter the Google email you signed up with.', 'you@gmail.com', 'Continue with Google')) || '');
+  $('#btn-login').onclick = ()=> doLogin($('#login-email').value, $('#login-password').value);
+  $('#login-password').addEventListener('keydown', e=>{ if (e.key === 'Enter') $('#btn-login').click(); });
 
   // TotoQuest is for players 13 and older (see terms.html / privacy.html). The age box doesn't
   // say where the line is, and an under-13 answer is remembered on this device for a day so it
@@ -2758,22 +3107,35 @@
   // saves made before the age rule (or with no age) — never put an under-13 save online or in the store
   function underAge(){ const a = parseInt(state.age, 10); return isFinite(a) && a < MIN_AGE; }
 
-  async function doRegister(email, username, gender, age, viaGoogle){
+  async function doRegister(email, username, gender, age, password){
+    const err = t=> $('#reg-error').textContent = t;
     email = (email||'').trim().toLowerCase();
+    username = String(username||'').trim();
     const ageErr = checkSignupAge(age);
-    if (ageErr){ $('#reg-error').textContent = ageErr; return; }
+    if (ageErr){ err(ageErr); return; }
     age = String(parseInt(String(age).trim(), 10));
-    if (!email || !username){ $('#reg-error').textContent='Fill in username and email.'; return; }
-    $('#reg-error').textContent='Checking…';
+    if (!email || !username){ err('Fill in username and email.'); return; }
+    const nameErr = usernameError(username); if (nameErr){ err(nameErr); return; }
+    if (!validEmail(email)){ err('Enter a real email address.'); return; }
+    const viaGoogle = !!(pendingGoogle && pendingGoogle.email === email);
+    if (!viaGoogle){
+      if (await isOwnerEmail(email)){ err('This email signs in with Google.'); return; }
+      if (!password || password.length < PW_MIN){ err('Pick a password with at least '+PW_MIN+' characters.'); return; }
+    }
+    err('Checking…');
     const existing = await loadProfileByEmail(email);
-    if (existing){ $('#reg-error').textContent='Account already exists — log in instead.'; return; }
-    $('#reg-error').textContent='';
+    if (existing){ err('Account already exists — log in instead.'); return; }
+    const pw = viaGoogle ? { pwSalt:'', pwHash:'' } : await hashPassword(password);
+    const googleSub = viaGoogle ? pendingGoogle.sub : '';
+    if (viaGoogle){ pendingGoogle = null; $('#reg-email').readOnly = false; $('#reg-google-note').classList.remove('show'); $('#reg-password-wrap').style.display = ''; }
+    $('#reg-password').value = '';
+    err('');
     // Merge into the existing state object rather than replacing it outright — if the
     // loading screen already got a GPS fix and started fetching the map for this spot
     // (see runLoadingSequence), that in-flight/loaded world data lives on the state
     // object too, and replacing state wholesale used to throw it all away and start over
     // right as you reached the map, which was a chunk of the "lag" getting into a new game.
-    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle: !!viaGoogle, tutorialDone:false, playerId: newUuid(), playerSecret: newPlayerSecret(), pendingCheckoutAt:0, items:{ raidPass:3, elixir:5 }, stopCooldownUntil:0, lastPassDay:'' });
+    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle, authProvider: viaGoogle ? 'google' : 'email', googleSub, pwSalt: pw.pwSalt, pwHash: pw.pwHash, createdAt: Date.now(), tutorialDone:false, playerId: newUuid(), playerSecret: newPlayerSecret(), pendingCheckoutAt:0, items:{ raidPass:3, elixir:5 }, stopCooldownUntil:0, lastPassDay:'' });
     const ok = await saveNow(true);
     await rememberEmail(email);
     if (!ok) $('#reg-error').textContent = 'Could not reach save storage — you can still play, it will retry automatically.';
@@ -2781,14 +3143,7 @@
     $('#char-portrait-title').textContent = 'This is you, '+username+'…';
     showScreen('char');
   }
-  $('#btn-register').onclick = ()=>{ const gender = $('#gender-select .sel').dataset.g; doRegister($('#reg-email').value, $('#reg-username').value, gender, $('#reg-age').value, false); };
-  $('#btn-google-register').onclick = async ()=>{
-    const ageErr = checkSignupAge($('#reg-age').value);
-    if (ageErr){ $('#reg-error').textContent = ageErr; return; }
-    const email = await gamePrompt('Enter the Google email to sign up with.', 'you@gmail.com', 'Sign up with Google'); if (!email) return;
-    const username = email.split('@')[0]; const gender = $('#gender-select .sel').dataset.g;
-    doRegister(email, username, gender, $('#reg-age').value, true);
-  };
+  $('#btn-register').onclick = ()=>{ const gender = $('#gender-select .sel').dataset.g; doRegister($('#reg-email').value, $('#reg-username').value, gender, $('#reg-age').value, $('#reg-password').value); };
   $('#btn-enter-world').onclick = ()=>{
     if (state.collection.length===0){ showStarterSelect(); } else { enterGame(true); }
   };
@@ -2840,8 +3195,8 @@
     if (window.mountPlayer3D) window.mountPlayer3D(state.avatar); else window.__pendingPlayer3DGender = state.avatar;
     $('#avatar-corn-l').innerHTML = CANDY_ICON; $('#avatar-corn-r').innerHTML = CANDY_ICON;
     $('#profile-name').textContent = state.username;
-    $('#profile-email').textContent = state.email; $('#profile-gender').textContent = state.gender; $('#profile-age').textContent = state.age;
-    $('#admin-panel').style.display = (state.email && state.email.toLowerCase()===ADMIN_EMAIL) ? 'block' : 'none';
+    if (ownerVerifiedEmail && ownerVerifiedEmail !== state.email) ownerVerifiedEmail = '';
+    applyOwnerUi(); checkOwnerEmail().then(applyOwnerUi);
     showScreen('game');
     refreshHUD(); renderCollection(); startAutosave(); spawnClouds();
     // online: register this trainer, post the score, and collect anything bought (coming back
@@ -3659,10 +4014,9 @@
   }
   function distanceMetersToWorldPoint(x, y){ return Math.hypot(x-state.playerWorldPos.x, y-state.playerWorldPos.y)/GPS_SCALE; }
   function refreshNodeDistances(){
-    (state.wildTotos||[]).forEach(t=>{ if (t._distEl){ const d = distanceMetersToWorldPoint(t._x,t._y); t._distEl.textContent = Math.round(d)+'m'; t._distEl.classList.toggle('catchable', d <= WILD_RADIUS_M); } });
-    (state.gyms||[]).forEach(g=>{ if (g._distEl) g._distEl.textContent = Math.round(distanceMetersToWorldPoint(g.x,g.y))+'m'; });
-    const nearby = (state.wildTotos||[]).filter(t=> distanceMetersToWorldPoint(t._x,t._y) < 150).length;
-    $('#hud-nearby').textContent = nearby;
+    (state.wildTotos||[]).forEach(t=>{ if (t._distEl){ const d = distanceMetersToWorldPoint(t._x,t._y); t._distEl.textContent = fmtDist(d); t._distEl.classList.toggle('catchable', d <= WILD_RADIUS_M); } });
+    (state.gyms||[]).forEach(g=>{ if (g._distEl) g._distEl.textContent = fmtDist(distanceMetersToWorldPoint(g.x,g.y)); });
+    renderNearby();
   }
 
   const GYM_NAMES = ['Ashfall Gym','Frostpeak Gym','Thunder Gym','Bramble Gym','Cinderpeak Gym','Mossmere Gym','Stormvale Gym','Hollowreach Gym'];
@@ -4796,15 +5150,18 @@
   // ---------------- NAV ----------------
   function closeQuickMenu(){ $('#quick-menu').classList.remove('show'); $('#quick-menu-backdrop').classList.remove('show'); }
   function toggleQuickMenu(){
+    closeNearby(); closeProfileDrawer();
     const open = $('#quick-menu').classList.toggle('show');
     $('#quick-menu-backdrop').classList.toggle('show', open);
   }
   $('#btn-menu').onclick = toggleQuickMenu;
-  $('#quick-menu-backdrop').onclick = closeQuickMenu;
+  $('#quick-menu-backdrop').onclick = ()=>{ closeQuickMenu(); closeNearby(); };
   // Shared by the quick-menu nav buttons AND the HUD avatar's own little
   // Customize/Profile popup (see below) — one place that knows how to switch
   // which full-screen panel is showing, so both entry points stay in sync.
   function openGamePanel(tab){
+    if (tab === 'profile'){ openProfileDrawer(); return; }
+    closeProfileDrawer(); closeNearby();
     // Leaving the wardrobe panel stops its own little rotating-preview WebGL loop rather
     // than leaving it spinning forever in the background once the panel's hidden.
     if (tab!=='wardrobe'){
@@ -4821,6 +5178,7 @@
     if (tab==='battle') renderBattleList();
     if (tab==='profile') refreshHUD();
     if (tab==='wardrobe') renderWardrobe();
+    if (tab==='settings') renderSettings();
   }
   $$('.nav-btn').forEach(btn=>{
     btn.onclick = ()=>{
@@ -4829,6 +5187,248 @@
     };
   });
   $$('[data-close]').forEach(x=> x.onclick = ()=> openGamePanel('map'));
+
+  // ---------------- PROFILE DRAWER (tap your picture) ----------------
+  function renderProfileDrawer(){
+    refreshHUD();
+    const n = state.collection.length, lv = state.charLevel, need = Math.max(0, 2*lv - n);
+    $('#pd-next').textContent = lv >= PLAYER_MAX_LEVEL ? '👑 Level 100: all achievement rewards unlocked!'
+      : need ? 'Catch '+need+' more Toto'+(need === 1 ? '' : 's')+' to reach Lv '+(lv+1) : '';
+    const best = state.collection.slice().sort((a,b)=> b.cp - a.cp)[0];
+    const pb = $('#pd-best');
+    if (best){ pb.style.display = ''; pb.innerHTML = '<div class="nr-sp">'+spriteMarkup(best)+'</div><div><small>Strongest Toto</small><b>'+escapeHtml(best.name)+'</b> · PWR '+best.cp+'</div>'; }
+    else pb.style.display = 'none';
+    applyOwnerUi();
+  }
+  function openProfileDrawer(){
+    closeQuickMenu(); closeNearby(); renderProfileDrawer();
+    $('#profile-drawer').classList.add('show'); $('#profile-drawer-back').classList.add('show');
+  }
+  function closeProfileDrawer(){ const d = $('#profile-drawer'); if (d){ d.classList.remove('show'); $('#profile-drawer-back').classList.remove('show'); } }
+  $('#hud-avatar').style.cursor = 'pointer';
+  $('#hud-avatar').onclick = ()=> $('#profile-drawer').classList.contains('show') ? closeProfileDrawer() : openProfileDrawer();
+  $('#profile-drawer-back').onclick = closeProfileDrawer;
+  $('#pd-close').onclick = closeProfileDrawer;
+  $('#btn-open-wardrobe').onclick = ()=> openGamePanel('wardrobe');
+  $('#btn-open-settings').onclick = ()=> openGamePanel('settings');
+
+  // ---------------- NEARBY TOTOS (bottom-right) ----------------
+  function nearbyTotos(){
+    if (!state.playerWorldPos) return [];
+    return (state.wildTotos||[]).filter(t=> t._node && t._node.isConnected)
+      .map(t=> ({ t, d: distanceMetersToWorldPoint(t._x, t._y) }))
+      .filter(o=> o.d <= NEARBY_RADIUS_M).sort((a,b)=> a.d - b.d);
+  }
+  // which way a Toto is on screen: 0 = straight up, turning clockwise (follows map rotation)
+  function screenBearing(t){
+    const p = state.playerWorldPos, a = (state.cameraRotate||0) * Math.PI/180, dx = t._x - p.x, dy = t._y - p.y;
+    const sx = dx*Math.cos(a) - dy*Math.sin(a), sy = dx*Math.sin(a) + dy*Math.cos(a);
+    return Math.atan2(sx, -sy) * 180/Math.PI;
+  }
+  const arrowHtml = t=> '<span class="nearby-arrow" style="transform:rotate('+screenBearing(t).toFixed(0)+'deg)">▲</span>';
+  const faceHtml = t=> '<span class="nearby-face">'+spriteMarkup(t)+'</span>';
+  function trackedToto(){ return trackedId == null ? null : (state.wildTotos||[]).find(t=> t.id === trackedId && t._node && t._node.isConnected) || null; }
+  function setTracked(t){
+    (state.wildTotos||[]).forEach(w=>{ if (w._tracked){ w._tracked = false; if (w._node) w._node.classList.remove('tracked'); } });
+    trackedId = t ? t.id : null;
+    if (t){ t._tracked = true; if (t._node) t._node.classList.add('tracked'); }
+    renderNearby();
+  }
+  function leavesIn(t){
+    if (t._hold || !t._expiresAt) return '';
+    const left = Math.max(0, t._expiresAt - Date.now());
+    return 'leaves in '+Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0');
+  }
+  function renderNearby(){
+    const w = $('#nearby-widget'); if (!w || !state.loggedIn) return;
+    const list = nearbyTotos(), tr = trackedToto();
+    if (trackedId != null && !tr){ trackedId = null; showToast('The Toto you were tracking wandered off.'); }
+    w.classList.toggle('tracking', !!tr);
+    if (tr){
+      const d = distanceMetersToWorldPoint(tr._x, tr._y), close = d <= WILD_RADIUS_M;
+      w.classList.toggle('catchable', close);
+      w.innerHTML = '<span class="nearby-faces">'+faceHtml(tr)+'</span>' + (close
+        ? '<span class="nearby-num"><b>Catch!</b><small>tap here</small></span>'
+        : arrowHtml(tr)+'<span class="nearby-num"><b>'+fmtDist(d)+'</b><small>tracking</small></span>');
+      w.setAttribute('aria-label', 'Tracking '+tr.name+', '+fmtDist(d)+' away');
+    } else {
+      w.classList.remove('catchable');
+      const faces = list.slice(0, 3).map(o=> faceHtml(o.t)).join('') || '<span class="nearby-face ghost">👻</span>';
+      w.innerHTML = '<span class="nearby-faces">'+faces+'</span><span class="nearby-num"><b>'+list.length+'</b><small>nearby</small></span>';
+      w.setAttribute('aria-label', list.length+' Totos nearby');
+    }
+    if ($('#nearby-sheet').classList.contains('show')) renderNearbySheet(list);
+  }
+  // Rebuilt only when the set of Totos (or what you can do with them) changes; otherwise the
+  // distances, arrows and timers update in place, so a tap never lands on a row being replaced.
+  let nearbySheetKey = '';
+  function renderNearbySheet(list){
+    list = list || nearbyTotos();
+    const key = list.map(o=> o.t.id+(o.d <= WILD_RADIUS_M ? 'c' : '')+(o.t.id === trackedId ? 't' : '')).join(',');
+    if (key && key === nearbySheetKey){
+      const rows = $('#nearby-list').children;
+      list.forEach(({t, d}, i)=>{
+        const r = rows[i]; if (!r) return;
+        const leave = leavesIn(t), sub = r.querySelector('.nr-sub'), dist = r.querySelector('.nr-dist');
+        if (sub) sub.textContent = 'PWR '+t.cp+' · '+(t.tier||'normal')+(leave ? ' · '+leave : '');
+        if (dist) dist.innerHTML = (d <= WILD_RADIUS_M ? '' : arrowHtml(t)+' ')+fmtDist(d);
+      });
+      return;
+    }
+    nearbySheetKey = key;
+    $('#nearby-sub').textContent = list.length ? list.length+' within '+fmtDist(NEARBY_RADIUS_M)+' · closest first' : 'Within '+fmtDist(NEARBY_RADIUS_M)+' of you';
+    if (!list.length){ nearbySheetKey = ''; $('#nearby-list').innerHTML = '<div class="nearby-empty">No Totos close by right now.<br>Keep walking. New ones turn up every minute.</div>'; return; }
+    $('#nearby-list').innerHTML = list.map(({t, d})=>{
+      const close = d <= WILD_RADIUS_M, on = t.id === trackedId, leave = leavesIn(t);
+      return '<div class="nearby-row'+(on ? ' tracked' : '')+'" data-id="'+escapeHtml(String(t.id))+'">'+
+        '<div class="nr-sp">'+spriteMarkup(t)+'</div>'+
+        '<div class="nr-info"><div class="nr-name">'+escapeHtml(t.name)+'</div><div class="nr-sub">PWR '+t.cp+' · '+(t.tier||'normal')+(leave ? ' · '+leave : '')+'</div></div>'+
+        '<div class="nr-go">'+(close ? '<span class="nr-dist">'+fmtDist(d)+'</span><button class="nr-btn catch">Catch</button>'
+          : '<span class="nr-dist">'+arrowHtml(t)+' '+fmtDist(d)+'</span><button class="nr-btn'+(on ? ' on' : '')+'">'+(on ? 'Tracking' : 'Track')+'</button>')+'</div>'+
+      '</div>';
+    }).join('');
+  }
+  function openNearby(){
+    closeQuickMenu(); closeProfileDrawer();
+    $('#nearby-sheet').classList.add('show'); $('#quick-menu-backdrop').classList.add('show');
+    nearbySheetKey = ''; renderNearbySheet();
+  }
+  function closeNearby(){
+    const s = $('#nearby-sheet'); if (!s) return;
+    s.classList.remove('show');
+    if (!$('#quick-menu').classList.contains('show')) $('#quick-menu-backdrop').classList.remove('show');
+  }
+  $('#nearby-widget').onclick = ()=>{
+    const tr = trackedToto();
+    if (tr && distanceMetersToWorldPoint(tr._x, tr._y) <= WILD_RADIUS_M){ closeNearby(); tryStartEncounter(tr); return; }
+    $('#nearby-sheet').classList.contains('show') ? closeNearby() : openNearby();
+  };
+  $('#nearby-close').onclick = closeNearby;
+  $('#nearby-list').onclick = e=>{
+    const row = e.target.closest('.nearby-row'); if (!row) return;
+    const t = (state.wildTotos||[]).find(w=> String(w.id) === row.dataset.id); if (!t) return;
+    if (distanceMetersToWorldPoint(t._x, t._y) <= WILD_RADIUS_M){ closeNearby(); tryStartEncounter(t); return; }
+    if (t.id === trackedId){ setTracked(null); renderNearbySheet(); return; }
+    setTracked(t); closeNearby(); showToast('Tracking '+t.name+'. Follow the arrow!');
+  };
+  setInterval(()=>{ if (state.loggedIn && document.querySelector('.screen[data-screen="game"].active')) renderNearby(); }, 1000);
+
+  // ---------------- INSTALL THE APP ----------------
+  const isStandalone = ()=> (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  const isIOS = ()=> /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function refreshInstallButtons(){
+    const show = !isStandalone() && !document.documentElement.classList.contains('app-installed');
+    const a = $('#btn-install-auth'); if (a) a.classList.toggle('show', show);
+    const s = $('#btn-install-settings'); if (s) s.style.display = show ? '' : 'none';
+  }
+  async function installApp(){
+    const ev = window.__tqInstall && window.__tqInstall.prompt;
+    if (ev){
+      try { ev.prompt(); const choice = await ev.userChoice; window.__tqInstall.prompt = null; if (choice && choice.outcome === 'accepted') document.documentElement.classList.add('app-installed'); }
+      catch(e){}
+      refreshInstallButtons(); return;
+    }
+    const steps = isIOS()
+      ? 'On iPhone or iPad:\n1. Tap the Share button (the square with an arrow) at the bottom or top of Safari.\n2. Scroll down and tap "Add to Home Screen".\n3. Tap "Add". TotoQuest appears on your home screen like an app.'
+      : 'Open your browser\'s menu (⋮ at the top right in Chrome) and tap "Install app" or "Add to Home screen". Then open TotoQuest from your home screen.';
+    gameDialog({ title:'Install TotoQuest', message: steps, ok:'Got it', cancel:null });
+  }
+  $('#btn-install-auth').onclick = installApp;
+  $('#btn-install-settings').onclick = installApp;
+  window.addEventListener('beforeinstallprompt', refreshInstallButtons);
+  window.addEventListener('appinstalled', ()=>{ refreshInstallButtons(); showToast('📲 TotoQuest is on your home screen!'); });
+  refreshInstallButtons();
+
+  // ---------------- SETTINGS ----------------
+  const GFX_HINT = { low:'Smoother on older phones and saves battery.', medium:'A good mix of sharpness and battery life.', high:'The sharpest graphics. Uses the most battery.' };
+  function segSet(id, v){ $$('#'+id+' button').forEach(b=> b.classList.toggle('on', b.dataset.v === v)); }
+  function renderSettings(){
+    const s = Settings.all();
+    $('#set-music').value = s.music; $('#set-music-val').textContent = s.music+'%';
+    $('#set-sfx').value = s.sfx; $('#set-sfx-val').textContent = s.sfx+'%';
+    $('#set-brightness').value = s.brightness; $('#set-brightness-val').textContent = s.brightness+'%';
+    segSet('set-graphics', s.graphics); $('#set-graphics-hint').textContent = GFX_HINT[s.graphics] || '';
+    $('#set-weatherfx').classList.toggle('on', !!s.weatherFx);
+    segSet('set-units', s.units);
+    updateMuteIcon();
+    const google = state.authProvider === 'google';
+    $('#set-username-val').textContent = state.username || '—';
+    $('#set-email-val').textContent = (state.email || '—') + (google ? ' (from Google)' : '');
+    $('#set-email-btn').style.display = google ? 'none' : '';
+    $('#set-pw-row').style.display = google ? 'none' : '';
+    $('#set-pw-val').textContent = state.pwHash ? '••••••••' : 'Not set. Add one to protect your account';
+    $('#set-pw-btn').textContent = state.pwHash ? 'Change' : 'Add';
+    $('#set-signin-val').textContent = google ? 'Google' : 'Email and password';
+    $$('.set-form').forEach(f=> f.classList.remove('open'));
+    const pv = $('#profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION || '-';
+    refreshInstallButtons();
+  }
+  const bindRange = (id, key)=>{ $('#'+id).oninput = e=>{ const v = parseInt(e.target.value, 10); $('#'+id+'-val').textContent = v+'%'; Settings.set(key, v); }; };
+  bindRange('set-music', 'music'); bindRange('set-sfx', 'sfx'); bindRange('set-brightness', 'brightness');
+  $$('#set-graphics button').forEach(b=> b.onclick = ()=>{ Settings.set('graphics', b.dataset.v); segSet('set-graphics', b.dataset.v); $('#set-graphics-hint').textContent = GFX_HINT[b.dataset.v] || ''; });
+  $('#set-weatherfx').onclick = ()=>{ Settings.set('weatherFx', !Settings.get('weatherFx')); $('#set-weatherfx').classList.toggle('on', !!Settings.get('weatherFx')); };
+  $$('#set-units button').forEach(b=> b.onclick = ()=>{ Settings.set('units', b.dataset.v); segSet('set-units', b.dataset.v); refreshNodeDistances(); });
+  $$('[data-edit]').forEach(btn=> btn.onclick = ()=>{
+    const which = btn.dataset.edit, f = $('.set-form[data-form="'+which+'"]'), open = !f.classList.contains('open');
+    $$('.set-form').forEach(x=> x.classList.remove('open'));
+    if (!open) return;
+    f.classList.add('open'); f.querySelectorAll('input').forEach(i=> i.value = ''); f.querySelector('.set-err').textContent = '';
+    if (which === 'password') $('#set-pw-current').style.display = state.pwHash ? '' : 'none';
+    if (which === 'email') $('#set-email-pw').style.display = state.pwHash ? '' : 'none';
+    if (which === 'username') $('#set-new-username').value = state.username || '';
+    setTimeout(()=>{ const i = Array.from(f.querySelectorAll('input')).find(x=> x.style.display !== 'none'); if (i) i.focus(); }, 30);
+  });
+  $$('[data-cancel-form]').forEach(b=> b.onclick = ()=> b.closest('.set-form').classList.remove('open'));
+  $('#btn-save-username').onclick = async ()=>{
+    const name = $('#set-new-username').value.trim(), e = usernameError(name);
+    if (e){ $('#set-username-err').textContent = e; return; }
+    state.username = name; markDirty(); await saveNow(true);
+    $('#profile-name').textContent = name; submitScoreOnline(true);
+    renderSettings(); showToast('Username changed to '+name);
+  };
+  $('#btn-save-email').onclick = async ()=>{
+    const err = t=>{ $('#set-email-err').textContent = t; };
+    const ne = $('#set-new-email').value.trim().toLowerCase();
+    if (!validEmail(ne)) return err('Enter a real email address.');
+    if (ne === state.email) return err('That\'s already your email.');
+    if (state.pwHash && !(await checkPassword($('#set-email-pw').value, state))) return err('Wrong password.');
+    if (await isOwnerEmail(ne)) return err('That email signs in with Google.');
+    if (await loadProfileByEmail(ne)) return err('There\'s already an account with that email on this device.');
+    const old = state.email; state.email = ne;
+    if (!(await saveNow(true))){ state.email = old; return err('Couldn\'t save. Try again.'); }
+    await rawDelete('totoquest-profile:'+old); await rememberEmail(ne);
+    await checkOwnerEmail(); renderSettings(); showToast('Email changed');
+  };
+  $('#btn-save-pw').onclick = async ()=>{
+    const err = t=>{ $('#set-pw-err').textContent = t; };
+    const cur = $('#set-pw-current').value, n1 = $('#set-pw-new').value, n2 = $('#set-pw-new2').value;
+    if (state.pwHash && !(await checkPassword(cur, state))) return err('Your current password is wrong.');
+    if (n1.length < PW_MIN) return err('Use at least '+PW_MIN+' characters.');
+    if (n1 !== n2) return err('The new passwords don\'t match.');
+    Object.assign(state, await hashPassword(n1)); markDirty(); await saveNow(true);
+    renderSettings(); showToast('🔒 Password saved');
+  };
+  $('#btn-delete-account').onclick = async ()=>{
+    if (!(await gameConfirm('This deletes your trainer, Totos and items from this device and removes you from the leaderboard. Candy and gems you bought can\'t be given back. This can\'t be undone.', 'Delete your account?', 'Delete', 'Keep playing'))) return;
+    if (state.pwHash){
+      const pw = await gameDialog({ title:'Confirm with your password', message:'Enter your password to delete your account.', input:'Password', inputType:'password', ok:'Delete', cancel:'Cancel' });
+      if (!pw) return;
+      if (!(await checkPassword(pw, state))){ showToast('Wrong password. Your account was not deleted.'); return; }
+    }
+    let onlineGone = true;
+    if (onlineOn() && state.playerId && state.playerSecret){
+      try { onlineGone = !!(await sbRpc('delete_player', { p_id: state.playerId, p_secret: state.playerSecret })); } catch(e){ onlineGone = false; }
+    }
+    const email = state.email;
+    stopAutosave(); dirty = false;
+    await rawDelete('totoquest-profile:'+email); await forgetRememberedEmail();
+    try { if (watchId!==null) navigator.geolocation.clearWatch(watchId); } catch(e){}
+    watchId = null; ownerVerifiedEmail = ''; trackedId = null;
+    state.loggedIn = false; state.email = '';           // nothing can save it again
+    openGamePanel('map'); showScreen('auth');
+    gameDialog({ title:'Account deleted', message: onlineGone ? 'Your account has been deleted.'
+      : 'Your account was deleted from this device. We couldn\'t reach the leaderboard just now, so email totoquestofficial@yahoo.com and we\'ll remove your entry.', ok:'OK', cancel:null });
+  };
 
   // ---------------- WARDROBE (character customization) ----------------
   let wardrobeUi = { slot:'hat', selectedId:null, closeUp:false };
@@ -5061,7 +5661,7 @@
     return '<div class="toto-card shrine-row" data-gym="'+g.id+'">'+
       '<div class="sp'+glowClassFor(g.boss.tier)+'">'+spriteMarkup(g.boss)+'</div>'+
       '<div class="info"><div class="nm" style="font-size:13px;">'+g.name+'</div><div class="cp">'+g.boss.name+' · PWR '+g.boss.cp+' · '+g.boss.tier+'</div></div>'+
-      '<div><span class="range-tag '+(inRange?'range-in':'range-out')+'">'+distM+'m '+(inRange?'· In range':'· Too far')+'</span></div>'+
+      '<div><span class="range-tag '+(inRange?'range-in':'range-out')+'">'+fmtDist(distM)+' '+(inRange?'· In range':'· Too far')+'</span></div>'+
     '</div>';
   }
   function shrineRowHtml(sh){
@@ -5173,12 +5773,12 @@
   function renderStopModal(){
     if (!openStop) return;
     const d = distanceMetersToWorldPoint(openStop.x, openStop.y), left = stopCooldownLeft(), btn = $('#btn-stop-spin');
-    $('#stop-sub').textContent = Math.round(d)+' m away';
+    $('#stop-sub').textContent = fmtDist(d)+' away';
     const src = (left && !openStop.spun) ? 'assets/stops/stop-rest.png' : 'assets/stops/stop.png';
     if ($('#stop-img').getAttribute('src') !== src) $('#stop-img').setAttribute('src', src);
     if (openStop.spun){ btn.disabled = true; btn.textContent = 'Spun!'; }
     else if (left){ btn.disabled = true; btn.textContent = '⏳ '+fmtMS(left); $('#stop-msg').textContent = 'You can spin 1 PumpkinStop every 10 minutes — next spin in '+fmtMS(left)+'.'; }
-    else if (d > STOP_RADIUS_M){ btn.disabled = true; btn.textContent = 'Too far'; $('#stop-msg').textContent = 'Walk within '+STOP_RADIUS_M+' m of it to spin.'; }
+    else if (d > STOP_RADIUS_M){ btn.disabled = true; btn.textContent = 'Too far'; $('#stop-msg').textContent = 'Walk within '+fmtDist(STOP_RADIUS_M)+' of it to spin.'; }
     else { btn.disabled = false; btn.textContent = '🎃 Spin'; $('#stop-msg').textContent = 'Spin it for candy and items!'; }
     btn.style.opacity = btn.disabled ? '0.55' : '1';
   }
@@ -5220,7 +5820,7 @@
   let pendingCatch = null;
   function tryStartEncounter(t){
     const distM = distanceMetersToWorldPoint(t._x, t._y);
-    if (distM > WILD_RADIUS_M){ showToast('Too far ('+Math.round(distM)+'m) — get within '+WILD_RADIUS_M+'m of it.'); return; }
+    if (distM > WILD_RADIUS_M){ showToast('Too far ('+fmtDist(distM)+') — get within '+fmtDist(WILD_RADIUS_M)+' of it.'); return; }
     pendingCatch = t;
     $('#enc-sprite').innerHTML = spriteMarkup(t); $('#enc-name').textContent = t.name;
     const sub = ()=>{
@@ -5235,6 +5835,7 @@
   $('#btn-throw').onclick = ()=>{
     if (!pendingCatch) return;
     const caught = pendingCatch;
+    if (caught.id === trackedId) trackedId = null;
     const respawnX = caught._x, respawnY = caught._y, respawnChunk = caught._chunkKey;
     finalizeCatch(caught);
     removeTotoFromMap(caught);
@@ -5248,7 +5849,7 @@
   };
   function tryStartGymRaid(gym){
     const distM = distanceMetersToWorldPoint(gym.x, gym.y);
-    if (distM > GYM_RADIUS_M){ showToast('Too far ('+Math.round(distM)+'m) — get within '+GYM_RADIUS_M+'m of the gym.'); return; }
+    if (distM > GYM_RADIUS_M){ showToast('Too far ('+fmtDist(distM)+') — get within '+fmtDist(GYM_RADIUS_M)+' of the gym.'); return; }
     if ((ensureItems().raidPass||0) <= 0){ showToast('🎟️ You need a Pumpkin Raid Pass to battle a Gym — spin PumpkinStops to get one.'); return; }
     openBattleSetup({ type:'gym', gym });
   }
@@ -5435,7 +6036,7 @@
     const maxed = t.level >= TOTO_MAX_LEVEL; const cost = powerUpCost(t);
     $('#det-msg').innerHTML = maxed ? 'Max level for this tier!' : ('Power Up cost: '+cost.candy+' '+candyIconHtml(14));
     $('#btn-power-up').disabled = maxed; $('#btn-power-up').innerHTML = maxed ? '★ MAX LEVEL' : 'Power Up';
-    const isAdmin = state.email && state.email.toLowerCase()===ADMIN_EMAIL;
+    const isAdmin = isAdminSession();
     $('#btn-admin-max-toto').style.display = (isAdmin && !maxed) ? 'block' : 'none';
     renderAbilities(t);
     $('#detail-modal').classList.add('active');
@@ -5459,15 +6060,16 @@
   // ---------------- ADMIN ----------------
   $$('.admin-btn[data-give]').forEach(btn=>{
     btn.onclick = ()=>{
+      if (!isAdminSession()) return;
       const t = makeToto(btn.dataset.give); state.collection.push(t);
       showToast('Admin: added '+t.name+' ('+btn.dataset.give+')');
       renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     };
   });
-  $('#btn-admin-energy').onclick = ()=>{ state.candy += 1000000; state.gems += 1000000; refreshHUD(); markDirty(); saveNow(false); showToast('Admin: +1,000,000 Candy & Gems'); };
-  $('#btn-admin-max-player').onclick = ()=>{ state.charLevel = PLAYER_MAX_LEVEL; refreshHUD(); markDirty(); saveNow(false); showToast('Admin: Player level maxed to '+PLAYER_MAX_LEVEL); };
+  $('#btn-admin-energy').onclick = ()=>{ if (!isAdminSession()) return; state.candy += 1000000; state.gems += 1000000; refreshHUD(); markDirty(); saveNow(false); showToast('Admin: +1,000,000 Candy & Gems'); };
+  $('#btn-admin-max-player').onclick = ()=>{ if (!isAdminSession()) return; state.charLevel = PLAYER_MAX_LEVEL; refreshHUD(); markDirty(); saveNow(false); showToast('Admin: Player level maxed to '+PLAYER_MAX_LEVEL); };
   $('#btn-admin-max-toto').onclick = ()=>{
-    if (!detailTarget) return;
+    if (!detailTarget || !isAdminSession()) return;
     applyLevelStats(detailTarget, TOTO_MAX_LEVEL);
     refreshHUD(); markDirty(); saveNow(false);
     openDetail(detailTarget.id); renderCollection();
@@ -5475,11 +6077,6 @@
   };
 
   $('#btn-leaderboard').onclick = ()=>{ closeQuickMenu(); $('#leaderboard-modal').classList.add('active'); loadLeaderboard(); };
-  $('#hud-avatar').style.cursor = 'pointer';
-  $('#hud-avatar').onclick = ()=>{ $('#avatar-menu-modal').classList.add('active'); };
-  $('#btn-avatar-customize').onclick = ()=>{ $('#avatar-menu-modal').classList.remove('active'); openGamePanel('wardrobe'); };
-  $('#btn-avatar-viewprofile').onclick = ()=>{ $('#avatar-menu-modal').classList.remove('active'); openGamePanel('profile'); };
-  $('[data-close-avatar-menu]').onclick = ()=> $('#avatar-menu-modal').classList.remove('active');
   function renderDiagnostics(){
     const a = state.geoAnchor;
     const regionCount = state.regionEls ? state.regionEls.size : 0;
@@ -5501,6 +6098,7 @@
     $('#diag-body').textContent = lines.join('\n');
   }
   $('#btn-diagnostics').onclick = ()=>{ closeQuickMenu(); renderDiagnostics(); $('#diag-overlay').classList.add('show'); };
+  $('#btn-mute').setAttribute('aria-checked', Sound.isMuted() ? 'false' : 'true');
   updateMuteIcon();
   $('#btn-mute').onclick = ()=>{
     Sound.setMuted(!Sound.isMuted());
@@ -5584,7 +6182,7 @@
         '<div class="info"><div class="amt">Buy Coins with Gems</div><div class="rate">Coming soon</div></div>'+
         '<button class="price-btn" disabled style="opacity:0.5; cursor:default;">Soon</button>'+
       '</div>';
-    if (state.email && state.email.toLowerCase()===ADMIN_EMAIL){
+    if (isAdminSession()){
       html += '<div class="store-section-title">🧪 Admin Testing</div>'+
         '<div class="store-tier test" data-kind="candy" data-amount="10000" data-price="0" data-test="1">'+
           '<div class="icon">'+candyIconHtml(22)+'</div>'+
@@ -5603,6 +6201,7 @@
         const kind = row.dataset.kind, amount = parseInt(row.dataset.amount,10), price = parseFloat(row.dataset.price);
         const label = CURRENCY_META[kind].label;
         if (row.dataset.test){
+          if (!isAdminSession()) return;
           state[kind] += amount;
           refreshHUD(); markDirty(); saveNow(false);
           showToast('Admin test: +'+amount.toLocaleString()+' '+label);
@@ -5613,7 +6212,8 @@
       };
     });
   }
-  $('#btn-open-store').onclick = ()=>{ $('#store-modal').classList.add('active'); renderStore(); if (paymentsOn()) watchForPurchase(1); };
+  function openStore(){ $('#store-modal').classList.add('active'); renderStore(); if (paymentsOn()) watchForPurchase(1); }
+  $('#btn-menu-store').onclick = ()=>{ closeQuickMenu(); openStore(); };
   $('[data-close-store]').onclick = ()=> $('#store-modal').classList.remove('active');
 
   // ---------------- LOGOUT ----------------
@@ -5621,7 +6221,8 @@
     await saveNow(true); stopAutosave();
     await forgetRememberedEmail();
     try { if (watchId!==null) navigator.geolocation.clearWatch(watchId); } catch(e){}
-    watchId=null;
+    watchId=null; ownerVerifiedEmail = ''; trackedId = null;
+    closeProfileDrawer(); closeNearby(); openGamePanel('map');
     state.loggedIn = false; showScreen('auth'); showToast('Logged out — progress saved.');
   };
 
@@ -6830,7 +7431,7 @@
         { title:'Throw!', target:()=> q('#btn-throw'), tap:true, cardAt:'top', text:'Tap Throw to catch it. Every Toto you catch starts at Lv 1 — you train it up yourself.', until:()=> state.collection.length > startCatches,
           keep:()=>{ if (!$('#encounter-modal').classList.contains('active') && state.collection.length <= startCatches) go(i-1); },   // ran away? try again
           leave:()=>{ if (tutToto) tutToto._hold = false; } },
-        { title:'Totos nearby', target:()=> q('#hud-nearby-chip'), text:'This counts the Totos near you. Wild Totos wander off after 3 minutes, and a new one turns up in the same spot a minute later — so keep checking around!' },
+        { title:'Totos nearby', target:()=> q('#nearby-widget'), text:'The Totos closest to you show down here. Tap it for the list: tap Track and follow the arrow, then Catch when you\'re close. Wild Totos wander off after 3 minutes, and a new one turns up in the same spot a minute later.' },
         { title:'PumpkinStops', enter:()=>{ pickStop(); ghostTrainer(true); }, target:stopBox,
           text:()=> 'Glowing signposts like this are PumpkinStops — at parks, playgrounds, churches, monuments and on every street. Spin one for 5 candy, and usually a Healing Elixir or a Raid Pass too. You can spin 1 stop every 10 minutes.'
             + (canSpinNow() ? ' There\'s one right by you — let\'s spin it!' : (stopBox() ? ' Walk within 40 m of one to spin it.' : ' There isn\'t one on screen right now — look out for them as you walk.')) },
@@ -6867,9 +7468,9 @@
         { title:'Challenger Shrines', enter:()=> openGamePanel('challenger'), target:()=> q('#challenger-list > *') || q('.panel-screen[data-panel="challenger"] .panel-header'),
           text:'Mighty Eternal guardians you can battle from anywhere, alone or in a group — no pass needed. They\'re tough: train your Totos first, or bring a team with a Tank, Healer and Support.' },
         { title:'Teamwork', enter:closeAll, text:'In Group Battles, each Toto plays its role: Tanks can Taunt so the boss attacks only them, Healers keep everyone alive, Supports protect and power up the team, and Attackers deal the big damage. For a heal or shield, tap the ability, then tap who on the team list.' },
-        { title:'Your trainer', target:()=> q('#hud-avatar'), text:'Tap your picture to dress your trainer — new items replace what she\'s wearing, and you can try things on first. Reach trainer Level 100 to earn the Level 100 Achievement Tee and the Level 100 Witch Hat. Your Profile and the Store are here too.' },
+        { title:'Your trainer', target:()=> q('#hud-avatar'), text:'Tap your picture for your profile. Open the Wardrobe to dress your trainer (new items replace what she\'s wearing, and you can try things on first), and Settings for sound, brightness, graphics and your account. Reach trainer Level 100 for the Level 100 Tee, Witch Hat and Pumpkin Broom.' },
         { title:'More in the menu', enter:()=>{ $('#quick-menu').classList.add('show'); $('#quick-menu-backdrop').classList.add('show'); }, target:()=> q('#quick-menu'),
-          text:'Items is your bag (Raid Passes and Healing Elixirs), Dex tracks every kind of Toto you\'ve found, Ranks shows the top trainers, and Tutorial plays this lesson again any time.', leave:closeAll },
+          text:'The Store is at the top. Items is your bag (Raid Passes and Healing Elixirs), Dex tracks every kind of Toto you\'ve found, and Ranks shows the top trainers. You can replay this lesson any time from Settings.', leave:closeAll },
         { title:'You\'re ready! 🎃', text:'Here are 100 candy to get you started. Go catch some Totos!', nextLabel:'Let\'s go!' }
       ];
     }
@@ -6988,7 +7589,7 @@
     return { start, isRunning: ()=> running };
   })();
   window.TotoTutorial = Tutorial;
-  $('#btn-tutorial').onclick = ()=>{ closeQuickMenu(); Tutorial.start(); };
+  $('#btn-tutorial').onclick = ()=>{ closeQuickMenu(); openGamePanel('map'); Tutorial.start(); };
 
   // ---------------- BOOT: stay logged in until an explicit Logout ----------------
   // ---------------- LOADING SCREEN ----------------
@@ -7064,7 +7665,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v49';
+window.TQ_APP_VERSION = 'v50';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -7433,7 +8034,7 @@ window.TQ_APP_VERSION = 'v49';
     function getTeePrintTexture(mirrored){
       const k = mirrored ? 'm' : 'n';
       if (teePrintTex[k]) return teePrintTex[k];
-      const tex = new THREE.TextureLoader().load('assets/wardrobe/tee-tex.jpg');
+      const tex = new THREE.TextureLoader().load('assets/wardrobe/tee-tex2.jpg');
       tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.RepeatWrapping; tex.anisotropy = 4;
       if (mirrored){ tex.repeat.x = -1; tex.offset.x = 1; }
       teePrintTex[k] = tex;
@@ -7751,6 +8352,76 @@ window.TQ_APP_VERSION = 'v49';
       return g;
     }
 
+    // ---- Level 100 Pumpkin Broom (earned at trainer Level 100): a broom wrapped in a gold
+    // ribbon, standing at her side, topped with a glowing pumpkin that reads LEVEL 100.
+    // The pumpkin's skin is a picture (front = -Z, like her face); the male figure is
+    // mirrored as a whole, so he gets a flipped copy to keep the letters reading right.
+    const l100BroomTex = {};
+    function l100BroomTexture(file, mirrored){
+      const k = file + (mirrored ? 'm' : '');
+      if (l100BroomTex[k]) return l100BroomTex[k];
+      const t = new THREE.TextureLoader().load('assets/wardrobe/' + file);
+      t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.wrapS = THREE.RepeatWrapping;
+      if (mirrored){ t.repeat.x = -1; t.offset.x = 0.5; }       // flip around the front (u 0.75) so the words stay in front
+      return (l100BroomTex[k] = t);
+    }
+    let strawTex = null;
+    function makeStrawTexture(){
+      if (strawTex) return strawTex;
+      const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#d9a441'; ctx.fillRect(0, 0, 256, 64);
+      for (let i = 0; i < 240; i++){
+        const x = (i * 97.3) % 256;
+        ctx.strokeStyle = ['#b07a22','#f0c560','#8c5a16','#e8b44c'][i % 4]; ctx.lineWidth = 1 + (i % 3) * 0.6;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + ((i * 37) % 7) - 3, 64); ctx.stroke();
+      }
+      strawTex = new THREE.CanvasTexture(c); strawTex.wrapS = THREE.RepeatWrapping; strawTex.colorSpace = THREE.SRGBColorSpace;
+      return strawTex;
+    }
+    function buildL100Broom(mirrored){
+      const g = new THREE.Group();
+      const wood = toon('#5a341c'), gold = toon('#f2c14e', { emissive:'#7a4a00', emissiveIntensity:0.35 });
+      // handle: gently curved polished wood, with a gold ribbon spiralling up it
+      const handle = new THREE.CatmullRomCurve3([[0,0.28],[0.006,0.6],[-0.004,0.95],[0.005,1.3],[0,1.62]].map(([x,y])=> new THREE.Vector3(x, y, 0)));
+      part(g, new THREE.TubeGeometry(handle, 40, 0.022, 10, false), wood, { outline:0.007 });
+      const hel = [];
+      for (let i = 0; i <= 120; i++){ const t = i/120, a = t*Math.PI*2*5; hel.push(new THREE.Vector3(Math.cos(a)*0.026, 0.42 + t*1.1, Math.sin(a)*0.026)); }
+      part(g, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(hel), 240, 0.006, 5, false), gold, { outline:0 });
+      part(g, new THREE.CylinderGeometry(0.03, 0.03, 0.04, 16), gold, { pos:[0, 0.36, 0], outline:0.005 });
+      // broom head: a flared straw bundle tied with a purple ribbon
+      const prof = [[0.11,0.0],[0.13,0.02],[0.122,0.07],[0.1,0.15],[0.07,0.24],[0.04,0.3],[0.026,0.34]].map(([r,y])=> new THREE.Vector2(r, y));   // bottom to top, so it faces outward
+      part(g, new THREE.LatheGeometry(prof, 28), toon('#ffffff', { map: makeStrawTexture() }), { outline:0.008 });
+      part(g, new THREE.TorusGeometry(0.05, 0.012, 8, 20), toon('#6b3fa0'), { pos:[0, 0.27, 0], rot:[Math.PI/2, 0, 0], outline:0.004 });
+      // the pumpkin: ribbed, a little squat, with a stem, a curly vine and a leaf
+      const R = 0.2;
+      const geo = new THREE.SphereGeometry(R, 56, 36);
+      const pos = geo.attributes.position, v = new THREE.Vector3();
+      for (let i = 0; i < pos.count; i++){
+        v.fromBufferAttribute(pos, i);
+        const phi = Math.atan2(v.z, v.x), groove = 1 - 0.05*(1 - Math.pow(Math.abs(Math.sin(5*phi)), 0.35));
+        const ny = v.y / R, top = ny > 0.75 ? (ny - 0.75)*0.35 : 0, bot = ny < -0.8 ? (-0.8 - ny)*0.3 : 0;
+        pos.setXYZ(i, v.x*groove, v.y*0.86 - top*R + bot*R, v.z*groove);
+      }
+      geo.computeVertexNormals();
+      const pumpkin = new THREE.Group(); pumpkin.position.set(0, 1.62 + R*0.8, 0); g.add(pumpkin);
+      part(pumpkin, geo, toon('#ffffff', { map: l100BroomTexture('l100broom-pumpkin.jpg', mirrored),
+        emissive:'#ffc23a', emissiveMap: l100BroomTexture('l100broom-glow.png', mirrored), emissiveIntensity:0.55 }), { outline:0.009 });
+      part(pumpkin, new THREE.CylinderGeometry(0.018, 0.026, 0.08, 7), toon('#4b6b23'), { pos:[0.005, R*0.86 + 0.02, 0], rot:[0, 0, 0.3], outline:0.005 });
+      const vine = [];
+      for (let i = 0; i <= 40; i++){ const t = i/40, a = t*Math.PI*3; vine.push(new THREE.Vector3(0.02 + Math.cos(a)*0.035*(1 - t*0.5), R*0.86 + 0.03 + t*0.05, Math.sin(a)*0.035*(1 - t*0.5))); }
+      part(pumpkin, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(vine), 60, 0.005, 5, false), toon('#3f6b2a'), { outline:0 });
+      const leaf = new THREE.Shape(); leaf.moveTo(0, 0); leaf.quadraticCurveTo(0.05, 0.03, 0.09, 0); leaf.quadraticCurveTo(0.05, -0.03, 0, 0);
+      part(pumpkin, new THREE.ShapeGeometry(leaf), toon('#4f8a2f', { side:THREE.DoubleSide }), { pos:[-0.01, R*0.86 + 0.02, 0.02], rot:[-0.9, 0.4, 0.3], outline:0 });
+      // gold collar where the pumpkin sits on the handle, and a warm golden glow
+      part(g, new THREE.CylinderGeometry(0.045, 0.03, 0.05, 16), gold, { pos:[0, 1.6, 0], outline:0.005 });
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map:getLanternHaloTexture(), color:0xffb020, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0.5 }));
+      halo.scale.set(0.85, 0.85, 1); halo.position.copy(pumpkin.position); g.add(halo);
+      g.userData.halo = halo;
+      return g;
+    }
+    window.__buildL100Broom = buildL100Broom;     // used to draw the wardrobe thumbnail
+
     // ---------------- Proportions (chibi) ----------------
     const BOOT_H = 0.2, LEG_LEN = 0.36, HIP_Y = BOOT_H + LEG_LEN - 0.02;
     const SHOULDER_Y = 1.06, HEAD_Y = 1.40, HEAD_R = 0.30;
@@ -7764,6 +8435,7 @@ window.TQ_APP_VERSION = 'v49';
       const hairCol = cfg.hair || '#d2691e';
       const topColor = (cfg.top&&cfg.top.color) || '#6b3fa0', topTrim = (cfg.top&&cfg.top.trim) || '#ffb347';
       const isTee = cfg.top && cfg.top.kind === 'tee';
+      const teeGold = toon('#e8b94a', { emissive:'#6a4300', emissiveIntensity:0.35 });
 
       // ---- Legs: striped stockings + chunky strapped boots (hip pivots for walking) ----
       const stockMat = toon('#ffffff', { map: makeStripeTexture(isFemale ? '#2a1a2e' : '#e07a2a', (cfg.legwear&&cfg.legwear.color) || '#5a3690') });
@@ -7795,9 +8467,11 @@ window.TQ_APP_VERSION = 'v49';
         // point index, not the distance between points)
         const radii = [0.252,0.246,0.238,0.231,0.226,0.224,0.224,0.226,0.229,0.229,0.222,0.198,0.128];
         const prof = radii.map((r,i)=> new THREE.Vector2(r, 0.50 + i*0.05));
-        coat = part(body, new THREE.LatheGeometry(prof, 48), toon('#ffffff', { map: getTeePrintTexture(!isFemale) }), { outline:0.016 });
-        // ribbed hem band
-        part(body, new THREE.TorusGeometry(0.25, 0.014, 6, 40), toon('#2c1e3e'), { pos:[0,0.505,0], rot:[Math.PI/2,0,0], outline:0.005 });
+        // a little self-glow so the print still reads on the dark night map
+        const teeTex = getTeePrintTexture(!isFemale);
+        coat = part(body, new THREE.LatheGeometry(prof, 48), toon('#ffffff', { map: teeTex, emissive:'#ffffff', emissiveMap: teeTex, emissiveIntensity:0.22 }), { outline:0.016 });
+        // gold ribbed hem band
+        part(body, new THREE.TorusGeometry(0.25, 0.016, 6, 40), teeGold, { pos:[0,0.505,0], rot:[Math.PI/2,0,0], outline:0.005 });
         // a short skirt / shorts under the tee so the silhouette still reads as the same character
         const sk = [[0.275,0.40],[0.262,0.45],[0.25,0.50],[0.24,0.55]].map(([r,y])=> new THREE.Vector2(r,y));
         part(body, new THREE.LatheGeometry(sk, 32), toon(isFemale ? ((cfg.legwear&&cfg.legwear.color) || '#3d2a5c') : '#2a2238'), { outline:0.012 });
@@ -7810,8 +8484,8 @@ window.TQ_APP_VERSION = 'v49';
         [-1,1].forEach(sx=> part(body, new THREE.ConeGeometry(0.045, 0.09, 8), toon(topTrim), { pos:[sx*0.05,1.06,-0.17], rot:[0,0,sx*Math.PI/2], outline:0.006 }));
         part(body, new THREE.SphereGeometry(0.025, 10, 8), toon(topTrim), { pos:[0,1.06,-0.175], outline:0.005 });
       } else {
-        // ribbed crew neck
-        part(body, new THREE.TorusGeometry(0.118, 0.022, 8, 28), toon('#2c1e3e'), { pos:[0,1.098,0], rot:[Math.PI/2,0,0], outline:0.006 });
+        // gold ribbed crew neck
+        part(body, new THREE.TorusGeometry(0.118, 0.024, 8, 28), teeGold, { pos:[0,1.098,0], rot:[Math.PI/2,0,0], outline:0.006 });
       }
       if (isFemale && !isTee){ const brooch = makeBat(0.07, '#2a1f3a'); brooch.position.set(0, 1.0, -0.215); body.add(brooch); }
 
@@ -7828,7 +8502,7 @@ window.TQ_APP_VERSION = 'v49';
           // short T-shirt sleeve, then a bare arm down to the hand
           const sl = [[0.07,0.03],[0.08,-0.04],[0.086,-0.11],[0.088,-0.15]].map(([r,y])=> new THREE.Vector2(r,y));
           part(pivot, new THREE.LatheGeometry(sl, 18), sleeveMat, { outline:0.012 });
-          part(pivot, new THREE.TorusGeometry(0.086, 0.011, 6, 18), toon('#2c1e3e'), { pos:[0,-0.15,0], rot:[Math.PI/2,0,0], outline:0.004 });
+          part(pivot, new THREE.TorusGeometry(0.087, 0.013, 6, 18), teeGold, { pos:[0,-0.15,0], rot:[Math.PI/2,0,0], outline:0.004 });
           part(pivot, new THREE.CapsuleGeometry(0.04, 0.17, 4, 10), skin, { pos:[0,-0.235,0], outline:0.008 });
         }
         part(pivot, new THREE.SphereGeometry(0.055, 14, 10), skin, { pos:[0,-0.345,0], scale:[1,1.05,0.95], outline:0.008 });
@@ -8008,6 +8682,11 @@ window.TQ_APP_VERSION = 'v49';
         root.userData.lanternHang = hang;
         rightArm.rotation.z = 0.55;   // right hand reaches out to the staff
       }
+      if (cfg.accessory && cfg.accessory.kind === 'l100broom'){
+        const broom = buildL100Broom(!isFemale); broom.position.set(0.36, 0, -0.05); body.add(broom);
+        root.userData.lanternHalo = broom.userData.halo;
+        rightArm.rotation.z = 0.55;   // her hand holds the handle
+      }
 
       // ---- Candy basket in the left hand (-X) ----
       const basket = makeBasket();
@@ -8153,7 +8832,7 @@ window.TQ_APP_VERSION = 'v49';
 
       const camera = new THREE.PerspectiveCamera(FRAME_FOV, PLAYER_CANVAS_W/PLAYER_CANVAS_H, 0.1, 30);
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
       setupPlayerRenderer(renderer);
       // Fixed intended size (matches the .player-avatar-3d CSS) rather than measuring
       // layout — this marker never resizes, and reading clientWidth/Height here would
@@ -8206,7 +8885,7 @@ window.TQ_APP_VERSION = 'v49';
 
       const camera = new THREE.PerspectiveCamera(FRAME_FOV, 1, 0.1, 30);
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
       setupPlayerRenderer(renderer);
       let ch = 260;
       function resize(){
@@ -8360,7 +9039,7 @@ window.TQ_APP_VERSION = 'v49';
     const camera = new THREE.OrthographicCamera(0, 1, 0, 1, 1, 2000);
     camera.position.z = 1000;
     const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+    renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
 
     // Labels live in a plain DOM layer just above the canvas (crisp text, no texture
     // re-rendering) and below the fog vignette.
@@ -8371,7 +9050,8 @@ window.TQ_APP_VERSION = 'v49';
       canvas.insertAdjacentElement('afterend', labelLayer);
     }
 
-    let vw = 1, vh = 1;
+    let vw = 1, vh = 1, curPR = renderer.getPixelRatio(), lowTick = 0;
+    window.__tqApplyGraphics = ()=>{ const pr = window.__tqPixelRatio(); if (pr !== curPR){ curPR = pr; renderer.setPixelRatio(pr); resize(); } };
     function resize(){
       const r = mapView.getBoundingClientRect();
       vw = Math.max(1, Math.round(r.width)); vh = Math.max(1, Math.round(r.height));
@@ -8801,6 +9481,12 @@ window.TQ_APP_VERSION = 'v49';
       if (dist !== m.lastDist){ m.distEl.textContent = dist; m.lastDist = dist; }
       const catchable = !!(t._distEl && t._distEl.classList.contains('catchable'));
       if (catchable !== m.lastCatchable){ m.distEl.classList.toggle('catchable', catchable); m.lastCatchable = catchable; }
+      const tracked = !!t._tracked;                        // the Toto the Nearby widget points to
+      if (tracked !== m.lastTracked){
+        m.label.classList.toggle('tracked', tracked);
+        if (m.ring.material && m.ring.material.color){ if (m.ringHex == null) m.ringHex = m.ring.material.color.getHex(); m.ring.material.color.setHex(tracked ? 0x7cf29a : m.ringHex); }
+        m.lastTracked = tracked;
+      }
       const ls = Math.max(0.8, Math.min(1.15, s));
       m.label.style.display = '';
       m.label.style.transform = 'translate(' + fx.toFixed(1) + 'px,' + (fy + R*k + 3).toFixed(1) + 'px) translateX(-50%) scale(' + ls.toFixed(2) + ')';
@@ -8853,6 +9539,7 @@ window.TQ_APP_VERSION = 'v49';
 
     function syncFrame(){
       requestAnimationFrame(syncFrame);
+      if (window.__tqLowFps && window.__tqLowFps() && (++lowTick & 1)) return;     // Battery saver: every other frame
       const gameScreen = document.querySelector('.screen[data-screen="game"]');
       if (!gameScreen || !gameScreen.classList.contains('active')) return;
       // the map is fully covered during a battle or a full-screen panel: don't draw it

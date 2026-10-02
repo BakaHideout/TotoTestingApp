@@ -26,6 +26,9 @@ create table if not exists public.leaderboard (
 );
 alter table public.leaderboard enable row level security;
 create policy "leaderboard is public" on public.leaderboard for select using (true);
+-- trainers who delete their account: the row is wiped and hidden from everyone
+alter table public.leaderboard add column if not exists hidden boolean not null default false;
+create policy "removed trainers are hidden" on public.leaderboard as restrictive for select using (not hidden);
 create index if not exists leaderboard_power_idx on public.leaderboard (power desc);
 
 create table if not exists public.purchases (
@@ -93,6 +96,21 @@ begin
     returning p.session_id, p.kind, p.amount;
 end $$;
 
+-- "Delete my account" in Settings: wipes and hides the leaderboard entry and retires the secret.
+-- Purchase records are kept for tax/accounting.
+create or replace function public.delete_player(p_id uuid, p_secret text)
+returns boolean language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if not private.player_ok(p_id, p_secret) then return false; end if;
+  update public.leaderboard set hidden = true, name = 'removed', avatar = 'female', power = 0, level = 1, totos = 0, updated_at = now()
+   where player_id = p_id;
+  update public.players set secret_hash = 'removed' where id = p_id;
+  return true;
+end $$;
+
+-- settings read only by the server functions (never commit real values):
+-- insert into private.settings(name, value) values ('admin_email', 'owner@example.com');          -- unlocks owner tools after Google sign-in
+-- insert into private.settings(name, value) values ('google_client_id', '….apps.googleusercontent.com');
 -- after creating the Stripe webhook endpoint, store its signing secret (never commit the real value):
 -- insert into private.settings(name, value) values ('stripe_webhook_secret', 'whsec_...')
 --   on conflict (name) do update set value = excluded.value;
