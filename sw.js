@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v48';
+const CACHE_NAME = 'totoquest-v49';
 const ASSETS = [
 './index.html',
 './manifest.json',
