@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v53';
+const CACHE_NAME = 'totoquest-v54';
 const ASSETS = [
 './assets/items/gem.webp',
 './assets/items/candy.webp',

@@ -243,7 +243,7 @@
   .reg-google-note a { color:#6b3fa0; font-weight:800; cursor:pointer; text-decoration:underline; }
   .install-pill { display:none; align-items:center; gap:8px; border:1.5px solid rgba(255,179,71,0.7); background:rgba(30,20,45,0.85); color:#ffe9c2; font-weight:800; font-size:13px; padding:9px 16px; border-radius:999px; cursor:pointer; font-family:inherit; box-shadow:0 6px 16px rgba(0,0,0,0.35); z-index:2; }
   .install-pill.show { display:inline-flex; }
-  html.app-android #btn-menu-store, html.app-android .install-pill, html.app-android #btn-install-settings, html.app-android #btn-install-drawer { display:none !important; }
+  html.app-android .install-pill, html.app-android #btn-install-settings, html.app-android #btn-install-drawer { display:none !important; }
   .ip-back { position:absolute; inset:0; z-index:1150; display:none; align-items:center; justify-content:center; padding:22px; background:rgba(8,4,16,0.66); }
   .ip-back.show { display:flex; animation: ipFade 0.2s ease; }
   @keyframes ipFade { from { opacity:0; } to { opacity:1; } }
@@ -761,6 +761,92 @@
   .btn-store { margin-top:12px; width:100%; padding:12px; border-radius:12px; border:none; background:linear-gradient(135deg,#7b5cff,#4d7cff); color:#fff; font-weight:800; cursor:pointer; }
   .store-warning { background:#fff4d6; border:1.5px solid #f0c96b; color:#8a6a1a; font-size:11px; font-weight:700; padding:9px 11px; border-radius:10px; line-height:1.4; }
   .store-tier { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px; padding:10px 12px; margin-bottom:8px; box-shadow:0 3px 8px rgba(0,0,0,0.06); }
+  /* ---- Store tabs + Gem Shop (v53) ---- */
+  .store-tabs { display:flex; gap:6px; background:#f1eaf9; border-radius:12px; padding:4px; margin-bottom:10px; }
+  .store-tab { flex:1; border:none; background:transparent; border-radius:9px; padding:8px 6px; font-family:inherit; font-weight:800; font-size:12.5px; color:#6b5a88; cursor:pointer; }
+  .store-tab.active { background:#2a1745; color:#ffd899; box-shadow:0 2px 6px rgba(42,23,69,0.35); }
+  html.app-android .store-tab[data-stab="buy"] { display:none; }
+  #gem-shop { max-height:430px; overflow-y:auto; margin:0 -4px; padding:0 4px; }
+  .gs-wallet { display:flex; align-items:center; justify-content:space-between; gap:8px; background:linear-gradient(135deg,#2a1745,#3f1f5c); color:#fff; border-radius:14px; padding:10px 12px; margin-bottom:10px; box-shadow:inset 0 0 0 1.5px rgba(255,179,71,0.35); }
+  .gs-wallet .bal { display:flex; align-items:center; gap:7px; font-weight:900; font-size:17px; }
+  .gs-wallet .bal small { font-weight:800; font-size:11px; color:#d9c6ff; }
+  .gs-wallet .get { border:none; border-radius:10px; padding:7px 10px; font-family:inherit; font-weight:800; font-size:11.5px; background:#ffb347; color:#3a1c00; cursor:pointer; }
+  .gs-msg { min-height:0; font-size:12px; font-weight:800; color:#c0392b; text-align:center; margin:-4px 0 8px; }
+  .gs-msg:empty { display:none; }
+  .gs-sec { background:#1d1230; border-radius:16px; padding:10px 10px 4px; margin-bottom:10px; color:#f3eaff; }
+  .gs-sec-h { display:flex; align-items:center; gap:8px; margin:0 2px 8px; }
+  .gs-sec-h .ic { width:30px; height:30px; display:flex; align-items:center; justify-content:center; }
+  .gs-sec-h .ic img, .gs-sec-h .ic svg { width:30px; height:30px; object-fit:contain; }
+  .gs-sec-h .t { font-weight:900; font-size:14px; letter-spacing:0.3px; color:#ffd899; }
+  .gs-sec-h .s { font-weight:700; font-size:11px; color:#bfaee0; }
+  .gs-item { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:9px 10px; margin-bottom:6px; }
+  .gs-item .gs-art { width:44px; height:40px; flex:0 0 44px; display:flex; align-items:center; justify-content:center; }
+  .gs-item .gs-art img, .gs-item .gs-art svg { max-width:44px; max-height:40px; object-fit:contain; }
+  .gs-item .gs-info { flex:1; min-width:0; }
+  .gs-item .gs-name { font-weight:900; font-size:13.5px; color:#fff; }
+  .gs-item .gs-desc { font-weight:700; font-size:10.5px; color:#bfaee0; }
+  .gs-buy { display:flex; align-items:center; gap:4px; border:none; border-radius:11px; padding:8px 11px; font-family:inherit; font-weight:900; font-size:13px; color:#fff; background:linear-gradient(135deg,#8a4dff,#c04dd8); box-shadow:0 3px 8px rgba(140,70,255,0.45); cursor:pointer; white-space:nowrap; }
+  .gs-buy.short { background:#4a3d60; box-shadow:none; color:#cbbde6; }
+  .gs-buy:disabled { opacity:0.55; cursor:default; }
+  .gs-odds { display:grid; grid-template-columns:1fr 1fr; gap:3px 10px; font-size:11px; font-weight:800; padding:6px 4px 6px; color:#e6dcff; }
+  .gs-odds span { display:flex; align-items:center; gap:6px; }
+  .gs-odds i, .co-odds i { display:inline-block; width:9px; height:9px; border-radius:50%; }
+  .gs-shake { animation: gsShake 0.4s; }
+  @keyframes gsShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  /* ---- TotoChest opening ---- */
+  .chest-overlay { position:absolute; inset:0; z-index:95; display:none; align-items:center; justify-content:center; overflow:hidden;
+    background: radial-gradient(ellipse at 50% 45%, #3a1d5c 0%, #160c26 62%, #07040d 100%); }
+  .chest-overlay.show { display:flex; }
+  .co-inner { position:relative; z-index:3; width:100%; max-width:420px; padding:18px 16px; text-align:center; color:#fff; }
+  .co-title { font-weight:900; font-size:20px; letter-spacing:1px; color:#ffd899; text-shadow:0 2px 10px rgba(255,150,40,0.5); margin-bottom:6px; }
+  .co-stage { position:relative; height:290px; display:flex; align-items:flex-end; justify-content:center; }
+  .co-stage.bulk { height:auto; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px 6px; align-items:end; }
+  .co-cell { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:150px; }
+  .co-chest { position:relative; width:190px; z-index:2; }
+  .co-stage.bulk .co-chest { width:88px; }
+  .co-chest svg { width:100%; height:auto; display:block; overflow:visible; }
+  .co-chest .ch-lid { transform-box:fill-box; transform-origin:50% 100%; transition:transform 0.38s cubic-bezier(.3,1.6,.5,1); }
+  .co-chest .ch-glow { opacity:0; transition:opacity 0.3s; }
+  .co-chest.shake { animation: chShake 0.6s ease-in-out; }
+  .co-chest.open .ch-lid { transform: translateY(-34%) rotate(-14deg) scaleY(0.78); }
+  .co-chest.open .ch-glow { opacity:1; }
+  .co-chest.open.fade { opacity:0.35; transition:opacity 0.5s 0.4s; }
+  @keyframes chShake { 0%,100%{transform:rotate(0)} 15%{transform:rotate(-6deg) translateY(-3px)} 30%{transform:rotate(5deg)} 45%{transform:rotate(-5deg) translateY(-4px)} 60%{transform:rotate(4deg)} 75%{transform:rotate(-2deg)} }
+  .co-toto { position:absolute; left:50%; bottom:104px; width:150px; height:150px; transform:translate(-50%, 30px) scale(0.2); opacity:0; z-index:3; pointer-events:none;
+    transition: transform 0.55s cubic-bezier(.2,1.5,.4,1), opacity 0.25s; }
+  .co-toto.up { transform:translate(-50%, 0) scale(1); opacity:1; }
+  .co-stage.bulk .co-toto { width:64px; height:64px; bottom:62px; }
+  .co-toto img, .co-toto svg { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 6px 10px rgba(0,0,0,0.5)); }
+  .co-tier { position:relative; z-index:4; display:inline-block; margin-top:6px; padding:3px 10px; border-radius:999px; font-weight:900; font-size:12px; letter-spacing:1px; text-transform:uppercase; opacity:0; transform:scale(0.6); transition:all 0.3s cubic-bezier(.2,1.6,.4,1); color:#140a20; }
+  .co-tier.show { opacity:1; transform:scale(1); }
+  .co-stage.bulk .co-tier { font-size:9.5px; padding:2px 7px; letter-spacing:0.5px; }
+  .co-cell-name { font-size:10.5px; font-weight:800; color:#e9defc; margin-top:3px; min-height:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .co-result { min-height:64px; margin-top:8px; }
+  .co-name { font-weight:900; font-size:22px; }
+  .co-sub { font-weight:800; font-size:12.5px; color:#d6c8f2; margin-top:2px; }
+  .co-added { font-weight:800; font-size:11.5px; color:#9be8a8; margin-top:6px; }
+  .co-list { text-align:left; background:rgba(255,255,255,0.06); border-radius:14px; padding:8px 10px; margin-top:6px; }
+  .co-row { display:flex; align-items:center; gap:8px; padding:4px 2px; font-weight:800; font-size:13px; }
+  .co-row .n { width:16px; color:#bfaee0; }
+  .co-row .tg { font-size:10px; font-weight:900; padding:2px 7px; border-radius:999px; color:#140a20; text-transform:uppercase; letter-spacing:0.5px; }
+  .co-row.rare { background:rgba(255,210,63,0.12); border-radius:9px; box-shadow:inset 0 0 0 1px rgba(255,210,63,0.4); }
+  .co-row.myth { background:rgba(182,77,255,0.14); border-radius:9px; box-shadow:inset 0 0 0 1px rgba(182,77,255,0.5); }
+  .co-odds { display:flex; flex-wrap:wrap; justify-content:center; gap:4px 12px; font-size:11px; font-weight:800; color:#cbbde6; margin-top:10px; }
+  .co-odds span { display:flex; align-items:center; gap:5px; }
+  .co-btn { margin-top:12px; border:none; border-radius:14px; padding:12px 34px; font-family:inherit; font-weight:900; font-size:15px; color:#fff; background:linear-gradient(135deg,#ff9a3d,#ff5470); box-shadow:0 5px 14px rgba(255,90,80,0.5); cursor:pointer; }
+  .co-rays { position:absolute; left:50%; top:42%; width:900px; height:900px; margin:-450px 0 0 -450px; border-radius:50%; opacity:0; z-index:1; pointer-events:none;
+    background: repeating-conic-gradient(from 0deg, var(--ray, rgba(255,255,255,0.25)) 0deg 9deg, transparent 9deg 22deg);
+    -webkit-mask: radial-gradient(circle, #000 0%, rgba(0,0,0,0.6) 28%, transparent 62%); mask: radial-gradient(circle, #000 0%, rgba(0,0,0,0.6) 28%, transparent 62%);
+    animation: coSpin 14s linear infinite; transition:opacity 0.5s; }
+  .co-rays.on { opacity:1; }
+  @keyframes coSpin { to { transform:rotate(360deg); } }
+  .co-flash { position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 42%, var(--flash, #fff) 0%, transparent 70%); }
+  .co-flash.go { animation: coFlash 0.9s ease-out; }
+  @keyframes coFlash { 0%{opacity:0} 15%{opacity:0.95} 100%{opacity:0} }
+  .co-spark { position:absolute; z-index:4; width:8px; height:8px; border-radius:50%; pointer-events:none; animation: coSpark 1.2s ease-out forwards; }
+  @keyframes coSpark { from { transform:translate(0,0) scale(1); opacity:1; } to { transform:translate(var(--dx), var(--dy)) scale(0.2); opacity:0; } }
+  .chest-overlay.eternal .co-title { color:#ffe680; animation: coShimmer 1.2s ease-in-out infinite alternate; }
+  @keyframes coShimmer { from { text-shadow:0 0 10px rgba(255,210,63,0.6); } to { text-shadow:0 0 26px rgba(255,230,120,1), 0 0 50px rgba(255,180,40,0.7); } }
   .store-tier .icon { font-size:22px; }
   .store-tier .info { flex:1; }
   .store-tier .amt { font-weight:800; font-size:13.5px; }
@@ -1860,12 +1946,32 @@
 
   <!-- STORE -->
   <div class="modal-back" id="store-modal">
-    <div class="modal-card" style="max-width:380px; text-align:left;">
-      <div class="modal-name" style="text-align:center; margin-bottom:2px;">🛍️ Store</div>
-      <div class="store-warning" id="store-warning"></div>
-      <div id="store-body" style="max-height:400px; overflow-y:auto; margin-top:8px;"></div>
-      <div class="store-legal">Purchases are covered by our <a href="refunds.html" target="_blank" rel="noopener">Refund Policy</a> and <a href="terms.html" target="_blank" rel="noopener">Terms</a>.</div>
+    <div class="modal-card store-card" style="max-width:390px; text-align:left;">
+      <div class="modal-name" style="text-align:center; margin-bottom:6px;">🛍️ Store</div>
+      <div class="store-tabs" role="tablist">
+        <button class="store-tab active" data-stab="gems" role="tab">Gem Shop</button>
+        <button class="store-tab" data-stab="buy" role="tab">Buy Gems &amp; Candy</button>
+      </div>
+      <div class="store-pane" data-spane="gems"><div id="gem-shop"></div></div>
+      <div class="store-pane" data-spane="buy" style="display:none;">
+        <div class="store-warning" id="store-warning"></div>
+        <div id="store-body" style="max-height:380px; overflow-y:auto; margin-top:8px;"></div>
+        <div class="store-legal">Purchases are covered by our <a href="refunds.html" target="_blank" rel="noopener">Refund Policy</a> and <a href="terms.html" target="_blank" rel="noopener">Terms</a>.</div>
+      </div>
       <button class="btn-cancel" style="width:100%; margin-top:10px;" data-close-store>Close</button>
+    </div>
+  </div>
+
+  <!-- TOTOCHEST OPENING -->
+  <div class="chest-overlay" id="chest-overlay" aria-live="polite">
+    <div class="co-rays" id="co-rays"></div>
+    <div class="co-flash" id="co-flash"></div>
+    <div class="co-inner">
+      <div class="co-title" id="co-title">TotoChest</div>
+      <div class="co-stage" id="co-stage"></div>
+      <div class="co-result" id="co-result"></div>
+      <div class="co-odds" id="co-odds"></div>
+      <button class="co-btn" id="co-collect" style="visibility:hidden;">Collect</button>
     </div>
   </div>
 
@@ -3442,7 +3548,7 @@
       refreshHUD(); markDirty(); await saveNow(true);
       showToast('🎉 Thank you! '+Object.keys(sum).map(k=> '+'+sum[k].toLocaleString()+' '+(k==='candy' ? 'candy' : 'gems')).join(' and ')+' added');
       if (Sound.playCatch) Sound.playCatch();
-      if ($('#store-modal').classList.contains('active')) renderStore();
+      if ($('#store-modal').classList.contains('active')){ renderStore(); renderGemShop(); }
       return rows.length;
     } catch(e){ console.warn('could not collect purchases', e); return 0; }
     finally { claiming = false; }
@@ -6358,8 +6464,232 @@
       };
     });
   }
-  function openStore(){ $('#store-modal').classList.add('active'); renderStore(); if (paymentsOn()) watchForPurchase(1); }
-  $('#btn-menu-store').onclick = ()=>{ closeQuickMenu(); openStore(); };
+  // ================= GEM SHOP (v53) =================
+  // Gems are the premium currency for in-game buys. Every buy is one transaction:
+  // check the balance -> take the gems -> hand over the reward -> save, all in one go, with
+  // a lock so a double tap can never buy (or reward) twice. To add something new to the
+  // shop, add a section and/or an entry below — a reward is { type, ... } handled by
+  // GEM_GRANTS, so new kinds of reward only need a new grant function.
+  const TOTOCHEST_ART = (k)=> '<svg viewBox="0 0 120 104" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>'
+    + '<linearGradient id="chw'+k+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5c3290"/><stop offset="1" stop-color="#2a1544"/></linearGradient>'
+    + '<linearGradient id="chm'+k+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc15a"/><stop offset="1" stop-color="#d9741c"/></linearGradient>'
+    + '<radialGradient id="chg'+k+'" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="var(--glow,#fff3b0)" stop-opacity="1"/><stop offset="1" stop-color="var(--glow,#fff3b0)" stop-opacity="0"/></radialGradient></defs>'
+    + '<ellipse cx="60" cy="98" rx="44" ry="5" fill="rgba(0,0,0,0.35)"/>'
+    + '<ellipse class="ch-glow" cx="60" cy="48" rx="52" ry="26" fill="url(#chg'+k+')"/>'
+    + '<rect x="14" y="48" width="92" height="46" rx="7" fill="url(#chw'+k+')" stroke="#1a0d2a" stroke-width="2.5"/>'
+    + '<path d="M16 63 H104 M16 78 H104" stroke="#1f0f33" stroke-width="1.6" opacity="0.6"/>'
+    + '<rect x="24" y="48" width="9" height="46" fill="url(#chm'+k+')" stroke="#7a3a0a" stroke-width="1.5"/><rect x="87" y="48" width="9" height="46" fill="url(#chm'+k+')" stroke="#7a3a0a" stroke-width="1.5"/>'
+    + '<rect x="14" y="88" width="92" height="6" rx="3" fill="url(#chm'+k+')" stroke="#7a3a0a" stroke-width="1.4"/>'
+    + '<circle cx="60" cy="66" r="12" fill="#ffb347" stroke="#8a4410" stroke-width="2"/><path d="M53 62 l4 -3 l1 5 z M67 62 l-4 -3 l-1 5 z" fill="#4a1d00"/><path d="M52 69 q8 7 16 0 q-3 4 -8 3.5 q-5 0.5 -8 -3.5z" fill="#4a1d00"/>'
+    + '<path d="M60 52 q-2 -4 1 -6" stroke="#3f6b2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
+    + '<g class="ch-lid"><path d="M12 50 V37 Q12 20 31 18 H89 Q108 20 108 37 V50 Z" fill="url(#chw'+k+')" stroke="#1a0d2a" stroke-width="2.5"/>'
+    + '<path d="M16 34 Q60 28 104 34" stroke="#1f0f33" stroke-width="1.6" fill="none" opacity="0.6"/>'
+    + '<path d="M24 50 V23 Q28 19 33 19 V50 Z M87 50 V19 Q92 19 96 23 V50 Z" fill="url(#chm'+k+')" stroke="#7a3a0a" stroke-width="1.5"/>'
+    + '<rect x="12" y="45" width="96" height="6" rx="3" fill="url(#chm'+k+')" stroke="#7a3a0a" stroke-width="1.4"/>'
+    + '<path d="M46 27 q-6 -6 -14 -2 q5 1 6 5 q3 -2 8 -3z M74 27 q6 -6 14 -2 q-5 1 -6 5 q-3 -2 -8 -3z" fill="#1a0d2a"/><ellipse cx="60" cy="28" rx="5" ry="4" fill="#1a0d2a"/><circle cx="58.3" cy="27.4" r="0.9" fill="#ffd94a"/><circle cx="61.7" cy="27.4" r="0.9" fill="#ffd94a"/></g>'
+    + '</svg>';
+  const CHEST_TIERS = [            // exact odds, out of 10,000 (must add up to 10,000)
+    { tier:'eternal',   w:100,  label:'Eternal',   color:'#ffd23f', ray:'rgba(255,214,80,0.42)' },
+    { tier:'mythical',  w:500,  label:'Mythical',  color:'#c779ff', ray:'rgba(190,110,255,0.38)' },
+    { tier:'legendary', w:2000, label:'Legendary', color:'#5c9dff', ray:'rgba(90,150,255,0.34)' },
+    { tier:'normal',    w:7400, label:'Normal',    color:'#62d36c', ray:'rgba(110,220,120,0.26)' }
+  ];
+  if (CHEST_TIERS.reduce((s,t)=> s+t.w, 0) !== 10000) console.error('TotoChest odds must add up to 100%');
+  const CHEST_TIER_BY = {}; CHEST_TIERS.forEach(t=> CHEST_TIER_BY[t.tier] = t);
+  // unbiased random whole number in [0, n) from the browser's cryptographic generator
+  function secureRandInt(n){
+    const c = window.crypto || window.msCrypto;
+    if (!c || !c.getRandomValues) return Math.floor(Math.random()*n);
+    const a = new Uint32Array(1), lim = Math.floor(0x100000000 / n) * n;
+    let x; do { c.getRandomValues(a); x = a[0]; } while (x >= lim);
+    return x % n;
+  }
+  function rollChestTier(){
+    let r = secureRandInt(10000);
+    for (const t of CHEST_TIERS){ if (r < t.w) return t.tier; r -= t.w; }
+    return 'normal';
+  }
+  // the existing Eternal roster (the Challenger guardians), picked at random
+  const ETERNAL_MAKERS = [makeWitchHana, makeMax, makeToniGuardian, makeVesperNightshade, makeHarvestWarden, makeBlossomWraith, makeShadowSovereign, makeGrimhollow, makePumpkinRider, makePandaQueen];
+  function chestToto(tier){
+    let t;
+    if (tier === 'eternal') t = ETERNAL_MAKERS[secureRandInt(ETERNAL_MAKERS.length)]();
+    else {
+      const pool = tier === 'normal' ? NORMAL_SPECIES : LEGENDARY_SPECIES;   // Mythicals use the Legendary roster's art, as everywhere else
+      const sp = pool[secureRandInt(pool.length)];
+      t = makeToto(tier === 'mythical' ? 'mythical' : tier);
+      t.name = sp.name; t.nature = sp.role; t.role = roleOf(sp.name); t.sprite = spriteFor(sp.name, sp.role);
+      applyLevelStats(t, t.level || 1);
+    }
+    return finalizeCatch(t);       // same path as any catch: own copy, Lv 1, duplicates allowed
+  }
+  // dev check: window.__tqChestOddsTest(100000) -> counts per tier (doesn't touch your save)
+  if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) window.__tqChestPreview = tiers=> openChests(tiers.map(tier=>{ const t = chestToto(tier); return { tier, id:t.id, name:t.name }; }));   // local testing only
+  window.__tqChestOddsTest = n=>{ const c = { eternal:0, mythical:0, legendary:0, normal:0 }; for (let i=0;i<(n|0);i++) c[rollChestTier()]++; return c; };
+
+  const GEM_SHOP_SECTIONS = [
+    { id:'chests', title:'TotoChests', sub:'Every chest holds a Toto!', icon:()=> TOTOCHEST_ART('h'), odds:true },
+    { id:'passes', title:'Pumpkin Raid Passes', sub:'One pass = one Gym battle', icon:()=> '<img src="assets/items/raid-pass.png" alt="">' },
+    { id:'brew',   title:'Witches Brew', sub:'Healing Elixir — heals a Toto to full', icon:()=> '<img src="assets/items/elixir.png" alt="">' }
+  ];
+  const GEM_SHOP = [
+    { id:'chest1',  section:'chests', name:'1 TotoChest',            desc:'Opens right away',                cost:50,  art:()=> TOTOCHEST_ART('a'), reward:{ type:'chest', n:1 } },
+    { id:'chest5',  section:'chests', name:'5 TotoChests',           desc:'Open five at once',               cost:250, art:()=> TOTOCHEST_ART('b'), reward:{ type:'chest', n:5 } },
+    { id:'pass3',   section:'passes', name:'3 Pumpkin Raid Passes',  desc:'Added to your Items',             cost:50,  art:()=> '<img src="assets/items/raid-pass.png" alt="">', reward:{ type:'item', key:'raidPass', n:3 } },
+    { id:'brew50',  section:'brew',   name:'50 Witches Brew',        desc:'50 × Healing Elixir',             cost:150, art:()=> '<img src="assets/items/elixir.png" alt="">', reward:{ type:'item', key:'elixir', n:50 } },
+    { id:'brew100', section:'brew',   name:'100 Witches Brew',       desc:'100 × Healing Elixir',            cost:300, art:()=> '<img src="assets/items/elixir.png" alt="">', reward:{ type:'item', key:'elixir', n:100 } }
+  ];
+  const GEM_GRANTS = {
+    chest(r){ const out = []; for (let i=0;i<r.n;i++){ const tier = rollChestTier(); const t = chestToto(tier); out.push({ tier, id:t.id, name:t.name }); } return { totos: out }; },
+    item(r){ const it = ensureItems(); it[r.key] = (it[r.key]||0) + r.n; return { item:r.key, n:r.n }; }
+  };
+  function gemBalance(){ const g = Number(state.gems); return Number.isFinite(g) && g > 0 ? Math.floor(g) : 0; }
+  let gemTxnBusy = false;
+  function oddsHtml(){ return CHEST_TIERS.slice().reverse().map(t=> '<span><i style="background:'+t.color+'"></i>'+t.label+' — '+(t.w/100)+'%</span>').join(''); }
+  function renderGemShop(msg){
+    const box = $('#gem-shop'); if (!box) return;
+    const bal = gemBalance();
+    let html = '<div class="gs-wallet"><div class="bal">'+gemIconHtml(26)+'<span id="gs-balance">'+bal.toLocaleString()+'</span><small>Gems</small></div>'
+      + (paymentsOn() ? '<button class="get" data-stab-go="buy">Get more gems</button>' : '') + '</div>'
+      + '<div class="gs-msg" id="gs-msg">'+(msg||'')+'</div>';
+    GEM_SHOP_SECTIONS.forEach(sec=>{
+      const items = GEM_SHOP.filter(i=> i.section === sec.id); if (!items.length) return;
+      html += '<div class="gs-sec" data-sec="'+sec.id+'"><div class="gs-sec-h"><span class="ic">'+sec.icon()+'</span><div><div class="t">'+sec.title+'</div><div class="s">'+sec.sub+'</div></div></div>'
+        + items.map(i=> '<div class="gs-item" data-gs="'+i.id+'"><div class="gs-art">'+i.art()+'</div><div class="gs-info"><div class="gs-name">'+i.name+'</div><div class="gs-desc">'+i.desc+'</div></div>'
+          + '<button class="gs-buy'+(bal < i.cost ? ' short' : '')+'"'+(gemTxnBusy ? ' disabled' : '')+'>'+i.cost.toLocaleString()+' '+gemIconHtml(16)+'</button></div>').join('')
+        + (sec.odds ? '<div class="gs-odds">'+oddsHtml()+'</div>' : '') + '</div>';
+    });
+    box.innerHTML = html;
+    $$('.gs-item', box).forEach(row=> row.querySelector('.gs-buy').onclick = ()=> buyGemItem(row.dataset.gs, row));
+    const go = box.querySelector('[data-stab-go]'); if (go) go.onclick = ()=> setStoreTab('buy');
+  }
+  async function buyGemItem(id, row){
+    if (gemTxnBusy) return;                                   // a purchase is already going through
+    const item = GEM_SHOP.find(i=> i.id === id);
+    if (!item || !GEM_GRANTS[item.reward.type] || !(Number.isInteger(item.cost) && item.cost > 0)) return;
+    if (!(Number.isInteger(item.reward.n) && item.reward.n > 0 && item.reward.n <= 100)) return;
+    if (gemBalance() < item.cost){
+      renderGemShop('Not enough Gems! You need '+(item.cost - gemBalance()).toLocaleString()+' more.');
+      const r = $('#gem-shop [data-gs="'+id+'"]'); if (r){ r.classList.remove('gs-shake'); void r.offsetWidth; r.classList.add('gs-shake'); }
+      if (Sound.playError) Sound.playError();
+      return;
+    }
+    gemTxnBusy = true; renderGemShop();
+    try {
+      const ok = await gameConfirm('Buy '+item.name+' for '+item.cost.toLocaleString()+' gems?', 'Gem Shop', 'Buy', 'Cancel');
+      if (!ok) return;
+      if (gemBalance() < item.cost){ renderGemShop('Not enough Gems!'); return; }       // re-check after the dialog
+      // ---- one transaction: take the gems, give the reward, save ----
+      const txn = { id: uid(), item: item.id, cost: item.cost, at: Date.now() };
+      const before = gemBalance();
+      state.gems = before - item.cost;
+      let result;
+      try { result = GEM_GRANTS[item.reward.type](item.reward); }
+      catch(e){ state.gems = before; console.error('gem shop grant failed', e); renderGemShop('Something went wrong — your gems were not spent.'); return; }
+      txn.result = result;
+      state.gemTxns = (state.gemTxns || []).concat([txn]).slice(-60);
+      refreshHUD(); markDirty();
+      const saved = await saveNow(true);
+      if (!saved) showToast('⚠️ Saved on this device as soon as possible — keep the game open a moment.');
+      renderCollection(); if (typeof renderItems === 'function') renderItems();
+      if (item.reward.type === 'chest') openChests(result.totos);
+      else { showToast('✅ +'+item.reward.n+' '+(ITEM_INFO[item.reward.key] ? ITEM_INFO[item.reward.key].short : item.name)+' added to your Items'); if (Sound.playCatch) Sound.playCatch(); }
+    } finally {
+      gemTxnBusy = false;
+      if ($('#store-modal').classList.contains('active')) renderGemShop();
+    }
+  }
+  // ---- the chest opening: shake -> lid flies open -> rarity -> the Toto ----
+  let chestAnim = null;
+  function openChests(list){
+    const ov = $('#chest-overlay'), stage = $('#co-stage'), res = $('#co-result'), btn = $('#co-collect');
+    const bulk = list.length > 1;
+    const best = list.reduce((b,r)=> (TIER_IDX[r.tier] > TIER_IDX[b.tier] ? r : b), list[0]);
+    ov.className = 'chest-overlay show';
+    $('#co-title').textContent = bulk ? 'Opening '+list.length+' TotoChests…' : 'TotoChest';
+    $('#co-odds').innerHTML = oddsHtml();
+    res.innerHTML = ''; btn.style.visibility = 'hidden';
+    $('#co-rays').className = 'co-rays'; $('#co-flash').className = 'co-flash';
+    stage.className = 'co-stage' + (bulk ? ' bulk' : '');
+    stage.innerHTML = list.map((r,i)=> '<div class="co-cell" data-i="'+i+'"><div class="co-toto"></div><div class="co-chest">'+TOTOCHEST_ART('o'+i)+'</div><div class="co-tier"></div>'+(bulk ? '<div class="co-cell-name"></div>' : '')+'</div>').join('');
+    const timers = []; const at = (ms, fn)=> timers.push(setTimeout(fn, ms));
+    chestAnim = { timers };
+    const reveal = (r, i)=>{
+      const cell = stage.querySelector('.co-cell[data-i="'+i+'"]'); if (!cell) return;
+      const T = CHEST_TIER_BY[r.tier], t = state.collection.find(x=> x.id === r.id);
+      const ch = cell.querySelector('.co-chest'); ch.style.setProperty('--glow', T.color);
+      ch.classList.remove('shake'); ch.classList.add('open');
+      const tg = cell.querySelector('.co-tier'); tg.textContent = T.label; tg.style.background = T.color; tg.classList.add('show');
+      const tt = cell.querySelector('.co-toto'); tt.innerHTML = t ? spriteMarkup(t) : ''; requestAnimationFrame(()=> tt.classList.add('up'));
+      if (bulk){ const nm = cell.querySelector('.co-cell-name'); if (nm) nm.textContent = r.name; }
+      if (TIER_IDX[r.tier] >= TIER_IDX.mythical) sparkle(cell, T.color, r.tier === 'eternal' ? 26 : 14);
+      if (Sound.playCatch && TIER_IDX[r.tier] >= TIER_IDX.legendary) Sound.playCatch();
+    };
+    const big = T=>{
+      const rays = $('#co-rays'); rays.style.setProperty('--ray', T.ray); rays.classList.add('on');
+      const fl = $('#co-flash'); fl.style.setProperty('--flash', T.color); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+    };
+    if (!bulk){
+      const r = list[0], T = CHEST_TIER_BY[r.tier], ch = stage.querySelector('.co-chest');
+      at(80, ()=> ch.classList.add('shake'));
+      const extra = r.tier === 'eternal' ? 650 : (r.tier === 'mythical' ? 300 : 0);
+      if (extra) at(650, ()=>{ ch.classList.remove('shake'); void ch.offsetWidth; ch.classList.add('shake'); $('#co-title').textContent = r.tier === 'eternal' ? 'Something amazing is inside…' : 'Something special…'; });
+      at(720 + extra, ()=>{ reveal(r, 0); big(T); if (r.tier === 'eternal') ov.classList.add('eternal'); $('#co-title').textContent = r.tier === 'eternal' ? '✨ ETERNAL! ✨' : (r.tier === 'mythical' ? 'MYTHICAL!' : (r.tier === 'legendary' ? 'Legendary!' : 'TotoChest')); });
+      at(1250 + extra, ()=>{
+        const t = state.collection.find(x=> x.id === r.id);
+        const role = t ? (ROLE_INFO[t.role] || ROLE_INFO.attacker) : ROLE_INFO.attacker;
+        res.innerHTML = '<div class="co-name" style="color:'+T.color+'">'+bxEsc(r.name)+'</div>'
+          + '<div class="co-sub">'+T.label+' · '+role.icon+' '+role.label+(t ? ' · Lv '+(t.level||1)+' · PWR '+(t.cp||0).toLocaleString() : '')+'</div>'
+          + '<div class="co-added">✓ Added to your Totos</div>';
+        btn.textContent = r.tier === 'eternal' ? 'Amazing!' : 'Collect'; btn.style.visibility = 'visible';
+      });
+    } else {
+      const cells = $$('.co-chest', stage);
+      at(60, ()=> cells.forEach(c=> c.classList.add('shake')));
+      list.forEach((r,i)=> at(700 + i*420, ()=> reveal(r, i)));
+      const done = 700 + list.length*420 + 250;
+      at(done, ()=>{
+        const T = CHEST_TIER_BY[best.tier];
+        if (TIER_IDX[best.tier] >= TIER_IDX.mythical){ big(T); if (best.tier === 'eternal') ov.classList.add('eternal'); }
+        $('#co-title').textContent = best.tier === 'eternal' ? '✨ You found an ETERNAL! ✨' : (best.tier === 'mythical' ? 'You found a MYTHICAL!' : 'TotoChest Results');
+        res.innerHTML = '<div class="co-list">' + list.map((r,i)=>{ const T2 = CHEST_TIER_BY[r.tier];
+          return '<div class="co-row'+(r.tier==='eternal' ? ' rare' : (r.tier==='mythical' ? ' myth' : ''))+'"><span class="n">'+(i+1)+'.</span><span class="tg" style="background:'+T2.color+'">'+T2.label+'</span><span>'+bxEsc(r.name)+'</span></div>'; }).join('')
+          + '</div><div class="co-added">✓ All '+list.length+' added to your Totos</div>';
+        btn.textContent = 'Collect all'; btn.style.visibility = 'visible';
+      });
+    }
+  }
+  function sparkle(cell, color, n){
+    const ov = $('#chest-overlay'), r = cell.getBoundingClientRect(), o = ov.getBoundingClientRect();
+    for (let i=0;i<n;i++){
+      const s = document.createElement('div'); s.className = 'co-spark';
+      const a = Math.random()*Math.PI*2, d = 60 + Math.random()*120;
+      s.style.left = (r.left - o.left + r.width/2)+'px'; s.style.top = (r.top - o.top + r.height*0.45)+'px';
+      s.style.background = color; s.style.boxShadow = '0 0 8px '+color;
+      s.style.setProperty('--dx', (Math.cos(a)*d).toFixed(0)+'px'); s.style.setProperty('--dy', (Math.sin(a)*d - 30).toFixed(0)+'px');
+      s.style.animationDelay = (Math.random()*0.25).toFixed(2)+'s';
+      ov.appendChild(s); setTimeout(()=> s.remove(), 1700);
+    }
+  }
+  $('#co-collect').onclick = ()=>{
+    if (chestAnim){ chestAnim.timers.forEach(clearTimeout); chestAnim = null; }
+    $('#chest-overlay').className = 'chest-overlay';
+    $('#co-stage').innerHTML = ''; $$('.co-spark').forEach(s=> s.remove());
+    if ($('#store-modal').classList.contains('active')) renderGemShop();
+  };
+  function setStoreTab(tab){
+    if (tab === 'buy' && window.__tqAppAndroid) tab = 'gems';
+    $$('.store-tab').forEach(b=> b.classList.toggle('active', b.dataset.stab === tab));
+    $$('.store-pane').forEach(p=> p.style.display = p.dataset.spane === tab ? '' : 'none');
+    if (tab === 'gems') renderGemShop(); else renderStore();
+  }
+  $$('.store-tab').forEach(b=> b.onclick = ()=> setStoreTab(b.dataset.stab));
+  function openStore(tab){ $('#store-modal').classList.add('active'); setStoreTab(tab || 'gems'); if (paymentsOn()) watchForPurchase(1); }
+  window.__openGemShop = ()=> openStore('gems');
+  // tapping your gem count in the corner opens the Gem Shop
+  $('#hud-gems-chip').style.cursor = 'pointer';
+  $('#hud-gems-chip').onclick = ()=>{ if (state.loggedIn && !(window.TotoTutorial && window.TotoTutorial.isRunning())) openStore('gems'); };
+  $('#btn-menu-store').onclick = ()=>{ closeQuickMenu(); openStore('gems'); };
   $('[data-close-store]').onclick = ()=> $('#store-modal').classList.remove('active');
 
   // ---------------- LOGOUT ----------------
@@ -7586,7 +7916,7 @@
           keep:()=>{ if (!stopOpen()) go(i-1); } },
         { title:'Your rewards', skipIf:()=> !stopOpen(), target:()=> q('#stop-rewards'), cardAt:'top', text:'They go straight into your bag. The stop turns purple while you wait for your next spin.',
           leave:()=>{ $('#stop-modal').classList.remove('active'); } },
-        { title:'Candy & gems', enter:()=> ghostTrainer(false), target:()=> q('#hud-candy-chip'), text:'Candy levels up your Totos. Grab the candy corn you spot on the map for free candy. Gems (just below) are for the Store.' },
+        { title:'Candy & gems', enter:()=> ghostTrainer(false), target:()=> q('#hud-candy-chip'), text:'Candy levels up your Totos. Grab the candy corn you spot on the map for free candy. Gems (just below) are spent in the Gem Shop on TotoChests, Raid Passes and Witches Brew — tap them any time to open it.' },
         { title:'Real time & weather', target:()=> q('#hud-daynight'), text:'The map follows your real time of day and weather.' },
         { title:'The menu', target:()=> q('#btn-menu'), tap:true, text:'Tap the pumpkin to open the menu.', until:()=> $('#quick-menu').classList.contains('show') },
         { title:'Your Totos', target:()=> q('.qm-btn[data-tab="totos"]'), tap:true, text:'Tap Totos to see your collection.', until:()=> !!q('.panel-screen[data-panel="totos"].active'),
@@ -7817,7 +8147,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v53';
+window.TQ_APP_VERSION = 'v54';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
