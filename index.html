@@ -862,6 +862,17 @@
   .modal-back { position:absolute; inset:0; background:rgba(10,10,20,0.68); z-index:60; display:none; align-items:center; justify-content:center; padding:20px;}
   .modal-back.active { display:flex; }
   .enc-note { font-size:11px; font-weight:700; color:#8a7aa8; margin:-2px 0 10px; }
+  .enc-pick-label { font-size:10.5px; font-weight:800; color:#8a7aa8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
+  .enc-pick { display:flex; gap:6px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:6px; scrollbar-width:none; }
+  .enc-pick::-webkit-scrollbar { display:none; }
+  .enc-fighter { flex:0 0 auto; width:64px; border:2px solid #eee4f7; border-radius:12px; background:#faf7ff; padding:4px 2px 3px; cursor:pointer; font-family:inherit; }
+  .enc-fighter.on { border-color:#ff7a3d; background:#fff3ea; box-shadow:0 2px 8px rgba(255,120,60,0.35); }
+  .enc-fighter .sp { width:40px; height:36px; margin:0 auto; display:flex; align-items:center; justify-content:center; }
+  .enc-fighter .sp img, .enc-fighter .sp svg { max-width:40px; max-height:36px; object-fit:contain; }
+  .enc-fighter .nm { font-size:9.5px; font-weight:800; color:#3a2a55; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .enc-fighter .hp { height:3px; border-radius:2px; background:#e5dcef; margin:2px 4px 0; overflow:hidden; }
+  .enc-fighter .hp > div { height:100%; }
+  .enc-none { font-size:11.5px; font-weight:800; color:#c0392b; padding:6px 4px; }
   .xp-row { margin:2px auto 8px; max-width:250px; text-align:left; }
   .xp-row .xp-txt { display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color:#7a6a9a; margin-bottom:3px; }
   .xp-row .xp-track { height:8px; border-radius:5px; background:#ece6fa; overflow:hidden; }
@@ -1926,10 +1937,12 @@
       <div class="modal-sp" id="enc-sprite">👻</div>
       <div class="modal-name" id="enc-name">Wisp</div>
       <div class="modal-sub" id="enc-sub">CP 320 · normal</div>
-      <div class="enc-note">Caught Totos start at Lv 1 — train them in battles or with candy</div>
+      <div class="enc-note">Battle it to catch it! Win and it joins your team (caught Totos start at Lv 1).</div>
+      <div class="enc-pick-label">Fight with</div>
+      <div class="enc-pick" id="enc-pick"></div>
       <div class="btn-row">
         <button class="btn-cancel" data-close-enc>Run</button>
-        <button class="btn-catch" id="btn-throw">🔮 Throw</button>
+        <button class="btn-catch" id="btn-throw">⚔️ Battle</button>
       </div>
     </div>
   </div>
@@ -5437,7 +5450,7 @@
       return '<div class="nearby-row'+(on ? ' tracked' : '')+'" data-id="'+escapeHtml(String(t.id))+'">'+
         '<div class="nr-sp">'+spriteMarkup(t)+'</div>'+
         '<div class="nr-info"><div class="nr-name">'+escapeHtml(t.name)+'</div><div class="nr-sub">PWR '+t.cp+' · '+(t.tier||'normal')+(leave ? ' · '+leave : '')+'</div></div>'+
-        '<div class="nr-go">'+(close ? '<span class="nr-dist">'+fmtDist(d)+'</span><button class="nr-btn catch">Catch</button>'
+        '<div class="nr-go">'+(close ? '<span class="nr-dist">'+fmtDist(d)+'</span><button class="nr-btn catch">Battle</button>'
           : '<span class="nr-dist">'+arrowHtml(t)+' '+fmtDist(d)+'</span><button class="nr-btn'+(on ? ' on' : '')+'">'+(on ? 'Tracking' : 'Track')+'</button>')+'</div>'+
       '</div>';
     }).join('');
@@ -6081,24 +6094,49 @@
     };
     sub(); clearInterval(window.__encTimer);
     window.__encTimer = setInterval(()=>{ if (!$('#encounter-modal').classList.contains('active')){ clearInterval(window.__encTimer); return; } sub(); }, 1000);
+    renderEncPick();
     $('#encounter-modal').classList.add('active');
   }
+  // which of your Totos fights the wild one: healthy ones, strongest first (your pick sticks)
+  let encFighterId = null;
+  function renderEncPick(){
+    const healthy = state.collection.filter(t=> hpOf(t) > 0).sort((a,b)=> (b.cp||0)-(a.cp||0));
+    const box = $('#enc-pick'), btn = $('#btn-throw');
+    if (!healthy.length){
+      encFighterId = null;
+      box.innerHTML = '<div class="enc-none">All your Totos are hurt — heal one with a Healing Elixir (menu → Items) first.</div>';
+      btn.disabled = true; btn.style.opacity = '0.5'; return;
+    }
+    if (!healthy.some(t=> t.id === encFighterId)) encFighterId = healthy[0].id;
+    btn.disabled = false; btn.style.opacity = '';
+    box.innerHTML = healthy.slice(0, 12).map(t=>{ const pct = Math.round(hpOf(t)/Math.max(1,t.maxHp)*100);
+      return '<button class="enc-fighter'+(t.id===encFighterId ? ' on' : '')+'" data-id="'+escapeHtml(String(t.id))+'"><div class="sp">'+spriteMarkup(t)+'</div><div class="nm">'+escapeHtml(t.name)+'</div><div class="nm" style="color:#8a7aa8">PWR '+(t.cp||0)+'</div><div class="hp"><div style="width:'+pct+'%;background:'+hpColor(pct)+'"></div></div></button>'; }).join('');
+    $$('.enc-fighter', box).forEach(b=> b.onclick = ()=>{ encFighterId = b.dataset.id; renderEncPick(); });
+  }
   $$('[data-close-enc]').forEach(x=> x.onclick = ()=>{ $('#encounter-modal').classList.remove('active'); pendingCatch=null; });
+  // You catch a wild Toto by beating it in a battle (v53) — no more throwing.
   $('#btn-throw').onclick = ()=>{
     if (!pendingCatch) return;
-    const caught = pendingCatch;
-    if (caught.id === trackedId) trackedId = null;
-    const respawnX = caught._x, respawnY = caught._y, respawnChunk = caught._chunkKey;
-    finalizeCatch(caught);
-    removeTotoFromMap(caught);
-    Sound.playCatch();
-    showToast('Caught '+caught.name+'! It starts at Lv 1 — train it in battles or with candy.');
-    renderCollection(); refreshHUD(); markDirty(); saveNow(false);
+    const wild = pendingCatch;
+    const fighter = state.collection.find(t=> t.id === encFighterId && hpOf(t) > 0);
+    if (!fighter){ renderEncPick(); showToast('Pick a healthy Toto to battle with.'); return; }
+    if (!state.wildTotos.includes(wild)){ showToast('It wandered off…'); $('#encounter-modal').classList.remove('active'); pendingCatch = null; return; }
+    wild._hold = true;                       // it waits while you fight it
     $('#encounter-modal').classList.remove('active');
     pendingCatch = null;
-    // Something new turns up on this same spot a minute later.
-    setTimeout(()=>{ spawnWildTotoAt(respawnX, respawnY, respawnChunk); }, RESPAWN_DELAY_MS);
+    const tut = !!(window.TotoTutorial && window.TotoTutorial.isRunning() && window.TotoTutorial.isTutToto && window.TotoTutorial.isTutToto(wild));
+    if (tut){ window.__tutorialPracticeDone = false; launchBattle({ mode:'catch', kind:'catch', opponent: wild, team:[fighter], allies:[], practice:true }); return; }
+    renderCountdownStep('Wild '+wild.name+'!', ()=> launchBattle({ mode:'catch', kind:'catch', opponent: wild, team:[fighter], allies:[] }));
+    $('#setup-modal').classList.add('active');
   };
+  // after a won catch battle: it leaves the map, and something new turns up there a minute later
+  function wildCaughtFromMap(wild){
+    if (!wild || !state.wildTotos.includes(wild)) return;
+    if (wild.id === trackedId) trackedId = null;
+    const respawnX = wild._x, respawnY = wild._y, respawnChunk = wild._chunkKey;
+    removeTotoFromMap(wild);
+    setTimeout(()=>{ spawnWildTotoAt(respawnX, respawnY, respawnChunk); }, RESPAWN_DELAY_MS);
+  }
   function tryStartGymRaid(gym){
     const distM = distanceMetersToWorldPoint(gym.x, gym.y);
     if (distM > GYM_RADIUS_M){ showToast('Too far ('+fmtDist(distM)+') — get within '+fmtDist(GYM_RADIUS_M)+' of the gym.'); return; }
@@ -6886,8 +6924,8 @@
   //  - Boss mechanics: a Shockwave on the whole team every 14s (group), an Enrage below
   //    30% health, and after 4 minutes it keeps getting stronger, so a fight can't stall.
   const DMG_P = 0.0045;
-  const BOSS_K = { solo:0.0075, group:0.142, catch:0.0055 };   // v53: bosses hit ~35% harder solo
-  const BOSS_HP_MULT = { solo:5.5, group:8, catch:1.5 };
+  const BOSS_K = { solo:0.0075, group:0.142, catch:0.0085 };   // v53: bosses hit ~35% harder solo
+  const BOSS_HP_MULT = { solo:5.5, group:8, catch:0.45 };   // a catch fight lasts ~20-40 s
   const BOSS_ROLE_FLAVOR = { attacker:{atk:1,hp:1,def:1}, supporter:{atk:0.85,hp:1.15,def:1.1}, tanker:{atk:0.75,hp:1.4,def:1.3}, healer:{atk:0.7,hp:1.25,def:1.15} };
   const SWING_MS = 1000, BOSS_SWING_MS = 1600, SWEEP_EVERY_MS = 14000, SWEEP_WARN_MS = 1700;
   // Kept for any older callers: plain attack-vs-defence damage with a per-hit cap.
@@ -7565,7 +7603,10 @@
     const lead = team.slice().sort((a,b)=>b.cp-a.cp)[0];
     const group = !!(opts.allies && opts.allies.length);
     const mode = opts.mode==='catch' ? 'catch' : (group ? 'group' : 'solo');
-    const enemy = bossFighter(opts.opponent, mode);
+    // A wild Toto fights at most a couple of levels above the Toto you send in (you're
+    // catching it, not raiding it) — its tier still makes Legendaries the tougher catch.
+    const foe = mode==='catch' ? Object.assign({}, opts.opponent, { level: Math.max(1, Math.min(opts.opponent.level||1, (lead.level||1) + 2)) }) : opts.opponent;
+    const enemy = bossFighter(foe, mode);
     const player = fighterFromToto(lead); player.isPlayer = true;
     // Teammates fight as Mythicals of their role at your Toto's level (other trainers as
     // max-level attackers), knowing every ability that level allows.
@@ -7735,13 +7776,14 @@
   // little (a quarter). Levels it gains are real levels — its stats grow and new
   // abilities unlock to learn.
   function awardBattleXp(won){
-    if (!battle || !battle.player || !battle.player.ref || battle.mode==='catch') return;
+    if (!battle || !battle.player || !battle.player.ref) return;
     const t = state.collection.find(x=> x.id === battle.player.ref.id);
     if (!t) return;
     const e = battle.enemy;
     const base = { normal:60, legendary:120, mythical:200, eternal:320 }[e.tier] || 100;
     let xp = base * (0.6 + Math.min(TOTO_MAX_LEVEL, e.level||1)/TOTO_MAX_LEVEL*0.8);
     if (battle.group) xp *= 0.9;
+    if (battle.mode==='catch') xp *= 0.5;
     if (!won) xp *= 0.25;
     xp = Math.round(xp);
     const beforeLearn = learnableAbilities(t).length;
@@ -7772,7 +7814,7 @@
       Sound.playVictory();
       const opp = battle.opponentTemplate;
       const teamCarried = !!battle.spectating;
-      if (battle.practice){
+      if (battle.practice && battle.mode !== 'catch'){
         battleLog('Practice complete! Every battle gives your Toto XP — and beating a gym or shrine boss wins it for your team.', true);
         renderCoach();
         setTimeout(closeBattleScreen, 1900);
@@ -7786,13 +7828,15 @@
         return;
       }
       finalizeCatch(opp);
+      if (battle.mode==='catch'){ wildCaughtFromMap(opp); if (battle.practice) renderCoach(); }
       battleLog((teamCarried ? 'Your team pulled through! ' : 'Victory! ')+opp.name+(battle.mode==='catch'?' was caught!':' joined you!'));
       showToast(battle.mode==='catch' ? ('Caught '+opp.name+'!') : (teamCarried ? ('Your team won it — '+opp.name+' joined you too!') : ('Raid won! '+opp.name+' joined you.')));
       renderCollection(); refreshHUD(); markDirty(); saveNow(false);
     } else {
       Sound.playDefeat();
-      battleLog(battle.mode==='catch' ? (battle.opponentTemplate.name+' got away!') : (battle.spectating ? 'Your whole team was defeated...' : 'Your Toto was defeated — retreat!'));
-      showToast('Defeated — better luck next time.');
+      battleLog(battle.mode==='catch' ? (battle.opponentTemplate.name+' is still out there — heal up and try again!') : (battle.spectating ? 'Your whole team was defeated...' : 'Your Toto was defeated — retreat!'));
+      showToast(battle.mode==='catch' ? 'Defeated — '+battle.opponentTemplate.name+' is still on the map.' : 'Defeated — better luck next time.');
+      if (battle.mode==='catch' && battle.opponentTemplate) battle.opponentTemplate._hold = false;
     }
     setTimeout(closeBattleScreen, 1700);
   }
@@ -7816,7 +7860,7 @@
     $('#catch-choice-overlay').classList.remove('show');
     closeBattleScreen();
   }
-  $('#btn-retreat').onclick = ()=>{ if (battle){ clearBattleTimers(); } closeBattleScreen(); };
+  $('#btn-retreat').onclick = ()=>{ if (battle){ clearBattleTimers(); if (battle.mode==='catch' && battle.opponentTemplate && !battle.over) battle.opponentTemplate._hold = false; } closeBattleScreen(); };
 
   // ================= TUTORIAL (new trainers) =================
   // Runs once after sign-up + starter pick (and any time from the menu's "Tutorial"
@@ -7902,12 +7946,15 @@
         { title:'Welcome to TotoQuest, '+name+'! 🎃', text:'Totos — spooky little monsters — are hiding all around the real world. Want a quick tour? It only takes a couple of minutes. Already know how to play? Skip it.', nextLabel:'Show me how', skipLabel:'Skip — I know how to play' },
         { title:'This is you', target:()=> q('#player-avatar'), text:'Your trainer stands where you are. Walk around in real life and your trainer walks with you. The map is your real neighbourhood — streets, houses, parks and ball fields.' },
         { title:'Look around', text:'Drag with one finger to turn the map. Pinch with two fingers to zoom in and out.' },
-        { title:'A wild Toto!', enter: ensureTutorialToto, target:()=> totoBox(ensureTutorialToto()), text:'Wild Totos stand on glowing rings. The tag shows its power (PWR) and how far away it is. When the distance turns green you\'re close enough to catch it — within 40 m.' },
+        { title:'A wild Toto!', enter: ensureTutorialToto, target:()=> totoBox(ensureTutorialToto()), text:'Wild Totos stand on glowing rings. The tag shows its power (PWR) and how far away it is. When the distance turns green you\'re close enough to battle it — within 40 m.' },
         { title:'Catch it', enter:()=>{ const t = ensureTutorialToto(); if (t) t._hold = true; }, target:()=> totoBox(ensureTutorialToto()), tap:true, text:'Tap the Toto.', until:()=> $('#encounter-modal').classList.contains('active') },
-        { title:'Throw!', target:()=> q('#btn-throw'), tap:true, cardAt:'top', text:'Tap Throw to catch it. Every Toto you catch starts at Lv 1 — you train it up yourself.', until:()=> state.collection.length > startCatches,
-          keep:()=>{ if (!$('#encounter-modal').classList.contains('active') && state.collection.length <= startCatches) go(i-1); },   // ran away? try again
-          leave:()=>{ if (tutToto) tutToto._hold = false; } },
-        { title:'Totos nearby', target:()=> q('#nearby-widget'), text:'The Totos closest to you show down here. Tap it for the list: tap Track and follow the arrow, then Catch when you\'re close. Wild Totos wander off after 3 minutes, and a new one turns up in the same spot a minute later.' },
+        { title:'Battle it!', target:()=> q('#btn-throw'), tap:true, cardAt:'top', text:'You catch Totos by battling them! Your strongest Toto is picked — tap Battle. Win, and it joins your team (every Toto you catch starts at Lv 1 — you train it up yourself).',
+          until:()=> $('#battle-screen').classList.contains('active'),
+          keep:()=>{ if (!$('#encounter-modal').classList.contains('active') && !$('#battle-screen').classList.contains('active') && state.collection.length <= startCatches) go(i-1); } },   // closed it? try again
+        { practice:true, external:true },
+        { title:'Caught it! 🎉', skipIf:()=> state.collection.length <= startCatches, leave:()=>{ if (tutToto) tutToto._hold = false; },
+          text:()=> 'You won, so '+((state.collection[state.collection.length-1]||{}).name || 'it')+' joined your team! Every battle also gives the Toto that fought some XP.' },
+        { title:'Totos nearby', target:()=> q('#nearby-widget'), text:'The Totos closest to you show down here. Tap it for the list: tap Track and follow the arrow, then Battle when you\'re close. Wild Totos wander off after 3 minutes, and a new one turns up in the same spot a minute later.' },
         { title:'PumpkinStops', enter:()=>{ pickStop(); ghostTrainer(true); }, target:stopBox,
           text:()=> 'Glowing signposts like this are PumpkinStops — at parks, playgrounds, churches, monuments and on every street. Spin one for 5 candy and a Healing Elixir. You can spin 1 stop every 10 minutes.'
             + (canSpinNow() ? ' There\'s one right by you — let\'s spin it!' : (stopBox() ? ' Walk within 40 m of one to spin it.' : ' There isn\'t one on screen right now — look out for them as you walk.')) },
@@ -7927,8 +7974,6 @@
         { title:'Levels & XP', keep:keepDetail, target:()=> q('#det-xp') && q('#det-xp').innerHTML ? q('#det-xp') : q('#det-sub'), text:'Its level and XP. Totos earn XP from every battle they fight — or level up instantly with candy using Power Up.' },
         { title:'Abilities', keep:keepDetail, enter:()=>{ const b = q('.moves-box'); if (b) b.scrollIntoView({ block:'center' }); }, target:()=> q('.moves-box'),
           text:'Every Toto has a role — Attacker, Tank, Healer or Support — and learns a new role ability at Lv 10, 20, 30, 40 and 50. When one unlocks, tap Learn here. Learned abilities appear in battle.' },
-        { title:'Practice battle', enter:closeAll, text:'Let\'s try a quick practice battle with your Toto. I\'ll show you the controls.', nextLabel:'Start battle ⚔️' },
-        { practice:true },
         { title:'Ouch — your Toto got hurt', enter:closeAll, skipIf:()=> !needsHeal(),
           text:'Totos keep their injuries after every battle, and one that faints can\'t battle again until it\'s healed. Let\'s heal yours with a Healing Elixir.' },
         { title:'Open the menu', skipIf:()=> !needsHeal(), target:()=> q('#btn-menu'), tap:true, text:'Tap the pumpkin.', until:()=> $('#quick-menu').classList.contains('show') },
@@ -8029,7 +8074,7 @@
       if (i >= steps.length){ finish(false); return; }
       const s = steps[i]; s._fired = false;
       if (s.enter){ try { s.enter(); } catch(e){} }
-      if (s.practice) startPractice();
+      if (s.practice && !s.external) startPractice();
       render();
     }
     function next(){ go(i+1); }
@@ -8068,7 +8113,7 @@
       if (!state.tutorialDone){ state.candy += 100; refreshHUD(); showToast(skipped ? '🎃 Welcome! Here are 100 candy to get you started.' : '🎃 Tutorial complete — +100 candy!'); }
       state.tutorialDone = true; markDirty(); saveNow(false);
     }
-    return { start, isRunning: ()=> running };
+    return { start, isRunning: ()=> running, isTutToto: t=> !!t && t === tutToto };
   })();
   window.TotoTutorial = Tutorial;
   $('#btn-tutorial').onclick = ()=>{ closeQuickMenu(); openGamePanel('map'); Tutorial.start(); };
@@ -8147,7 +8192,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v54';
+window.TQ_APP_VERSION = 'v55';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
