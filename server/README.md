@@ -29,8 +29,11 @@ Everyone can read `leaderboard`. A trainer can only write their own row through
   `https://bawabhjturevmftfulez.supabase.co/functions/v1/stripe-webhook`. Its signing secret is
   stored in `private.settings`.
 * `TQ_ONLINE.url` and `TQ_ONLINE.anonKey` are filled in `index.html`, so the leaderboard is live.
-* The Payment Links (`TQ_ONLINE.payLinks`) get filled in once the Stripe account is activated for
-  card payments. Until then the store says it is opening soon.
+* Stripe (account "TotoQuest") has 9 products, `tq_candy_100` … `tq_gems_800`. Each has a
+  tax-inclusive USD price and tax code `txcd_10201000`, which Stripe's Managed Payments needs.
+  Each product has one Payment Link with metadata `kind` and `amount`; their URLs are in
+  `TQ_ONLINE.payLinks`.
+* Managed Payments is on, so Stripe is the seller of record and handles sales tax and VAT.
 * Supabase free projects pause after about a week with no visitors. Open the game, or restore the
   project in the Supabase dashboard, to wake it.
 

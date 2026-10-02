@@ -2932,8 +2932,15 @@
     url: 'https://bawabhjturevmftfulez.supabase.co',            // Supabase project URL
     anonKey: 'sb_publishable_27UP6Q4MTcfCibEx-xduyA__nUpUgbc',  // public key (safe in the page — every write is checked server-side)
     payLinks: {         // Stripe Payment Links, one per store pack
-      'candy:100':'', 'candy:500':'', 'candy:1000':'', 'candy:1500':'', 'candy:2500':'',
-      'gems:50':'', 'gems:150':'', 'gems:350':'', 'gems:800':''
+      'candy:100':  'https://buy.stripe.com/8x27sL04r2ky7zw9y9bo400',
+      'candy:500':  'https://buy.stripe.com/3cI4gz4kH8IWcTQ9y9bo401',
+      'candy:1000': 'https://buy.stripe.com/8x27sLg3p4sG3jgcKlbo402',
+      'candy:1500': 'https://buy.stripe.com/00w5kDcRd7ES8DAcKlbo403',
+      'candy:2500': 'https://buy.stripe.com/28EfZh4kH0cq3jg5hTbo404',
+      'gems:50':    'https://buy.stripe.com/00wbJ13gD0cqf1YdOpbo405',
+      'gems:150':   'https://buy.stripe.com/5kQeVd04r6AOdXU8u5bo406',
+      'gems:350':   'https://buy.stripe.com/00wbJ16sP7ES1b85hTbo407',
+      'gems:800':   'https://buy.stripe.com/9B65kD5oLgbo074h0Bbo408'
     }
   };
   try { if (window.__TQ_ONLINE_TEST) Object.assign(TQ_ONLINE, window.__TQ_ONLINE_TEST); } catch(e){}
@@ -5528,7 +5535,7 @@
   function renderStore(){
     const warn = $('#store-warning');
     if (warn) warn.textContent = paymentsOn()
-      ? '🔒 Secure checkout by Stripe. Your candy or gems are added automatically as soon as your payment goes through.'
+      ? '🔒 Secure checkout by Stripe. Your candy or gems are added automatically as soon as your payment goes through. Under 18? Ask a parent before buying.'
       : 'The store is opening soon.';
     let html = '<div class="store-section-title">🍬 Candy</div>' + CANDY_TIERS.map(t=>storeTierRow('candy', t.amount, t.price)).join('');
     html += '<div class="store-section-title">💎 Gems</div>' + GEM_TIERS.map(t=>storeTierRow('gems', t.amount, t.price)).join('');
@@ -7020,7 +7027,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v47';
+window.TQ_APP_VERSION = 'v48';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
