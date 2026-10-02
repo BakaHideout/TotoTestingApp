@@ -1,0 +1,50 @@
+# Builds the Google Play version of TotoQuest (a Trusted Web Activity that opens the game's website
+# full screen) from android/twa-manifest.json, and puts the unsigned app bundle on the
+# `android-build` branch. The bundle is then signed with the upload key, which is kept privately
+# and never stored in this repository.
+name: Android app (Google Play)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['android/twa-manifest.json', '.github/workflows/android.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli@1.25.0
+      - name: Point Bubblewrap at this machine's JDK and Android SDK
+        run: |
+          mkdir -p ~/.bubblewrap
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Generate the Android project
+        working-directory: android
+        run: bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json
+      - name: Build the app bundle
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon bundleRelease
+          grep -n "targetSdkVersion\|compileSdkVersion\|versionCode\|versionName\|applicationId" app/build.gradle || true
+      - name: Put the unsigned bundle on the android-build branch
+        run: |
+          VER=$(node -p "require('./android/twa-manifest.json').appVersion")
+          CODE=$(node -p "require('./android/twa-manifest.json').appVersionCode")
+          mkdir -p /tmp/out
+          cp android/app/build/outputs/bundle/release/app-release.aab "/tmp/out/totoquest-$VER-$CODE-unsigned.aab"
+          cd /tmp/out
+          git init -q -b android-build
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "Unsigned TotoQuest app bundle $VER ($CODE), built from ${GITHUB_SHA}. Sign it with the upload key before uploading to Google Play." > README.txt
+          git add -A && git commit -qm "TotoQuest $VER ($CODE) unsigned bundle"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" android-build

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · TotoQuest</title>
+<meta name="description" content="How TotoQuest collects, uses and protects your information.">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
+<link rel="stylesheet" href="legal.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html"><img src="assets/brand/icon-192.png" alt="">TotoQuest</a>
+  <nav class="tabs" aria-label="Policies">
+    <a href="privacy.html" aria-current="page">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="refunds.html">Refunds</a>
+  </nav>
+</header>
+<main>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Effective October 1, 2026 · Updated October 2, 2026</p>
+
+  <p>TotoQuest ("we", "us") is a location-based Halloween game where you explore the real world to find, collect and battle creatures called Totos. This policy explains what information the game uses, where it goes, and the choices you have. If you have a question, email us at <span class="contact"><a href="mailto:totoquestofficial@yahoo.com">totoquestofficial@yahoo.com</a></span>.</p>
+
+  <div class="summary">
+    <strong>The short version</strong>
+    <ul>
+      <li>Your account and game progress are saved on your own phone or computer, not on our servers.</li>
+      <li>Your GPS location is used on your device to draw the map. We don't store it or send it to our servers.</li>
+      <li>If you're on the online leaderboard, your username, character and game stats are public.</li>
+      <li>Payments are handled by Stripe. We never see your full card number.</li>
+      <li>No ads, no tracking, and we never sell your information.</li>
+      <li>TotoQuest is for players 13 and older.</li>
+    </ul>
+  </div>
+
+  <h2>Information you give us</h2>
+  <p>When you create an account, the game asks for:</p>
+  <ul>
+    <li><strong>Email address.</strong> Used to log back in to your save on that device, and pre-filled at checkout if you buy something.</li>
+    <li><strong>Username.</strong> Shown in the game and on the public leaderboard. Please don't use your real name.</li>
+    <li><strong>Gender.</strong> Used only to pick your character's look.</li>
+    <li><strong>Age.</strong> Used to make sure you're old enough to play.</li>
+    <li><strong>Password</strong>, if you sign up with email. It's saved only on your device, scrambled with a one-way hash, so it can't be read back, not even by us.</li>
+  </ul>
+  <p>These details, along with your game progress (your Totos, items, candy, gems, level and settings), are stored <strong>only in your browser's storage on your device</strong>. They aren't uploaded to our servers.</p>
+  <h3>Sign in with Google</h3>
+  <p>If you choose <strong>Sign in with Google</strong>, Google asks you to confirm and then shares your name, email address and Google account ID with TotoQuest. We use the email address to sign you in, and your first name only to suggest a username. To check that a Google sign-in is real, the game sends Google's sign-in token to a small check on our online service (Supabase), which asks Google to confirm it. The token isn't stored. Google's own privacy policy covers your Google account.</p>
+
+  <h2>Your location</h2>
+  <p>TotoQuest is played outdoors, so it asks your device for your GPS location. Your exact location is used on your device to place you on the map, spawn Totos near you, and work out how close you are to Pumpkin Stops and battles. <strong>We don't store your location and don't send it to our servers.</strong></p>
+  <p>To draw the map and show the weather, the game asks two outside services for information about your area:</p>
+  <ul>
+    <li><strong>OpenStreetMap map data</strong> (Overpass servers run by volunteers and organizations, such as overpass-api.de, overpass.kumi.systems, overpass.private.coffee and maps.mail.ru). The game requests streets, parks and buildings for the map square you're in. Map data is saved on your device so it doesn't have to be downloaded again.</li>
+    <li><strong>Open-Meteo</strong> (open-meteo.com) for the current weather, using your location rounded to about 1 km.</li>
+  </ul>
+  <p>Like any website, these services receive your IP address and the area being requested. They have their own privacy policies.</p>
+
+  <h2>Online leaderboard</h2>
+  <p>To take part in the shared leaderboard, the game creates a random player ID and a secret code that only your device knows. Our online database (hosted by Supabase) stores:</p>
+  <ul>
+    <li>your random player ID and a scrambled (hashed) copy of the secret code;</li>
+    <li>your leaderboard entry: username, character (girl or boy), power level, player level and number of Totos caught.</li>
+  </ul>
+  <p>Your leaderboard entry is <strong>public</strong>: anyone who plays can see it. Your email, age and location are never sent to the leaderboard.</p>
+
+  <h2>Purchases</h2>
+  <p>You can buy candy and gems in the store. Checkout happens on Stripe's secure payment page, and Stripe's Link service acts as the reseller (merchant of record). That means:</p>
+  <ul>
+    <li>Your card or other payment details go straight to Stripe. We never see or store your full card number.</li>
+    <li>Stripe collects your name, email, billing address and payment details to process the payment, work out sales tax and prevent fraud. Stripe sends your receipt. Stripe uses this information under the <a href="https://stripe.com/privacy" rel="noopener">Stripe Privacy Policy</a>.</li>
+    <li>We receive a record of each purchase: an order ID, your random player ID, which pack you bought, the amount paid and the currency. We use it to deliver your candy or gems, and keep it for our accounting and tax records.</li>
+    <li>In our Stripe account we can also see the name, email and billing details you gave Stripe for that order. We use them only to help with that order, such as a refund.</li>
+  </ul>
+
+  <h2>Information collected automatically</h2>
+  <p>TotoQuest has no ads, no analytics and no tracking cookies. Even so, some services see basic technical information whenever you load the game, such as your IP address, browser type and the time of the request:</p>
+  <ul>
+    <li><strong>GitHub Pages</strong> hosts the game's files.</li>
+    <li><strong>Google Fonts</strong> provides the game's lettering.</li>
+    <li><strong>Supabase</strong> runs the leaderboard, purchase records and the Google sign-in check.</li>
+    <li><strong>Google</strong> provides the "Sign in with Google" button, which loads from accounts.google.com on the sign-in screen.</li>
+    <li>The map and weather services listed above.</li>
+  </ul>
+  <p>The game saves information on your device using browser storage (local storage and IndexedDB). This holds your save, your sound setting and the downloaded map. It isn't used to track you.</p>
+
+  <h2>How we use information</h2>
+  <ul>
+    <li>To run the game, save your progress and show the map around you.</li>
+    <li>To show the leaderboard.</li>
+    <li>To deliver purchases, handle refunds and keep financial records.</li>
+    <li>To keep the game fair and secure, for example by removing cheating or offensive usernames.</li>
+    <li>To answer you when you contact us.</li>
+  </ul>
+  <p>We do <strong>not</strong> sell your personal information, share it for targeted advertising, or use it to build advertising profiles.</p>
+
+  <h2>Who we share information with</h2>
+  <p>We share information only with the service providers listed in this policy (Stripe and Link, Supabase, GitHub, Google for sign-in and fonts, OpenStreetMap Overpass servers and Open-Meteo), as needed for them to provide their service. We may also share information if the law requires it, to protect players or our rights, or as part of selling or transferring the game.</p>
+
+  <h2>How long we keep it</h2>
+  <ul>
+    <li><strong>On your device:</strong> until you log out and clear the site's data, or uninstall the game.</li>
+    <li><strong>Leaderboard entries:</strong> while you play, or until you ask us to delete yours.</li>
+    <li><strong>Purchase records:</strong> as long as tax and accounting laws require (usually up to 7 years).</li>
+  </ul>
+
+  <h2>Your choices and rights</h2>
+  <ul>
+    <li><strong>Location:</strong> you can turn off location access in your browser or phone settings at any time. The map needs it to work.</li>
+    <li><strong>Your save:</strong> it lives on your device. Clearing this site's data in your browser deletes it.</li>
+    <li><strong>Delete your account:</strong> in the game, open your profile, then <strong>Settings → Delete my account</strong>. That removes your save from your device and your leaderboard entry from our online service. Purchase records are kept as described above. You can also email us with your username.</li>
+    <li><strong>Access, correction or deletion:</strong> depending on where you live, you may have the right to ask what we hold about you, or to correct or delete it. Email us and we'll respond within 30 days. We'll never treat you differently for using these rights.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>TotoQuest is for players <strong>13 and older</strong>, and sign-up asks for your age. We don't knowingly collect personal information from children under 13. If you're a parent and believe your child under 13 has used the game, email us. We'll help delete their information, including any leaderboard entry. Players aged 13 to 17 should have a parent or guardian's permission to play and to make purchases.</p>
+
+  <h2>Security</h2>
+  <p>The game connects over encrypted HTTPS. Leaderboard changes need your device's secret code, which we store only in scrambled form. Payments are handled by Stripe, which is certified to the highest payment-industry security level. No system is perfectly secure, though, and because your save lives on your device, anyone with access to your device and browser could see it.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>We may update this policy as the game changes. We'll change the date at the top, and for important changes we'll let you know in the game.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or requests: <span class="contact"><a href="mailto:totoquestofficial@yahoo.com">totoquestofficial@yahoo.com</a></span></p>
+</main>
+<footer>
+  <p><a href="index.html">Back to TotoQuest</a> · <a href="terms.html">Terms and Conditions</a> · <a href="refunds.html">Return and Refund Policy</a></p>
+</footer>
+</body>
+</html>
