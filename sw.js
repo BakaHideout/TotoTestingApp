@@ -1,5 +1,9 @@
-const CACHE_NAME = 'totoquest-v52';
+const CACHE_NAME = 'totoquest-v53';
 const ASSETS = [
+'./assets/items/gem.webp',
+'./assets/items/candy.webp',
+'./assets/items/gem-sm.png',
+'./assets/items/candy-sm.png',
 './index.html',
 './manifest.json',
 './icon-192.png',
