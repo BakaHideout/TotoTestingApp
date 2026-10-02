@@ -235,6 +235,11 @@
   .reg-google-note a { color:#6b3fa0; font-weight:800; cursor:pointer; text-decoration:underline; }
   .install-pill { display:none; align-items:center; gap:8px; border:1.5px solid rgba(255,179,71,0.7); background:rgba(30,20,45,0.85); color:#ffe9c2; font-weight:800; font-size:13px; padding:9px 16px; border-radius:999px; cursor:pointer; font-family:inherit; box-shadow:0 6px 16px rgba(0,0,0,0.35); z-index:2; }
   .install-pill.show { display:inline-flex; }
+  .install-banner { position:absolute; top:14px; left:12px; z-index:21; display:none; align-items:center; gap:4px; max-width:calc(100% - 150px); padding:5px 5px 5px 12px; border-radius:16px; background:rgba(30,20,45,0.92); border:1.5px solid rgba(255,179,71,0.7); color:#ffe9c2; box-shadow:0 6px 16px rgba(0,0,0,0.4); pointer-events:auto; }
+  .install-banner.show { display:flex; }
+  .install-banner .ib-go { border:none; background:none; color:inherit; font-family:inherit; font-weight:800; font-size:12.5px; text-align:left; cursor:pointer; line-height:1.2; padding:2px 0; }
+  .install-banner .ib-go small { display:block; font-size:10.5px; font-weight:700; color:#bba9d6; }
+  .install-banner .ib-x { border:none; background:rgba(255,255,255,0.08); color:#e8dcff; width:26px; height:26px; border-radius:50%; font-size:12px; cursor:pointer; flex:none; }
   .install-steps { text-align:left; margin:6px 0 0; padding-left:20px; font-size:13px; line-height:1.5; }
   .divider { display:flex; align-items:center; gap:10px; color:#b3a6cf; font-size:10.5px; font-weight:700; margin: 1px 0; }
   .divider::before, .divider::after { content:''; flex:1; height:1px; background:#e5ddf7; }
@@ -1482,6 +1487,8 @@
         </div>
       </div>
 
+      <div class="install-banner" id="install-banner"><button class="ib-go" id="ib-go">📲 Install TotoQuest<small id="ib-sub">Play full screen from your home screen</small></button><button class="ib-x" id="ib-x" aria-label="Not now">✕</button></div>
+
       <div class="hazard-banner" id="hazard-banner">
         <span class="hazard-icon">⚠️</span>
         <div class="hazard-text">
@@ -1601,6 +1608,7 @@
         <div class="pd-best" id="pd-best" style="display:none;"></div>
         <button class="pd-action" id="btn-open-wardrobe">👗<span>Wardrobe<small>Dress your trainer</small></span><i>›</i></button>
         <button class="pd-action" id="btn-open-settings">⚙️<span>Settings<small>Sound, display &amp; account</small></span><i>›</i></button>
+        <button class="pd-action" id="btn-install-drawer" style="display:none;">📲<span>Install the app<small>Play full screen from your home screen</small></span><i>›</i></button>
         <div class="pd-owner" id="pd-owner" style="display:none;">
           <div>🔐 Owner tools unlock after you sign in with Google.</div>
           <div class="google-slot" id="google-unlock-slot"></div>
@@ -5316,10 +5324,19 @@
   // ---------------- INSTALL THE APP ----------------
   const isStandalone = ()=> (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   const isIOS = ()=> /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const INSTALL_SNOOZE_KEY = 'totoquest-install-snooze';
+  function installSnoozed(){ try { return Date.now() < (+localStorage.getItem(INSTALL_SNOOZE_KEY) || 0); } catch(e){ return false; } }
   function refreshInstallButtons(){
     const show = !isStandalone() && !document.documentElement.classList.contains('app-installed');
     const a = $('#btn-install-auth'); if (a) a.classList.toggle('show', show);
     const s = $('#btn-install-settings'); if (s) s.style.display = show ? '' : 'none';
+    const d = $('#btn-install-drawer'); if (d) d.style.display = show ? '' : 'none';
+    const b = $('#install-banner');
+    if (b){
+      const tut = !!document.getElementById('tut-layer');
+      b.classList.toggle('show', show && !installSnoozed() && !!state.loggedIn && !tut);
+      $('#ib-sub').textContent = isIOS() ? 'Tap for how: Share → Add to Home Screen' : 'Play full screen from your home screen';
+    }
   }
   async function installApp(){
     const ev = window.__tqInstall && window.__tqInstall.prompt;
@@ -5334,6 +5351,10 @@
     gameDialog({ title:'Install TotoQuest', message: steps, ok:'Got it', cancel:null });
   }
   $('#btn-install-auth').onclick = installApp;
+  $('#btn-install-drawer').onclick = ()=>{ closeProfileDrawer(); installApp(); };
+  $('#ib-go').onclick = installApp;
+  $('#ib-x').onclick = ()=>{ try { localStorage.setItem(INSTALL_SNOOZE_KEY, String(Date.now() + 3*24*3600*1000)); } catch(e){} refreshInstallButtons(); };
+  setInterval(()=>{ if (state.loggedIn) refreshInstallButtons(); }, 4000);
   $('#btn-install-settings').onclick = installApp;
   window.addEventListener('beforeinstallprompt', refreshInstallButtons);
   window.addEventListener('appinstalled', ()=>{ refreshInstallButtons(); showToast('📲 TotoQuest is on your home screen!'); });
@@ -7665,7 +7686,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v50';
+window.TQ_APP_VERSION = 'v51';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
