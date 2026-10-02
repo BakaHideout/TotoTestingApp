@@ -106,6 +106,17 @@
   .divider { display:flex; align-items:center; gap:10px; color:#b3a6cf; font-size:10.5px; font-weight:700; margin: 1px 0; }
   .divider::before, .divider::after { content:''; flex:1; height:1px; background:#e5ddf7; }
 
+  /* ---------- LEADERBOARD ---------- */
+  .lb-row { display:flex; align-items:center; gap:10px; background:#fff; border:2px solid #f0e6fa; border-radius:14px; padding:8px 10px; margin-bottom:7px; }
+  .lb-row.me { border-color:#ff8a3d; background:#fff6ee; }
+  .lb-rank { width:34px; text-align:center; font-weight:800; font-size:14px; color:#6b3fa0; flex-shrink:0; }
+  .lb-av { width:26px; height:32px; overflow:hidden; flex-shrink:0; }
+  .lb-info { flex:1; min-width:0; }
+  .lb-name { font-weight:800; font-size:13.5px; color:#2c1e3e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .lb-name span { color:#ff8a3d; }
+  .lb-sub { font-size:11px; font-weight:700; color:#999; }
+  .lb-power { font-weight:800; color:#ff8a3d; font-size:14px; }
+  .lb-gap { text-align:center; color:#bbb; font-weight:800; margin:-2px 0 4px; }
+
   /* ---------- PUMPKINSTOPS ---------- */
   .stop-card { text-align:center; }
   .stop-kicker { font-size:10.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#ff8a3d; }
@@ -1604,7 +1615,7 @@
   <div class="modal-back" id="leaderboard-modal">
     <div class="modal-card" style="max-width:360px; text-align:left;">
       <div class="modal-name" style="text-align:center; margin-bottom:2px;">🏆 Power Leaderboard</div>
-      <div class="modal-sub" style="text-align:center;">Ranked by your strongest 6 Totos' combined CP</div>
+      <div class="modal-sub" style="text-align:center;">Every trainer, ranked by power (your 6 strongest Totos)</div>
       <div id="leaderboard-list" style="max-height:340px; overflow-y:auto; margin-top:8px;"></div>
       <button class="btn-cancel" style="width:100%; margin-top:10px;" data-close-leaderboard>Close</button>
     </div>
@@ -1614,7 +1625,7 @@
   <div class="modal-back" id="store-modal">
     <div class="modal-card" style="max-width:380px; text-align:left;">
       <div class="modal-name" style="text-align:center; margin-bottom:2px;">🛍️ Store</div>
-      <div class="store-warning">⚠️ Honor system: this static game has no way to automatically verify a PayPal payment. Tapping a tier opens PayPal for that exact amount — only confirm "I've Paid" after you've actually completed it there.</div>
+      <div class="store-warning" id="store-warning">⚠️ Honor system: this static game has no way to automatically verify a PayPal payment. Tapping a tier opens PayPal for that exact amount — only confirm "I've Paid" after you've actually completed it there.</div>
       <div id="store-body" style="max-height:400px; overflow-y:auto; margin-top:8px;"></div>
       <button class="btn-cancel" style="width:100%; margin-top:10px;" data-close-store>Close</button>
     </div>
@@ -2729,7 +2740,7 @@
     // (see runLoadingSequence), that in-flight/loaded world data lives on the state
     // object too, and replacing state wholesale used to throw it all away and start over
     // right as you reached the map, which was a chunk of the "lag" getting into a new game.
-    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle: !!viaGoogle, tutorialDone:false, items:{ raidPass:3, elixir:5 }, stopCooldownUntil:0, lastPassDay:'' });
+    Object.assign(state, { loggedIn:true, username, email, gender, age: age||'—', avatar: gender==='male'?'male':'female', candy:150, gems:20, coins:0, collection:[], activeTab:'map', viaGoogle: !!viaGoogle, tutorialDone:false, playerId: newUuid(), playerSecret: newPlayerSecret(), pendingCheckoutAt:0, items:{ raidPass:3, elixir:5 }, stopCooldownUntil:0, lastPassDay:'' });
     const ok = await saveNow(true);
     await rememberEmail(email);
     if (!ok) $('#reg-error').textContent = 'Could not reach save storage — you can still play, it will retry automatically.';
@@ -2798,6 +2809,14 @@
     $('#admin-panel').style.display = (state.email && state.email.toLowerCase()===ADMIN_EMAIL) ? 'block' : 'none';
     showScreen('game');
     refreshHUD(); renderCollection(); startAutosave(); spawnClouds();
+    // online: register this trainer, post the score, and collect anything bought (coming back
+    // from checkout lands here with ?purchase=done)
+    if (onlineOn()){
+      const fromCheckout = /[?&]purchase=done/.test(location.search);
+      if (fromCheckout){ try { history.replaceState(null, '', location.pathname); } catch(e){} }
+      onlineRegister().then(()=> submitScoreOnline(true));
+      watchForPurchase(fromCheckout || checkoutRecent() ? 120 : 1);
+    }
     // ALWAYS (re)build the world here, every single session. A returning player's last
     // geoAnchor gets saved into their profile along with everything else — so on a
     // returning session state.geoAnchor is already truthy before this line ever runs,
@@ -2903,8 +2922,101 @@
     $('#hud-level').textContent = 'Lv '+state.charLevel;
     updateLeaderboard();
   }
+  // ---------------- ONLINE: shared leaderboard + real-money store ----------------
+  // The game's own small online service (a Supabase database) holds the leaderboard and
+  // records Stripe payments. Each phone's trainer gets a random id plus a secret only that
+  // phone knows; the server only accepts scores and hands out purchases for the right pair.
+  // With these left blank the game simply plays offline: Ranks shows just you, and the
+  // store can't sell anything.
+  const TQ_ONLINE = {
+    url: 'https://bawabhjturevmftfulez.supabase.co',            // Supabase project URL
+    anonKey: 'sb_publishable_27UP6Q4MTcfCibEx-xduyA__nUpUgbc',  // public key (safe in the page — every write is checked server-side)
+    payLinks: {         // Stripe Payment Links, one per store pack
+      'candy:100':'', 'candy:500':'', 'candy:1000':'', 'candy:1500':'', 'candy:2500':'',
+      'gems:50':'', 'gems:150':'', 'gems:350':'', 'gems:800':''
+    }
+  };
+  try { if (window.__TQ_ONLINE_TEST) Object.assign(TQ_ONLINE, window.__TQ_ONLINE_TEST); } catch(e){}
+  const onlineOn = ()=> !!(TQ_ONLINE.url && TQ_ONLINE.anonKey);
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=> ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]); }
+  const paymentsOn = ()=> onlineOn() && Object.values(TQ_ONLINE.payLinks||{}).some(Boolean);
+  async function sb(path, opts){
+    opts = opts || {};
+    const r = await fetch(TQ_ONLINE.url.replace(/\/$/,'') + '/rest/v1/' + path, Object.assign({}, opts, {
+      headers: Object.assign({ apikey:TQ_ONLINE.anonKey, Authorization:'Bearer '+TQ_ONLINE.anonKey, 'Content-Type':'application/json' }, opts.headers || {}) }));
+    if (!r.ok) throw new Error('online service said '+r.status);
+    return r;
+  }
+  const sbRpc = (fn, args)=> sb('rpc/'+fn, { method:'POST', body: JSON.stringify(args) }).then(r=> r.json());
+  function newPlayerSecret(){ const b = new Uint8Array(24); crypto.getRandomValues(b); return Array.from(b, x=> x.toString(16).padStart(2,'0')).join(''); }
+  function newUuid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    const b = new Uint8Array(16); crypto.getRandomValues(b); b[6] = (b[6]&15)|64; b[8] = (b[8]&63)|128;
+    const h = Array.from(b, x=> x.toString(16).padStart(2,'0')).join('');
+    return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+  }
+  function ensurePlayerId(){ if (!state.playerId || !state.playerSecret){ state.playerId = newUuid(); state.playerSecret = newPlayerSecret(); markDirty(); } }
+  let onlineReady = null;            // promise: this trainer is registered with the online service
+  function onlineRegister(){
+    if (!onlineOn() || !state.loggedIn) return Promise.resolve(false);
+    ensurePlayerId();
+    if (!onlineReady || onlineReady.forId !== state.playerId){
+      const pr = sbRpc('register_player', { p_id: state.playerId, p_secret: state.playerSecret }).then(ok=> !!ok, ()=>{ onlineReady = null; return false; });
+      pr.forId = state.playerId; onlineReady = pr;
+    }
+    return onlineReady;
+  }
+  const lbLast = { at:0, sig:'', timer:null };
+  async function submitScoreOnline(force){
+    if (!onlineOn() || !state.loggedIn) return;
+    const sig = [state.username, state.avatar, state.powerLevel, state.charLevel, state.collection.length].join('|');
+    if (!force && sig === lbLast.sig) return;
+    if (!force && Date.now() - lbLast.at < 15000){ clearTimeout(lbLast.timer); lbLast.timer = setTimeout(()=> submitScoreOnline(), 15500); return; }
+    lbLast.at = Date.now(); lbLast.sig = sig;
+    try {
+      if (!(await onlineRegister())) { lbLast.sig = ''; return; }
+      await sbRpc('submit_score', { p_id:state.playerId, p_secret:state.playerSecret, p_name:String(state.username||'Trainer').slice(0,24),
+        p_avatar: state.avatar==='male' ? 'male' : 'female', p_power: Math.max(0, Math.round(state.powerLevel||0)),
+        p_level: Math.max(1, Math.min(100, state.charLevel||1)), p_totos: state.collection.length });
+    } catch(e){ lbLast.sig = ''; console.warn('leaderboard update failed', e); }
+  }
+  // Anything bought for this trainer (Stripe -> webhook -> database) that the game hasn't
+  // handed over yet: add it, save straight away, say thanks.
+  let claiming = false;
+  async function claimPurchases(){
+    if (!onlineOn() || !state.loggedIn || claiming) return 0;
+    claiming = true;
+    try {
+      if (!(await onlineRegister())) return 0;
+      const rows = await sbRpc('claim_purchases', { p_id:state.playerId, p_secret:state.playerSecret });
+      if (!Array.isArray(rows) || !rows.length) return 0;
+      const sum = {};
+      rows.forEach(r=>{ if (r.kind==='candy' || r.kind==='gems'){ state[r.kind] = (state[r.kind]||0) + (r.amount|0); sum[r.kind] = (sum[r.kind]||0) + (r.amount|0); } });
+      state.purchaseLog = (state.purchaseLog||[]).concat(rows.map(r=> ({ id:r.session_id, kind:r.kind, amount:r.amount, at:Date.now() }))).slice(-50);
+      state.pendingCheckoutAt = 0;
+      refreshHUD(); markDirty(); await saveNow(true);
+      showToast('🎉 Thank you! '+Object.keys(sum).map(k=> '+'+sum[k].toLocaleString()+' '+(k==='candy' ? 'candy' : 'gems')).join(' and ')+' added');
+      if (Sound.playCatch) Sound.playCatch();
+      if ($('#store-modal').classList.contains('active')) renderStore();
+      return rows.length;
+    } catch(e){ console.warn('could not collect purchases', e); return 0; }
+    finally { claiming = false; }
+  }
+  // after checkout the payment can take a few seconds to reach the game — keep looking
+  let purchaseWatch = null;
+  function watchForPurchase(seconds){
+    if (!onlineOn()) return;
+    clearTimeout(purchaseWatch);
+    const until = Date.now() + seconds*1000;
+    const tick = async ()=>{ const got = await claimPurchases(); if (!got && Date.now() < until) purchaseWatch = setTimeout(tick, 3000); };
+    tick();
+  }
+  const checkoutRecent = ()=> !!state.pendingCheckoutAt && Date.now() - state.pendingCheckoutAt < 3600*1000;
+  document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'visible' && state.loggedIn) watchForPurchase(checkoutRecent() ? 90 : 1); });
+
   async function updateLeaderboard(){
     if (!state.loggedIn) return;
+    if (onlineOn()){ submitScoreOnline(); return; }
     const entry = { email: state.email, username: state.username, avatar: state.avatar, powerLevel: state.powerLevel };
     if (githubLbConfigured){
       try { await githubLbWrite(board=>{ board[state.email] = entry; }); return; }
@@ -2919,10 +3031,40 @@
       await window.storage.set('totoquest-leaderboard', JSON.stringify(board), true);
     } catch(e){ console.warn('leaderboard update failed', e); }
   }
+  function leaderboardRowHtml(r, rank, isMe){
+    const medal = rank===1 ? '🥇' : rank===2 ? '🥈' : rank===3 ? '🥉' : '#'+rank;
+    return '<div class="lb-row'+(isMe ? ' me' : '')+'"><div class="lb-rank">'+medal+'</div>'
+      + '<div class="lb-av">'+playerAvatarMarkup(r.avatar, true)+'</div>'
+      + '<div class="lb-info"><div class="lb-name">'+escapeHtml(r.name||'Trainer')+(isMe ? ' <span>(you)</span>' : '')+'</div>'
+      + '<div class="lb-sub">Lv '+(r.level||1)+' · '+(r.totos||0)+' Totos</div></div>'
+      + '<div class="lb-power">'+Number(r.power||0).toLocaleString()+'</div></div>';
+  }
   async function loadLeaderboard(){
     const list = $('#leaderboard-list');
     list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">Loading…</p>';
     let rows = [];
+    if (onlineOn()){
+      try {
+        await submitScoreOnline(true);
+        rows = await sb('leaderboard?select=player_id,name,avatar,power,level,totos&order=power.desc,updated_at.asc&limit=100').then(r=> r.json());
+        const meIdx = rows.findIndex(r=> r.player_id === state.playerId);
+        let html = rows.length ? rows.map((r,i)=> leaderboardRowHtml(r, i+1, i===meIdx)).join('') : '<p style="color:#999; font-weight:700; font-size:12.5px;">No trainers on the board yet — you\'re first!</p>';
+        if (meIdx < 0 && state.playerId){
+          let myRank = null;
+          try {
+            const r = await sb('leaderboard?select=player_id&power=gt.'+Math.max(0, Math.round(state.powerLevel||0)), { method:'HEAD', headers:{ Prefer:'count=exact' } });
+            const n = parseInt(String(r.headers.get('content-range')||'').split('/')[1], 10);
+            if (isFinite(n)) myRank = n + 1;
+          } catch(e){}
+          html += '<div class="lb-gap">⋯</div>' + leaderboardRowHtml({ name:state.username, avatar:state.avatar, power:state.powerLevel, level:state.charLevel, totos:state.collection.length }, myRank || '—', true);
+        }
+        list.innerHTML = html;
+      } catch(e){
+        console.warn('leaderboard load failed', e);
+        list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">Couldn\'t reach the leaderboard — check your connection and try again.</p>';
+      }
+      return;
+    }
     if (githubLbConfigured){
       try {
         const { board } = await githubLbRead();
@@ -2936,7 +3078,7 @@
         rows = Object.values(board);
       } catch(e){ list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">Could not load the leaderboard right now.</p>'; return; }
     } else {
-      list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">This copy has no shared leaderboard configured yet — showing just you: <b>'+(state.powerLevel||0).toLocaleString()+'</b>. See the app&#39;s README to turn on a real cross-device leaderboard using the GitHub repo you already have (free, ~2 minutes).</p>';
+      list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">The online leaderboard is coming soon. Your power: <b>'+(state.powerLevel||0).toLocaleString()+'</b></p>';
       return;
     }
     rows.sort((a,b)=>b.powerLevel-a.powerLevel);
@@ -5305,6 +5447,7 @@
       'Chunks loaded: '+chunkCount+'   Queue waiting: '+chunkQueue.length,
       'Map tiles drawn: '+regionCount+'   downloading: '+netActive+'   waiting: '+netQueue.length,
       'Wild totos on map: '+(state.wildTotos ? state.wildTotos.length : 0),
+      'Online leaderboard & store: '+(onlineOn() ? 'switched on' : 'not set up yet'),
       '',
       'Last road/building fetch: '+(diag.lastRegionAttempt || 'never attempted'),
       '  result: '+(diag.lastRegionError ? 'FAILED — '+diag.lastRegionError : (diag.lastRegionResult || 'pending…')),
@@ -5368,7 +5511,25 @@
       '<button class="price-btn">$'+price.toFixed(2)+'</button>'+
     '</div>';
   }
+  function payLinkFor(kind, amount){ return (TQ_ONLINE.payLinks||{})[kind+':'+amount] || ''; }
+  async function startCheckout(kind, amount, price){
+    const link = payLinkFor(kind, amount);
+    if (!link){ showToast('That pack isn\'t on sale yet.'); return; }
+    $('#store-body').innerHTML = '<div style="text-align:center; padding:26px 6px; font-weight:800; color:#6b3fa0;">🔒 Opening secure checkout…</div>';
+    ensurePlayerId();
+    await saveNow(true);
+    if (!(await onlineRegister())){ showToast('Can\'t reach the store right now — check your connection.'); renderStore(); return; }
+    const u = new URL(link);
+    u.searchParams.set('client_reference_id', state.playerId);
+    if (state.email && /@/.test(state.email)) u.searchParams.set('prefilled_email', state.email);
+    state.pendingCheckoutAt = Date.now(); markDirty(); await saveNow(true);
+    location.assign(u.toString());
+  }
   function renderStore(){
+    const warn = $('#store-warning');
+    if (warn) warn.textContent = paymentsOn()
+      ? '🔒 Secure checkout by Stripe. Your candy or gems are added automatically as soon as your payment goes through.'
+      : 'The store is opening soon.';
     let html = '<div class="store-section-title">🍬 Candy</div>' + CANDY_TIERS.map(t=>storeTierRow('candy', t.amount, t.price)).join('');
     html += '<div class="store-section-title">💎 Gems</div>' + GEM_TIERS.map(t=>storeTierRow('gems', t.amount, t.price)).join('');
     // Coins are on the roadmap — the infrastructure (currency + this row) is in place now,
@@ -5403,30 +5564,12 @@
           showToast('Admin test: +'+amount.toLocaleString()+' '+label);
           return;
         }
-        window.open(PAYPAL_ME+'/'+price.toFixed(2), '_blank');
-        renderPaymentConfirm(kind, amount, price);
+        if (paymentsOn()){ startCheckout(kind, amount, price); return; }
+        showToast('The store is opening soon!');
       };
     });
   }
-  function renderPaymentConfirm(kind, amount, price){
-    const meta = CURRENCY_META[kind];
-    $('#store-body').innerHTML =
-      '<div style="text-align:center; padding:10px 4px;">'+
-        '<div style="margin-bottom:8px;">'+meta.icon(40)+'</div>'+
-        '<div style="font-weight:800; font-size:15px;">PayPal opened for $'+price.toFixed(2)+'</div>'+
-        '<div style="font-size:12.5px; color:#777; margin:6px 0 14px;">Once you have completed that payment, tap below to receive '+amount.toLocaleString()+' '+meta.label+'.</div>'+
-        '<button class="admin-btn" style="width:100%; background:#4dbf4d;" id="confirm-paid-btn">✅ I have Completed Payment</button>'+
-        '<button class="btn-cancel" style="width:100%; margin-top:8px;" id="cancel-paid-btn">Cancel</button>'+
-      '</div>';
-    $('#confirm-paid-btn').onclick = ()=>{
-      state[kind] += amount;
-      refreshHUD(); markDirty(); saveNow(false);
-      showToast('+'+amount.toLocaleString()+' '+meta.label+' added — thank you!');
-      renderStore();
-    };
-    $('#cancel-paid-btn').onclick = renderStore;
-  }
-  $('#btn-open-store').onclick = ()=>{ $('#store-modal').classList.add('active'); renderStore(); };
+  $('#btn-open-store').onclick = ()=>{ $('#store-modal').classList.add('active'); renderStore(); if (paymentsOn()) watchForPurchase(1); };
   $('[data-close-store]').onclick = ()=> $('#store-modal').classList.remove('active');
 
   // ---------------- LOGOUT ----------------
@@ -6877,7 +7020,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v46';
+window.TQ_APP_VERSION = 'v47';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
