@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v65';
+const CACHE_NAME = 'totoquest-v66';
 const ASSETS = [
 './assets/wardrobe/rank1-legs-thumb.png',
 './assets/wardrobe/rank1-legs.jpg',
@@ -126,18 +126,71 @@ const ASSETS = [
   './assets/totos/eternal/witch_hana.png'
 ];
 
+// The game page itself lives in its own small cache, one copy per release: "index.html?tqv=v66".
+// Those addresses are unique per release, so no web cache along the way can ever hand back an
+// older copy of the page — which is what used to make the update banner come back after updating.
+const VERSION = CACHE_NAME.replace('totoquest-', '');
+const SHELL = 'totoquest-shell';
+const pageKey = (v) => new URL('./index.html?tqv=' + encodeURIComponent(v), self.registration.scope).href;
+
+function timeout(ms){ return new Promise((resolve) => setTimeout(() => resolve(null), ms)); }
+async function latestVersion(){
+  try {
+    const r = await Promise.race([fetch(new URL('./version.json?t=' + Date.now(), self.registration.scope).href, { cache: 'no-store' }), timeout(2500)]);
+    if (!r || !r.ok) return null;
+    const j = await r.json();
+    return (j && j.version) || null;
+  } catch (e) { return null; }
+}
+// Download one release's page (only kept if it really is that release).
+async function fetchPage(v){
+  try {
+    const r = await fetch(pageKey(v), { cache: 'no-store' });
+    if (!r.ok) return null;
+    const html = await r.text();
+    const resp = new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    if (html.indexOf("TQ_APP_VERSION = '" + v + "'") >= 0){
+      const cache = await caches.open(SHELL);
+      for (const k of await cache.keys()) if (k.url !== pageKey(v)) await cache.delete(k);
+      await cache.put(pageKey(v), resp.clone());
+    }
+    return resp;
+  } catch (e) { return null; }
+}
+async function newestCachedPage(){
+  const cache = await caches.open(SHELL);
+  const keys = await cache.keys();
+  let best = null, bestN = -1;
+  for (const k of keys){ const n = parseInt((new URL(k.url).searchParams.get('tqv') || '').replace(/\D+/g, ''), 10) || 0; if (n > bestN){ bestN = n; best = k; } }
+  return best ? cache.match(best) : null;
+}
+// Opening the game: always the newest release (when online), straight from the phone once it's saved.
+async function gamePage(req){
+  const v = await latestVersion();
+  if (v){
+    const hit = await caches.match(pageKey(v), { cacheName: SHELL });
+    if (hit) return hit;
+    const fresh = await fetchPage(v);
+    if (fresh) return fresh;
+  }
+  const saved = await newestCachedPage();
+  if (saved) return saved;
+  try { return await fetch(req); } catch (e) { return caches.match('./index.html'); }
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).catch(()=>{})
-  );
-  // Intentionally no self.skipWaiting() here — the new version waits until the
-  // player taps the in-app "Update available" banner before taking over.
+  event.waitUntil(Promise.all([
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).catch(()=>{}),
+    fetchPage(VERSION),
+  ]));
+  // No self.skipWaiting() here: the page decides. If it's already this release the helper takes
+  // over quietly; otherwise the player gets the "update" banner and the switch happens on a tap.
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE_NAME && k !== SHELL).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -148,8 +201,6 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Network-first for the app shell so a new deploy is detected promptly;
-  // falls back to the cached copy when offline.
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
@@ -160,10 +211,17 @@ self.addEventListener('fetch', (event) => {
   // the in-app "is there a newer release?" check must always reach the server and is
   // never worth keeping a copy of
   if (url.pathname.endsWith('/version.json')) return;
-  // Pages, scripts and data always revalidate with the server (a quick 304 when nothing
-  // changed), so a new release shows up on the next launch rather than whenever the
-  // HTTP cache happens to expire. Images keep the normal cache.
-  const shell = url.origin === self.location.origin && (req.mode === 'navigate' || /\.(html|js|json)$/.test(url.pathname) || url.pathname.endsWith('/'));
+  // opening (or restarting) the game
+  if (req.mode === 'navigate'){ event.respondWith(gamePage(req)); return; }
+  // a specific release's page (the update banner grabs it before restarting)
+  if (url.searchParams.has('tqv')){
+    const v = url.searchParams.get('tqv');
+    event.respondWith(caches.match(pageKey(v), { cacheName: SHELL }).then((hit) => hit || fetchPage(v)).then((r) => r || fetch(req)));
+    return;
+  }
+  // Scripts and data always revalidate with the server (a quick 304 when nothing changed).
+  // Images keep the normal cache.
+  const shell = /\.(html|js|json)$/.test(url.pathname) || url.pathname.endsWith('/');
   const netReq = shell ? new Request(req, { cache: 'no-cache' }) : req;
   event.respondWith(
     fetch(netReq).then((resp) => {

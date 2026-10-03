@@ -119,3 +119,10 @@ Migration: `supabase/migrations/2026-10-03c_pvp_2v2.sql`.
 - **Moves.** `pvp_move` accepts moves of the form `<who>:<skill>:<target>`, for example `1:s2:0`, as well as the older single-Toto moves, `auto` and `forfeit`. Turns still alternate, one move per turn.
 - **Rules.** The battle rules (Taunt for 3 turns, a Supporter's Hex Bolt hitting both rivals, and so on) live in the game's deterministic engine. Both phones replay the same moves through it.
 - **Lobby timeout.** A matched lobby entry is freed after 15 minutes instead of 10, since 2v2 battles run longer.
+
+## v66: each Toto has its own PvP moves
+
+Migration: `supabase/migrations/2026-10-03d_pvp_engine3.sql`.
+
+- **Battle rules version.** Every Toto in a lobby team now carries `ev` (the battle engine version, 3 for v66). Matchmaking only pairs teams with the same `ev`, because both phones must replay a battle with identical rules. Older clients (no `ev`) keep matching each other.
+- **Moves.** The move format is unchanged (`<who>:<skill>:<target>`, `s1`–`s4` and `ult`), so `pvp_move` needs no change. What each slot does now depends on the Toto: its class, species and tier. Only Attackers have `ult`, ready after 4 hits.

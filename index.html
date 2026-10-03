@@ -25,6 +25,27 @@
     window.__tqAppAndroid = app;
     if (app) document.documentElement.classList.add('app-android');
   })();
+  // Measure the screen the game really has. A restart (like the one after an update) can start
+  // while the phone is still settling its bars or rotation, so this re-measures for a few seconds
+  // and on every resize/rotation/return, and never leaves the page scrolled.
+  (function(){
+    try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch(e){}
+    var root = document.documentElement, last = 0;
+    function fit(){
+      var h = window.innerHeight || root.clientHeight;
+      var a = document.activeElement, typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+      if (h > 0 && h !== last && !(typing && h < last)){ last = h; root.style.setProperty('--tq-vh', h + 'px'); }
+      if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+    }
+    fit();
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', function(){ fit(); setTimeout(fit, 300); setTimeout(fit, 900); });
+    window.addEventListener('pageshow', fit);
+    document.addEventListener('visibilitychange', function(){ if (!document.hidden) fit(); });
+    document.addEventListener('DOMContentLoaded', fit);
+    window.addEventListener('load', function(){ fit(); setTimeout(fit, 250); setTimeout(fit, 1000); setTimeout(fit, 2500); });
+    window.__tqFit = fit;
+  })();
   window.addEventListener('beforeinstallprompt', function(e){ window.__tqInstall.prompt = e; document.documentElement.classList.add('can-install'); });
   window.addEventListener('appinstalled', function(){ window.__tqInstall.prompt = null; document.documentElement.classList.add('app-installed'); });
 </script>
@@ -47,9 +68,14 @@
   .gd-btns button { flex:1; border:none; border-radius:12px; padding:11px 10px; font-weight:800; font-size:14px; font-family:inherit; cursor:pointer; }
   .gd-cancel { background:rgba(255,255,255,0.12); color:#e8dcff; }
   .gd-ok { background:linear-gradient(135deg,#ff9a3d,#ff5470); color:#fff; }
+  html, body { overflow:hidden; overscroll-behavior:none; }
   body { display:flex; align-items:center; justify-content:center; }
-  #toto-root { max-width:100vw !important; height:100vh !important; border-radius:0 !important; }
-  @media (min-width: 500px){ #toto-root { max-width:480px !important; height:860px !important; border-radius:26px !important; } }
+  /* The game fills exactly the visible screen. --tq-vh is the real visible height, measured by the
+     script in the page head (and again after rotations, restarts and coming back to the app). */
+  #toto-root { max-width:100vw !important; height:100vh !important; height:var(--tq-vh, 100dvh) !important; border-radius:0 !important; }
+  /* Desktop browsers show the game in a phone-sized frame. Phones and tablets never do, even sideways. */
+  @media (min-width: 500px) and (hover:hover) and (pointer:fine){ #toto-root { max-width:480px !important; height:min(860px, var(--tq-vh, 100dvh)) !important; border-radius:26px !important; } }
+  html.tq-busy-battle #tq-update-banner.show { display:none; }
   #tq-update-banner {
     position:fixed; left:12px; right:12px; bottom:16px; z-index:99999;
     background:linear-gradient(135deg,#ff8a3d,#ff5f6d); color:#fff; font-family:'Baloo 2','Segoe UI',sans-serif;
@@ -817,6 +843,11 @@
   .pv-pick-spr .creature-img, .pv-pick-spr .creature-svg, .pv-lob-toto .creature-img, .pv-lob-toto .creature-svg { width:100%; height:100%; object-fit:contain; }
   .pv-pick-i { flex:1; min-width:0; }
   .pv-pick-i small { display:block; font-size:10.5px; font-weight:800; color:#b7a2dc; text-transform:uppercase; letter-spacing:0.06em; }
+  .pv-moves { margin-top:6px; border:none; border-radius:10px; padding:5px 10px; font-family:inherit; font-weight:800; font-size:11.5px; color:#fff; background:rgba(255,255,255,0.14); cursor:pointer; }
+  .pv-mvs { text-align:left; margin:4px 0 12px; } .pv-mvs-h { margin-bottom:6px; font-size:14px; } .pv-mvs-h em { font-style:normal; font-weight:800; font-size:12px; } .pv-mvs-h small { display:block; font-size:11px; color:#7a6a9a; }
+  .pv-mv { display:flex; gap:9px; align-items:center; padding:6px 8px; margin-top:5px; border-radius:12px; background:rgba(110,70,180,0.08); }
+  .pv-mv.ult { background:linear-gradient(90deg,rgba(255,140,40,0.22),rgba(255,90,200,0.14)); }
+  .pv-mv-ic .ab-ic { width:32px; height:32px; display:block; } .pv-mv b { font-size:13px; color:#2a1a48; } .pv-mv small { display:block; font-size:11px; color:#5e4f80; line-height:1.3; }
   .pv-pick-i b { display:block; font-size:15px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .pv-pick-i span { font-size:11.5px; font-weight:700; color:#d8c9f3; }
   .pv-pick button, .pv-cancel { border:none; border-radius:12px; padding:9px 12px; font-family:inherit; font-weight:800; font-size:12.5px; background:rgba(255,255,255,0.14); color:#fff; cursor:pointer; }
@@ -925,6 +956,11 @@
   .pva-hp i.mid { background:linear-gradient(180deg,#ffe27a,#e0a512); } .pva-hp i.low { background:linear-gradient(180deg,#ff8a8a,#d12a2a); }
   .pva-hpt { display:flex; justify-content:space-between; font-size:9.5px; font-weight:800; color:#d9c8f5; margin-top:2px; }
   .pva-en { height:4px; border-radius:3px; background:rgba(255,255,255,0.12); margin-top:3px; overflow:hidden; } .pva-en i { display:block; height:100%; background:linear-gradient(90deg,#ffb347,#ff5ad1); transition:width 0.4s; }
+  .pva-ch { display:flex; gap:3px; margin-top:3px; align-items:center; } .pva-ch i { flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,0.14); }
+  .pva-ch i.on { background:linear-gradient(90deg,#ffb347,#ff7a1a); box-shadow:0 0 4px rgba(255,150,60,0.7); } .pva-ch.full i { background:linear-gradient(90deg,#ffd36b,#ff5ad1); }
+  .pva-ch small { flex:0 0 auto; font-size:8.5px; font-weight:900; color:#ffcf8a; margin-left:2px; }
+  .pva-roleinfo { flex:1; display:none; align-items:center; gap:8px; min-height:56px; padding:6px 12px; border-radius:16px; background:rgba(255,255,255,0.08); border:1.5px solid rgba(255,255,255,0.14); color:#efe6ff; font-size:11.5px; font-weight:800; line-height:1.25; }
+  .pva-roleinfo.show { display:flex; } .pva-roleinfo i { font-style:normal; font-size:20px; } .pva-roleinfo b { display:block; font-size:12.5px; color:var(--rc, #fff); }
   .pva-buffs { display:flex; gap:4px; font-size:9.5px; font-weight:900; margin-top:2px; min-height:12px; } .pva-buffs span { padding:0 5px; border-radius:6px; background:rgba(255,255,255,0.12); }
   .pva-fx { position:absolute; inset:0; z-index:6; pointer-events:none; }
   .pva-num { position:absolute; transform:translate(-50%,-50%); font-weight:900; font-size:24px; color:#fff; text-shadow:0 2px 0 #7a1010, 0 0 10px rgba(255,60,60,0.85); animation:pvaNum 1.1s ease-out forwards; white-space:nowrap; }
@@ -958,7 +994,7 @@
   .pva-skills { display:grid; grid-template-columns:repeat(4, 1fr); gap:7px; }
   .pva-sk { position:relative; border:none; border-radius:14px; padding:7px 4px 6px; font-family:inherit; color:#fff; cursor:pointer; background:linear-gradient(180deg,#3d2370,#26134a); border:1.5px solid rgba(255,255,255,0.18); box-shadow:0 3px 0 rgba(0,0,0,0.45); display:flex; flex-direction:column; align-items:center; gap:3px; }
   .pva-sk .ab-ic { width:34px; height:34px; }
-  .pva-sk b { font-size:10.5px; font-weight:900; white-space:nowrap; }
+  .pva-sk b { font-size:10px; font-weight:900; line-height:1.05; text-align:center; min-height:2.1em; display:flex; align-items:center; justify-content:center; }
   .pva-sk em { position:absolute; left:5px; top:3px; font-style:normal; font-size:9.5px; font-weight:900; color:#cbb8ec; }
   .pva-sk:disabled { cursor:default; filter:grayscale(0.7) brightness(0.65); }
   .pva-sk .cdv { position:absolute; inset:0; border-radius:13px; background:rgba(10,5,20,0.55); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff; }
@@ -2137,7 +2173,8 @@
         <div class="pv-lobby" id="pv-lobby"><div class="fr-empty">Joining the lobby…</div></div>
         <div class="pv-rules">
           <b>How PvP works</b>
-          <span>• 2 vs 2: pick 2 Totos. Trainers take turns, and on your turn ONE of your Totos makes ONE move: Slash, Hex Bolt, Mend (yourself or your partner), Shield — or Taunt for Tanks — and a big Ultimate once its energy fills.</span>
+          <span>• 2 vs 2: pick 2 Totos. Trainers take turns, and on your turn ONE of your Totos makes ONE of its own moves.</span>
+          <span>• Every Toto has its own moves for its class. Attackers: four attacks, plus a charged attack once they’ve landed 4 hits. Tanks: an attack, Taunt, a guard move and a small heal. Supporters: an attack, a hex, a move that helps their partner and a small heal. Healers: strong heals and one weak attack. Stronger Totos have stronger moves.</span>
           <span>• A Tank's Taunt makes your rival attack it for their next 3 turns, so your Attacker can hit freely. Knock out both rival Totos to win.</span>
           <span>• Win vs a trainer +25 RP, lose −15. Win vs a computer +10, lose −5.</span>
           <span>• Ranks: Bronze 3 → Silver → Gold → Platinum → Diamond 1 → Master (1,500 RP). The top 10 Masters are Grandmasters.</span>
@@ -2396,7 +2433,8 @@
           <button class="pva-sq" id="pva-auto" title="Auto battle">AUTO</button>
           <button class="pva-sq" id="pva-speed" title="Battle speed">▶▶<small>x1</small></button>
         </div>
-        <button class="pva-ult" id="pva-ult"><span class="pva-ult-fill" id="pva-ult-fill"></span><span class="pva-ult-t"><i>⚔️</i>ULTIMATE ATTACK<small id="pva-ult-s">0%</small></span></button>
+        <button class="pva-ult" id="pva-ult"><span class="pva-ult-fill" id="pva-ult-fill"></span><span class="pva-ult-t"><i>⚔️</i><span id="pva-ult-n">CHARGED ATTACK</span><small id="pva-ult-s">0/4 hits</small></span></button>
+        <div class="pva-roleinfo" id="pva-roleinfo"></div>
       </div>
     </div>
     <div class="pva-flash" id="pva-flash"></div>
@@ -4557,51 +4595,205 @@
     adminActions(mine || { id:state.playerId, name:state.username || 'You', is_owner:true, online:true, last_seen:new Date().toISOString(), rp:Social.rp|0 });
   };
 
-  // ================= PvP ARENA (v57; 2v2 since v64) =================
+  // ================= PvP ARENA (v57; 2v2 since v64; class move sets since v66) =================
   // 2v2 ranked battles. Trainers take turns (odd turns: player 1, even: player 2), one Toto moving
-  // per turn. Every move
-  // goes through the server in order and both phones replay the same moves through the same
-  // seeded battle engine below, so they always agree on what happened. Nobody to fight after
-  // 30 s? A computer rival with a Toto built to match yours.
+  // per turn. Every move goes through the server in order and both phones replay the same moves
+  // through the same seeded battle engine below, so they always agree on what happened. Nobody to
+  // fight after 30 s? A computer rival with a team built to match yours.
+  // PVP_ENGINE goes up whenever the battle rules change: trainers are only paired with others on the
+  // same rules (both phones must replay a battle exactly the same way).
+  const PVP_ENGINE = 3;
   const PVP_TURN_SECS = 25, PVP_SEARCH_SECS = 30;
   const PVP = { timer:null, searching:false, searchStart:0, lobbyKey:'', players:[], inArena:false, polling:false, open:false };
-  const PVP_SKILLS = [
-    { key:'s1', name:'Slash',         glyph:'claw', c:{ c1:'#8fdcff', c2:'#2a6fd6', b:'#0f3b80' }, cd:0, desc:'Quick hit · always ready' },
-    { key:'s2', name:'Hex Bolt',      glyph:'hex',  c:{ c1:'#e6b4ff', c2:'#7b2fd0', b:'#3b0f6e' }, cd:3, desc:'Big hit · their next 2 attacks are 30% weaker (Supporters: hits both rivals)' },
-    { key:'s3', name:'Mend',          glyph:'mend', c:{ c1:'#b8ffb4', c2:'#2e9e46', b:'#0f5a20' }, cd:3, desc:'Heal yourself or your partner: 17% of max HP (Healers 22%)' },
-    { key:'s4', name:'Shield',        glyph:'ward', c:{ c1:'#b0e8ff', c2:'#2f86c9', b:'#0f4470' }, cd:3, desc:'Shield yourself or your partner: blocks half the damage of the next 2 hits' }
-  ];
-  const PVP_SKILL_BY = {}; PVP_SKILLS.forEach(s=> PVP_SKILL_BY[s.key] = s);
   function pvpSkillIcon(s){ return '<span class="ab-ic" style="--abc-1:'+s.c.c1+';--abc-2:'+s.c.c2+';--abc-b:'+s.c.b+'">'+(ABILITY_GLYPH[s.glyph]||'')+'</span>'; }
 
+  // ---- every Toto's own moves ----
+  // Each class plays differently and only gets moves that fit it:
+  //  · Attackers: four attacks, plus a charged attack that's ready after landing 4 hits.
+  //    Eternal Attackers also get a way to heal (Witch Hana a real heal; the others heal by hitting).
+  //  · Tanks: one attack, Taunt, a guard move and one small heal.
+  //  · Supporters: one attack, a weakening hex, a move that helps their partner, and one small heal.
+  //  · Healers: one weak attack and three strong healing moves.
+  // Moves are named after the Toto and their numbers vary a little from Toto to Toto. Stronger Totos
+  // (by tier, and the very strongest of each class) get stronger versions of their moves.
+  const PVP_MOVE = {
+    hit:      { tgt:'foe',  dmg:true, glyph:'claw',    c:{ c1:'#8fdcff', c2:'#2a6fd6', b:'#0f3b80' }, pow:1.0, cd:0 },
+    heavy:    { tgt:'foe',  dmg:true, glyph:'execute',    c:{ c1:'#ffd29a', c2:'#e0661f', b:'#6a2a08' }, pow:1.5, cd:3 },
+    multi:    { tgt:'foe',  dmg:true, glyph:'fangs',   c:{ c1:'#ffb0b0', c2:'#d63a3a', b:'#6a1010' }, pow:0.52, n:3, cd:4 },
+    burn:     { tgt:'foe',  dmg:true, glyph:'rage',    c:{ c1:'#ffe08a', c2:'#ff7a1a', b:'#7a2a00' }, pow:0.9, dot:0.3, cd:4 },
+    mark:     { tgt:'foe',  dmg:true, glyph:'hex', c:{ c1:'#ffb8e0', c2:'#c42a7a', b:'#5a0a35' }, pow:0.95, cd:4 },
+    pierce:   { tgt:'foe',  dmg:true, glyph:'gash',    c:{ c1:'#e0e8ff', c2:'#6a7fb8', b:'#232f58' }, pow:1.3, cd:4 },
+    sweep:    { tgt:'foes', dmg:true, glyph:'claw',    c:{ c1:'#a8fff0', c2:'#1fa58f', b:'#0a4a40' }, pow:0.75, cd:4 },
+    drain:    { tgt:'foe',  dmg:true, glyph:'heart',   c:{ c1:'#ff9fb0', c2:'#b0123a', b:'#4a0618' }, pow:1.1, frac:0.45, cd:4 },
+    weaken:   { tgt:'foe',  dmg:true, glyph:'hex',     c:{ c1:'#e6b4ff', c2:'#7b2fd0', b:'#3b0f6e' }, pow:0.75, cd:3 },
+    weakenAll:{ tgt:'foes', dmg:true, glyph:'hex',    c:{ c1:'#dcc0ff', c2:'#6a3ad6', b:'#2a0f6a' }, pow:0.6, cd:4 },
+    focus:    { tgt:'self',            glyph:'aura',    c:{ c1:'#fff3a8', c2:'#d6a61a', b:'#5a4006' }, cd:4 },
+    heal:     { tgt:'ally',            glyph:'mend',    c:{ c1:'#b8ffb4', c2:'#2e9e46', b:'#0f5a20' }, cd:3, pctHealer:0.32, pctAttacker:0.15, pctOther:0.12 },
+    healAll:  { tgt:'team',            glyph:'wave',    c:{ c1:'#d4ffb0', c2:'#58b82a', b:'#1f4a0a' }, pct:0.16, cd:4 },
+    regen:    { tgt:'ally',            glyph:'rain',   c:{ c1:'#b0ffe0', c2:'#1fb87a', b:'#0a4a30' }, pct:0.10, cd:4 },
+    cleanse:  { tgt:'ally',            glyph:'touch',  c:{ c1:'#e8f8ff', c2:'#5ab8e0', b:'#0f4060' }, pct:0.13, cd:3 },
+    shield:   { tgt:'ally',            glyph:'ward',    c:{ c1:'#b0e8ff', c2:'#2f86c9', b:'#0f4470' }, cd:3 },
+    empower:  { tgt:'ally',            glyph:'hymn',    c:{ c1:'#ffd0f0', c2:'#d04ab0', b:'#5a0a48' }, cd:3 },
+    haste:    { tgt:'ally',            glyph:'haste',   c:{ c1:'#fff0b0', c2:'#e0a81a', b:'#5a3a00' }, cd:4 },
+    taunt:    { tgt:'self',            glyph:'taunt',   c:{ c1:'#ffc2a8', c2:'#d6492a', b:'#6a1a10' }, cd:5 },
+    fortify:  { tgt:'self',            glyph:'armor',   c:{ c1:'#c8d8ff', c2:'#4a6ad6', b:'#16245a' }, cd:3 }
+  };
+  const PVP_ULT_C = { c1:'#fff1b0', c2:'#ff8a1a', b:'#6a2a00' };
+  const PVP_P2 = { charge:0, shield:1, shieldAll:false, ward:0 };    // whoever moves second: their front Toto starts with a shield   // the head start for whoever moves second
+  const PVP_FX = { weak:0.65, emp:1.45, mark:1.25, guard:0.55, shield:0.5 };   // how strong each effect is
+  const PVP_CURSE = { start:40, base:0.03, step:0.012, healCut:0.5 };   // the arena's curse late in a battle
+  const PVP_CHARGE_NEED = 4;                 // an Attacker's charged move is ready after 4 hits
+  const PVP_TAUNT_TURNS = 3;                 // PvP taunt lasts for the rival's next 3 turns (story battles: until the tank falls)
+  // the strongest Toto of each class
+  const PVP_CHAMPS = { 'Witch Hana':'attacker', 'Shadow Sovereign':'tanker', 'Harvest Warden':'healer', 'Toni':'supporter' };
+  const PVP_GRADE = { normal:0, legendary:1, mythical:2, eternal:3 };
+  // Hand-made move sets for the Eternal and Legendary Totos: [type, name, extra numbers].
+  const PVP_KITS = {
+    'Witch Hana':       { r:'attacker', s:[['hit','Hex Slash',{pow:1.05}],['heavy','Pumpkin Bomb',{pow:1.65}],['mark','Cauldron Curse',{pow:1.05}],['heal','Witch’s Brew',{pct:0.18, cd:4}]], ult:['hit','Witching Hour',{pow:3.0}] },
+    'Max':              { r:'attacker', s:[['hit','Savage Bite'],['multi','Frenzy Bite',{n:3, pow:0.56}],['pierce','Pounce',{pow:1.35}],['drain','Feral Feast']], ult:['sweep','Alpha Howl',{pow:1.8}] },
+    'Vesper Nightshade':{ r:'attacker', s:[['hit','Nightshade Lash'],['burn','Venom Bloom'],['sweep','Shadow Thorns'],['drain','Blood Moon']], ult:['hit','Eclipse',{pow:2.85}] },
+    'Grimhollow':       { r:'attacker', s:[['hit','Scythe Swipe'],['heavy','Reap'],['drain','Soul Harvest'],['focus','Grim Focus']], ult:['hit','Final Harvest',{pow:2.85}] },
+    'Pumpkin Rider':    { r:'attacker', s:[['hit','Lance Charge'],['sweep','Hoofquake'],['burn','Flaming Jack'],['drain','Harvest Feast']], ult:['sweep','Headless Charge',{pow:1.8}] },
+    'PandaQueen':       { r:'attacker', s:[['hit','Bamboo Smack'],['heavy','Royal Roll'],['multi','Panda Pummel'],['drain','Queen’s Snack']], ult:['sweep','Royal Decree',{pow:1.8}] },
+    'Toni':             { r:'supporter', s:[['hit','Scarecrow Swipe',{pow:0.95}],['weakenAll','Crow Swarm',{pow:0.55}],['empower','Harvest Blessing'],['heal','Straw Patch',{pct:0.14}]] },
+    'Blossom Wraith':   { r:'supporter', s:[['hit','Petal Lash'],['weakenAll','Wilting Hex'],['shield','Bloom Ward'],['heal','Spring Dew']] },
+    'Harvest Warden':   { r:'healer', s:[['hit','Sickle Tap'],['heal','Harvest Moon'],['healAll','Bountiful Feast'],['shield','Warden’s Ward']] },
+    'Shadow Sovereign': { r:'tanker', s:[['hit','Sovereign Strike',{pow:1.05}],['taunt','Taunt'],['fortify','Shadow Bulwark'],['heal','Dark Renewal',{pct:0.14}]] },
+    'Pumpkin Reaper':   { r:'attacker', s:[['hit','Scythe Slash'],['burn','Jack-o’-Blaze'],['mark','Reaper’s Mark'],['multi','Harvest Rush']], ult:['hit','Grim Harvest',{pow:2.8}] },
+    'Ember Fox':        { r:'attacker', s:[['hit','Ember Swipe'],['burn','Fox Fire'],['pierce','Blaze Dash'],['multi','Nine-Tail Flurry']], ult:['sweep','Inferno Tails',{pow:1.75}] },
+    'Grimlet':          { r:'attacker', s:[['hit','Gnaw'],['heavy','Mischief Strike'],['multi','Gremlin Flurry'],['focus','Sneaky Focus']], ult:['hit','Chaos Pounce',{pow:2.75}] },
+    'Frost Howl':       { r:'tanker', s:[['hit','Frost Bite'],['taunt','Taunt'],['fortify','Glacier Hide'],['heal','Snow Mend']] },
+    'Pumpkin Golem':    { r:'tanker', s:[['hit','Vine Slam'],['taunt','Taunt'],['shield','Gourd Wall'],['heal','Pumpkin Patch']] },
+    'Void Guardian':    { r:'tanker', s:[['hit','Void Strike'],['taunt','Taunt'],['fortify','Void Barrier'],['heal','Null Mend']] },
+    'Soul Witch':       { r:'healer', s:[['hit','Soul Bolt'],['heal','Soul Mend'],['regen','Spirit Circle'],['cleanse','Purify']] },
+    'Royal Slime':      { r:'healer', s:[['hit','Slime Slap'],['heal','Royal Jelly'],['healAll','Goo Bath'],['shield','Slime Shield']] },
+    'Nightwing Drake':  { r:'supporter', s:[['hit','Drake Claw'],['weakenAll','Night Roar'],['shield','Wing Ward'],['heal','Dusk Breeze']] },
+    'Bone Steed':       { r:'supporter', s:[['hit','Hoof Kick'],['weaken','Rattle Hex'],['haste','War Gallop'],['heal','Marrow Mend']] }
+  };
+  // Name parts for everyone else, from what the Toto is.
+  const PVP_THEMES = [
+    [/pumpkin|jack|gourd|scarecrow/i, ['Pumpkin','Gourd','Vine','Harvest']], [/frost|ice|snow/i, ['Frost','Ice','Hail','Snow']],
+    [/flame|fire|cinder|lava|blaze|ember|candle/i, ['Ember','Flame','Cinder','Blaze']], [/bat/i, ['Wing','Sonic','Night','Echo']],
+    [/spider|web/i, ['Web','Venom','Silk','Fang']], [/bone|grave|tomb|coffin|mummy|pebble/i, ['Bone','Grave','Crypt','Tomb']],
+    [/ghost|wraith|specter|soul|banshee|wisp|boo|translucent/i, ['Spirit','Phantom','Spooky','Soul']], [/moon|star|night/i, ['Moon','Star','Lunar','Twilight']],
+    [/hex|witch|rune|voodoo|curse/i, ['Hex','Rune','Curse','Witch']], [/slime|poison|toxic|frog/i, ['Slime','Toxic','Ooze','Goo']],
+    [/candy|berry|corn/i, ['Sugar','Candy','Taffy','Sweet']], [/cat|kitten|fox|hound|pup|fang|hare|bunny|rabbit|jackalope|cub/i, ['Claw','Pounce','Fang','Howl']],
+    [/crow|raven|owl|finch|moth|starling/i, ['Feather','Talon','Wing','Beak']], [/golem|turtle|crystal/i, ['Stone','Rock','Crystal','Boulder']],
+    [/shadow|void|dark/i, ['Shadow','Dusk','Gloom','Umbra']], [/imp|pixie|sprite|tot|doll|cap|lantern/i, ['Mischief','Pixie','Twinkle','Lantern']]
+  ];
+  const PVP_VERB = {
+    hit:['Strike','Swipe','Jab','Lash','Bite','Smack'], heavy:['Smash','Crash','Slam','Burst','Crush','Bash'], multi:['Flurry','Barrage','Frenzy','Combo','Rush'],
+    burn:['Scorch','Blight','Sting','Venom','Burn'], mark:['Mark','Brand','Sigil'], pierce:['Pierce','Lunge','Spike','Drill'], sweep:['Storm','Wave','Swirl','Quake','Gust'],
+    drain:['Drain','Feast','Siphon'], weaken:['Hex','Jinx','Curse'], weakenAll:['Howl','Fog','Wail','Mist'], focus:['Focus','Glare','Stance'],
+    heal:['Mend','Remedy','Patch','Balm'], healAll:['Feast','Hymn','Circle','Bloom'], regen:['Glow','Dew','Blessing','Aura'], cleanse:['Purify','Cleanse','Wash'],
+    shield:['Ward','Shell','Barrier','Veil'], empower:['Cheer','Rally','Boost','Charm'], haste:['Rush','Haste','Zip'], fortify:['Wall','Guard','Bulwark','Fortress'],
+    ult:['Fury','Rampage','Cataclysm','Nova','Overdrive','Havoc']
+  };
+  function pvpHash(s){ let h = 2166136261; s = String(s); for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function pvpPick(list, nm, salt){ return list[pvpHash(nm+'|'+salt) % list.length]; }
+  function pvpMoveDesc(m, need){
+    const P = Math.round((m.pow||0)*100), pc = Math.round((m.pct||0)*100);
+    switch (m.type){
+      case 'hit': return 'Hit a rival · power '+P;
+      case 'heavy': return 'Heavy hit · power '+P;
+      case 'multi': return m.n+' quick hits · power '+P+' each';
+      case 'burn': return 'Hit (power '+P+') and burn: they lose HP on their next 3 turns';
+      case 'mark': return 'Hit (power '+P+') and mark: the next 2 hits on them do '+Math.round((PVP_FX.mark-1)*100)+'% more';
+      case 'pierce': return 'Power '+P+' hit that goes straight through shields and guards';
+      case 'sweep': return 'Hits BOTH rivals · power '+P+' each';
+      case 'drain': return 'Hit (power '+P+') and heal itself '+Math.round(m.frac*100)+'% of the damage';
+      case 'weaken': return 'Hit (power '+P+') · that rival’s next 2 attacks are '+Math.round((1-PVP_FX.weak)*100)+'% weaker';
+      case 'weakenAll': return 'Hits both rivals (power '+P+') · their next 2 attacks are '+Math.round((1-PVP_FX.weak)*100)+'% weaker';
+      case 'focus': return 'Its next attack is a sure critical hit';
+      case 'heal': return 'Heal itself or its partner: '+pc+'% of max HP';
+      case 'healAll': return 'Heal both your Totos: '+pc+'% of max HP each';
+      case 'regen': return 'Healing glow: '+pc+'% of max HP on each of your next 3 turns';
+      case 'cleanse': return 'Clears weakness, marks and burns, and heals '+pc+'%';
+      case 'shield': return 'Shield itself or its partner: blocks half the damage of the next 2 hits';
+      case 'empower': return 'Itself or its partner: the next 2 attacks hit '+Math.round((PVP_FX.emp-1)*100)+'% harder';
+      case 'haste': return 'Itself or its partner: every move cools down 2 turns sooner';
+      case 'taunt': return 'Your rival must attack this Toto for their next '+PVP_TAUNT_TURNS+' turns';
+      case 'fortify': return 'Takes '+Math.round((1-PVP_FX.guard)*100)+'% less damage from the next 2 hits';
+    }
+    return '';
+  }
+  // In the arena a Toto's strength comes from its tier and level (the same for every class); its
+  // class sets its toughness and play style.
+  const PVP_ROLE = {
+    attacker:  { hp:0.85, atk:1.05, crit:0.12, label:'Four attacks + a charged attack after 4 hits' },
+    tanker:    { hp:1.55, atk:0.95, armor:0.18, crit:0.08, soft:1.0, label:'Taunt, guard and a small heal · takes 18% less damage' },
+    healer:    { hp:1.2,  atk:0.85, crit:0.06, soft:0.95, label:'Strong heals and one weak attack' },
+    supporter: { hp:1.2,  atk:0.95, crit:0.08, soft:1.0, label:'Weakens rivals, helps its partner, a small heal' }
+  };
+  // A Toto's move set, worked out from its name, class and tier (the same on every phone).
+  function pvpKitFor(name, role, tier, isToni){
+    const nm = isToni ? 'Toni' : String(name||'Toto');
+    const champ = PVP_CHAMPS[nm] === role;
+    const grade = (PVP_GRADE[tier]|0) + (champ ? 1 : 0);
+    const gp = 1 + 0.045*grade;
+    const jit = k=> 0.96 + (pvpHash(nm+'#'+k) % 1000)/1000*0.08;   // each Toto a little different
+    const theme = []; PVP_THEMES.forEach(([re, words])=>{ if (theme.length < 8 && re.test(nm)) theme.push(...words); });
+    if (!theme.length) theme.push(nm.split(/\s+/)[0]);
+    const nameFor = (type, slot)=> type === 'taunt' ? 'Taunt' : theme[(pvpHash(nm) + slot*3) % theme.length]+' '+pvpPick(PVP_VERB[type] || PVP_VERB.hit, nm, type+slot);
+    let plan = PVP_KITS[nm] && PVP_KITS[nm].r === role ? PVP_KITS[nm] : null;   // hand-made sets only fit their own class
+    if (!plan){
+      const pk = (opts, salt)=> pvpPick(opts, nm, salt);
+      if (role === 'tanker') plan = { s:[['hit'],['taunt'],[pk(['fortify','shield'], 't3')],['heal']] };
+      else if (role === 'supporter') plan = { s:[['hit'],[grade >= 1 ? pk(['weakenAll','weakenAll','weaken'], 's2') : pk(['weaken','weakenAll'], 's2')],[pk(['empower','shield','haste'], 's3')],['heal']] };
+      else if (role === 'healer') plan = { s:[['hit'],['heal'],[pk(['healAll','regen'], 'h3')],[pk(['cleanse','shield'], 'h4')]] };
+      else {
+        const s3 = pk(['multi','burn','mark','pierce','sweep'], 'a3');
+        const s4 = grade >= 3 ? (champ ? 'heal' : 'drain') : pk(['focus','pierce','sweep','mark','multi'].filter(x=> x !== s3), 'a4');
+        plan = { s:[['hit'],['heavy'],[s3],[s4]], ult:[pk(['hit','hit','sweep'], 'au')] };
+      }
+    }
+    const build = (spec, slot, key)=>{
+      const type = spec[0], base = PVP_MOVE[type], ex = spec[2] || {};
+      const m = { key, type, name: spec[1] || nameFor(type, slot), glyph: base.glyph, c: base.c, tgt: base.tgt, dmg: !!base.dmg, cd: ex.cd != null ? ex.cd : base.cd };
+      if (base.dmg){
+        // the one attack of a Healer, Tank or Supporter is softer than an Attacker's
+        const soft = type === 'hit' ? (PVP_ROLE[role].soft || 1) : 1;
+        m.pow = +((ex.pow || base.pow) * soft * gp * jit(slot)).toFixed(3);
+        if (base.n) m.n = ex.n || base.n;
+        if (base.dot) m.dot = +(base.dot * gp).toFixed(3);
+        if (base.frac) m.frac = base.frac;
+      }
+      if (type === 'heal'){
+        // Healers heal a lot; a Tank's or Supporter's one heal is small; Witch Hana's is in between
+        const dflt = role === 'healer' ? base.pctHealer : role === 'attacker' ? base.pctAttacker : base.pctOther;
+        m.pct = +((ex.pct || dflt) * (ex.pct ? 1 : gp) * jit(slot)).toFixed(3);
+        if (role !== 'healer' && ex.cd == null) m.cd = 4;
+      } else if (base.pct) m.pct = +((ex.pct || base.pct) * gp * jit(slot)).toFixed(3);
+      m.desc = pvpMoveDesc(m);
+      return m;
+    };
+    const kit = plan.s.map((spec, i)=> build(spec, i, 's'+(i+1)));
+    let ult = null;
+    if (role === 'attacker' && plan.ult){
+      const t = plan.ult[0] === 'sweep' ? 'sweep' : 'hit', ex = plan.ult[2] || {};
+      const pow = (ex.pow || (t === 'sweep' ? 1.7 : 2.8)) * gp * jit(9);
+      ult = { key:'ult', type:t, name: plan.ult[1] || theme[(pvpHash(nm)+1) % theme.length]+' '+pvpPick(PVP_VERB.ult, nm, 'ult'), glyph:'execute', c:PVP_ULT_C, tgt: t === 'sweep' ? 'foes' : 'foe', dmg:true, cd:0, pow:+pow.toFixed(3), need:PVP_CHARGE_NEED, ult:true };
+      ult.desc = 'Charged attack · ready after '+PVP_CHARGE_NEED+' hits · power '+Math.round(ult.pow*100)+(t === 'sweep' ? ' on BOTH rivals' : '');
+    }
+    return { kit, ult, champ, grade };
+  }
+  window.__tqPvpKit = (name, role, tier)=> pvpKitFor(name, role || (PVP_KITS[name] && PVP_KITS[name].r) || roleOf(name), tier || 'legendary');
+
   // ---- battle engine (deterministic: same seed + same moves = same battle on every phone) ----
-  // v64: 2v2. Each trainer brings 2 Totos; on each turn ONE of them makes ONE move, then it's
-  // the rival's turn. A move is "<who>:<skill>:<target>" (e.g. "1:s2:0" = my second Toto uses
-  // Hex Bolt on their first). Older single-Toto battles still replay (a 1-Toto team).
+  // A move is "<who>:<skill>:<target>" (e.g. "1:s2:0" = my second Toto uses its 2nd move on their first).
   function pvpRng(seed){
     let a = (seed >>> 0) || 1;
     return ()=>{ a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }
-  // what a trainer sends about their Toto — just its identity; stats are always rebuilt from tier/role/level
+  // what a trainer sends about their Toto — just its identity; stats and moves are always rebuilt from it
   function pvpSnap(t){
     if (!t) return null;
     return { name:String(t.name||'Toto').slice(0,40), nature: typeof t.nature === 'string' ? t.nature.slice(0,20) : null, role: ROLE_KITS[t.role] ? t.role : 'attacker',
              tier: TIER_IDX[t.tier] != null ? t.tier : 'normal', level: Math.max(1, Math.min(TOTO_MAX_LEVEL, Math.floor(t.level||1))),
-             statMult: Math.max(0.5, Math.min(1.3, Number(t.statMult)||1)), isToni: !!t.isToni };
+             statMult: Math.max(0.5, Math.min(1.3, Number(t.statMult)||1)), isToni: !!t.isToni, ev: PVP_ENGINE };
   }
   function pvpTeamOf(t){ return (Array.isArray(t) ? t : [t]).filter(Boolean).slice(0, 2); }
-  // In the arena a Toto's strength comes from its tier and level (the same for every role), and
-  // its role sets the play style. Tanks get Taunt instead of Shield.
-  const PVP_ROLE = {
-    attacker:  { hp:1.05, atk:1.08, crit:0.18, label:'Hits hardest · crits more often' },
-    tanker:    { hp:1.30, atk:0.80, armor:0.12, label:'Takes 12% less damage · Taunt' },
-    healer:    { hp:1.18, atk:0.90, heal:0.22, label:'Mend heals more' },
-    supporter: { hp:1.04, atk:0.92, hexHits:2, hexAll:true, energy:10, label:'Hex Bolt hits both rivals · Ultimate charges faster' }
-  };
-  // PvP taunt lasts for the rival's next 3 turns (in story battles it lasts until the tank falls)
-  const PVP_TAUNT_TURNS = 3;
-  const PVP_TAUNT = { key:'s4', name:'Taunt', glyph:'taunt', c:{ c1:'#ffc2a8', c2:'#d6492a', b:'#6a1a10' }, cd:5, desc:'Your rival must attack this Toto for their next '+PVP_TAUNT_TURNS+' turns' };
-  function pvpSkillsFor(f){ return f && f.role === 'tanker' ? [PVP_SKILLS[0], PVP_SKILLS[1], PVP_SKILLS[2], PVP_TAUNT] : PVP_SKILLS; }
+  if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) window.__tqPvpTune = { PVP_ROLE, PVP_MOVE, PVP_P2, PVP_CURSE, PVP_FX };   // balance testing only
   function pvpFighter(snap, idx){
     const s = snap || {};
     const tier = TIER_IDX[s.tier] != null ? s.tier : 'normal', role = ROLE_KITS[s.role] ? s.role : 'attacker';
@@ -4609,32 +4801,35 @@
     const mult = Math.max(0.5, Math.min(1.3, Number(s.statMult)||1));
     const base = powerLevelOf(statsForLevel(tier, 'attacker', level, mult)), R = PVP_ROLE[role];
     const maxHp = Math.max(10, Math.round(base*0.5*R.hp));
+    const K = pvpKitFor(s.name, role, tier, !!s.isToni);
     return { idx:idx|0, name:String(s.name||'Toto').slice(0,40), nature: typeof s.nature === 'string' ? s.nature : null, isToni:!!s.isToni, tier, role, level,
              maxHp, hp:maxHp, atk:Math.max(1, base*0.1*R.atk), spd:(statsForLevel(tier, role, level, mult).spd||1), cp:base,
-             energy:0, cd:{ s2:0, s3:0, s4:0 }, shield:0, weak:0 };
+             kit:K.kit, ult:K.ult, charge:0, cd:{ s1:0, s2:0, s3:0, s4:0 },
+             shield:0, weak:0, guard:0, mark:0, emp:0, focus:0, burn:null, regen:null };
   }
+  function pvpMoveOf(f, key){ if (!f) return null; if (key === 'ult') return f.ult; return f.kit.find(m=> m.key === key) || null; }
+  function pvpSkillsFor(f){ return f ? f.kit : []; }
   function pvpEngine(seed, team1, team2){
     const mk = t=>{ const L = pvpTeamOf(t).map((s, i)=> pvpFighter(s, i)); return L.length ? L : [pvpFighter(null, 0)]; };
     const E = { T:{ p1:mk(team1), p2:mk(team2) }, turn:0, winner:null, rng:pvpRng(seed), taunt:{ p1:null, p2:null }, autos:{ p1:0, p2:0 } };
-    // the fastest Toto on the field starts with a little Ultimate energy; player 2 (who moves
-    // second) gets a little too, to even out going first
-    const all = E.T.p1.concat(E.T.p2).slice().sort((a,b)=> b.spd - a.spd);
-    if (all.length > 1 && all[0].spd !== all[1].spd) all[0].energy += 15;
-    E.T.p2.forEach(f=> f.energy += 20);
+    // player 2 moves second, so their team starts a little ahead to even it out
+    E.T.p2.forEach((f, i)=>{ if (f.ult) f.charge = PVP_P2.charge; if (PVP_P2.shieldAll || i === 0) f.shield = PVP_P2.shield; f.ward = PVP_P2.ward > 0 ? 1 : 0; });
     E.actor = k=> (k % 2 === 1) ? 'p1' : 'p2';
     E.other = side=> side === 'p1' ? 'p2' : 'p1';
     E.alive = side=> E.T[side].filter(f=> f.hp > 0);
-    E.can = (side, i, key)=>{ const f = E.T[side][i]; if (!f || f.hp <= 0) return false; if (key === 'ult') return f.energy >= 100; if (key === 's1') return true; return (key === 's2' || key === 's3' || key === 's4') && (f.cd[key]|0) === 0; };
-    // the rival's tank is taunting: this side's attacks have to go to it
+    E.can = (side, i, key)=>{ const f = E.T[side][i]; if (!f || f.hp <= 0) return false; const m = pvpMoveOf(f, key); if (!m) return false;
+      if (key === 'ult') return f.charge >= m.need; return (f.cd[key]|0) === 0; };
+    // the rival's tank is taunting: this side's single-target attacks have to go to it
     E.forced = side=>{ const os = E.other(side), t = E.taunt[os]; if (!t) return null; const f = E.T[os][t.idx]; return f && f.hp > 0 ? t.idx : null; };
-    // legal targets for a skill: rivals for attacks, yourself or your partner for Mend/Shield, none for Taunt
+    // legal targets: rivals for attacks, yourself or your partner for helping moves, none to pick for the rest
     E.targets = (side, i, key)=>{
-      const f = E.T[side][i]; if (!f) return [];
-      if (key === 's4' && f.role === 'tanker') return [i];
-      if (key === 's3' || key === 's4') return E.T[side].map((g, j)=> g.hp > 0 ? j : -1).filter(j=> j >= 0);
-      const os = E.other(side), forced = E.forced(side);
+      const f = E.T[side][i], m = pvpMoveOf(f, key); if (!f || !m) return [];
+      if (m.tgt === 'self' || m.tgt === 'team') return [i];
+      if (m.tgt === 'ally') return E.T[side].map((g, j)=> g.hp > 0 ? j : -1).filter(j=> j >= 0);
+      const os = E.other(side), forced = E.forced(side), alive = E.T[os].map((g, j)=> g.hp > 0 ? j : -1).filter(j=> j >= 0);
+      if (m.tgt === 'foes') return alive.length ? [forced != null ? forced : alive[0]] : [];
       if (forced != null) return [forced];
-      return E.T[os].map((g, j)=> g.hp > 0 ? j : -1).filter(j=> j >= 0);
+      return alive;
     };
     return E;
   }
@@ -4644,57 +4839,107 @@
     if (['s1','s2','s3','s4','ult','atk'].includes(action)) return { i:-1, key: action === 'atk' ? 's1' : action, t:-1 };   // a single-Toto style move
     return null;
   }
-  // The computer's (and AUTO's) choice. r = one random number: the engine passes its own (so
-  // 'auto' moves replay identically); the AUTO button and computer rivals pass Math.random().
+  // The computer's (and AUTO's) choice: every move each Toto could make is scored by how much HP it
+  // is really worth right now (damage dealt, a knock-out, healing someone who needs it, damage a shield
+  // or Taunt will soak…) and the best one is played. r = one random number for a little variety: the
+  // engine passes its own (so 'auto' moves replay identically); the AUTO button and computer rivals
+  // pass Math.random().
   function pvpAiChoose(E, side, r){
     const os = E.other(side), mine = E.T[side], foes = E.T[os];
     const alive = mine.map((f, i)=> f.hp > 0 ? i : -1).filter(i=> i >= 0);
     const foeAlive = foes.map((f, i)=> f.hp > 0 ? i : -1).filter(i=> i >= 0);
     if (!alive.length || !foeAlive.length) return '0:s1:0';
-    const forced = E.forced(side), enc = (i, k, t)=> i+':'+k+':'+t;
-    const focus = ()=> forced != null ? forced : foeAlive.slice().sort((a,b)=> foes[a].hp/foes[a].maxHp - foes[b].hp/foes[b].maxHp)[0];
-    // 1) an Ultimate that's ready
-    const ultI = alive.find(i=> mine[i].energy >= 100);
-    if (ultI != null) return enc(ultI, 'ult', focus());
-    // 2) patch up a badly hurt teammate (a Healer first)
-    const hurt = alive.slice().sort((a,b)=> mine[a].hp/mine[a].maxHp - mine[b].hp/mine[b].maxHp)[0];
-    if (mine[hurt].hp < mine[hurt].maxHp*0.4){
-      const medic = alive.filter(i=> mine[i].cd.s3 === 0).sort((a,b)=> (mine[b].role === 'healer') - (mine[a].role === 'healer'))[0];
-      if (medic != null) return enc(medic, 's3', hurt);
-    }
-    // 3) the tank taunts to cover its partner
-    const tank = alive.find(i=> mine[i].role === 'tanker' && mine[i].cd.s4 === 0);
-    if (tank != null && !E.taunt[side] && alive.length > 1 && (r < 0.45 || foes.some(f=> f.hp > 0 && f.energy >= 85))) return enc(tank, 's4', tank);
-    // 4) shield whoever is about to take an Ultimate
-    if (foes.some(f=> f.hp > 0 && f.energy >= 100)){
-      const sh = alive.find(i=> mine[i].role !== 'tanker' && mine[i].cd.s4 === 0);
-      const protect = E.taunt[side] && mine[E.taunt[side].idx] && mine[E.taunt[side].idx].hp > 0 ? E.taunt[side].idx : hurt;
-      if (sh != null && mine[protect].shield === 0) return enc(sh, 's4', protect);
-    }
-    // 5) a Supporter's Hex Bolt hits both rivals
-    const sup = alive.find(i=> PVP_ROLE[mine[i].role].hexAll && mine[i].cd.s2 === 0);
-    if (sup != null && foeAlive.length > 1 && r < 0.8) return enc(sup, 's2', focus());
-    // 6) attack with the hardest hitter
-    const hitter = alive.slice().sort((a,b)=> mine[b].atk - mine[a].atk)[0], t = focus();
-    if (mine[hitter].cd.s2 === 0 && r < 0.65) return enc(hitter, 's2', t);
-    return enc(hitter, 's1', t);
+    const healK = E.turn + 1 >= PVP_CURSE.start ? PVP_CURSE.healCut : 1;
+    const foeHit = f=> f.hp > 0 ? f.atk*0.8*1.3*(f.weak ? PVP_FX.weak : 1)*(f.emp ? PVP_FX.emp : 1) : 0;     // a typical hit from that rival
+    const inc = foeAlive.reduce((x, j)=> Math.max(x, foeHit(foes[j])), 0);                                // the biggest hit coming our way
+    const charged = foeAlive.some(j=> foes[j].ult && foes[j].charge >= foes[j].ult.need - 1);
+    const incBig = charged ? inc*1.8 : inc;
+    const tauntIdx = E.taunt[side] && mine[E.taunt[side].idx] && mine[E.taunt[side].idx].hp > 0 ? E.taunt[side].idx : null;
+    const pHit = j=> tauntIdx != null ? (j === tauntIdx ? 1 : 0.15) : (alive.length > 1 ? 0.5 : 1);    // how likely this Toto is the one hit next
+    const estHit = (a, d, m)=>{
+      const R = PVP_ROLE[a.role], Rd = PVP_ROLE[d.role];
+      let x = a.atk*0.8*m.pow*(m.n||1)*(a.weak ? PVP_FX.weak : 1)*(a.emp ? PVP_FX.emp : 1)*(a.focus ? 1.5 : 1 + (R.crit||0.1)*0.5);
+      if (d.mark) x *= PVP_FX.mark;
+      if (m.type !== 'pierce'){ if (Rd.armor) x *= 1 - Rd.armor; if (d.guard) x *= PVP_FX.guard; if (d.shield) x *= 1 - PVP_FX.shield*(m.ult ? 0.5 : 1); }
+      return x;
+    };
+    const dmgValue = (a, m, t)=>{
+      let v = 0;
+      (m.tgt === 'foes' ? foeAlive : [t]).forEach(j=>{
+        const d = foes[j], x = estHit(a, d, m);
+        v += Math.min(x, d.hp);
+        if (x >= d.hp) v += foeHit(d)*2.5 + d.maxHp*0.15;                        // a knock-out stops all its future hits
+        if (m.type === 'burn' && !d.burn) v += Math.min(Math.max(0, d.hp - x), a.atk*0.8*m.dot*3)*0.85;
+        if (m.type === 'mark' && !d.mark && x < d.hp) v += a.atk*0.8*1.2*(PVP_FX.mark - 1)*2*0.8;
+        if ((m.type === 'weaken' || m.type === 'weakenAll') && !d.weak && x < d.hp) v += foeHit(d)*(1 - PVP_FX.weak)*2*0.85;
+      });
+      if (m.type === 'drain') v += Math.min(a.maxHp - a.hp, estHit(a, foes[t], m)*m.frac*healK)*0.9;
+      if (a.ult && !m.ult) v += a.atk*0.8*0.4;                                   // every hit charges the charged attack
+      return v;
+    };
+    const healValue = (g, amt)=>{
+      if (g.hp <= 0) return 0;
+      const got = Math.min(g.maxHp - g.hp, amt*healK), fr = g.hp/g.maxHp;
+      let k = fr < 0.3 ? 1.7 : fr < 0.5 ? 1.35 : fr < 0.7 ? 1.05 : 0.8;
+      if (g.hp < incBig*1.2) k *= 1.4;                                            // about to fall to the next big hit
+      return got*k;
+    };
+    const cands = [];
+    alive.forEach(i=>{
+      const a = mine[i];
+      const moves = a.kit.filter(m=> (a.cd[m.key]|0) === 0).concat(a.ult && a.charge >= a.ult.need ? [a.ult] : []);
+      moves.forEach(m=> E.targets(side, i, m.key).forEach(t=>{
+        let v = 0;
+        const g = mine[t], partner = alive.find(j=> j !== i);
+        if (m.dmg) v = dmgValue(a, m, t);
+        else if (m.type === 'heal') v = healValue(g, g.maxHp*m.pct);
+        else if (m.type === 'cleanse') v = healValue(g, g.maxHp*m.pct) + (g.burn ? g.burn.dmg*g.burn.turns : 0) + (g.weak ? a.atk*0.3 : 0) + (g.mark ? incBig*(PVP_FX.mark - 1)*1.5 : 0);
+        else if (m.type === 'healAll') alive.forEach(j=> v += healValue(mine[j], mine[j].maxHp*m.pct));
+        else if (m.type === 'regen') v = g.regen ? 0 : Math.min(g.maxHp - g.hp + incBig*pHit(t), g.maxHp*m.pct*3*healK)*0.75;
+        else if (m.type === 'shield') v = g.shield ? 0 : incBig*PVP_FX.shield*2*pHit(t)*0.85;
+        else if (m.type === 'fortify') v = a.guard ? 0 : incBig*(1 - PVP_FX.guard)*2*pHit(i)*0.9*(1 + (PVP_ROLE[a.role].armor||0));
+        else if (m.type === 'taunt'){
+          if (tauntIdx == null && partner != null){
+            const pf = mine[partner].hp/mine[partner].maxHp, tf = a.hp/a.maxHp;
+            v = incBig*1.5*(pf < tf ? 1.35 : 0.85)*(mine[partner].role === 'attacker' ? 1.15 : 1);
+          }
+        }
+        else if (m.type === 'empower') v = g.emp ? 0 : g.atk*0.8*1.3*(PVP_FX.emp - 1)*2*(g.role === 'attacker' ? 1 : 0.6)*0.9;
+        else if (m.type === 'haste') v = (Object.values(g.cd).reduce((x, c)=> x + Math.min(c, 2), 0)/4)*g.atk*0.8*0.7;
+        else if (m.type === 'focus') v = a.focus ? 0 : a.atk*0.8*1.5*0.5*0.85;
+        cands.push({ i, m, t, v });
+      }));
+    });
+    if (!cands.length) return alive[0]+':s1:'+foeAlive[0];
+    let best = null;
+    cands.forEach((c, k)=>{ const w = c.v*(0.93 + 0.14*((r*997 + k*0.618) % 1)); if (!best || w > best.w) best = Object.assign({ w }, c); });
+    return best.i+':'+best.m.key+':'+best.t;
   }
-  function pvpHit(E, a, d, mult, ult){
+  function pvpHit(E, a, d, pow, opt){
+    opt = opt || {};
     const Ra = PVP_ROLE[a.role], Rd = PVP_ROLE[d.role];
-    let dmg = a.atk * 0.8 * mult;
-    if (a.weak > 0){ dmg *= 0.7; a.weak--; }
+    let dmg = a.atk * 0.8 * pow;
+    if (a.weakOn) dmg *= PVP_FX.weak;     // hexed: weaker
+    if (a.empOn) dmg *= PVP_FX.emp;       // cheered on by its partner: stronger
     const v = 0.9 + E.rng()*0.2, cr = E.rng();
     dmg *= v;
-    const crit = cr < (Ra.crit || 0.1); if (crit) dmg *= 1.5;
-    if (Rd.armor) dmg *= 1 - Rd.armor;
+    const crit = a.focusOn || cr < (Ra.crit || 0.1); if (crit) dmg *= 1.5;
+    if (d.mark > 0){ dmg *= PVP_FX.mark; d.mark--; }
+    if (d.ward > 0){ dmg *= 1 - PVP_P2.ward; d.ward = 0; }
     let blocked = false;
-    if (d.shield > 0){ dmg *= 1 - 0.5 * (ult ? 0.5 : 1); d.shield--; blocked = true; }
+    if (!opt.pierce){
+      if (Rd.armor) dmg *= 1 - Rd.armor;
+      if (d.guard > 0){ dmg *= PVP_FX.guard; d.guard--; blocked = true; }
+      if (d.shield > 0){ dmg *= 1 - PVP_FX.shield * (opt.ult ? 0.5 : 1); d.shield--; blocked = true; }
+    }
     dmg = Math.max(1, Math.round(dmg));
     d.hp = Math.max(0, d.hp - dmg);
-    d.energy = Math.min(100, d.energy + 12);
     return { dmg, crit, blocked };
   }
+  // healing a Toto (late in a battle the arena's curse halves all healing, so nobody can stall forever)
+  function pvpHeal(E, g, amount){ if (g.hp <= 0) return 0; const before = g.hp; const k = E.turn >= PVP_CURSE.start ? PVP_CURSE.healCut : 1; g.hp = Math.min(g.maxHp, g.hp + Math.max(0, Math.round(amount*k))); return g.hp - before; }
   function pvpTeamFrac(E, s){ let h = 0, m = 0; E.T[s].forEach(f=>{ h += Math.max(0, f.hp); m += f.maxHp; }); return m ? h/m : 0; }
+  function pvpKo(E, ev, side, i){ ev.events.push({ t:'ko', side, i }); if (E.taunt[side] && E.taunt[side].idx === i) E.taunt[side] = null; }
   // one move -> what happened (for the animation). move = { action, side? } (side only for a forfeit)
   function pvpStep(E, move){
     const k = E.turn + 1;
@@ -4704,7 +4949,14 @@
     if (move.action === 'forfeit'){ const s = move.side || E.actor(k); ev.side = s; E.winner = E.other(s); ev.events.push({ t:'forfeit', side:s }); return ev; }
     const side = E.actor(k), os = E.other(side), team = E.T[side], foes = E.T[os];
     ev.side = side;
-    team.forEach(f=> ['s2','s3','s4'].forEach(key=>{ if (f.cd[key] > 0) f.cd[key]--; }));
+    team.forEach(f=> ['s1','s2','s3','s4'].forEach(key=>{ if (f.cd[key] > 0) f.cd[key]--; }));
+    // burns and healing glows tick at the start of their side's turn
+    team.forEach((f, i)=>{
+      if (f.hp <= 0) return;
+      if (f.burn){ const d = Math.max(1, Math.min(f.hp, f.burn.dmg)); f.hp -= d; f.burn.turns--; ev.events.push({ t:'burn', side, i, amount:d }); if (f.burn.turns <= 0) f.burn = null; if (f.hp <= 0) pvpKo(E, ev, side, i); }
+      if (f.hp > 0 && f.regen){ const got = pvpHeal(E, f, f.maxHp*f.regen.pct); f.regen.turns--; ev.events.push({ t:'regen', side, i, amount:got }); if (f.regen.turns <= 0) f.regen = null; }
+    });
+    if (!E.alive(side).length){ E.winner = os; return ev; }
     let action = move.action;
     if (action === 'auto'){
       E.autos[side]++;
@@ -4713,51 +4965,75 @@
       ev.auto = true;
     } else E.autos[side] = 0;
     const p = pvpParse(action) || { i:-1, key:'s1', t:-1 };
-    // a Toto still standing, a skill it can use, a legal target (anything else falls back to Slash)
+    // a Toto still standing, a move it can use, a legal target (anything else falls back to its first move)
     if (!team[p.i] || team[p.i].hp <= 0) p.i = team.findIndex(f=> f.hp > 0);
     const a = team[p.i];
     if (!E.can(side, p.i, p.key)) p.key = 's1';
     const valid = E.targets(side, p.i, p.key);
     if (!valid.includes(p.t)) p.t = valid[0];
-    ev.actor = p.i; ev.action = p.key; ev.target = p.t;
-    if (p.key === 's2' && PVP_ROLE[a.role].hexAll){
-      a.cd.s2 = 3;
-      const order = [p.t].concat(foes.map((g, j)=> j).filter(j=> j !== p.t && foes[j].hp > 0));
-      order.forEach(j=>{
-        const d = foes[j]; if (!d || d.hp <= 0) return;
-        const h = pvpHit(E, a, d, 0.55, false); d.weak = Math.max(d.weak, PVP_ROLE[a.role].hexHits || 2);
-        ev.events.push(Object.assign({ t:'hit', side, i:p.i, target:os, ti:j, hex:true, ult:false }, h));
-        if (d.hp <= 0){ ev.events.push({ t:'ko', side:os, i:j }); if (E.taunt[os] && E.taunt[os].idx === j) E.taunt[os] = null; }
-      });
-    } else if (p.key === 's1' || p.key === 's2' || p.key === 'ult'){
-      const d = foes[p.t], ult = p.key === 'ult';
-      const h = pvpHit(E, a, d, p.key === 's1' ? 1.0 : (p.key === 's2' ? 1.3 : 2.6), ult);
-      if (p.key === 's2'){ d.weak = PVP_ROLE[a.role].hexHits || 2; a.cd.s2 = 3; }
-      if (ult) a.energy = 0;
-      ev.events.push(Object.assign({ t:'hit', side, i:p.i, target:os, ti:p.t, hex:p.key === 's2', ult }, h));
-      if (d.hp <= 0){ ev.events.push({ t:'ko', side:os, i:p.t }); if (E.taunt[os] && E.taunt[os].idx === p.t) E.taunt[os] = null; }
-    } else if (p.key === 's3'){
-      const g = team[p.t], before = g.hp;
-      g.hp = Math.min(g.maxHp, g.hp + Math.round(g.maxHp*(PVP_ROLE[a.role].heal || 0.17)));
-      a.cd.s3 = 4; ev.events.push({ t:'heal', side, i:p.i, ti:p.t, amount:g.hp - before });
-    } else if (a.role === 'tanker'){
-      E.taunt[side] = { idx:p.i, turns:PVP_TAUNT_TURNS }; a.cd.s4 = 5;
-      ev.events.push({ t:'taunt', side, i:p.i });
-    } else {
-      team[p.t].shield = 2; a.cd.s4 = 3; ev.events.push({ t:'shield', side, i:p.i, ti:p.t });
+    const m = pvpMoveOf(a, p.key);
+    ev.actor = p.i; ev.action = p.key; ev.target = p.t; ev.move = m.name; ev.type = m.type;
+    if (m.cd) a.cd[p.key] = m.cd;
+    if (m.dmg){
+      // this attack's own boosts (weakness, a partner's cheer, a focus) are used up by the move, not per hit
+      a.weakOn = a.weak > 0; a.empOn = a.emp > 0; a.focusOn = a.focus > 0;
+      const hitOne = (j, pow)=>{
+        const d = foes[j]; if (!d || d.hp <= 0) return null;
+        const h = pvpHit(E, a, d, pow, { pierce: m.type === 'pierce', ult: !!m.ult });
+        ev.events.push(Object.assign({ t:'hit', side, i:p.i, target:os, ti:j, ult:!!m.ult, kind:m.type, move:m.name }, h));
+        if (d.hp <= 0) pvpKo(E, ev, os, j);
+        return h;
+      };
+      if (m.tgt === 'foes'){
+        const order = [p.t].concat(foes.map((g, j)=> j).filter(j=> j !== p.t));
+        order.forEach(j=>{ const h = hitOne(j, m.pow); if (h && m.type === 'weakenAll' && foes[j].hp > 0) foes[j].weak = 2; });
+      } else if (m.type === 'multi'){
+        for (let n=0; n<m.n; n++){ if (!foes[p.t] || foes[p.t].hp <= 0) break; hitOne(p.t, m.pow); }
+      } else {
+        const h = hitOne(p.t, m.pow), d = foes[p.t];
+        if (h && d.hp > 0){
+          if (m.type === 'burn') d.burn = { dmg: Math.max(1, Math.round(a.atk*0.8*m.dot)), turns:3 };
+          if (m.type === 'mark') d.mark = 2;
+          if (m.type === 'weaken') d.weak = 2;
+        }
+        if (h && m.type === 'drain'){ const got = pvpHeal(E, a, h.dmg*m.frac); if (got > 0) ev.events.push({ t:'heal', side, i:p.i, ti:p.i, amount:got, move:m.name, quiet:true }); }
+      }
+      if (a.weakOn) a.weak--; if (a.empOn) a.emp--; if (a.focusOn) a.focus = 0;
+      a.weakOn = a.empOn = a.focusOn = false;
+      if (a.ult){ if (m.ult) a.charge = 0; else a.charge = Math.min(a.ult.need, a.charge + 1); }
+    } else if (m.type === 'heal' || m.type === 'cleanse'){
+      const g = team[p.t];
+      if (m.type === 'cleanse'){ g.weak = 0; g.mark = 0; g.burn = null; }
+      ev.events.push({ t:'heal', side, i:p.i, ti:p.t, amount:pvpHeal(E, g, g.maxHp*m.pct), move:m.name, cleanse: m.type === 'cleanse' });
+    } else if (m.type === 'healAll'){
+      team.forEach((g, j)=>{ if (g.hp <= 0) return; ev.events.push({ t:'heal', side, i:p.i, ti:j, amount:pvpHeal(E, g, g.maxHp*m.pct), move:m.name }); });
+    } else if (m.type === 'regen'){
+      team[p.t].regen = { pct:m.pct, turns:3 }; ev.events.push({ t:'buff', side, i:p.i, ti:p.t, kind:'regen', move:m.name });
+    } else if (m.type === 'shield'){
+      team[p.t].shield = 2; ev.events.push({ t:'buff', side, i:p.i, ti:p.t, kind:'shield', move:m.name });
+    } else if (m.type === 'empower'){
+      team[p.t].emp = 2; ev.events.push({ t:'buff', side, i:p.i, ti:p.t, kind:'empower', move:m.name });
+    } else if (m.type === 'haste'){
+      const g = team[p.t]; ['s1','s2','s3','s4'].forEach(key=>{ g.cd[key] = Math.max(0, (g.cd[key]|0) - 2); });
+      ev.events.push({ t:'buff', side, i:p.i, ti:p.t, kind:'haste', move:m.name });
+    } else if (m.type === 'focus'){
+      a.focus = 1; ev.events.push({ t:'buff', side, i:p.i, ti:p.i, kind:'focus', move:m.name });
+    } else if (m.type === 'fortify'){
+      a.guard = 2; ev.events.push({ t:'buff', side, i:p.i, ti:p.i, kind:'fortify', move:m.name });
+    } else if (m.type === 'taunt'){
+      E.taunt[side] = { idx:p.i, turns:PVP_TAUNT_TURNS };
+      ev.events.push({ t:'taunt', side, i:p.i, move:m.name });
     }
-    if (p.key !== 'ult') a.energy = Math.min(100, a.energy + 25 + (PVP_ROLE[a.role].energy || 0));
-    team.forEach(g=>{ if (g !== a && g.hp > 0) g.energy = Math.min(100, g.energy + 10 + Math.round((PVP_ROLE[g.role].energy || 0)/2)); });
     // one of the turns this side had to spend under the rival's taunt
     if (E.taunt[os]){ E.taunt[os].turns--; if (E.taunt[os].turns <= 0){ E.taunt[os] = null; ev.events.push({ t:'tauntEnd', side:os }); } }
     if (!E.alive(os).length){ E.winner = side; return ev; }
     // the arena's curse: later on, every Toto loses a growing slice of max HP each round, so every battle ends
-    if (k >= 40 && k % 2 === 0){
-      const pct = 0.03 + 0.012*((k - 40)/2), h1 = pvpTeamFrac(E, 'p1'), h2 = pvpTeamFrac(E, 'p2');
+    if (k >= PVP_CURSE.start && k % 2 === 0){
+      const pct = PVP_CURSE.base + PVP_CURSE.step*((k - PVP_CURSE.start)/2), h1 = pvpTeamFrac(E, 'p1'), h2 = pvpTeamFrac(E, 'p2');
       ['p1','p2'].forEach(s=> E.T[s].forEach((f, i)=>{
         if (f.hp <= 0) return;
         const c = Math.max(1, Math.round(f.maxHp*pct)); f.hp = Math.max(0, f.hp - c); ev.events.push({ t:'curse', side:s, i, amount:c });
-        if (f.hp <= 0){ ev.events.push({ t:'ko', side:s, i }); if (E.taunt[s] && E.taunt[s].idx === i) E.taunt[s] = null; }
+        if (f.hp <= 0) pvpKo(E, ev, s, i);
       }));
       const d1 = !E.alive('p1').length, d2 = !E.alive('p2').length;
       if (d1 || d2){ E.winner = d1 && d2 ? (h1 > h2 ? 'p1' : h2 > h1 ? 'p2' : (E.rng() < 0.5 ? 'p1' : 'p2')) : (d1 ? 'p2' : 'p1'); return ev; }
@@ -4765,10 +5041,17 @@
     if (k >= 140){ E.winner = pvpTeamFrac(E, 'p1') >= pvpTeamFrac(E, 'p2') ? 'p1' : 'p2'; ev.events.push({ t:'time' }); }
     return ev;
   }
+  if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) window.__tqPvpLog = function(seed, a, b){   // dev: one battle, move by move
+    const E = pvpEngine(seed, a, b), lines = [];
+    while (!E.winner && E.turn < 200){ const side = E.actor(E.turn+1); const ev = pvpStep(E, { action: pvpAiChoose(E, side, E.rng()) });
+      const dm = ev.events.filter(e=> e.t === 'hit').reduce((x, e)=> x + e.dmg, 0), hl = ev.events.filter(e=> e.t === 'heal').reduce((x, e)=> x + e.amount, 0);
+      lines.push(ev.turn+' '+side+' '+(E.T[side][ev.actor] ? E.T[side][ev.actor].name : '?')+' '+ev.move+(dm ? ' dmg '+dm : '')+(hl ? ' heal '+hl : '')+' | '+['p1','p2'].map(s=> E.T[s].map(f=> Math.round(f.hp/f.maxHp*100)+'%'+(f.ult ? '('+f.charge+')' : '')).join(' ')).join(' vs ')); }
+    return lines.join('\n') + '\nwinner ' + E.winner;
+  };
   window.__tqPvpSim = function(seed, a, b, n){   // dev check: plays n auto battles, returns wins + average turns
-    let w = { p1:0, p2:0 }, turns = 0;
-    for (let i=0;i<(n||100);i++){ const E = pvpEngine(seed + i, a, b); while (!E.winner) pvpStep(E, { action: pvpAiChoose(E, E.actor(E.turn+1), Math.random()) }); w[E.winner]++; turns += E.turn; }
-    return { wins:w, avgTurns: turns/(n||100) };
+    let w = { p1:0, p2:0 }, turns = 0, maxT = 0;
+    for (let i=0;i<(n||100);i++){ const E = pvpEngine(seed + i, a, b); let g = 0; while (!E.winner && g++ < 400) pvpStep(E, { action: pvpAiChoose(E, E.actor(E.turn+1), E.rng()) }); w[E.winner]++; turns += E.turn; maxT = Math.max(maxT, E.turn); }
+    return { wins:w, avgTurns: +(turns/(n||100)).toFixed(1), maxTurns:maxT };
   };
 
   // ---- sprites: only ever drawn from the game's own art, by name (never HTML from another player) ----
@@ -4822,10 +5105,21 @@
     const team = myPvpTeam(), ri = t=> (ROLE_INFO[t.role]||ROLE_INFO.attacker);
     $('#pv-pick').innerHTML = team.length ? '<div class="pv-team">'+team.map(t=> '<div class="pv-pick-spr">'+spriteMarkup(t)+'</div>').join('')+'</div>'
       + '<div class="pv-pick-i"><small>Your team</small>'+team.map(t=> '<span class="pv-tm"><b>'+escapeHtml(t.name)+'</b> Lv '+(t.level||1)+' · <em style="color:'+ri(t).color+'">'+ri(t).icon+' '+ri(t).label+'</em></span>').join('')
-      + (team.length < 2 ? '<span class="pv-tm">Catch one more Toto to battle — PvP is 2 vs 2.</span>' : '')+'</div><button id="pv-change">Change</button>'
+      + (team.length < 2 ? '<span class="pv-tm">Catch one more Toto to battle — PvP is 2 vs 2.</span>' : '<button class="pv-moves" id="pv-moves">📜 See their moves</button>')+'</div><button id="pv-change">Change</button>'
       : '<div class="pv-pick-i"><b>You need Totos first</b><span>Catch two on the map, then come back.</span></div>';
     const b = $('#pv-change'); if (b) b.onclick = pvpChooseToto;
+    const mv = $('#pv-moves'); if (mv) mv.onclick = ()=> pvpMovesSheet(myPvpSnaps());
     $('#pv-find').disabled = team.length < 2;
+  }
+  // every move a team has, with what it does
+  function pvpMovesSheet(snaps){
+    const html = pvpTeamOf(snaps).map(s=>{
+      const f = pvpFighter(s, 0), ri = ROLE_INFO[f.role] || ROLE_INFO.attacker;
+      const row = m=> '<div class="pv-mv"><span class="pv-mv-ic">'+pvpSkillIcon(m)+'</span><div><b>'+escapeHtml(m.name)+'</b><small>'+escapeHtml(m.desc)+(m.cd ? ' · cools down for '+m.cd+' turns' : '')+'</small></div></div>';
+      return '<div class="pv-mvs"><div class="pv-mvs-h"><b>'+escapeHtml(f.name)+'</b> <em style="color:'+ri.color+'">'+ri.icon+' '+(PVP_ROLE_TAG[f.role] || ri.label)+'</em><small>'+escapeHtml(PVP_ROLE[f.role].label)+'</small></div>'
+        + f.kit.map(row).join('') + (f.ult ? row(f.ult).replace('class="pv-mv"', 'class="pv-mv ult"') : '') + '</div>';
+    }).join('');
+    actionSheet('Your team’s moves', 'Each Toto has its own moves for its class.', [{ html }, { label:'Got it', value:'ok', cls:'good' }]);
   }
   async function pvpChooseToto(){
     const list = state.collection.slice().sort((a,b)=> (b.cp||0)-(a.cp||0));
@@ -5001,10 +5295,14 @@
   function arenaPlate(side, i){
     const E = Arena.E, f = E.T[side][i]; if (!f) return '';
     const pct = Math.max(0, f.hp/f.maxHp*100), ri = ROLE_INFO[f.role] || ROLE_INFO.attacker, tn = E.taunt[side];
-    const buffs = (tn && tn.idx === i ? '<span class="tn">😤 Taunt '+tn.turns+'</span>' : '') + (f.shield ? '<span>🛡️ '+f.shield+'</span>' : '') + (f.weak ? '<span>🌀 weak</span>' : '') + (f.energy >= 100 && f.hp > 0 ? '<span class="ul">ULT</span>' : '');
+    const ready = f.ult && f.charge >= f.ult.need && f.hp > 0;
+    const buffs = (tn && tn.idx === i ? '<span class="tn">😤 Taunt '+tn.turns+'</span>' : '') + (f.shield ? '<span>🛡️ '+f.shield+'</span>' : '') + (f.guard ? '<span>🧱 '+f.guard+'</span>' : '')
+      + (f.emp ? '<span>💪 '+f.emp+'</span>' : '') + (f.focus ? '<span>🎯</span>' : '') + (f.regen ? '<span>💚 '+f.regen.turns+'</span>' : '')
+      + (f.weak ? '<span>🌀 weak</span>' : '') + (f.mark ? '<span>❗ marked</span>' : '') + (f.burn ? '<span>🔥 '+f.burn.turns+'</span>' : '') + (ready ? '<span class="ul">CHARGED</span>' : '');
+    const pips = f.ult ? '<div class="pva-ch'+(ready ? ' full' : '')+'">'+Array.from({ length:f.ult.need }, (_, k)=> '<i'+(k < f.charge ? ' class="on"' : '')+'></i>').join('')+'</div>' : '';
     return '<div class="pva-pn"><span class="pva-pr" style="color:'+ri.color+'">'+ri.icon+'</span><b>'+escapeHtml(f.name)+'</b><i>Lv '+f.level+'</i></div>'
       + '<div class="pva-hp"><i class="'+(pct < 25 ? 'low' : pct < 55 ? 'mid' : '')+'" style="width:'+pct.toFixed(1)+'%"></i><em>'+Math.max(0, f.hp).toLocaleString()+'</em></div>'
-      + '<div class="pva-en"><i style="width:'+f.energy+'%"></i></div>'+(buffs ? '<div class="pva-buffs">'+buffs+'</div>' : '');
+      + pips + (buffs ? '<div class="pva-buffs">'+buffs+'</div>' : '');
   }
   function arenaCanAct(){ const E = Arena.E; return !!E && !E.winner && E.actor(E.turn + 1) === Arena.side && !Arena.busy && !Arena.sending && !Arena.finished; }
   function arenaRefresh(){
@@ -5033,15 +5331,29 @@
     const me = myTeam[Arena.sel] || myTeam[0];
     const skills = pvpSkillsFor(me);
     $('#pva-skills').innerHTML = skills.map((s,i)=>{ const cd = me.cd[s.key]|0, on = !!(Arena.targeting && Arena.targeting.key === s.key);
-      return '<button class="pva-sk'+(on ? ' on' : '')+'" data-k="'+s.key+'" title="'+escapeHtml(s.desc)+'"'+(!canAct || cd ? ' disabled' : '')+'><em>'+(i+1)+'</em>'+pvpSkillIcon(s)+'<b>'+s.name+'</b>'+(cd ? '<span class="cdv">'+cd+'</span>' : '')+'</button>'; }).join('');
+      return '<button class="pva-sk'+(on ? ' on' : '')+'" data-k="'+s.key+'" title="'+escapeHtml(s.desc)+'"'+(!canAct || cd ? ' disabled' : '')+'><em>'+(i+1)+'</em>'+pvpSkillIcon(s)+'<b>'+escapeHtml(s.name)+'</b>'+(cd ? '<span class="cdv">'+cd+'</span>' : '')+'</button>'; }).join('');
     $$('#pva-skills .pva-sk').forEach(b=> b.onclick = ()=> arenaPickSkill(b.dataset.k));
-    const ult = $('#pva-ult'); ult.disabled = !canAct || me.energy < 100; ult.classList.toggle('ready', me.energy >= 100 && me.hp > 0);
-    $('#pva-ult-fill').style.width = me.energy+'%'; $('#pva-ult-s').textContent = (me.energy >= 100 ? 'READY' : me.energy+'%')+' · '+me.name;
+    // only Attackers have a charged attack; everyone else shows what their class does instead
+    const ult = $('#pva-ult'), ri = $('#pva-roleinfo');
+    if (me.ult){
+      const full = me.charge >= me.ult.need;
+      ult.style.display = ''; ri.classList.remove('show');
+      ult.disabled = !canAct || !full; ult.classList.toggle('ready', full && me.hp > 0);
+      $('#pva-ult-fill').style.width = (me.charge/me.ult.need*100)+'%';
+      $('#pva-ult-n').textContent = me.ult.name.toUpperCase();
+      $('#pva-ult-s').textContent = full ? 'READY' : me.charge+'/'+me.ult.need+' hits';
+      ult.title = me.ult.desc;
+    } else {
+      const info = ROLE_INFO[me.role] || ROLE_INFO.attacker;
+      ult.style.display = 'none'; ri.classList.add('show'); ri.style.setProperty('--rc', info.color);
+      ri.innerHTML = '<i>'+info.icon+'</i><span><b>'+escapeHtml(me.name)+' · '+(PVP_ROLE_TAG[me.role] || info.label)+'</b>'+escapeHtml(PVP_ROLE[me.role].label)+'</span>';
+    }
     const tt = $('#pva-turn');
     if (!E.winner && !Arena.finished){
       tt.classList.toggle('mine', mine);
       $('#pva-turn-t').textContent = mine ? (Arena.targeting ? 'Pick a target' : 'Your turn') : (Arena.info.names[next] || 'Rival')+'’s turn';
-      $('#pva-hint').textContent = canAct ? (Arena.targeting ? (Arena.targeting.side === Arena.side ? 'Tap which of your Totos to help' : 'Tap which rival Toto to hit') : (E.alive(Arena.side).length > 1 ? 'Tap a Toto to choose who moves · '+me.name+' is up' : '')) : '';
+      const tm = Arena.targeting ? pvpMoveOf(me, Arena.targeting.key) : null;
+      $('#pva-hint').textContent = canAct ? (Arena.targeting ? (tm ? tm.name+': '+tm.desc+' · ' : '')+(Arena.targeting.side === Arena.side ? 'tap which of your Totos' : 'tap which rival to hit') : (E.alive(Arena.side).length > 1 ? 'Tap a Toto to choose who moves · '+me.name+' is up' : '')) : '';
     } else $('#pva-hint').textContent = '';
   }
   // a skill button: moves at once if there's only one sensible target, otherwise asks you to tap one
@@ -5050,8 +5362,8 @@
     if (!arenaCanAct()) return;
     if (Arena.targeting && Arena.targeting.key === key){ Arena.targeting = null; arenaRefresh(); return; }   // tap again to cancel
     const i = Arena.sel; if (!E.can(side, i, key)) return;
-    const f = E.T[side][i], valid = E.targets(side, i, key);
-    const helps = key === 's3' || (key === 's4' && f.role !== 'tanker');
+    const f = E.T[side][i], valid = E.targets(side, i, key), mv = pvpMoveOf(f, key);
+    const helps = !!mv && mv.tgt === 'ally';
     if (valid.length <= 1){ arenaChoose(i+':'+key+':'+(valid[0]|0)); return; }
     Arena.targeting = { key, valid, side: helps ? side : E.other(side) };
     arenaRefresh();
@@ -5086,12 +5398,12 @@
     if (ev.side && Arena.ctl) Arena.ctl.command(ev.side === Arena.side ? 'L' : 'R');
     for (const e of ev.events){
       if (e.t === 'hit'){
-        const atkEl = arenaTotoEl(e.side, e.i), defEl = arenaTotoEl(e.target, e.ti), sk = e.ult ? null : pvpSkillsFor(E.T[e.side][e.i]).find(s=> s.key === ev.action);
-        arenaLog(nm(e.side, e.i)+' used '+(e.ult ? 'ULTIMATE ATTACK' : (sk ? sk.name : 'Slash'))+' on '+low(nm(e.target, e.ti))+(ev.auto ? ' (auto)' : '')+'!');
+        const atkEl = arenaTotoEl(e.side, e.i), defEl = arenaTotoEl(e.target, e.ti);
+        arenaLog(nm(e.side, e.i)+' used '+(e.move || 'an attack')+(e.ult ? ' (charged)' : '')+' on '+low(nm(e.target, e.ti))+(ev.auto ? ' (auto)' : '')+'!');
         if (e.ult){ pulse($('#pva-flash'), 'on', 700); Sound.playAbility && Sound.playAbility(); await arenaWait(250); }
         pulse(atkEl, e.side === Arena.side ? 'lunge-r' : 'lunge-l', 420);
         await arenaWait(190);
-        arenaSlash(e.target, e.ti, e.ult ? '#ffd36b' : (e.hex ? '#d9a8ff' : '#ffffff'));
+        arenaSlash(e.target, e.ti, e.ult ? '#ffd36b' : ({ weaken:'#d9a8ff', weakenAll:'#d9a8ff', burn:'#ffab4a', mark:'#ff7ac8', drain:'#ff6a8a', sweep:'#8affea', pierce:'#d8e4ff' }[e.kind] || '#ffffff'));
         pulse(defEl, 'hurt', 400);
         if (e.ult || e.crit) pulse($('#pvp-arena'), 'shake', 450);
         Sound.playAttack && Sound.playAttack();
@@ -5099,10 +5411,17 @@
         arenaRefresh();
         await arenaWait(e.ult ? 900 : 650);
       } else if (e.t === 'heal'){
-        arenaLog(nm(e.side, e.i)+' used Mend'+(e.ti !== e.i ? ' on '+E.T[e.side][e.ti].name : '')+'!'); Sound.playAbility && Sound.playAbility();
-        pulse(arenaTotoEl(e.side, e.ti), 'healed', 700); arenaFloat(e.side, e.ti, '+'+e.amount.toLocaleString(), 'heal'); arenaRefresh(); await arenaWait(750);
-      } else if (e.t === 'shield'){
-        arenaLog(nm(e.side, e.i)+' raised a Spirit Shield'+(e.ti !== e.i ? ' over '+E.T[e.side][e.ti].name : '')+'!'); Sound.playAbility && Sound.playAbility(); arenaRefresh(); await arenaWait(700);
+        if (!e.quiet){ arenaLog(nm(e.side, e.i)+' used '+(e.move || 'a heal')+(e.ti !== e.i ? ' on '+E.T[e.side][e.ti].name : '')+'!'); Sound.playAbility && Sound.playAbility(); }
+        pulse(arenaTotoEl(e.side, e.ti), 'healed', 700); arenaFloat(e.side, e.ti, '+'+e.amount.toLocaleString()+(e.cleanse ? '<small>CLEANSED</small>' : ''), 'heal'); arenaRefresh(); await arenaWait(e.quiet ? 450 : 750);
+      } else if (e.t === 'buff'){
+        const what = { shield:'shields', empower:'cheers on', haste:'speeds up', regen:'wraps a healing glow around', focus:'takes aim', fortify:'braces itself' }[e.kind] || 'helps';
+        const tail = (e.kind === 'focus' || e.kind === 'fortify') ? '' : ' '+(e.ti === e.i ? 'itself' : E.T[e.side][e.ti].name);
+        arenaLog(nm(e.side, e.i)+' used '+(e.move || 'a move')+' and '+what+tail+'!'); Sound.playAbility && Sound.playAbility();
+        pulse(arenaTotoEl(e.side, e.ti), 'healed', 600); arenaRefresh(); await arenaWait(700);
+      } else if (e.t === 'burn'){
+        arenaFloat(e.side, e.i, '-'+e.amount.toLocaleString()+'<small>BURN</small>', 'curse'); pulse(arenaTotoEl(e.side, e.i), 'hurt', 400); arenaRefresh(); await arenaWait(380);
+      } else if (e.t === 'regen'){
+        if (e.amount > 0){ arenaFloat(e.side, e.i, '+'+e.amount.toLocaleString()+'<small>GLOW</small>', 'heal'); arenaRefresh(); await arenaWait(380); }
       } else if (e.t === 'taunt'){
         arenaLog(nm(e.side, e.i)+' taunts! '+(e.side === Arena.side ? 'Your rival has' : 'You have')+' to attack it for the next '+PVP_TAUNT_TURNS+' turns.');
         Sound.playAbility && Sound.playAbility(); pulse(arenaTotoEl(e.side, e.i), 'taunt-fx', 800); arenaRefresh(); await arenaWait(900);
@@ -7403,12 +7722,20 @@
     if (tr){
       const d = distanceMetersToWorldPoint(tr._x, tr._y), close = d <= WILD_RADIUS_M;
       w.classList.toggle('catchable', close);
-      setHtmlIfChanged(w, '<span class="nearby-faces">'+faceHtml(tr)+'</span>' + (close
-        ? '<span class="nearby-num"><b>Catch!</b><small>tap here</small></span>'
-        : arrowHtml(tr)+'<span class="nearby-num"><b>'+fmtDist(d)+'</b><small>tracking</small></span>'));
+      const key = 'T'+tr.id+(close ? 'c' : '')+'|'+(tr.img && tr.img.src || tr.name);
+      if (!close && w.__nkey === key){
+        const ar = w.querySelector('.nearby-arrow'), b = w.querySelector('.nearby-num b');
+        if (ar) ar.style.transform = 'rotate('+screenBearing(tr).toFixed(0)+'deg)';
+        if (b) b.textContent = fmtDist(d);
+      } else {
+        w.__nkey = key;
+        setHtmlIfChanged(w, '<span class="nearby-faces">'+faceHtml(tr)+'</span>' + (close
+          ? '<span class="nearby-num"><b>Catch!</b><small>tap here</small></span>'
+          : arrowHtml(tr)+'<span class="nearby-num"><b>'+fmtDist(d)+'</b><small>tracking</small></span>'));
+      }
       w.setAttribute('aria-label', 'Tracking '+tr.name+', '+fmtDist(d)+' away');
     } else {
-      w.classList.remove('catchable');
+      w.classList.remove('catchable'); w.__nkey = '';
       const faces = list.slice(0, 3).map(o=> faceHtml(o.t)).join('') || '<span class="nearby-face ghost">👻</span>';
       setHtmlIfChanged(w, '<span class="nearby-faces">'+faces+'</span><span class="nearby-num"><b>'+list.length+'</b><small>nearby</small></span>');
       w.setAttribute('aria-label', list.length+' Totos nearby');
@@ -10183,93 +10510,83 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v65';
+window.TQ_APP_VERSION = 'v66';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
+  // older releases restarted onto "index.html?v=..." — tidy that off the address
+  try { var u0 = new URL(window.location.href); if (u0.searchParams.has('v')){ u0.searchParams.delete('v'); history.replaceState(history.state, '', u0.pathname + u0.search + u0.hash); } } catch(e){}
   if (!('serviceWorker' in navigator)) return;
   var banner = document.getElementById('tq-update-banner');
-  var refreshing = false;
-  var newerVersion = null;
-
-  // Belt-and-braces update check: besides the service worker's own update cycle, ask the
-  // server for version.json directly (unique URL each time, so no browser/CDN cache can
-  // hand back an old answer). If it names a newer release than the one running, offer
-  // the update straight away — even if the service worker hasn't noticed yet.
+  var num = function(v){ return parseInt(String(v||'').replace(/\D+/g,''), 10) || 0; };
+  var latest = null, wantReload = false, regRef = null;
+  function newer(){ return !!latest && num(latest) > num(window.TQ_APP_VERSION); }
+  // The update banner never pops up over a fight; it waits until the battle is over.
+  function busy(){
+    var b = document.getElementById('battle-screen'), a = document.getElementById('pvp-arena');
+    return !!((b && b.classList.contains('active')) || (a && a.classList.contains('show')));
+  }
+  setInterval(function(){ document.documentElement.classList.toggle('tq-busy-battle', busy()); }, 1000);
+  // A new helper (service worker) that's waiting to take over: if this page is already the newest
+  // release, let it take over quietly. It only asks the player when there's a real update.
+  function settle(){
+    if (!regRef || !regRef.waiting || !navigator.serviceWorker.controller) return;
+    if (latest && !newer()) regRef.waiting.postMessage('SKIP_WAITING');
+  }
+  // version.json is the one source of truth for "is there a newer release?". It's fetched with a
+  // unique address every time so no cache anywhere can hand back an old answer.
   function checkVersionFile(){
     try {
       fetch('version.json?t='+Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
-        var num = function(v){ return parseInt(String(v||'').replace(/\D+/g,''), 10) || 0; };
-        if (j && j.version && num(j.version) > num(window.TQ_APP_VERSION)){ newerVersion = j.version; banner.classList.add('show'); }
+        if (!j || !j.version) return;
+        latest = j.version;
+        if (newer()) banner.classList.add('show'); else { banner.classList.remove('show'); settle(); }
       }).catch(function(){});
     } catch(e){}
   }
-  function checkNow(reg){ if (reg) reg.update().catch(function(){}); checkVersionFile(); }
+  function checkNow(){ if (regRef) regRef.update().catch(function(){}); checkVersionFile(); }
 
-  navigator.serviceWorker.register('sw.js').then(function(reg){
-    checkNow(reg);
-    document.addEventListener('visibilitychange', function(){
-      if (document.visibilityState === 'visible') checkNow(reg);
-    });
-    window.addEventListener('focus', function(){ checkNow(reg); });
-    window.addEventListener('pageshow', function(){ checkNow(reg); });
-    // Standalone/home-screen launches don't always fire visibilitychange reliably on
-    // every platform, so also poll periodically while the app is open.
-    setInterval(function(){ checkNow(reg); }, 45000);
-
-    function trackInstalling(worker){
-      worker.addEventListener('statechange', function(){
-        if (worker.state === 'installed' && navigator.serviceWorker.controller){
-          banner.classList.add('show');
-        }
-      });
-    }
-    if (reg.waiting && navigator.serviceWorker.controller) banner.classList.add('show');
-    if (reg.installing) trackInstalling(reg.installing);
-    reg.addEventListener('updatefound', function(){ trackInstalling(reg.installing); });
+  // The helper's address names this release, so the phone always installs the helper that matches
+  // the game it's running (a plain "sw.js" could come back as an old copy for a few minutes).
+  navigator.serviceWorker.register('sw.js?v=' + window.TQ_APP_VERSION).then(function(reg){
+    regRef = reg;
+    checkNow();
+    document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') checkNow(); });
+    window.addEventListener('focus', checkNow);
+    window.addEventListener('pageshow', checkNow);
+    setInterval(checkNow, 45000);
+    function track(worker){ if (worker) worker.addEventListener('statechange', function(){ if (worker.state === 'installed') checkVersionFile(); }); }
+    track(reg.installing);
+    reg.addEventListener('updatefound', function(){ track(reg.installing); });
   }).catch(function(e){ console.log('SW registration skipped:', e); });
 
-  navigator.serviceWorker.addEventListener('controllerchange', function(){
-    if (refreshing) return;
-    refreshing = true;
-    window.location.reload();
-  });
+  // Only restart when the player asked for the update — a helper taking over quietly never
+  // interrupts the game.
+  var reloading = false;
+  function restart(){
+    if (reloading) return; reloading = true;
+    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
+    if (navigator.serviceWorker.controller) window.location.reload();
+    else { try { var u = new URL(window.location.href); u.searchParams.set('v', latest || String(Date.now())); window.location.replace(u.toString()); } catch(e){ window.location.reload(); } }
+  }
+  navigator.serviceWorker.addEventListener('controllerchange', function(){ if (wantReload) setTimeout(restart, 150); });
 
   banner.addEventListener('click', function(){
     if (banner.dataset.busy === '1') return; // ignore repeat taps mid-update
     banner.dataset.busy = '1';
     banner.classList.add('updating');
     banner.textContent = '🔄 Updating… hang tight';
-
-    var finished = false;
-    function finishAndReload(){
-      if (finished) return;
-      finished = true;
-      banner.classList.remove('updating');
-      banner.classList.add('updated');
+    wantReload = true;
+    var done = function(){
+      banner.classList.remove('updating'); banner.classList.add('updated');
       banner.textContent = '✅ Updated! Restarting the app…';
-      setTimeout(function(){
-        try { var u = new URL(window.location.href); u.searchParams.set('v', newerVersion || String(Date.now())); window.location.replace(u.toString()); }
-        catch(e){ window.location.reload(); }
-      }, 700);
-    }
-
-    try {
-      navigator.serviceWorker.getRegistration().then(function(reg){
-        if (reg && reg.waiting){ reg.waiting.postMessage('SKIP_WAITING'); setTimeout(finishAndReload, 900); return; }
-        // Nothing waiting yet (the version file spotted the release first): fetch the new
-        // service worker now and hand over as soon as it has installed.
-        if (reg){
-          reg.update().catch(function(){});
-          var tries = 0, iv = setInterval(function(){
-            tries++;
-            if (reg.waiting){ clearInterval(iv); reg.waiting.postMessage('SKIP_WAITING'); setTimeout(finishAndReload, 700); }
-            else if (tries > 10){ clearInterval(iv); finishAndReload(); }
-          }, 250);
-        } else finishAndReload();
-      }).catch(finishAndReload);
-    } catch(e){ finishAndReload(); }
-    // Absolute last-resort fallback so a tap can never end up doing nothing.
-    setTimeout(finishAndReload, 3000);
+      setTimeout(restart, 600);
+    };
+    // Grab the new release's page first so the restart opens straight into it.
+    var warm = latest ? fetch('index.html?tqv=' + encodeURIComponent(latest), { cache:'no-store' }).catch(function(){}) : Promise.resolve();
+    Promise.race([warm, new Promise(function(r){ setTimeout(r, 4000); })]).then(function(){
+      if (regRef && regRef.waiting){ regRef.waiting.postMessage('SKIP_WAITING'); setTimeout(done, 1200); }
+      else done();
+    });
   });
 })();
 </script>
@@ -10296,6 +10613,11 @@ function tqMapCovered(){
 }
 // The camera hasn't moved for a moment: the map's idle animation can run at half the frame rate.
 function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 900; }
+// Each 3D view draws at most `fps` frames a second. Time-based, so a 90/120 Hz phone screen
+// doesn't make the game draw everything twice as often as a 60 Hz one.
+function tqGate(g, fps){ const now = performance.now(); if (now - (g.t || 0) < 1000/fps - 2) return false; g.t = now; return true; }
+// Multisample smoothing costs a lot on a full-screen canvas; sharp (2x+) phone screens don't need it.
+const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
 // ============================================================================
 // PHASE 1 — real 3D player avatar + orbit camera (Three.js), additive only.
 // ----------------------------------------------------------------------------
@@ -11505,8 +11827,128 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
       tryLoadRealModel(cfg.top, root);
       root.userData.parts = { leftLeg, rightLeg, leftArm, rightArm, robe: coat, body, headGroup, braids, eyes };
       root.userData.armRest = { l: leftArm.rotation.z, r: rightArm.rotation.z };
+      optimizeModel(root);
       return root;
     }
+
+    // Joins the model's small still pieces that look the same (same material) into one mesh per
+    // moving part, so the phone draws a fraction as many separate objects every frame. Anything
+    // that moves on its own (legs, arms, head, braids, eyes, hat, lantern…) stays its own object.
+    function optimizeModel(root){
+      try {
+        root.updateMatrixWorld(true);
+        // the parts that move on their own (anything the animation or the game holds on to)
+        const keep = new Set([root]);
+        const scan = (v, d)=>{ if (!v || d > 3) return; if (v.isObject3D){ keep.add(v); return; }
+          if (Array.isArray(v)) v.forEach(x=> scan(x, d+1)); else if (typeof v === 'object' && v.constructor === Object) Object.values(v).forEach(x=> scan(x, d+1)); };
+        root.traverse(o=> scan(o.userData, 0));
+        const uid = t=> t ? t.uuid : '', hex = c=> c ? c.getHexString() : '';
+        const matKey = m=> [m.type, hex(m.color), hex(m.emissive), m.emissiveIntensity, m.roughness, m.metalness, m.sheen, hex(m.sheenColor), m.sheenRoughness, m.clearcoat,
+          uid(m.map), uid(m.emissiveMap), uid(m.normalMap), uid(m.alphaMap), uid(m.gradientMap), m.side, m.opacity, m.depthWrite, m.depthTest, m.blending, m.alphaTest,
+          m.vertexColors, m.flatShading, m.toneMapped, m.polygonOffset, m.wireframe].join('|');
+        const comp = (a, i, j)=> j === 0 ? a.getX(i) : j === 1 ? a.getY(i) : j === 2 ? a.getZ(i) : a.getW(i);
+        const inv = new THREE.Matrix4(), rel = new THREE.Matrix4(), nmat = new THREE.Matrix3(), v = new THREE.Vector3();
+        // Plain painted parts (the toon() recipe: no picture, a faint self-glow and sheen made from
+        // their own colour) can share one material whatever their colour: the colour rides along
+        // on the shape itself and the shader rebuilds the glow and sheen from it, exactly as before.
+        const near = (a, b)=> Math.abs(a.r-b.r) < 2e-4 && Math.abs(a.g-b.g) < 2e-4 && Math.abs(a.b-b.b) < 2e-4;
+        const tmpC = new THREE.Color(), WHITE = new THREE.Color(1, 1, 1);
+        const plainToon = m=> m.type === 'MeshPhysicalMaterial' && !m.map && !m.emissiveMap && !m.normalMap && !m.alphaMap && !m.roughnessMap && !m.vertexColors
+          && m.metalness === 0 && m.emissiveIntensity === 1 && !m.clearcoat && !m.transmission && !m.iridescence && m.opacity === 1
+          && near(m.emissive, tmpC.copy(m.color).multiplyScalar(0.1)) && near(m.sheenColor, tmpC.copy(m.color).lerp(WHITE, 0.3));
+        const vcMats = new Map();
+        const vcMaterial = proto=>{
+          const k = [proto.roughness, proto.sheen, proto.sheenRoughness, proto.side, proto.flatShading].join('|');
+          if (vcMats.has(k)) return vcMats.get(k);
+          const m = new THREE.MeshPhysicalMaterial({ color:0xffffff, roughness:proto.roughness, metalness:0, sheen:proto.sheen, sheenRoughness:proto.sheenRoughness,
+            sheenColor:new THREE.Color(1, 1, 1), emissive:new THREE.Color(0.1, 0.1, 0.1), vertexColors:true, side:proto.side, flatShading:proto.flatShading });
+          m.onBeforeCompile = sh=>{
+            sh.fragmentShader = sh.fragmentShader
+              .replace('vec3 totalEmissiveRadiance = emissive;', 'vec3 totalEmissiveRadiance = emissive * vColor.rgb;')
+              .replace('material.sheenColor = sheenColor;', 'material.sheenColor = mix( vColor.rgb, vec3( 1.0 ), 0.3 );');
+          };
+          m.customProgramCacheKey = ()=> 'tq-vc-toon';
+          vcMats.set(k, m);
+          return m;
+        };
+        const eligible = ch=>{
+          if (!ch.isMesh || ch.isInstancedMesh || ch.isSkinnedMesh || ch.userData.isOutline) return false;
+          const m = ch.material, g = ch.geometry;
+          if (!m || Array.isArray(m) || m.transparent || m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile) return false;
+          if (!g || !g.attributes.position || Object.keys(g.morphAttributes || {}).length || (g.groups && g.groups.length > 1)) return false;
+          return true;
+        };
+        keep.forEach(owner=>{
+          if (!owner.isObject3D || !owner.visible) return;
+          let inside = false; owner.traverseAncestors(a=>{ if (a === root) inside = true; }); if (owner !== root && !inside) return;
+          if (Math.abs(owner.matrixWorld.determinant()) < 1e-12) return;
+          inv.copy(owner.matrixWorld).invert();
+          // every still piece that rides along with this part, however deeply it's nested
+          const buckets = new Map();
+          const walk = node=> node.children.forEach(ch=>{
+            if (keep.has(ch) || !ch.visible) return;
+            if (ch.children.length){ walk(ch); return; }
+            if (!eligible(ch)) return;
+            rel.multiplyMatrices(inv, ch.matrixWorld);
+            if (rel.determinant() <= 0) return;
+            const mt = ch.material, vc = plainToon(mt);
+            const key = (vc ? 'vc|' + [mt.roughness, mt.sheen, mt.sheenRoughness, mt.side, mt.flatShading].join('|') : matKey(mt))
+              + '#' + Object.keys(ch.geometry.attributes).sort().join(',') + '#' + ch.renderOrder + '#' + ch.castShadow + '#' + ch.receiveShadow;
+            if (!buckets.has(key)) buckets.set(key, []);
+            buckets.get(key).push({ c:ch, m:rel.clone() });
+          });
+          walk(owner);
+          buckets.forEach((list, bkey)=>{
+            if (list.length < 2) return;
+            const vc = bkey.startsWith('vc|');
+            if (!vc && list.length < 2) return;
+            const names = Object.keys(list[0].c.geometry.attributes);
+            const allIndexed = list.every(it=> !!it.c.geometry.index);
+            const geos = list.map(it=> (!allIndexed && it.c.geometry.index) ? it.c.geometry.toNonIndexed() : it.c.geometry);
+            for (const n of names){ const s = geos[0].attributes[n].itemSize; if (geos.some(g=> !g.attributes[n] || g.attributes[n].itemSize !== s || g.attributes[n].isInterleavedBufferAttribute)) return; }
+            let vCount = 0, iCount = 0;
+            geos.forEach(g=>{ vCount += g.attributes.position.count; if (allIndexed) iCount += g.index.count; });
+            const arrays = {}; names.forEach(n=> arrays[n] = new Float32Array(vCount * geos[0].attributes[n].itemSize));
+            const colors = vc ? new Float32Array(vCount * 3) : null;
+            const index = allIndexed ? new (vCount > 65535 ? Uint32Array : Uint16Array)(iCount) : null;
+            let vo = 0, io = 0;
+            list.forEach((it, k)=>{
+              const g = geos[k], mtx = it.m, cnt = g.attributes.position.count;
+              if (colors){ const c = it.c.material.color; for (let i=0;i<cnt;i++){ colors[(vo+i)*3] = c.r; colors[(vo+i)*3+1] = c.g; colors[(vo+i)*3+2] = c.b; } }
+              nmat.getNormalMatrix(mtx);
+              names.forEach(n=>{
+                const a = g.attributes[n], s = a.itemSize, dst = arrays[n];
+                for (let i=0;i<cnt;i++){
+                  if (n === 'position' || n === 'normal'){
+                    v.fromBufferAttribute(a, i);
+                    if (n === 'position') v.applyMatrix4(mtx); else v.applyMatrix3(nmat).normalize();
+                    dst[(vo+i)*3] = v.x; dst[(vo+i)*3+1] = v.y; dst[(vo+i)*3+2] = v.z;
+                  } else for (let j=0;j<s;j++) dst[(vo+i)*s+j] = comp(a, i, j);
+                }
+              });
+              if (index){ const src = g.index; for (let i=0;i<src.count;i++) index[io+i] = src.getX(i) + vo; io += src.count; }
+              vo += cnt;
+            });
+            const out = new THREE.BufferGeometry();
+            names.forEach(n=> out.setAttribute(n, new THREE.BufferAttribute(arrays[n], geos[0].attributes[n].itemSize)));
+            if (colors) out.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            if (index) out.setIndex(new THREE.BufferAttribute(index, 1));
+            out.computeBoundingSphere(); out.computeBoundingBox();
+            const first = list[0].c, merged = new THREE.Mesh(out, vc ? vcMaterial(first.material) : first.material);
+            merged.castShadow = first.castShadow; merged.receiveShadow = first.receiveShadow; merged.renderOrder = first.renderOrder;
+            list.forEach(it=> it.c.parent.remove(it.c));
+            owner.add(merged);
+          });
+        });
+        // tidy away the empty holders left behind
+        const empties = []; root.traverse(o=>{ if (o !== root && !keep.has(o) && o.type === 'Group' && !o.children.length) empties.push(o); });
+        empties.forEach(o=> o.parent && o.parent.remove(o));
+        root.updateMatrixWorld(true);
+      } catch(e){ console.warn('model optimize skipped', e); }
+      return root;
+    }
+    // test hook: how many separate meshes a look is drawn with
+    window.__tqModelMeshes = (gender)=>{ const r = buildPlayerModel(gender === 'male' ? 'male' : 'female'); let n = 0; r.traverse(o=>{ if (o.isMesh && o.visible) n++; }); disposePlayerModel(r); return n; };
 
     function animatePlayerModel(group, t, walking){
       const p = group.userData.parts;
@@ -11651,10 +12093,15 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
       // return 0 if mounted before the game screen is the active one on screen.
       renderer.setSize(PLAYER_CANVAS_W, PLAYER_CANVAS_H, false);
 
+      // On the map she's only ~110 px tall and already stands on soft contact shadows, so the
+      // real-time shadow pass (which drew every part of her twice) is switched off here.
+      renderer.shadowMap.enabled = false;
+      scene.traverse(o=>{ if (o.material && o.material.isShadowMaterial) o.visible = false; });
+
       let group = buildPlayerModel(gender);
       scene.add(group);
 
-      let stopped = false, idleTick = 0;
+      let stopped = false; const gate = {};
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
@@ -11664,8 +12111,8 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
         const gs = window.__gameState;
         const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
         const walkingNow = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
-        // standing still with the camera at rest: her idle breathing only needs 30 frames a second
-        if (!walkingNow && tqCameraCalm() && (++idleTick & 1)) return;
+        // walking or turning: 30 frames a second is plenty at this size; standing still: 15
+        if (!tqGate(gate, (walkingNow || !tqCameraCalm()) ? 30 : 15)) return;
         const rad = THREE.MathUtils.degToRad(orbitDeg);
         placePlayerCamera(camera, rad, FRAME_VIEW_H, FRAME_FEET_PX, PLAYER_CANVAS_H);
         rig.rotation.y = rad;   // studio lighting follows the camera around her
@@ -11826,7 +12273,8 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
 
     // ---- the PvP arena's two trainers, standing behind their Totos ----
     window.__tqArena3D = function(canvas, POS){
-      const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:TQ_AA });
+      const gate = {};
       renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
       if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
       const scene = new THREE.Scene();
@@ -11866,6 +12314,7 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
         if (stopped) return;
         requestAnimationFrame(frame);
         if (!canvas.offsetParent) return;
+        if (!tqGate(gate, 30)) return;      // trainers only breathe and gesture: 30 frames a second
         const t = performance.now()/1000;
         ['L','R'].forEach(side=>{
           const tr = T[side]; if (!tr) return;
@@ -11965,8 +12414,9 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(0, 1, 0, 1, 1, 2000);
     camera.position.z = 1000;
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:TQ_AA });
     renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
+    const gate = {};
 
     // Labels live in a plain DOM layer just above the canvas (crisp text, no texture
     // re-rendering) and below the fog vignette.
@@ -11988,6 +12438,9 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
     }
     resize();
     window.addEventListener('resize', resize);
+    // the map's size is re-measured only when it can have changed (not every frame)
+    let sizeDirty = false;
+    try { new ResizeObserver(()=>{ sizeDirty = true; }).observe(mapView); } catch(e){ setInterval(()=>{ sizeDirty = true; }, 1000); }
 
     // Ring colors: warm cream-gold for normal (like the reference), and the same
     // rarity hues the rest of the game already uses for the rarer tiers.
@@ -12309,7 +12762,8 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
           if (want && want.mat && m.rec !== want){ m.rec = want; m.sprite.material = want.mat; }
         }
         const q = hmap(pr.x, pr.y); const sx = q[0], sy = q[1], w = q[2];
-        if (w <= 0.05 || sx < -260 || sx > vw+260 || sy < -60 || sy > vh+420){ m.group.visible = false; m.hit = null; return; }
+        if (w <= 0.05 || sx < -260 || sx > vw+260 || sy < -60 || sy > vh+420){ m.group.visible = false; m.hit = null; if (m.group.parent) scene.remove(m.group); return; }
+        if (!m.group.parent) scene.add(m.group);
         const qx = hmap(pr.x+1, pr.y); const ax = qx[0]-sx, ay = qx[1]-sy;
         const qy = hmap(pr.x, pr.y+1); const bx = qy[0]-sx, by = qy[1]-sy;
         const T = ax*ax+ay*ay+bx*bx+by*by, D = ax*by-ay*bx, disc = Math.sqrt(Math.max(0, T*T-4*D*D));
@@ -12676,7 +13130,7 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
       govLast = t; govN++;
       if (t - govT0 < 6000) return;
       const fps = govN*1000/(t - govT0); govT0 = t; govN = 0;
-      if (fps < 30 && curPR > 1 && govDrops < 2 && !(window.__tqLowFps && window.__tqLowFps())){
+      if (fps < 42 && curPR > 1 && govDrops < 3 && !(window.__tqLowFps && window.__tqLowFps())){
         govDrops++; curPR = Math.max(1, curPR - 0.5); renderer.setPixelRatio(curPR); resize();
       }
     }
@@ -12684,16 +13138,16 @@ function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 90
 
     function syncFrame(){
       requestAnimationFrame(syncFrame);
-      if (window.__tqLowFps && window.__tqLowFps() && (++lowTick & 1)) return;     // Battery saver: every other frame
       // the map is fully covered during a battle or a full-screen panel: don't draw it
       if (tqMapCovered()) return;
-      // camera at rest: the idle animation (swaying trees, hopping Totos) runs at 30 fps
-      if (tqCameraCalm() && (++calmTick & 1)) return;
+      // moving: up to 60 frames a second (30 on Battery saver); camera at rest the idle animation
+      // (swaying trees, hopping Totos) runs at 30 (20 on Battery saver)
+      const low = !!(window.__tqLowFps && window.__tqLowFps());
+      if (!tqGate(gate, tqCameraCalm() ? (low ? 20 : 30) : (low ? 30 : 60))) return;
       const gs = window.__gameState;
       const list = gs && Array.isArray(gs.wildTotos) ? gs.wildTotos : [];
 
-      const mr = mapView.getBoundingClientRect();
-      if (Math.round(mr.width) !== vw || Math.round(mr.height) !== vh) resize();
+      if (sizeDirty){ sizeDirty = false; const mr = mapView.getBoundingClientRect(); if (Math.round(mr.width) !== vw || Math.round(mr.height) !== vh) resize(); }
       const canvasRect = canvas.getBoundingClientRect();
 
       // where the map plane is on screen this frame (everything below is projected through it)
