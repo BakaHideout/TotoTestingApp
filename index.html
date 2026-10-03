@@ -861,14 +861,20 @@
   .pva-3d { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:3; }
   .pva-toto { position:absolute; z-index:5; width:27%; max-width:150px; aspect-ratio:1/1.05; transform:translate(-50%,-100%); transition:left 0.25s, filter 0.2s; cursor:pointer; }
   .pva-toto.slot1 { z-index:4; transform:translate(-50%,-100%) scale(0.8); }
-  .pva-toto.tgt::before { content:'▼'; position:absolute; left:50%; top:-14%; transform:translateX(-50%); color:#ff6a6a; font-size:24px; text-shadow:0 2px 4px rgba(0,0,0,0.7); animation:pvaArrow 0.7s ease-in-out infinite; pointer-events:none; z-index:2; }
+  .pva-toto.tgt::before { content:'▼'; position:absolute; left:50%; top:-25%; transform:translateX(-50%); color:#ff6a6a; font-size:24px; text-shadow:0 2px 4px rgba(0,0,0,0.7); animation:pvaArrow 0.7s ease-in-out infinite; pointer-events:none; z-index:2; }
   .pva-toto.me.tgt::before { color:#7fd8ff; }
   @keyframes pvaArrow { 50% { transform:translateX(-50%) translateY(6px); } }
   .pva-toto.sel .pva-glow { opacity:1; background:radial-gradient(closest-side, rgba(125,255,138,0.7), rgba(125,255,138,0)); }
   .pva-toto.tgt .pva-glow { opacity:1; background:radial-gradient(closest-side, rgba(255,90,90,0.85), rgba(255,90,90,0)); animation:pvaTgt 0.8s ease-in-out infinite; }
   .pva-toto.me.tgt .pva-glow { background:radial-gradient(closest-side, rgba(120,220,255,0.85), rgba(120,220,255,0)); }
   @keyframes pvaTgt { 50% { transform:translateX(-50%) scale(1.18); } }
-  .pva-toto.taunting::after { content:'😤'; position:absolute; left:50%; top:-4%; transform:translateX(-50%); font-size:20px; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.6)); pointer-events:none; }
+  .pva-rtag { position:absolute; left:50%; top:-9%; transform:translateX(-50%); z-index:3; display:flex; align-items:center; gap:3px; padding:2px 7px 2px 5px; border-radius:10px; white-space:nowrap;
+    font-size:10.5px; font-weight:900; letter-spacing:0.03em; color:#fff; background:rgba(20,10,40,0.82); border:1.5px solid var(--rc,#ff6a3d); box-shadow:0 2px 6px rgba(0,0,0,0.5); pointer-events:none; }
+  .pva-rtag i { font-style:normal; font-size:11px; color:var(--rc,#ff6a3d); }
+  .pva-rtag:empty { display:none; }
+  .pva-toto.slot1 .pva-rtag { font-size:11.5px; }
+  .pva-toto.ko .pva-rtag { opacity:0.35; }
+  .pva-toto.taunting::after { content:'😤'; position:absolute; left:50%; top:-9%; transform:translate(calc(-50% - 52px), 0); font-size:18px; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.6)); pointer-events:none; z-index:4; }
   .pva-toto.taunting:not(.sel):not(.tgt) .pva-glow { opacity:1; background:radial-gradient(closest-side, rgba(255,120,60,0.65), rgba(255,120,60,0)); }
   .pva-toto.taunt-fx .pva-spr { animation:pvaTaunt 0.8s ease-in-out; }
   @keyframes pvaTaunt { 0%,100%{ transform:scale(1); } 30%{ transform:scale(1.14) translateY(-5%); } 60%{ transform:scale(0.96); } }
@@ -2796,7 +2802,10 @@
     ],
   };
   const COSMETIC_SLOT_LABEL = { hat:'Hat', top:'Top', legwear:'Legwear', shoes:'Shoes', accessory:'Accessory' };
-  function ownsCosmetic(item){ return item.unlock==='default' || (state.unlockedCosmetics||[]).includes(item.id); }
+  function earnedCosmetic(item){ return item.unlock==='default' || (state.unlockedCosmetics||[]).includes(item.id); }
+  // admins (and the owner) can wear every item, even locked rewards like the Rank #1 PvP outfit
+  function adminWardrobe(){ const S = window.__tqSocial; if (!state.loggedIn) return false; return S && S.ready ? !!(S.admin || S.owner) : !!state.wasAdmin; }
+  function ownsCosmetic(item){ return earnedCosmetic(item) || adminWardrobe(); }
   // Called from refreshHUD() every time charLevel is recomputed — cheap, idempotent (the
   // includes() check means it only ever grants an item once no matter how often this runs).
   const RANK1_ITEMS = ['top_rank1','hat_rank1','acc_rank1_staff','shoes_rank1','legwear_rank1'];
@@ -4086,8 +4095,11 @@
       if (!r) return null;
       if (r.deleted){ accountRemovedByAdmin(); return r; }
       if (!r.ok) return r;
+      const wasAdminBefore = adminWardrobe();
       Object.assign(Social, { admin:!!r.admin, owner:!!r.owner, unread:r.unread|0, requests:r.requests|0, rp:r.rp|0, wins:r.wins|0, losses:r.losses|0, place:r.place||null, season:r.season||'', ban:r.ban||null, ready:true });
       setAdminUi(); applyOwnerUi(); updateSocialBadges();
+      if (state.wasAdmin !== !!(r.admin || r.owner)){ state.wasAdmin = !!(r.admin || r.owner); markDirty(); }
+      if (wasAdminBefore !== adminWardrobe() && window.mountPlayer3D) window.mountPlayer3D(state.avatar);   // admin outfits on/off
       if (r.ban) showBan(r.ban); else hideBan();
       if (!r.ban && (r.gifts|0) > 0) setTimeout(claimGifts, 300);
       if (Array.isArray(r.awards) && r.awards.length){
@@ -4422,7 +4434,7 @@
       btns.push({ label:'🔢 Set season Rank Points…', value:'rp' });
     }
     if (!p.is_owner){
-      if (banned) btns.push({ label:'✅ Unban'+(p.ip_banned ? ' (and their IP)' : ''), value:'unban', cls:'good' });
+      if (banned || p.ip_banned) btns.push({ label:'✅ Unban'+(p.ip_banned ? ' (and their IP)' : ''), value:'unban', cls:'good' });
       btns.push({ label:'⏳ Temporary ban…', value:'temp', cls:'warn' });
       btns.push({ label:'⛔ Ban for good…', value:'perm', cls:'danger' });
       btns.push({ label:'🗑️ Delete account…', value:'del', cls:'danger' });
@@ -4447,7 +4459,11 @@
       if (self){ await heartbeat(); claimGifts(); }
       return loadAdmin(true);
     }
-    if (v === 'unban'){ if (await adminCall('admin_unban', { p_target:p.id })) showToast('Unbanned.'); return loadAdmin(true); }
+    if (v === 'unban'){
+      if (!(await gameConfirm((p.name||'This trainer')+' will be able to play again right away'+(p.ip_banned ? ', and their IP address is unblocked too' : '')+'.', 'Unban '+(p.name||'this trainer')+'?', 'Unban', 'Cancel'))) return;
+      if (await adminCall('admin_unban', { p_target:p.id })) showToast('✅ '+(p.name||'They')+' can play again.');
+      return loadAdmin(true);
+    }
     if (v === 'admin'){ if (await adminCall('admin_set_admin', { p_target:p.id, p_on: !p.is_admin })) showToast(p.is_admin ? 'Admin removed.' : (p.name||'They')+' is now an admin.'); return loadAdmin(true); }
     if (v === 'del'){
       if (!(await gameConfirm('This permanently removes '+(p.name||'this trainer')+'’s account: their leaderboard entries, friends and messages. Next time they open the game their save is wiped. This can’t be undone.', 'Delete this account?', 'Delete', 'Cancel'))) return;
@@ -4465,6 +4481,8 @@
       { label:'Ban '+(p.name||'them'), value:'go', cls:'danger' } ]);
     if (opts !== 'go') return;
     const reason = ($('#ban-reason') && $('#ban-reason').value) || '', ip = !!($('#ban-ip') && $('#ban-ip').checked);
+    const span = minutes ? 'for '+(minutes >= 1440 ? (minutes/1440)+' day'+(minutes > 1440 ? 's' : '') : '1 hour') : 'for good';
+    if (!(await gameConfirm((p.name||'This trainer')+' will be banned '+span+(ip ? ', and their IP address blocked too' : '')+'. Reason they’ll see: '+(reason.trim() || 'Breaking the game rules')+'.', 'Ban '+(p.name||'this trainer')+'?', 'Ban', 'Cancel'))) return;
     const r = await adminCall('admin_ban', { p_target:p.id, p_minutes:minutes, p_reason:reason, p_ip:ip });
     if (r) showToast('Banned'+(r.ip ? ' (and their IP)' : '')+'.');
     loadAdmin(true);
@@ -5182,6 +5200,7 @@
       }
     }
   }
+  const PVP_ROLE_TAG = { attacker:'Attacker', tanker:'Tank', healer:'Healer', supporter:'Support' };
   function arenaSprites(snaps){
     ['p1','p2'].forEach(side=>{
       const team = pvpTeamOf(snaps[side]);
@@ -5189,6 +5208,12 @@
         const el = arenaTotoEl(side, i), s = team[i];
         el.className = 'pva-toto '+arenaWho(side)+' slot'+i+(s ? ' face-'+(s.isToni ? 'f' : totoFacing(s.name)) : '');
         el.querySelector('.pva-spr').innerHTML = s ? pvpSpriteHtml(s) : '';
+        // the role tag over its head
+        let tag = el.querySelector('.pva-rtag');
+        if (!tag){ tag = document.createElement('div'); tag.className = 'pva-rtag'; el.appendChild(tag); }
+        const f = Arena.E && Arena.E.T[side][i], role = f ? f.role : (s && ROLE_KITS[s.role] ? s.role : 'attacker'), ri = ROLE_INFO[role] || ROLE_INFO.attacker;
+        tag.style.setProperty('--rc', ri.color);
+        tag.innerHTML = s ? '<i>'+ri.icon+'</i>'+PVP_ROLE_TAG[role] : '';
       });
     });
   }
@@ -7717,10 +7742,10 @@
     const equippedId = wardrobeEquippedId(wardrobeUi.slot);
     if (!wardrobeUi.selectedId) wardrobeUi.selectedId = equippedId;
     items.forEach(item=>{
-      const owned = ownsCosmetic(item);
+      const owned = ownsCosmetic(item), viaAdmin = owned && !earnedCosmetic(item);
       const card = document.createElement('div');
       card.className = 'wardrobe-item-card' + (item.id===wardrobeUi.selectedId?' sel':'') + (!owned?' locked':'');
-      const icon = item.thumb ? '<img class="wi-thumb" src="'+item.thumb+'" alt="">' + (owned ? '' : '<span class="wi-lock">🔒</span>') : (owned ? (SLOT_ICON[wardrobeUi.slot]||'👕') : '🔒');
+      const icon = item.thumb ? '<img class="wi-thumb" src="'+item.thumb+'" alt="">' + (owned ? (viaAdmin ? '<span class="wi-lock">🛡️</span>' : '') : '<span class="wi-lock">🔒</span>') : (owned ? (SLOT_ICON[wardrobeUi.slot]||'👕') : '🔒');
       card.innerHTML = '<div class="wi-icon">'+icon+'</div><div class="wi-name">'+item.name+'</div>' + (item.id===equippedId?'<div class="wi-equipped-tag">Worn</div>':'');
       card.onclick = ()=>{
         wardrobeUi.selectedId = item.id; wardrobeUi.closeUp = true;
@@ -7740,7 +7765,8 @@
     const equippedId = wardrobeEquippedId(wardrobeUi.slot);
     const worn = items.find(i=> i.id===equippedId);
     detailEl.innerHTML = '<b>ITEM:</b> '+item.name+'<br><b>RARITY:</b> '+item.rarity+'<br><b>DESCRIPTION:</b> '+item.description
-      + (owned ? '' : '<br><span style="color:#c0392b; font-weight:800;">🔒 '+(item.unlock === 'rank1' ? 'Finish a PvP season at #1 to unlock' : 'Unlocks at trainer Level 100')+' — you can still try it on here</span>');
+      + (owned ? (earnedCosmetic(item) ? '' : '<br><span style="color:#5b2d8f; font-weight:800;">🛡️ Admin: you can wear this even though it’s locked for players ('+(item.unlock === 'rank1' ? 'finish a PvP season at #1' : 'reach trainer Level 100')+')</span>')
+               : '<br><span style="color:#c0392b; font-weight:800;">🔒 '+(item.unlock === 'rank1' ? 'Finish a PvP season at #1 to unlock' : 'Unlocks at trainer Level 100')+' — you can still try it on here</span>');
     const alreadyWorn = item.id===equippedId;
     equipBtn.disabled = !owned || alreadyWorn;
     equipBtn.textContent = alreadyWorn ? 'Wearing it' : ('Equip'+(worn ? ' (replaces '+worn.name+')' : ''));
@@ -10157,7 +10183,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v64';
+window.TQ_APP_VERSION = 'v65';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
