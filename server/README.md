@@ -101,3 +101,12 @@ Migration: `supabase/migrations/2026-10-03_admin_gifts.sql`.
   - `heartbeat` now also returns `gifts`, the number of gifts waiting.
   - `gifts_pending` lists the waiting gifts.
   - `gifts_ack(ids)` marks gifts as received. The game adds the gifts and saves before it calls this. It also remembers the ids it has added, so a gift is never added twice.
+
+## v63: rank rewards are earned at season end
+
+Migration: `supabase/migrations/2026-10-03b_rank_rewards.sql`.
+
+- Rank rewards unlock only when a season ends with the trainer at that place, which is recorded in `season_claims` through `season_claim`. Once earned they are permanent.
+- `heartbeat` also returns `awards`: the trainer's top-10 finishes in past seasons. The game unlocks the matching rewards on any device, so they survive a new phone or a reinstall.
+- `admin_gift` no longer accepts `rank1set`, and any unclaimed outfit gift was withdrawn.
+- `admin_set_rp` (with or without `make_top`) changes Rank Points only. It is still meant for testing.

@@ -575,7 +575,9 @@
      2D bob/squash/tilt animations on it so that measurement is steady (the small
      wander-in-a-circle on .node-orbit stays, and carries the 3D creature with it). */
   .toto-node.is-3d-mounted .bubble,
-  .toto-node.is-3d-mounted .creature-img { animation:none !important; }
+  .toto-node.is-3d-mounted .creature-img,
+  .toto-node.is-3d-mounted .node-orbit, .toto-node.is-3d-mounted .node-orbit-fix,
+  .toto-node.is-3d-mounted .node-shadow, .gym-node.is-3d-mounted .node-shadow, .gym-node.is-3d-mounted .node-orbit, .gym-node.is-3d-mounted .node-orbit-fix { animation:none !important; }
   #toto3d-labels { position:absolute; inset:0; z-index:7; pointer-events:none; overflow:hidden; }
   .t3-label { position:absolute; left:0; top:0; transform-origin:50% 0; display:flex; gap:4px; align-items:center; white-space:nowrap; will-change:transform; }
   .t3-label span { font-size:9px; font-weight:800; line-height:1; padding:2px 6px; border-radius:8px; }
@@ -860,7 +862,10 @@
   .pva-toto { position:absolute; z-index:4; width:35%; max-width:185px; aspect-ratio:1/1.05; transform:translate(-50%,-100%); transition:left 0.25s, filter 0.2s; }
   .pva-spr { position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; filter:drop-shadow(0 10px 10px rgba(0,0,0,0.55)); animation:pvaIdle 2.4s ease-in-out infinite; transform-origin:50% 100%; }
   .pva-spr .creature-img, .pva-spr .creature-svg { width:100%; height:100%; object-fit:contain; object-position:50% 100%; }
-  .pva-toto.op .pva-spr > * { transform:scaleX(-1); }
+  /* every Toto faces its opponent (me = left side, looking right; op = right side, looking left) */
+  .pva-toto.me.face-l .pva-spr > *, .pva-toto.op.face-r .pva-spr > * { transform:scaleX(-1); }
+  .pva-toto.me.face-f .pva-spr > * { transform:perspective(560px) rotateY(36deg); }
+  .pva-toto.op.face-f .pva-spr > * { transform:perspective(560px) rotateY(-36deg); }
   @keyframes pvaIdle { 0%,100%{ transform:scale(1,1); } 50%{ transform:scale(1.02,0.98); } }
   .pva-glow { position:absolute; left:50%; bottom:-6%; width:92%; aspect-ratio:3/1; transform:translateX(-50%); border-radius:50%; background:radial-gradient(closest-side, rgba(255,215,120,0.55), rgba(255,215,120,0)); opacity:0; transition:opacity 0.3s; }
   .pva-toto.turn .pva-glow { opacity:1; }
@@ -2102,7 +2107,7 @@
           <span>• Pick 1 Toto, then take turns: Slash, Hex Bolt, Witch's Mend, Spirit Shield, and a big Ultimate once its energy fills.</span>
           <span>• Win vs a trainer +25 RP, lose −15. Win vs a computer +10, lose −5.</span>
           <span>• Ranks: Bronze 3 → Silver → Gold → Platinum → Diamond 1 → Master (1,500 RP). The top 10 Masters are Grandmasters.</span>
-          <span>• The season resets on the 1st of every month. Finish #1 to earn the Rank #1 Shirt, Hat and Pumpkin Staff.</span>
+          <span>• The season resets on the 1st of every month. Finish the season at #1 to earn the Rank #1 PvP outfit for good: shirt, hat, tights, shoes and Pumpkin Staff.</span>
         </div>
       </div>
     </div>
@@ -2713,8 +2718,8 @@
         description:'Purple velvet embroidered in gold — LEVEL 100 across the front, jack-o\'-lanterns, autumn leaves and a band of golden bats. Only for trainers who reach Level 100.',
         thumb:'assets/wardrobe/l100hat-thumb.png',
         preset:{ kind:'level100Hat', color:'#4a1c5c', trim:'#d9a93a' } },
-      { id:'hat_rank1', name:'Rank #1 Champion Hat', rarity:'Season Rank #1', unlock:'rank1',
-        description:'A white witch hat embroidered in copper and orange: TOTOQUEST across the front above a Rank #1 crest, with jack-o\'-lanterns, bats and autumn leaves round the brim. Only for the trainer who finishes a PvP season at #1.',
+      { id:'hat_rank1', name:'Rank #1 PvP Champion Hat', rarity:'Season Rank #1', unlock:'rank1',
+        description:'A white witch hat embroidered in copper and orange: TOTOQUEST across the front above a Rank #1 crest, PvP on the back, with jack-o\'-lanterns, bats and autumn leaves round the brim. Only for the trainer who finishes a PvP season at #1.',
         thumb:'assets/wardrobe/rank1-hat-thumb.png',
         preset:{ kind:'rank1Hat', color:'#f4efe6', trim:'#c8743e' } },
     ],
@@ -2725,18 +2730,26 @@
         description:'Royal purple with gold trim: the TotoQuest "Master Achiever" medallion big across the front and a gold LEVEL 100 on the back. Only for trainers who reach Level 100.',
         thumb:'assets/wardrobe/tee-thumb.png',
         preset:{ kind:'tee', color:'#5c3296', trim:'#e8b94a' } },
-      { id:'top_rank1', name:'Rank #1 Champion Shirt', rarity:'Season Rank #1', unlock:'rank1',
-        description:'A long-sleeved white shirt covered in orange embroidery: TOTOQUEST and a Rank #1 crest on the front, RANK #1 on the back and scrollwork down both sleeves. Only for the trainer who finishes a PvP season at #1.',
+      { id:'top_rank1', name:'Rank #1 PvP Champion Shirt', rarity:'Season Rank #1', unlock:'rank1',
+        description:'A long-sleeved white shirt covered in orange embroidery: TOTOQUEST and a Rank #1 crest on the front, PvP and RANK #1 on the back (so everyone knows it was won in the arena) and scrollwork down both sleeves. Only for the trainer who finishes a PvP season at #1.',
         thumb:'assets/wardrobe/rank1-shirt-thumb.png',
         preset:{ kind:'rank1Shirt', color:'#f4efe6', trim:'#e8873a' } },
     ],
     legwear: [
       { id:'legwear_default', name:'Candy-Corn Leggings', rarity:'Starter', unlock:'default',
         description:'Striped leggings, sweet as the holiday itself.' },
+      { id:'legwear_rank1', name:'Rank #1 Champion Tights', rarity:'Season Rank #1', unlock:'rank1',
+        description:'White tights embroidered in copper-orange: Rank #1 down the front of each leg, carved jack-o\'-lanterns, bats, moons and stars in swirling filigree. Only for the trainer who finishes a PvP season at #1.',
+        thumb:'assets/wardrobe/rank1-legs-thumb.png',
+        preset:{ kind:'rank1Legs', color:'#f6f1e8' } },
     ],
     shoes: [
       { id:'shoes_default', name:'Classic Boots', rarity:'Starter', unlock:'default',
         description:'Comfortable boots for long nights of trick-or-treating.' },
+      { id:'shoes_rank1', name:'Rank #1 Champion Shoes', rarity:'Season Rank #1', unlock:'rank1',
+        description:'White high-tops covered in copper-orange filigree: a carved Rank #1 pumpkin crest on each side, bat buckles, "Conquest of the Nine Worlds" at the heel and a purple gem. Only for the trainer who finishes a PvP season at #1.',
+        thumb:'assets/wardrobe/rank1-shoes-thumb.png',
+        preset:{ kind:'rank1Shoes', color:'#f6f1e8', trim:'#e8873a' } },
     ],
     accessory: [
       { id:'accessory_default', name:'Jack-o-Staff & Basket', rarity:'Starter', unlock:'default',
@@ -2755,11 +2768,24 @@
   function ownsCosmetic(item){ return item.unlock==='default' || (state.unlockedCosmetics||[]).includes(item.id); }
   // Called from refreshHUD() every time charLevel is recomputed — cheap, idempotent (the
   // includes() check means it only ever grants an item once no matter how often this runs).
+  const RANK1_ITEMS = ['top_rank1','hat_rank1','acc_rank1_staff','shoes_rank1','legwear_rank1'];
+  window.__tqCheckCosmetics = ()=> checkCosmeticUnlocks();
   function checkCosmeticUnlocks(){
     state.unlockedCosmetics = state.unlockedCosmetics || [];
-    // finishing a PvP season at #1 (see pvpClaimSeasonRewards) earns the Rank #1 set
-    if ((state.seasonResults||[]).some(r=> r && r.rank === 1) || (state.cosmeticGrants||[]).includes('rank1')){
-      const fresh = ['top_rank1','hat_rank1','acc_rank1_staff'].filter(id=> !state.unlockedCosmetics.includes(id));
+    // Rank rewards are earned only by FINISHING a PvP season at that rank (see pvpClaimSeasonRewards
+    // and the heartbeat's "awards"), and once earned they're yours for good.
+    const earnedRank1 = (state.seasonResults||[]).some(r=> r && r.rank === 1);
+    if (state.cosmeticGrants){
+      // v62's testing gift handed the set out early: take back what wasn't really earned
+      if (state.cosmeticGrants.includes && state.cosmeticGrants.includes('rank1') && !earnedRank1){
+        state.unlockedCosmetics = state.unlockedCosmetics.filter(id=> !RANK1_ITEMS.includes(id));
+        const eq = state.equippedCosmetics || {};
+        Object.keys(eq).forEach(slot=>{ if (RANK1_ITEMS.includes(eq[slot])) delete eq[slot]; });
+      }
+      delete state.cosmeticGrants; markDirty();
+    }
+    if (earnedRank1){
+      const fresh = RANK1_ITEMS.filter(id=> !state.unlockedCosmetics.includes(id));
       if (fresh.length){ fresh.forEach(id=> state.unlockedCosmetics.push(id)); markDirty(); }
     }
     if (state.charLevel >= PLAYER_MAX_LEVEL){
@@ -3968,7 +3994,11 @@
   // and unread messages.
   const Social = { admin:false, owner:false, unread:0, requests:0, rp:0, wins:0, losses:0, place:null, season:'', ban:null, ready:false };
   window.__tqSocial = Social;
-  function myLook(){ return { g: state.avatar==='male' ? 'male' : 'female', eq: Object.assign({}, state.equippedCosmetics||{}) }; }
+  function myLook(){
+    const eq = {}, worn = state.equippedCosmetics || {};
+    Object.keys(worn).forEach(slot=>{ const item = (COSMETIC_CATALOG[slot]||[]).find(i=> i.id === worn[slot]); if (item && ownsCosmetic(item)) eq[slot] = item.id; });
+    return { g: state.avatar==='male' ? 'male' : 'female', eq };
+  }
   const RANK_TIERS = [
     { key:'bronze',   name:'Bronze',   c1:'#e3a06a', c2:'#8a4b1f' },
     { key:'silver',   name:'Silver',   c1:'#f1f4fa', c2:'#8d97a9' },
@@ -4029,6 +4059,10 @@
       setAdminUi(); applyOwnerUi(); updateSocialBadges();
       if (r.ban) showBan(r.ban); else hideBan();
       if (!r.ban && (r.gifts|0) > 0) setTimeout(claimGifts, 300);
+      if (Array.isArray(r.awards) && r.awards.length){
+        const have = state.seasonResults || [], add = r.awards.filter(a=> a && a.season && !have.some(x=> x.season === a.season));
+        if (add.length){ state.seasonResults = have.concat(add.map(a=> ({ season:a.season, rank:a.rank|0, rp:a.rp|0 }))).slice(-36); checkCosmeticUnlocks(); markDirty(); }
+      }
       if (typeof onHeartbeat === 'function') onHeartbeat(r);
       return r;
     } catch(e){ console.warn('heartbeat failed', e); return null; }
@@ -4037,8 +4071,7 @@
   window.__tqHeartbeat = heartbeat;
 
   // ================= GIFTS from the TotoQuest team (v62) =================
-  // The owner can send any trainer gems, candy, Raid Passes, Healing Elixirs, a Toto or the
-  // Rank #1 outfit. The server holds each gift until this game picks it up; the game adds it,
+  // The owner can send any trainer gems, candy, Raid Passes, Healing Elixirs or a Toto. The server holds each gift until this game picks it up; the game adds it,
   // saves, and only then tells the server it arrived. Gift ids already added are remembered in
   // the save, so a gift can never be added twice (even if that last step doesn't get through).
   const GIFT_LABEL = { gems:['Gem','Gems'], candy:['Candy','Candy'], raidPass:['Raid Pass','Raid Passes'], elixir:['Healing Elixir','Healing Elixirs'] };
@@ -4075,12 +4108,7 @@
       if (!got.length) return null;
       return '🐾 '+(got.length > 1 ? got.length+'× ' : '')+got[0].name+' ('+(got[0].tier.charAt(0).toUpperCase()+got[0].tier.slice(1))+', Lv '+got[0].level+')';
     }
-    if (g.kind === 'rank1set'){
-      state.cosmeticGrants = state.cosmeticGrants || [];
-      if (!state.cosmeticGrants.includes('rank1')) state.cosmeticGrants.push('rank1');
-      checkCosmeticUnlocks();
-      return '👑 The Rank #1 set: Champion Shirt, Champion Hat and Pumpkin Staff (wear them from your profile → Wardrobe)';
-    }
+    // ('rank1set' gifts were withdrawn: rank rewards are earned by finishing a season at #1)
     return null;
   }
   let giftBusy = false;
@@ -4381,7 +4409,7 @@
           { label:'Set Rank Points', value:'go', cls:'good' } ]);
         if (o !== 'go') return;
         rp = Math.max(0, Math.min(100000, parseInt(($('#ad-rp')||{}).value, 10) || 0));
-      } else if (!(await gameConfirm((self ? 'You' : (p.name||'They'))+' will go to the top of this month’s PvP board (above everyone, Grandmaster) and get the Rank #1 set — Champion Shirt, Champion Hat and Pumpkin Staff. Meant for testing.', 'Make Rank #1?', 'Do it', 'Cancel'))) return;
+      } else if (!(await gameConfirm((self ? 'You' : (p.name||'They'))+' will go to the top of this month’s PvP board (above everyone, Grandmaster). Meant for testing. The Rank #1 rewards still only unlock if '+(self ? 'you’re' : 'they’re')+' #1 when the season ends.', 'Make Rank #1?', 'Do it', 'Cancel'))) return;
       const r = await adminCall('admin_set_rp', { p_target:p.id, p_rp:rp, p_make_top: v === 'top' });
       if (!r) return;
       showToast(v === 'top' ? '🏆 '+(self ? 'You’re' : (p.name||'They')+' is')+' #1 with '+r.rp.toLocaleString()+' RP' : 'Rank Points set to '+r.rp.toLocaleString()+' (#'+r.place+')');
@@ -4415,7 +4443,7 @@
     const who = p.id === state.playerId ? 'yourself' : (p.name || 'this trainer');
     const kind = await actionSheet('Send a gift to '+who, 'It arrives the next time they have the game open (within a minute if they’re online).', [
       { label:'💎 Gems', value:'gems' }, { label:'🍬 Candy', value:'candy' }, { label:'🎟️ Raid Passes', value:'raidPass' },
-      { label:'🧪 Healing Elixirs', value:'elixir' }, { label:'🐾 A Toto…', value:'toto' }, { label:'👑 Rank #1 outfit set', value:'rank1set' } ]);
+      { label:'🧪 Healing Elixirs', value:'elixir' }, { label:'🐾 A Toto…', value:'toto' } ]);
     if (!kind) return;
     const note = '<label class="act-field">Message (optional, they’ll see it)<input type="text" id="gift-note" maxlength="140" placeholder="e.g. Thanks for testing!"></label>';
     let amount = 1, toto = null;
@@ -4437,21 +4465,18 @@
       if (!name) return;
       toto = { name, tier, level: Math.max(1, Math.min(TOTO_MAX_LEVEL, parseInt(($('#gift-lv')||{}).value, 10) || 1)) };
       amount = Math.max(1, Math.min(10, parseInt(($('#gift-n')||{}).value, 10) || 1));
-    } else if (kind !== 'rank1set'){
+    } else {
       const max = (kind === 'gems' || kind === 'candy') ? 1000000 : 999, def = { gems:500, candy:1000, raidPass:5, elixir:10 }[kind];
       const go = await actionSheet('Gift '+GIFT_LABEL[kind][1]+' to '+who, '', [
         { html:'<label class="act-field">How many (1–'+max.toLocaleString()+')<input type="number" id="gift-n" min="1" max="'+max+'" value="'+def+'"></label>' + note },
         { label:'🎁 Send', value:'go', cls:'good' } ]);
       if (go !== 'go') return;
       amount = Math.max(1, Math.min(max, parseInt(($('#gift-n')||{}).value, 10) || 1));
-    } else {
-      const go = await actionSheet('Gift the Rank #1 set to '+who, 'Champion Shirt, Champion Hat and Pumpkin Staff (Wardrobe).', [ { html:note }, { label:'🎁 Send', value:'go', cls:'good' } ]);
-      if (go !== 'go') return;
     }
     const msg = (($('#gift-note')||{}).value || '').trim().slice(0, 140);
     const r = await adminCall('admin_gift', { p_target:p.id, p_kind:kind, p_amount:amount, p_toto:toto, p_note:msg || null });
     if (!r) return;
-    const what = kind === 'toto' ? (r.amount > 1 ? r.amount+'× ' : '')+toto.name : kind === 'rank1set' ? 'the Rank #1 set' : r.amount.toLocaleString()+' '+GIFT_LABEL[kind][r.amount === 1 ? 0 : 1];
+    const what = kind === 'toto' ? (r.amount > 1 ? r.amount+'× ' : '')+toto.name : r.amount.toLocaleString()+' '+GIFT_LABEL[kind][r.amount === 1 ? 0 : 1];
     if (p.id === state.playerId){ showToast('🎁 Sent '+what+' to yourself'); claimGifts(); }
     else showToast('🎁 Sent '+what+' to '+(p.name||'them')+(r.online ? ' — they’ll get it within a minute' : ' — they’ll get it next time they play'));
   }
@@ -4614,6 +4639,17 @@
 
   // ---- sprites: only ever drawn from the game's own art, by name (never HTML from another player) ----
   let PVP_ETERNAL_ART = null;
+  // Which way each Toto's painting faces. Most look straight out of the picture; these are drawn
+  // turned to their right (r) or left (l). In the arena every Toto turns to face its opponent:
+  // side-on art is mirrored as needed, and front-on art is turned on the spot toward the other side.
+  const TOTO_FACE_R = ['banshee','black_cat_tot','blaze_hare','coffin_pup','cursed_crow','fang_pup','frost_fang','hex_hound','jackalope','lava_pup','moon_rabbit','mummy_pup',
+    'pumpkin_finch','pumpkin_turtle','ravenette','soul_fox','starling','translucent_tot','bone_steed','ember_fox','frost_howl'];
+  const TOTO_FACE_L = ['ghoul_kitten','max'];
+  function totoFacing(name){
+    const f = TOTO_IMG[String(name||'')], base = f ? f.split('/').pop() : '';
+    return TOTO_FACE_R.includes(base) ? 'r' : (TOTO_FACE_L.includes(base) ? 'l' : 'f');
+  }
+  window.__tqTotoFacing = totoFacing;
   function pvpSpriteHtml(s){
     if (!s) return '';
     if (s.isToni) return TONI_SVG;
@@ -4971,6 +5007,12 @@
       }
     }
   }
+  if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) window.__tqArenaPreview = (a, b)=>{
+    const mk = n=> ({ name:n, nature:roleOf(n), role:roleOf(n), tier:'legendary', level:30, statMult:1 });
+    $('#pva-floor').innerHTML = arenaFloorSvg(); arenaLayout();
+    [['#pva-toto-me', a], ['#pva-toto-op', b]].forEach(([sel, n])=>{ const el = $(sel); el.className = 'pva-toto '+(sel === '#pva-toto-me' ? 'me' : 'op')+' face-'+totoFacing(n); el.querySelector('.pva-spr').innerHTML = pvpSpriteHtml(mk(n)); });
+    $('#pvp-arena').classList.add('show');
+  };
   function startArena(info){
     PVP.inArena = true;
     Arena.info = info; Arena.mode = info.mode; Arena.side = info.mySide; Arena.match = info.match;
@@ -4981,7 +5023,7 @@
     arenaLayout();
     $('#pva-sub').textContent = (info.mode === 'bot' ? 'Ranked vs computer · ' : 'Ranked · ') + seasonLabel(Social.season).split(' · ')[0];
     $('#pva-card-me').innerHTML = arenaCard(Arena.side); $('#pva-card-op').innerHTML = arenaCard(op);
-    [['#pva-toto-me', Arena.side], ['#pva-toto-op', op]].forEach(([sel, side])=>{ const el = $(sel); el.className = 'pva-toto '+(sel === '#pva-toto-me' ? 'me' : 'op'); el.querySelector('.pva-spr').innerHTML = pvpSpriteHtml(info.snaps[side]); });
+    [['#pva-toto-me', Arena.side], ['#pva-toto-op', op]].forEach(([sel, side])=>{ const el = $(sel), s = info.snaps[side]; el.className = 'pva-toto '+(sel === '#pva-toto-me' ? 'me' : 'op')+' face-'+(s && s.isToni ? 'f' : totoFacing(s && s.name)); el.querySelector('.pva-spr').innerHTML = pvpSpriteHtml(s); });
     $('#pva-auto').classList.remove('on'); $('#pva-speed').innerHTML = '▶▶<small>x1</small>'; $('#pva-speed').classList.remove('on');
     $('#pva-result').classList.remove('show'); $('#pva-result').innerHTML = '';
     $('#pva-fx').innerHTML = ''; arenaLog(''); $('#pva-turn').style.opacity = '';
@@ -5084,7 +5126,7 @@
     saveNow && saveNow(true);
     for (const r of rows.sort((a,b)=> a.season < b.season ? -1 : 1)){
       const name = seasonLabel(r.season).split(' · ')[0].replace(' season','');
-      if (r.rank === 1) await gameDialog({ title:'🏆 Rank #1 — '+name+' season!', message:'You finished the '+name+' PvP season at #1 with '+(r.rp||0).toLocaleString()+' RP. The Rank #1 Shirt, Hat and Pumpkin Staff are now in your Wardrobe!', ok:'Awesome!', cancel:null });
+      if (r.rank === 1) await gameDialog({ title:'🏆 Rank #1 — '+name+' season!', message:'You finished the '+name+' PvP season at #1 with '+(r.rp||0).toLocaleString()+' RP. The Rank #1 PvP Shirt, PvP Hat, Tights, Shoes and Pumpkin Staff are yours for good — wear them from your profile → Wardrobe!', ok:'Awesome!', cancel:null });
       else if (r.rank <= 10) await gameDialog({ title:'Season over — #'+r.rank+'!', message:'You finished the '+name+' PvP season at #'+r.rank+' ('+(r.rp||0).toLocaleString()+' RP) — a Grandmaster-level finish! Top 10 rewards are on the way.', ok:'Nice!', cancel:null });
       else await gameDialog({ title:'Season over', message:'You finished the '+name+' PvP season at #'+r.rank+' with '+(r.rp||0).toLocaleString()+' RP. A new season has started — everyone is back at Bronze 3. Good luck!', ok:'Let’s go', cancel:null });
     }
@@ -5248,6 +5290,7 @@
     const mPerDegLat = 110540, mPerDegLon = 111320 * Math.cos(lat0*Math.PI/180);
     return { east:(lon1-lon0)*mPerDegLon, north:(lat1-lat0)*mPerDegLat };
   }
+  let lastRotStr = '';
   function applyWorldTransform(){
     // These camera fields are only ever set once at script load, on the *original* state
     // object — but logging in / registering replaces state.geo state.avatar etc with a
@@ -5280,7 +5323,9 @@
     $('#world').style.transform = 'rotate('+state.cameraRotate+'deg) scale('+state.cameraZoom.toFixed(2)+')';
     // Every Toto/gym/tree marker counter-rotates against this so they always stay upright
     // and face you, no matter which way the camera is currently turned.
-    $('#world').style.setProperty('--rot', state.cameraRotate+'deg');
+    const rotStr = state.cameraRotate+'deg';
+    if (rotStr !== lastRotStr){ lastRotStr = rotStr; ['deco-layer','toto-layer','gym-layer'].forEach(id=>{ const el = document.getElementById(id); if (el) el.style.setProperty('--rot', rotStr); }); }
+    window.__tqCamAt = performance.now();
     // your trainer is part of the scene: zoom out and she gets smaller with everything else
     const z = state.cameraZoom, pz = z < 1 ? Math.pow(z, 1.5) : 1 + (z-1)*0.25;
     const pin = $('.player-pin'); if (pin) pin.style.setProperty('--pz', pz.toFixed(3));
@@ -5296,6 +5341,8 @@
   // in two clean halves of the orbit rather than a smooth turn — still gets you "see the
   // front and the back" at the 180°-apart points, just not the angles in between.
   let _facing = { gender:null, front:null };
+  document.addEventListener('pointermove', e=>{ if (e.buttons) window.__tqCamAt = performance.now(); }, { passive:true });
+  document.addEventListener('wheel', ()=>{ window.__tqCamAt = performance.now(); }, { passive:true });
   function updatePlayerFacing(){
     const holder = document.getElementById('player-avatar');
     const img = holder && holder.querySelector('img');
@@ -7134,6 +7181,7 @@
     const left = Math.max(0, t._expiresAt - Date.now());
     return 'leaves in '+Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0');
   }
+  function setHtmlIfChanged(el, html){ if (el.__html !== html){ el.innerHTML = html; el.__html = html; } }
   function renderNearby(){
     const w = $('#nearby-widget'); if (!w || !state.loggedIn) return;
     const list = nearbyTotos(), tr = trackedToto();
@@ -7142,14 +7190,14 @@
     if (tr){
       const d = distanceMetersToWorldPoint(tr._x, tr._y), close = d <= WILD_RADIUS_M;
       w.classList.toggle('catchable', close);
-      w.innerHTML = '<span class="nearby-faces">'+faceHtml(tr)+'</span>' + (close
+      setHtmlIfChanged(w, '<span class="nearby-faces">'+faceHtml(tr)+'</span>' + (close
         ? '<span class="nearby-num"><b>Catch!</b><small>tap here</small></span>'
-        : arrowHtml(tr)+'<span class="nearby-num"><b>'+fmtDist(d)+'</b><small>tracking</small></span>');
+        : arrowHtml(tr)+'<span class="nearby-num"><b>'+fmtDist(d)+'</b><small>tracking</small></span>'));
       w.setAttribute('aria-label', 'Tracking '+tr.name+', '+fmtDist(d)+' away');
     } else {
       w.classList.remove('catchable');
       const faces = list.slice(0, 3).map(o=> faceHtml(o.t)).join('') || '<span class="nearby-face ghost">👻</span>';
-      w.innerHTML = '<span class="nearby-faces">'+faces+'</span><span class="nearby-num"><b>'+list.length+'</b><small>nearby</small></span>';
+      setHtmlIfChanged(w, '<span class="nearby-faces">'+faces+'</span><span class="nearby-num"><b>'+list.length+'</b><small>nearby</small></span>');
       w.setAttribute('aria-label', list.length+' Totos nearby');
     }
     if ($('#nearby-sheet').classList.contains('show')) renderNearbySheet(list);
@@ -9921,7 +9969,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v62';
+window.TQ_APP_VERSION = 'v63';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -10021,6 +10069,19 @@ window.TQ_APP_VERSION = 'v62';
 { "imports": { "three": "./assets/vendor/three.module.min.js" } }
 </script>
 <script type="module">
+// Is the map hidden right now (another screen, a battle or a full-screen panel)? The 3D layers
+// ask every frame, so this checks a few remembered elements instead of searching the page.
+const __tqCover = { game:null, els:null, t:0 };
+function tqMapCovered(){
+  const now = performance.now();
+  if (!__tqCover.game || !__tqCover.game.isConnected) __tqCover.game = document.querySelector('.screen[data-screen="game"]');
+  if (!__tqCover.els || now - __tqCover.t > 3000){ __tqCover.t = now; __tqCover.els = [document.getElementById('battle-screen')].concat(Array.from(document.querySelectorAll('.panel-screen'))).filter(Boolean); }
+  if (!__tqCover.game || !__tqCover.game.classList.contains('active')) return true;
+  for (const el of __tqCover.els) if (el.classList.contains('active')) return true;
+  return false;
+}
+// The camera hasn't moved for a moment: the map's idle animation can run at half the frame rate.
+function tqCameraCalm(){ return performance.now() - (window.__tqCamAt || 0) > 900; }
 // ============================================================================
 // PHASE 1 — real 3D player avatar + orbit camera (Three.js), additive only.
 // ----------------------------------------------------------------------------
@@ -10350,8 +10411,27 @@ window.TQ_APP_VERSION = 'v62';
       toonGrad.generateMipmaps = false; toonGrad.needsUpdate = true;
       return toonGrad;
     }
-    function toon(color, extra){ return new THREE.MeshToonMaterial(Object.assign({ color, gradientMap:getToonGradient() }, extra||{})); }
+    // v63: soft, velvety shading like the reference renders (it used to be flat cel bands with
+    // ink outlines). Fabric, hair and skin get a gentle sheen that catches the rim light the
+    // way velvet does in the art.
+    function toon(color, extra){
+      extra = extra || {};
+      const c = new THREE.Color(color), textured = !!extra.map;
+      const base = { color:c, roughness:0.78, metalness:0, sheen: textured ? 0.25 : 0.35, sheenRoughness:0.32,
+        sheenColor: textured ? new THREE.Color(0.32, 0.3, 0.38) : c.clone().lerp(new THREE.Color('#ffffff'), 0.3),
+        // a little self-light keeps the shadows soft and colourful (through the print, on printed parts)
+        emissive: textured ? new THREE.Color(0.1, 0.1, 0.1) : c.clone().multiplyScalar(0.1) };
+      if (textured && !extra.emissiveMap) base.emissiveMap = extra.map;
+      return new THREE.MeshPhysicalMaterial(Object.assign(base, extra));     // a little self-light keeps shadows soft and colourful
+    }
+    // skin: smooth and warm, a peachy glow in the shadows (like light passing through)
+    function skinMaterial(color){
+      const c = new THREE.Color(color);
+      return new THREE.MeshPhysicalMaterial({ color:c, roughness:0.5, metalness:0, sheen:0.3, sheenRoughness:0.6, sheenColor:new THREE.Color('#ffe0cc'),
+        emissive:new THREE.Color('#ffb59a').multiplyScalar(0.12) });
+    }
 
+    const SOFT_LOOK = true;          // no ink outlines in the soft look
     const OUTLINE_COLOR = 0x1c1128;
     const outlineMatCache = {};
     function outlineMat(th){
@@ -10374,7 +10454,7 @@ window.TQ_APP_VERSION = 'v62';
       if (opts.rot) mesh.rotation.set(...opts.rot);
       if (opts.scale) mesh.scale.set(...opts.scale);
       mesh.castShadow = opts.shadow !== false;
-      const th = opts.outline === undefined ? 0.014 : opts.outline;
+      const th = SOFT_LOOK ? 0 : (opts.outline === undefined ? 0.014 : opts.outline);
       if (th > 0){
         const ol = new THREE.Mesh(geo, outlineMat(th));
         ol.castShadow = false; ol.userData.isOutline = true; mesh.add(ol);
@@ -10491,7 +10571,10 @@ window.TQ_APP_VERSION = 'v62';
       patch(10, 190, 28, 26, '#2e8a5a', 0.1); patch(W+10, 190, 28, 26, '#2e8a5a', 0.1);
       // gold crescent moon + stars on the front (canvas centre = -Z)
       ctx.fillStyle = '#ffd27a';
-      ctx.beginPath(); ctx.arc(118, 150, 22, 0, Math.PI*2); ctx.arc(128, 142, 19, 0, Math.PI*2); ctx.fill('evenodd');
+      { const m = document.createElement('canvas'); m.width = m.height = 64; const mx = m.getContext('2d');
+        mx.fillStyle = '#ffd27a'; mx.beginPath(); mx.arc(32, 32, 23, 0, Math.PI*2); mx.fill();
+        mx.globalCompositeOperation = 'destination-out'; mx.beginPath(); mx.arc(42, 24, 20, 0, Math.PI*2); mx.fill();
+        ctx.drawImage(m, 118-32, 150-32); }
       ctx.beginPath(); for (let i=0;i<10;i++){ const a=Math.PI/5*i-Math.PI/2, r=i%2?6:15; ctx.lineTo(150+Math.cos(a)*r, 108+Math.sin(a)*r);} ctx.closePath(); ctx.fill();
       ctx.beginPath(); for (let i=0;i<10;i++){ const a=Math.PI/5*i-Math.PI/2, r=i%2?4:9; ctx.lineTo(96+Math.cos(a)*r, 70+Math.sin(a)*r);} ctx.closePath(); ctx.fill();
       const tex = new THREE.CanvasTexture(c);
@@ -10684,6 +10767,7 @@ window.TQ_APP_VERSION = 'v62';
     // its tuned numbers while the whole character gets a slimmer, more natural chibi shape.
     const BOOT_H = 0.17, LEG_LEN = 0.33, HIP_Y = BOOT_H + LEG_LEN - 0.02;
     const SHOULDER_Y = 0.955, HEAD_Y = 1.27, HEAD_R = 0.30, HEAD_S = 0.9;
+    const HAT_Y = HEAD_R*0.8, HAT_TILT = -0.08;      // v63: the hat sits a little higher, showing the brows and bangs
 
     // the robe from the new art: purple velvet, orange trim down the opening and round the hem,
     // and a black/orange striped panel in front
@@ -10823,7 +10907,7 @@ window.TQ_APP_VERSION = 'v62';
       const isFemale = gender !== 'male';
       const root = new THREE.Group();
       const body = new THREE.Group(); root.add(body);         // rotates for facing
-      const skin = toon(cfg.skin || '#ffcfa8');
+      const skin = skinMaterial(cfg.skin || '#ffcfa8');
       const hairCol = cfg.hair || '#c8561e';
       const topColor = (cfg.top&&cfg.top.color) || '#5b2d8f', topTrim = (cfg.top&&cfg.top.trim) || '#ff9a3d';
       const isR1 = cfg.top && cfg.top.kind === 'rank1Shirt';
@@ -10837,13 +10921,41 @@ window.TQ_APP_VERSION = 'v62';
       const cuffMat = toon(isFemale ? '#b8602c' : '#3a2e44');
       const strapMat = toon('#4a2c6e'), buckleMat = toon('#ffd27a', { emissive:'#5a4010' });
       const wingMat = toon(isFemale ? '#3a2350' : '#d9a441', { side:THREE.DoubleSide, emissive: isFemale ? '#000000' : '#4a3000' });
+      const r1Shoes = cfg.shoes && cfg.shoes.kind === 'rank1Shoes';
+      const r1Legs = cfg.legwear && cfg.legwear.kind === 'rank1Legs';
+      function makeRank1Shoe(pivot, sx, by){
+        // white high-top with the Rank #1 pumpkin crest on both sides, bat buckles, a purple heel gem
+        const sideMat = toon('#ffffff', { map: wardrobeTex('rank1-shoe-side.jpg', true) });
+        const toeMat = toon('#ffffff', { map: wardrobeTex('rank1-shoe-toe.jpg', true) });
+        const orange = toon('#e8873a', { emissive:'#5a2600', emissiveIntensity:0.25 }), white = toon('#f6f1e8');
+        part(pivot, new THREE.SphereGeometry(0.078, 24, 16), toeMat, { pos:[0, by+0.06, -0.036], scale:[0.98,0.74,1.42] });
+        part(pivot, new THREE.CylinderGeometry(0.08, 0.083, 0.032, 24), white, { pos:[0, by+0.024, -0.03], scale:[1,1,1.46] });
+        part(pivot, new THREE.CylinderGeometry(0.085, 0.085, 0.013, 24), orange, { pos:[0, by+0.006, -0.03], scale:[1,1,1.46] });
+        part(pivot, new THREE.CylinderGeometry(0.066, 0.071, 0.2, 28), sideMat, { pos:[0, by+0.14, 0.004] });
+        part(pivot, new THREE.TorusGeometry(0.068, 0.013, 8, 28), orange, { pos:[0, by+0.242, 0.004], rot:[Math.PI/2,0,0] });
+        part(pivot, new THREE.TorusGeometry(0.072, 0.01, 6, 28), white, { pos:[0, by+0.16, 0.004], rot:[Math.PI/2,0,0] });
+        const bat = makeBat(0.034, '#e0782c'); bat.position.set(sx*0.078, by+0.16, -0.012); bat.rotation.y = -sx*Math.PI/2; pivot.add(bat);
+        bat.traverse(o=>{ if (o.material && o.material.isMeshPhysicalMaterial){ o.material.metalness = 0.55; o.material.roughness = 0.35; } });
+        part(pivot, new THREE.OctahedronGeometry(0.013), toon('#8a3be0', { emissive:'#3b0f6e', emissiveIntensity:0.7 }), { pos:[0, by+0.05, 0.076] });
+      }
       function makeLeg(sx){
         const pivot = new THREE.Group(); pivot.position.set(sx*0.078, HIP_Y, 0);
-        part(pivot, new THREE.CapsuleGeometry(0.047, LEG_LEN-0.08, 6, 14), tightsMat, { pos:[0, -LEG_LEN/2+0.02, 0], outline:0.009 });
+        if (r1Legs){
+          // the Rank #1 tights: a shaped leg (ankle, calf, knee, thigh) with evenly spaced rings so
+          // the embroidery wraps on without stretching — "Rank #1" faces front
+          const prof = [], N = 20;
+          for (let i=0;i<=N;i++){
+            const t = i/N; let r = 0.043 + 0.008*Math.exp(-Math.pow((t-0.32)/0.14, 2)) + 0.007*t;
+            if (t < 0.05) r *= 0.62 + 7.6*t; if (t > 0.95) r *= 1 - (t-0.95)*7;
+            prof.push(new THREE.Vector2(Math.max(0.004, r), -0.32 + t*0.34));
+          }
+          part(pivot, new THREE.LatheGeometry(prof, 36), toon('#ffffff', { map: wardrobeTex('rank1-legs.jpg', true) }), { outline:0.009 });
+        } else part(pivot, new THREE.CapsuleGeometry(0.047, LEG_LEN-0.08, 6, 14), tightsMat, { pos:[0, -LEG_LEN/2+0.02, 0], outline:0.009 });
         const by = -HIP_Y;  // boot sits on the ground
+        if (r1Shoes){ makeRank1Shoe(pivot, sx, by); body.add(pivot); return pivot; }
         part(pivot, new THREE.SphereGeometry(0.075, 18, 12), bootMat, { pos:[0, by+0.055, -0.03], scale:[0.95,0.72,1.38], outline:0.01 });
-        part(pivot, new THREE.CylinderGeometry(0.064, 0.068, 0.14, 18), bootMat, { pos:[0, by+0.115, 0.002], outline:0.01 });
-        part(pivot, new THREE.CylinderGeometry(0.074, 0.066, 0.045, 18, 1, true), cuffMat, { pos:[0, by+0.19, 0.002], outline:0.006 });
+        part(pivot, new THREE.CylinderGeometry(0.063, 0.068, 0.18, 18), bootMat, { pos:[0, by+0.135, 0.002], outline:0.01 });
+        part(pivot, new THREE.CylinderGeometry(0.075, 0.066, 0.05, 18, 1, true), cuffMat, { pos:[0, by+0.235, 0.002], outline:0.006 });
         part(pivot, new THREE.TorusGeometry(0.067, 0.011, 6, 18), strapMat, { pos:[0, by+0.115, 0.002], rot:[Math.PI/2,0,0], outline:0.004 });
         part(pivot, new THREE.BoxGeometry(0.026, 0.022, 0.01), buckleMat, { pos:[sx*0.012, by+0.115, -0.072], outline:0.003 });
         const wg = new THREE.Mesh(getBatWingGeo(), wingMat);
@@ -10866,11 +10978,12 @@ window.TQ_APP_VERSION = 'v62';
         // point index, not the distance between points)
         const radii = [0.198,0.194,0.188,0.182,0.178,0.177,0.177,0.178,0.18,0.179,0.172,0.152,0.098];
         const prof = radii.map((r,i)=> new THREE.Vector2(r, 0.455 + i*0.0455));
-        const teeTex = isR1 ? wardrobeTex('rank1-shirt.jpg', true) : getTeePrintTexture(false);
+        const teeTex = isR1 ? wardrobeTex('rank1-shirt-pvp.jpg', true) : getTeePrintTexture(false);
         coat = part(body, new THREE.LatheGeometry(prof, 48), toon('#ffffff', { map: teeTex, emissive:'#ffffff', emissiveMap: teeTex, emissiveIntensity: isR1 ? 0.1 : 0.22 }), { outline:0.013 });
         part(body, new THREE.TorusGeometry(0.197, 0.013, 6, 40), isR1 ? r1Trim : teeGold, { pos:[0,0.46,0], rot:[Math.PI/2,0,0], outline:0.004 });
-        const sk = [[0.215,0.37],[0.206,0.41],[0.198,0.45],[0.19,0.49]].map(([r,y])=> new THREE.Vector2(r,y));
-        part(body, new THREE.LatheGeometry(sk, 32), toon(isFemale ? ((cfg.legwear&&cfg.legwear.color) || '#3d2a5c') : '#2a2238'), { outline:0.01 });
+        // (shorter with the Rank #1 tights, so the embroidered legs show)
+        const sk = (cfg.legwear && cfg.legwear.kind === 'rank1Legs' ? [[0.205,0.425],[0.2,0.45],[0.195,0.47],[0.19,0.49]] : [[0.215,0.37],[0.206,0.41],[0.198,0.45],[0.19,0.49]]).map(([r,y])=> new THREE.Vector2(r,y));
+        part(body, new THREE.LatheGeometry(sk, 32), toon(isFemale && !(cfg.legwear && cfg.legwear.kind === 'rank1Legs') ? ((cfg.legwear&&cfg.legwear.color) || '#3d2a5c') : (isFemale ? '#3d2a5c' : '#2a2238')), { outline:0.01 });
       }
 
       // ---- Collar: a purple hood folded behind the neck + the orange bat brooch ----
@@ -10878,7 +10991,7 @@ window.TQ_APP_VERSION = 'v62';
         part(body, new THREE.SphereGeometry(0.15, 18, 12, 0, Math.PI*2, 0, Math.PI/2), toon(topColor, { side:THREE.DoubleSide }), { pos:[0,0.95,0.09], rot:[-1.25,0,0], scale:[1,0.72,0.85], outline:0.008 });
         part(body, new THREE.TorusGeometry(0.105, 0.03, 10, 28), toon(topColor), { pos:[0,1.0,0.012], rot:[Math.PI/2,0,0], outline:0.007 });
         const brooch = makeBat(0.058, '#ff9a2a'); brooch.position.set(0, 0.945, -0.17); body.add(brooch);
-        brooch.traverse(o=>{ if (o.material && o.material.color && !o.userData.isOutline && o.material.type === 'MeshToonMaterial'){ o.material.emissive = new THREE.Color('#7a3a00'); o.material.emissiveIntensity = 0.35; } });
+        brooch.traverse(o=>{ if (o.material && o.material.color && !o.userData.isOutline && o.material.type === 'MeshPhysicalMaterial'){ o.material.emissive = new THREE.Color('#7a3a00'); o.material.emissiveIntensity = 0.35; } });
       } else {
         part(body, new THREE.TorusGeometry(0.092, 0.02, 8, 28), isR1 ? r1Trim : teeGold, { pos:[0,1.0,0], rot:[Math.PI/2,0,0], outline:0.005 });
       }
@@ -10926,8 +11039,9 @@ window.TQ_APP_VERSION = 'v62';
       const pupilMat = new THREE.MeshBasicMaterial({ color:'#120c10' });
       const shine = new THREE.MeshBasicMaterial({ color:'#ffffff' });
       const lashMat = new THREE.MeshBasicMaterial({ color:'#2a1612' });
+      const eyes = [];
       [-1,1].forEach(sx=>{
-        const e = onFace(sx*0.112, -0.02);
+        const e = onFace(sx*0.112, -0.02); eyes.push(e);
         const w = new THREE.Mesh(new THREE.CircleGeometry(0.07, 24), eyeWhite); w.scale.set(0.86,1.06,1); w.position.z = 0.004; e.add(w);
         const ir = new THREE.Mesh(new THREE.CircleGeometry(0.055, 24), irisDark); ir.scale.set(0.92,1.06,1); ir.position.set(0,-0.006,0.008); e.add(ir);
         const ir2 = new THREE.Mesh(new THREE.CircleGeometry(0.044, 24), irisMat); ir2.scale.set(0.92,1.06,1); ir2.position.set(0,-0.012,0.011); e.add(ir2);
@@ -10954,8 +11068,8 @@ window.TQ_APP_VERSION = 'v62';
       const hairMat = toon(hairCol);
       const capGap = 0.95;
       const capGeo = new THREE.SphereGeometry(HEAD_R*1.05, 48, 28, -Math.PI/2 + capGap, Math.PI*2 - capGap*2, 0.5, isFemale ? 1.95 : 1.72);
-      part(headGroup, capGeo, toon('#ffffff', { map: makeHairTexture(hairCol), side:THREE.DoubleSide }), { scale:[1.04,0.97,1.04], outline:0.01 });
-      const curls = [];
+      part(headGroup, capGeo, toon('#ffffff', { map: makeHairTexture(hairCol), side:THREE.DoubleSide }), { scale:[1.05,1.04,1.05], outline:0.01 });
+      const curls = [], braids = [];
       let s = 11; const rnd = ()=>{ s = (s*9301+49297)%233280; return s/233280; };
       if (isFemale){
         // (the smooth, strand-textured cap is her hair over the back; just the nape and braids added)
@@ -10966,15 +11080,20 @@ window.TQ_APP_VERSION = 'v62';
         for (let i=0;i<7;i++){ const x = (i-3.2)*0.066; curls.push({ geo:new THREE.SphereGeometry(0.064 - Math.abs(i-3)*0.004, 12, 10), pos:[x, 0.09 - Math.abs(x)*0.25 - (i>3 ? 0.012 : 0), -0.25 + Math.abs(x)*0.2], scale:[1.15,0.72,0.66] }); }
         // hair falling over the ears into the braids
         [-1,1].forEach(sx=>{ for (let j=0;j<3;j++) curls.push({ geo:new THREE.SphereGeometry(0.075, 12, 10), pos:[sx*(0.27 + j*0.008), -0.02 - j*0.07, -0.02 + j*0.01], scale:[0.8,1.1,1] }); });
-        // two long braids hanging in front of the shoulders, plaited (staggered lobes) and tapering
+        // two long braids hanging in front of the shoulders, plaited (staggered lobes) and tapering —
+        // each on its own pivot under the ear, so they swing as she walks
         [-1,1].forEach(sx=>{
+          const lobes = [], px = sx*0.258, py = -0.15, pz = -0.03;
           for (let j=0;j<11;j++){
             const r = 0.066 - j*0.0026, side = (j%2 ? 1 : -1)*0.017;
             const y = -0.17 - j*0.058, z = -0.035 - Math.min(j, 5)*0.021;
-            curls.push({ geo:new THREE.SphereGeometry(r, 12, 10), pos:[sx*(0.258 + j*0.003) + side, y, z], scale:[1.0,0.95,0.92], rot:[0,0,side*9] });
+            lobes.push({ geo:new THREE.SphereGeometry(r, 12, 10), pos:[sx*(0.258 + j*0.003) + side - px, y - py, z - pz], scale:[1.0,0.95,0.92], rot:[0,0,side*9] });
           }
-          curls.push({ geo:new THREE.TorusGeometry(0.03, 0.012, 6, 14), pos:[sx*0.29, -0.81, -0.14], rot:[Math.PI/2,0,0] });
-          curls.push({ geo:new THREE.ConeGeometry(0.036, 0.1, 10), pos:[sx*0.29, -0.87, -0.14], rot:[Math.PI,0,0] });
+          lobes.push({ geo:new THREE.TorusGeometry(0.03, 0.012, 6, 14), pos:[sx*0.29 - px, -0.81 - py, -0.14 - pz], rot:[Math.PI/2,0,0] });
+          lobes.push({ geo:new THREE.ConeGeometry(0.036, 0.1, 10), pos:[sx*0.29 - px, -0.87 - py, -0.14 - pz], rot:[Math.PI,0,0] });
+          const pv = new THREE.Group(); pv.position.set(px, py, pz); headGroup.add(pv);
+          part(pv, mergeParts(lobes), toon(hairCol), { outline:0.011 });
+          braids.push(pv);
         });
       } else {
         // short tousled curls
@@ -10995,7 +11114,7 @@ window.TQ_APP_VERSION = 'v62';
       // ---- Hat ----
       if (cfg.hat && cfg.hat.kind === 'rank1Hat'){
         // the Rank #1 Champion Hat: embroidered white brim and cone, copper edging, tip curled over
-        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.68, 0.03); hatGroup.rotation.x = -0.14; headGroup.add(hatGroup);
+        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HAT_Y, 0.03); hatGroup.rotation.x = HAT_TILT; headGroup.add(hatGroup);
         const copper = toon('#c8743e', { emissive:'#3a1606', emissiveIntensity:0.3 });
         const brimR = 0.6;
         const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.032, 72, 1);
@@ -11020,11 +11139,11 @@ window.TQ_APP_VERSION = 'v62';
           cpp.setY(i, cpp.getY(i) - 0.12*Math.pow(t, 3));
         }
         coneGeo.computeVertexNormals();
-        part(hatGroup, coneGeo, toon('#ffffff', { map: wardrobeTex('rank1-hat-cone.jpg', true) }), { pos:[0,0.01,0], outline:0.012 });
+        part(hatGroup, coneGeo, toon('#ffffff', { map: wardrobeTex('rank1-hat-cone-pvp.jpg', true) }), { pos:[0,0.01,0], outline:0.012 });
         part(hatGroup, new THREE.TorusGeometry(r0*1.01, 0.014, 8, 56), copper, { pos:[0,0.016,0], rot:[Math.PI/2,0,0], outline:0.004 });
         root.userData.hat = hatGroup;
       } else if (cfg.hat && cfg.hat.kind === 'level100Hat'){
-        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.68, 0.03); hatGroup.rotation.x = -0.14; headGroup.add(hatGroup);
+        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HAT_Y, 0.03); hatGroup.rotation.x = HAT_TILT; headGroup.add(hatGroup);
         const velvet = '#4a1c5c', lip = '#6c3a8c';
         const brimR = 0.6;
         const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.035, 72, 1);
@@ -11059,7 +11178,7 @@ window.TQ_APP_VERSION = 'v62';
         // gold moon + stars, a stitched patch, a tan band with a gold buckle and a bat on the brim
         const hatColor = cfg.hat.color || '#4a2a78', hatTrim = cfg.hat.trim || '#c9823e';
         const witch = cfg.hat.kind === 'witchHat';
-        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.68, 0.03); hatGroup.rotation.x = -0.14; headGroup.add(hatGroup);
+        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HAT_Y, 0.03); hatGroup.rotation.x = HAT_TILT; headGroup.add(hatGroup);
         const brimR = witch ? 0.55 : 0.44;
         const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.032, 72, 1);
         const bp = brimGeo.attributes.position;
@@ -11091,9 +11210,47 @@ window.TQ_APP_VERSION = 'v62';
         tryLoadRealModel(cfg.hat, headGroup);
       }
 
+      // Held items lean out from the hand just enough that nothing above the brim is inside it:
+      // the hand stays on the shaft, and the staff tips outward clear of the hat (and its sway).
+      const brimWorldR = !cfg.hat ? 0 : ((cfg.hat.kind === 'rank1Hat' || cfg.hat.kind === 'level100Hat') ? 0.6 : (cfg.hat.kind === 'witchHat' ? 0.55 : 0.44)) * HEAD_S;
+      const brimWorldY = HEAD_Y + HAT_Y*HEAD_S - 0.075;          // the brim's drooping edge
+      const HAND = (()=>{ const a = 0.78; return { x: 0.158 + 0.315*Math.sin(a), y: SHOULDER_Y - 0.315*Math.cos(a), z: -0.05, arm: a }; })();
+      function holdInRightHand(acc){
+        const pivot = new THREE.Group(); pivot.position.set(HAND.x, HAND.y, HAND.z);
+        acc.position.set(acc.position.x - HAND.x, acc.position.y - HAND.y, acc.position.z - HAND.z);
+        pivot.add(acc); body.add(pivot);
+        // sample the item's surface once, in the pivot's frame
+        const pts = [], v = new THREE.Vector3(), inv = new THREE.Matrix4();
+        pivot.updateMatrixWorld(true); inv.copy(pivot.matrixWorld).invert();
+        acc.traverse(o=>{
+          if (!o.isMesh || o.userData.isOutline || !o.geometry || !o.geometry.attributes.position) return;
+          const pa = o.geometry.attributes.position, step = Math.max(1, Math.floor(pa.count/220));
+          const m = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld);
+          for (let i=0;i<pa.count;i+=step){ v.fromBufferAttribute(pa, i).applyMatrix4(m); pts.push(v.x, v.y, v.z); }
+        });
+        let lean = 0.07;
+        if (brimWorldR > 0){
+          const lim = brimWorldR + 0.045, hz = 0.03*HEAD_S;
+          for (let deg = 4; deg <= 32; deg++){
+            const th = -deg*Math.PI/180, c = Math.cos(th), s = Math.sin(th);
+            let ok = true;
+            for (let i=0;i<pts.length;i+=3){
+              const x = pts[i], y = pts[i+1], z = pts[i+2];
+              const wx = HAND.x + x*c - y*s, wy = HAND.y + x*s + y*c, wz = HAND.z + z;
+              if (wy > brimWorldY && Math.hypot(wx, wz - hz) < lim){ ok = false; break; }
+            }
+            lean = deg*Math.PI/180;
+            if (ok) break;
+          }
+        }
+        pivot.rotation.z = -lean;
+        rightArm.rotation.z = HAND.arm;
+        return pivot;
+      }
+
       // ---- Staff: crooked wood with a hanging jack-o'-lantern (right hand = +X) ----
       if (cfg.accessory && cfg.accessory.kind === 'staff'){
-        const staff = new THREE.Group(); staff.position.set(0.3, 0, -0.05); body.add(staff);
+        const staff = new THREE.Group(); staff.position.set(HAND.x, 0, -0.05); body.add(staff);
         const pts = [ [0,0.02],[0.014,0.3],[-0.01,0.6],[0.012,0.9],[-0.006,1.2],[0.016,1.45],[0.07,1.58],[0.145,1.57],[0.17,1.49] ].map(([x,y])=> new THREE.Vector3(x,y,0));
         part(staff, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.02, 8, false), toon(cfg.accessory.color || '#5a3a24'), { outline:0.007 });
         [0.45, 0.85, 1.2].forEach(y=> part(staff, new THREE.SphereGeometry(0.026, 8, 6), toon('#4a2f1c'), { pos:[0.004, y, 0], outline:0.004 }));
@@ -11108,17 +11265,20 @@ window.TQ_APP_VERSION = 'v62';
         halo.scale.set(0.7, 0.7, 1); halo.position.y = -0.22; hang.add(halo);
         root.userData.lanternHalo = halo;
         root.userData.lanternHang = hang;
-        rightArm.rotation.z = 0.5;
+        // the lantern's warm glow on her face and robe, like in the art
+        const glow = new THREE.PointLight(warm ? 0xff9a40 : 0x9affb8, 0.55, 1.5, 2); glow.position.y = -0.22; hang.add(glow);
+        root.userData.lanternLight = glow;
+        holdInRightHand(staff);
       }
       if (cfg.accessory && cfg.accessory.kind === 'rank1Staff'){
-        const st = buildRank1Staff(); st.position.set(0.3, 0, -0.05); body.add(st);
+        const st = buildRank1Staff(); st.position.set(HAND.x, 0, -0.05); body.add(st);
         root.userData.lanternHalo = st.userData.halo;
-        rightArm.rotation.z = 0.5;
+        holdInRightHand(st);
       }
       if (cfg.accessory && cfg.accessory.kind === 'l100broom'){
-        const broom = buildL100Broom(false); broom.position.set(0.3, 0, -0.05); broom.scale.setScalar(0.88); body.add(broom);
+        const broom = buildL100Broom(false); broom.position.set(HAND.x, 0, -0.05); broom.scale.setScalar(0.88); body.add(broom);
         root.userData.lanternHalo = broom.userData.halo;
-        rightArm.rotation.z = 0.5;
+        holdInRightHand(broom);
       }
 
       // ---- Candy basket in the left hand (-X): candy, a pumpkin and two little potions ----
@@ -11129,7 +11289,7 @@ window.TQ_APP_VERSION = 'v62';
       leftArm.rotation.z = -0.36;
 
       tryLoadRealModel(cfg.top, root);
-      root.userData.parts = { leftLeg, rightLeg, leftArm, rightArm, robe: coat, body, headGroup };
+      root.userData.parts = { leftLeg, rightLeg, leftArm, rightArm, robe: coat, body, headGroup, braids, eyes };
       root.userData.armRest = { l: leftArm.rotation.z, r: rightArm.rotation.z };
       return root;
     }
@@ -11147,14 +11307,18 @@ window.TQ_APP_VERSION = 'v62';
       p.body.rotation.y = ud.facing;
       const rest = ud.armRest || { l:0, r:0 };
       if (walking){
-        const s = Math.sin(t*8.5);
+        const s = Math.sin(t*8.5), c2 = Math.abs(Math.cos(t*8.5));
         p.leftLeg.rotation.x = s*0.6; p.rightLeg.rotation.x = -s*0.6;
         p.leftArm.rotation.x = -s*0.35; p.rightArm.rotation.x = s*0.2;
-        p.body.position.y = Math.abs(Math.cos(t*8.5))*0.04;
-        p.robe.rotation.z = s*0.03;
+        p.body.position.y = c2*0.045;
+        p.body.rotation.x = 0.05;                                   // leaning into the walk
+        p.robe.rotation.z = s*0.035; p.robe.scale.set(1 + c2*0.012, 1 - c2*0.018, 1 + c2*0.012);
         p.headGroup.rotation.z = s*0.03;
-        p.headGroup.position.y = HEAD_Y;
+        p.headGroup.position.y = HEAD_Y - c2*0.01;
+        (p.braids||[]).forEach((b, i)=>{ b.rotation.z = Math.sin(t*8.5 + 1.1 + i*Math.PI)*0.09; b.rotation.x = -0.12 - c2*0.08; });
       } else {
+        p.body.rotation.x = 0;
+        (p.braids||[]).forEach((b, i)=>{ b.rotation.z = Math.sin(t*1.4 + i*2.1)*0.03; b.rotation.x = Math.sin(t*1.1 + i)*0.02; });
         p.leftLeg.rotation.x = 0; p.rightLeg.rotation.x = 0;
         const b = Math.sin(t*1.8);
         p.leftArm.rotation.x = b*0.04; p.rightArm.rotation.x = -b*0.03;
@@ -11164,7 +11328,15 @@ window.TQ_APP_VERSION = 'v62';
         p.headGroup.position.y = HEAD_Y + b*0.006;
       }
       p.leftArm.rotation.z = rest.l; p.rightArm.rotation.z = rest.r;
-      if (ud.hat) ud.hat.rotation.z = Math.sin(t*1.3)*0.04;
+      if (ud.hat) ud.hat.rotation.z = Math.sin(t*1.3)*0.04 + (walking ? Math.sin(t*8.5 + 0.6)*0.03 : 0);
+      // blink every few seconds
+      if (p.eyes && p.eyes.length){
+        if (!ud.nextBlink) ud.nextBlink = t + 1.5 + Math.random()*2.5;
+        const bt = t - ud.nextBlink, sy = bt < 0 ? 1 : (bt < 0.14 ? Math.max(0.08, Math.abs(1 - bt/0.07)) : 1);
+        if (bt >= 0.14) ud.nextBlink = t + 2.4 + Math.random()*3;
+        p.eyes.forEach(e=> e.scale.y = sy);
+      }
+      if (ud.lanternLight) ud.lanternLight.intensity = 0.5 + (Math.sin(t*9)*0.5 + Math.sin(t*23)*0.3)*0.08;
       if (ud.lanternHang){ ud.lanternHang.rotation.z = Math.sin(t*(walking?6:1.6))*(walking?0.3:0.12); ud.lanternHang.rotation.x = Math.sin(t*1.1)*0.06; }
       const flicker = Math.sin(t*9)*0.5 + Math.sin(t*23)*0.3;
       if (ud.lanternHalo) ud.lanternHalo.material.opacity = 0.55 + flicker*0.07;
@@ -11178,9 +11350,9 @@ window.TQ_APP_VERSION = 'v62';
     // player when you orbit, so studio-style lighting that follows the camera keeps her
     // lit from the viewer's side at every angle instead of going dark from behind.
     function addPlayerLighting(scene){
-      scene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.15));
+      scene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.3));
       const rig = new THREE.Group(); scene.add(rig);
-      const key = new THREE.DirectionalLight(0xffe2b8, 1.45);
+      const key = new THREE.DirectionalLight(0xffe2b8, 2.1);
       key.position.set(1.5, 3.8, 2.4);
       key.castShadow = true;
       key.shadow.mapSize.set(1024, 1024);
@@ -11188,8 +11360,9 @@ window.TQ_APP_VERSION = 'v62';
       key.shadow.camera.near = 0.5; key.shadow.camera.far = 9;
       key.shadow.bias = -0.0015; key.shadow.radius = 4;
       rig.add(key);
-      const fill = new THREE.DirectionalLight(0xfff5e8, 0.5); fill.position.set(-1.2, 1.6, 3); rig.add(fill);
-      const rim = new THREE.DirectionalLight(0xb7a2ff, 0.9); rim.position.set(-2.2, 2.4, -3); rig.add(rim);
+      const fill = new THREE.DirectionalLight(0xfff5e8, 0.6); fill.position.set(-1.2, 1.6, 3); rig.add(fill);
+      const rim = new THREE.DirectionalLight(0xc2adff, 1.6); rim.position.set(-2.2, 2.4, -3); rig.add(rim);
+      const rim2 = new THREE.DirectionalLight(0xffb070, 0.8); rim2.position.set(2.4, 1.8, -2.6); rig.add(rim2);
       const catcher = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity:0.38 }));
       catcher.rotation.x = -Math.PI/2; catcher.receiveShadow = true; scene.add(catcher);
       // contact shadow right under the feet: a wide soft blob plus a tighter dark core,
@@ -11267,17 +11440,18 @@ window.TQ_APP_VERSION = 'v62';
       let group = buildPlayerModel(gender);
       scene.add(group);
 
-      let stopped = false;
+      let stopped = false, idleTick = 0;
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
         // Only spend GPU time while the game/map screen is actually the one showing (not
         // under a battle or a full-screen panel).
-        const gameScreen = document.querySelector('.screen[data-screen="game"]');
-        if (!gameScreen || !gameScreen.classList.contains('active')) return;
-        if (document.querySelector('#battle-screen.active, .panel-screen.active')) return;
+        if (tqMapCovered()) return;
         const gs = window.__gameState;
         const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
+        const walkingNow = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
+        // standing still with the camera at rest: her idle breathing only needs 30 frames a second
+        if (!walkingNow && tqCameraCalm() && (++idleTick & 1)) return;
         const rad = THREE.MathUtils.degToRad(orbitDeg);
         placePlayerCamera(camera, rad, FRAME_VIEW_H, FRAME_FEET_PX, PLAYER_CANVAS_H);
         rig.rotation.y = rad;   // studio lighting follows the camera around her
@@ -11404,10 +11578,10 @@ window.TQ_APP_VERSION = 'v62';
         snapR.setPixelRatio(1);
         if ('outputColorSpace' in snapR) snapR.outputColorSpace = THREE.SRGBColorSpace;
         snapScene = new THREE.Scene();
-        snapScene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.3));
-        const k = new THREE.DirectionalLight(0xffe2b8, 1.35); k.position.set(1.5, 3.8, 2.6); snapScene.add(k);
-        const f = new THREE.DirectionalLight(0xfff5e8, 0.55); f.position.set(-1.4, 1.6, 3); snapScene.add(f);
-        const r = new THREE.DirectionalLight(0xb7a2ff, 0.85); r.position.set(-2.2, 2.4, -3); snapScene.add(r);
+        snapScene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.4));
+        const k = new THREE.DirectionalLight(0xffe2b8, 2.1); k.position.set(1.5, 3.8, 2.6); snapScene.add(k);
+        const f = new THREE.DirectionalLight(0xfff5e8, 0.9); f.position.set(-1.4, 1.6, 3); snapScene.add(f);
+        const r = new THREE.DirectionalLight(0xc2adff, 1.8); r.position.set(-2.2, 2.4, -3); snapScene.add(r);
         snapCam = new THREE.PerspectiveCamera(24, 1, 0.1, 40);
       }
       const render = ()=>{
@@ -11442,10 +11616,10 @@ window.TQ_APP_VERSION = 'v62';
       renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
       if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
       const scene = new THREE.Scene();
-      scene.add(new THREE.HemisphereLight(0xffe9d6, 0x2a1e4a, 1.2));
-      const key = new THREE.DirectionalLight(0xffd9a8, 1.25); key.position.set(0.5, 4, 6); scene.add(key);
-      const rl = new THREE.DirectionalLight(0xb48cff, 0.9); rl.position.set(-5, 3, -3); scene.add(rl);
-      const rr = new THREE.DirectionalLight(0xff9a50, 0.7); rr.position.set(5, 3, -3); scene.add(rr);
+      scene.add(new THREE.HemisphereLight(0xffe9d6, 0x2a1e4a, 1.4));
+      const key = new THREE.DirectionalLight(0xffd9a8, 2.0); key.position.set(0.5, 4, 6); scene.add(key);
+      const rl = new THREE.DirectionalLight(0xb48cff, 1.8); rl.position.set(-5, 3, -3); scene.add(rl);
+      const rr = new THREE.DirectionalLight(0xff9a50, 1.3); rr.position.set(5, 3, -3); scene.add(rr);
       const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 60);
       const ELEV = 0.16;
       const T = { L:null, R:null };
@@ -12062,19 +12236,26 @@ window.TQ_APP_VERSION = 'v62';
         m.sprite.material.needsUpdate = true;
         m.lastSrc = m.img.src;
       }
-      const r = m.img.getBoundingClientRect();
-      if (!r.width || !r.height){ m.group.visible = false; m.label.style.display = 'none'; m.hit = null; return; }
-      const fx = r.left + r.width/2 - canvasRect.left;
-      const fy = r.bottom - canvasRect.top;
+      const hide = ()=>{ m.group.visible = false; if (m.labelShown !== false){ m.label.style.display = 'none'; m.labelShown = false; } m.hit = null; };
+      if (!Hm || !isFinite(t._x) || !isFinite(t._y)) return hide();
+      // Placed through the map projection (like the houses) instead of measuring each hidden
+      // DOM marker every frame, which forced the browser to re-lay-out the page dozens of times
+      // a frame. A slow little wander around its spot keeps it looking alive.
+      const wa = now*(Math.PI*2/12) + m.seed, wx = t._x + Math.cos(wa)*4, wy = t._y + Math.sin(wa)*4;
+      const q = hmap(wx, wy); const fx = q[0], fy = q[1];
       // Off-screen culling (with margin so creatures don't pop at the edges).
-      if (fx < -120 || fx > vw+120 || fy < -40 || fy > vh+260){ m.group.visible = false; m.label.style.display = 'none'; m.hit = null; return; }
+      if (q[2] <= 0.05 || fx < -120 || fx > vw+120 || fy < -40 || fy > vh+260) return hide();
+      const qx = hmap(wx+1, wy), ax = qx[0]-fx, ay = qx[1]-fy;
+      const qy = hmap(wx, wy+1), bx = qy[0]-fx, by = qy[1]-fy;
+      const T2 = ax*ax+ay*ay+bx*bx+by*by, D2 = ax*by-ay*bx, disc = Math.sqrt(Math.max(0, T2*T2-4*D2*D2));
+      const sMax = Math.sqrt((T2+disc)/2), sMin = Math.sqrt(Math.max(0,(T2-disc)/2));
       m.group.visible = true;
 
-      const s = r.width / PLANE_IMG_W;                                    // screen px per ground unit here
+      const s = sMax;                                                     // screen px per ground unit here
       // Ground foreshortening, measured from the tilt — capped so the ring always reads as
       // an ellipse lying on the ground (even at the map's flattest, near top-down zoom
       // levels) rather than a circle standing up behind the creature like a halo.
-      const k = Math.max(0.22, Math.min(0.42, (r.height / r.width) / 1.2));
+      const k = Math.max(0.22, Math.min(0.42, sMin/(sMax||1)));
       const tex = m.sprite.material.map;
       const aspect = (tex && tex.image && tex.image.width) ? tex.image.width / tex.image.height : (300/360);
       const W = PLANE_IMG_W * s * SIZE, H = W / aspect;
@@ -12122,9 +12303,10 @@ window.TQ_APP_VERSION = 'v62';
         m.lastTracked = tracked;
       }
       const ls = Math.max(0.8, Math.min(1.15, s));
-      m.label.style.display = '';
-      m.label.style.transform = 'translate(' + fx.toFixed(1) + 'px,' + (fy + R*k + 3).toFixed(1) + 'px) translateX(-50%) scale(' + ls.toFixed(2) + ')';
-      m.label.style.zIndex = String(1000 + Math.round(fy));
+      if (m.labelShown !== true){ m.label.style.display = ''; m.labelShown = true; }
+      const tf = 'translate(' + fx.toFixed(1) + 'px,' + (fy + R*k + 3).toFixed(1) + 'px) translateX(-50%) scale(' + ls.toFixed(2) + ')', zi = String(1000 + Math.round(fy));
+      if (tf !== m.lastTf){ m.label.style.transform = tf; m.lastTf = tf; }
+      if (zi !== m.lastZi){ m.label.style.zIndex = zi; m.lastZi = zi; }
     }
 
     function disposeMount(m){
@@ -12274,9 +12456,9 @@ window.TQ_APP_VERSION = 'v62';
     });
 
     // If this phone can't keep up, the 3D layer is drawn a little less sharp (never below 1x).
-    let govT0 = 0, govN = 0, govLast = 0, govDrops = 0;
+    let govT0 = 0, govN = 0, govLast = 0, govDrops = 0, calmTick = 0;
     function perfGovernor(t){
-      if (!govLast || t - govLast > 250){ govT0 = t; govN = 0; }      // first frame, or back from a pause/panel
+      if (!govLast || t - govLast > 250 || tqCameraCalm()){ govT0 = t; govN = 0; govLast = t; return; }   // judged only while the camera moves (idle frames are halved on purpose)
       govLast = t; govN++;
       if (t - govT0 < 6000) return;
       const fps = govN*1000/(t - govT0); govT0 = t; govN = 0;
@@ -12289,16 +12471,24 @@ window.TQ_APP_VERSION = 'v62';
     function syncFrame(){
       requestAnimationFrame(syncFrame);
       if (window.__tqLowFps && window.__tqLowFps() && (++lowTick & 1)) return;     // Battery saver: every other frame
-      const gameScreen = document.querySelector('.screen[data-screen="game"]');
-      if (!gameScreen || !gameScreen.classList.contains('active')) return;
       // the map is fully covered during a battle or a full-screen panel: don't draw it
-      if (document.querySelector('#battle-screen.active, .panel-screen.active')) return;
+      if (tqMapCovered()) return;
+      // camera at rest: the idle animation (swaying trees, hopping Totos) runs at 30 fps
+      if (tqCameraCalm() && (++calmTick & 1)) return;
       const gs = window.__gameState;
       const list = gs && Array.isArray(gs.wildTotos) ? gs.wildTotos : [];
 
       const mr = mapView.getBoundingClientRect();
       if (Math.round(mr.width) !== vw || Math.round(mr.height) !== vh) resize();
       const canvasRect = canvas.getBoundingClientRect();
+
+      // where the map plane is on screen this frame (everything below is projected through it)
+      const ppos = gs && gs.playerWorldPos;
+      Hm = null;
+      if (ppos && ensureMarkers(ppos)){
+        const dst = markerEls.map(d=>{ const r = d.getBoundingClientRect(); return [r.left+r.width/2-canvasRect.left, r.top+r.height/2-canvasRect.top]; });
+        Hm = solveHomography([[-1,-1],[1,-1],[1,1],[-1,1]], dst);
+      }
 
       const now = performance.now()/1000;
       const liveIds = new Set();
@@ -12316,13 +12506,8 @@ window.TQ_APP_VERSION = 'v62';
       mounts.forEach((m, id)=>{
         if (!liveIds.has(id)){ disposeMount(m); mounts.delete(id); }
       });
-      // standing map props (houses, trees, tombstones…)
-      const ppos = gs && gs.playerWorldPos;
-      if (ppos && ensureMarkers(ppos)){
-        const dst = markerEls.map(d=>{ const r = d.getBoundingClientRect(); return [r.left+r.width/2-canvasRect.left, r.top+r.height/2-canvasRect.top]; });
-        Hm = solveHomography([[-1,-1],[1,-1],[1,1],[-1,1]], dst);
-        if (Hm){ syncProps(ppos, now); updateProps(now); syncGyms(); updateGyms(now); syncRivers(ppos); updateRivers(now, ppos); }
-      }
+      // standing map props (houses, trees, tombstones…), gyms and flowing water
+      if (Hm){ syncProps(ppos, now); updateProps(now); syncGyms(); updateGyms(now); syncRivers(ppos); updateRivers(now, ppos); }
       perfGovernor(performance.now());
       renderer.render(scene, camera);
     }

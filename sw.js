@@ -1,13 +1,18 @@
-const CACHE_NAME = 'totoquest-v62';
+const CACHE_NAME = 'totoquest-v63';
 const ASSETS = [
+'./assets/wardrobe/rank1-legs-thumb.png',
+'./assets/wardrobe/rank1-legs.jpg',
+'./assets/wardrobe/rank1-shoes-thumb.png',
+'./assets/wardrobe/rank1-shoe-toe.jpg',
+'./assets/wardrobe/rank1-shoe-side.jpg',
 './assets/wardrobe/rank1-staff-thumb.png',
 './assets/wardrobe/rank1-hat-thumb.png',
 './assets/wardrobe/rank1-shirt-thumb.png',
 './assets/wardrobe/rank1-staff-pumpkin.jpg',
 './assets/wardrobe/rank1-hat-brim.jpg',
-'./assets/wardrobe/rank1-hat-cone.jpg',
+'./assets/wardrobe/rank1-hat-cone-pvp.jpg',
 './assets/wardrobe/rank1-sleeve.jpg',
-'./assets/wardrobe/rank1-shirt.jpg',
+'./assets/wardrobe/rank1-shirt-pvp.jpg',
 './assets/items/gem.webp',
 './assets/items/candy.webp',
 './assets/items/gem-sm.png',
