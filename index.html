@@ -234,6 +234,11 @@
   .set-wide.danger { background:none; color:#e0405c; margin-top:0; font-size:13px; }
   .set-version { text-align:center; font-size:11.5px; font-weight:700; color:#8a7aa8; padding:4px 0 10px; }
   #toto-root.no-weatherfx .weather-fx, #toto-root.no-weatherfx .clouds, #toto-root.gfx-low .clouds { display:none !important; }
+  /* flowing rivers and streams (stepped, so the map isn't repainted every frame) */
+  #terrain-svg .wflow { animation: wflow 2.8s steps(28) infinite; }
+  #terrain-svg .wflow2 { animation: wflow 4.6s steps(46) infinite; }
+  @keyframes wflow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -46; } }
+  #toto-root.gfx-low #terrain-svg .wflow, #toto-root.gfx-low #terrain-svg .wflow2 { animation:none; }
 
   /* ---------- SIGN-IN ---------- */
   .google-slot { display:flex; justify-content:center; min-height:44px; }
@@ -566,6 +571,7 @@
   .toto-node.is-3d-mounted .node-shadow,
   .toto-node.is-3d-mounted .cp-tag,
   .toto-node.is-3d-mounted .dist-tag { visibility:hidden; }
+  .gym-node.is-3d-mounted .gym3, .gym-node.is-3d-mounted .node-ring, .gym-node.is-3d-mounted .node-shadow { visibility:hidden; }
   /* The 3D layer reads the img's rect every frame for its foot point/scale — stop the
      2D bob/squash/tilt animations on it so that measurement is steady (the small
      wander-in-a-circle on .node-orbit stays, and carries the 3D creature with it). */
@@ -675,6 +681,34 @@
   }
 
   .toto-node .cp-tag { background:#222; color:#fff; font-size:9px; font-weight:800; padding:1px 6px; border-radius:8px; margin-top:2px; display:inline-block; }
+  /* v60 raid gym: the gym art with its guardian on top — bobbing, swaying, and every few
+     seconds rearing up with a burst of light and a shockwave */
+  .gym3 { position:relative; width:124px; height:109px; margin:0 auto; filter:drop-shadow(0 6px 6px rgba(0,0,0,0.45)); }
+  .gym3-art { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+  .gym3-top { position:absolute; left:49%; top:22%; width:0; height:0; }
+  .gym3-boss { position:absolute; left:-27px; bottom:-4px; width:54px; height:58px; transform-origin:50% 100%; animation: gymBoss 3.2s ease-in-out infinite; }
+  .gym3-boss svg, .gym3-boss img { width:100%; height:100%; display:block; object-fit:contain; object-position:50% 100%; filter:drop-shadow(0 3px 3px rgba(0,0,0,0.45)); }
+  @keyframes gymBoss {
+    0%,100% { transform:translateY(0) rotate(0deg) scale(1,1); }
+    12% { transform:translateY(0) rotate(0deg) scale(1.06,0.94); }
+    24% { transform:translateY(-9px) rotate(-6deg) scale(0.97,1.05); }
+    34% { transform:translateY(-12px) rotate(4deg) scale(1,1.02); }
+    46% { transform:translateY(0) rotate(0deg) scale(1.07,0.93); }
+    56% { transform:translateY(0) rotate(-5deg) scale(1,1); }
+    66% { transform:translateY(0) rotate(5deg) scale(1,1); }
+    76% { transform:translateY(0) rotate(-3deg) scale(1,1); }
+    86% { transform:translateY(-3px) rotate(0deg) scale(1.03,0.98); } }
+  .gym3-aura { position:absolute; left:-36px; bottom:-14px; width:72px; height:26px; border-radius:50%; background:radial-gradient(closest-side, rgba(255,190,90,0.75), rgba(255,140,40,0.25) 60%, rgba(255,140,40,0)); animation: gymAura 3.2s ease-in-out infinite; }
+  .gym3.gt-mythical .gym3-aura { background:radial-gradient(closest-side, rgba(210,140,255,0.8), rgba(160,80,255,0.28) 60%, rgba(160,80,255,0)); }
+  @keyframes gymAura { 0%,100%{ opacity:0.7; transform:scale(1); } 46%{ opacity:1; transform:scale(1.25); } }
+  .gym3-wave { position:absolute; left:-30px; bottom:-10px; width:60px; height:20px; border-radius:50%; border:2px solid rgba(255,220,150,0.9); opacity:0; animation: gymWave 3.2s ease-out infinite; }
+  .gym3.gt-mythical .gym3-wave { border-color:rgba(220,170,255,0.95); }
+  @keyframes gymWave { 0%,44%{ opacity:0; transform:scale(0.4); } 48%{ opacity:1; transform:scale(0.6); } 75%{ opacity:0; transform:scale(1.9); } 100%{ opacity:0; } }
+  .gym3-ember { position:absolute; bottom:0; width:4px; height:4px; border-radius:50%; background:#ffcf6b; box-shadow:0 0 6px #ff9a2a; opacity:0; animation: gymEmber 2.8s linear infinite; }
+  .gym3.gt-mythical .gym3-ember { background:#e2b6ff; box-shadow:0 0 6px #b06bff; }
+  .gym3-ember.e1 { left:-22px; animation-delay:0s; } .gym3-ember.e2 { left:14px; animation-delay:0.7s; } .gym3-ember.e3 { left:-6px; animation-delay:1.4s; } .gym3-ember.e4 { left:24px; animation-delay:2.1s; }
+  @keyframes gymEmber { 0%{ opacity:0; transform:translateY(0); } 15%{ opacity:1; } 100%{ opacity:0; transform:translate(-6px,-62px); } }
+  #toto-root.gfx-low .gym3-ember, #toto-root.gfx-low .gym3-wave { display:none; }
   .pumpkin-tower { position:relative; width:60px; height:78px; margin:0 auto; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.4)); animation: floaty 2.6s ease-in-out infinite; }
   .tower-svg { width:100%; height:100%; display:block; }
   .tower-boss { position:absolute; top:-16px; left:50%; transform:translateX(-50%); width:34px; height:34px; }
@@ -5573,7 +5607,7 @@
   }
 
   const GYM_NAMES = ['Ashfall Gym','Frostpeak Gym','Thunder Gym','Bramble Gym','Cinderpeak Gym','Mossmere Gym','Stormvale Gym','Hollowreach Gym'];
-  const MAX_WILD_TOTOS = 38, MAX_GYMS = 10; // raised from 24 now that the painted-art totos render as plain <img>s (cheaper than the animated multi-path SVGs) — see performance notes elsewhere in this file before raising further
+  const MAX_WILD_TOTOS = 38, MAX_GYMS = 18; // raised from 24 now that the painted-art totos render as plain <img>s (cheaper than the animated multi-path SVGs) — see performance notes elsewhere in this file before raising further
 
   function appendTotoNode(t){
     const node = document.createElement('div'); node.className='toto-node';
@@ -5678,6 +5712,62 @@
       ensureChunksLoaded();
     }, 15000);
   }
+  // Raid gyms at popular places: every park, sports ground and landmark the map shows can hold
+  // a gym (the biggest and best-known first), at least ~150 m apart, up to 3 per area. The
+  // same spot always gets the same gym and the same guardian Toto. Areas with no such places
+  // still get the odd gym so nowhere is left without one.
+  function withSeededRandom(seed, fn){ const orig = Math.random; Math.random = seededRand(seed); try { return fn(); } finally { Math.random = orig; } }
+  function placeGymsForChunk(cx, cy, sites, baseSeed){
+    if (!state.geoAnchor) return;
+    const x0 = worldPosFromMeters(cx*CHUNK_SIZE_M, 0).x, x1 = worldPosFromMeters((cx+1)*CHUNK_SIZE_M, 0).x;
+    const yA = worldPosFromMeters(0, cy*CHUNK_SIZE_M).y, yB = worldPosFromMeters(0, (cy+1)*CHUNK_SIZE_M).y;
+    const inChunk = s=> s.x >= Math.min(x0,x1) && s.x < Math.max(x0,x1) && s.y >= Math.min(yA,yB) && s.y < Math.max(yA,yB);
+    const SPACING = 150*GPS_SCALE;
+    const free = s=> !state.gyms.some(g=> Math.hypot(g.x-s.x, g.y-s.y) < SPACING);
+    const list = (sites||[]).filter(s=> s && isFinite(s.x) && inChunk(s)).sort((a,b)=> (b.score||0) - (a.score||0));
+    let made = 0;
+    for (const s of list){
+      if (made >= 3) break;
+      if (!free(s)) continue;
+      addGym(s.x, s.y, s.name, s.kind, true);
+      made++;
+    }
+    if (!made && rand(baseSeed+90) < 0.15){
+      const east = (cx+0.5)*CHUNK_SIZE_M + (rand(baseSeed+91)-0.5)*CHUNK_SIZE_M*0.6;
+      const north = (cy+0.5)*CHUNK_SIZE_M + (rand(baseSeed+92)-0.5)*CHUNK_SIZE_M*0.6;
+      const pos = worldPosFromMeters(east, north);
+      if (free(pos)) addGym(pos.x, pos.y, '', 'wild', false);
+    }
+  }
+  function addGym(x, y, siteName, kind, atPark){
+    // a spot's own seed (from its real position), so it always holds the same gym
+    const ll = latLonFromMeters((x - WORLD_CENTER)/GPS_SCALE, (WORLD_CENTER - y)/GPS_SCALE);
+    const seed = (Math.round(ll.lat*5000)*7919 + Math.round(ll.lon*5000)*104729) | 0;
+    if (state.gyms.length >= MAX_GYMS){
+      const far = state.gyms.map(g=> ({ g, d:distanceMetersToWorldPoint(g.x, g.y) })).sort((a,b)=> b.d-a.d)[0];
+      if (!far || far.d < 600) return null;
+      removeGym(far.g);
+    }
+    const boss = withSeededRandom(seed, ()=> makeToto(seededRand(seed+7)() < 0.5 ? 'legendary' : 'mythical'));
+    const label = siteName ? siteName.replace(/\s+(Gym)$/i, '') + ' Gym' : GYM_NAMES[Math.abs(seed) % GYM_NAMES.length];
+    const gym = { id:'gym'+seed, x, y, boss, name:label.slice(0, 40), site:kind, atPark };
+    state.gyms.push(gym);
+    appendGymNode(gym);
+    renderBattleList();
+    return gym;
+  }
+  function removeGym(g){
+    const i = state.gyms.indexOf(g); if (i >= 0) state.gyms.splice(i, 1);
+    if (g._node && g._node.parentNode) g._node.remove();
+    if (g._ringEl && g._ringEl.parentNode) g._ringEl.remove();
+  }
+  // the gym from the owner's art, with its guardian Toto standing on top
+  function gymArtHtml(boss){
+    const tierCls = boss && boss.tier ? ' gt-'+boss.tier : '';
+    return '<div class="gym3'+tierCls+'"><img class="gym3-art" src="assets/gym/gym.webp" alt="" draggable="false">'
+      + '<div class="gym3-top"><div class="gym3-aura"></div><div class="gym3-wave"></div><div class="gym3-boss">'+spriteMarkup(boss)+'</div>'
+      + '<i class="gym3-ember e1"></i><i class="gym3-ember e2"></i><i class="gym3-ember e3"></i><i class="gym3-ember e4"></i></div></div>';
+  }
   function appendGymNode(gym){
     const ring = document.createElement('div'); ring.className='gym-radius';
     const ringPx = GYM_RADIUS_M*2*GPS_SCALE;
@@ -5686,7 +5776,7 @@
     gym._ringEl = ring;
     const node = document.createElement('div'); node.className='gym-node';
     node.style.left=gym.x+'px'; node.style.top=gym.y+'px';
-    node.innerHTML = '<div class="node-ring"></div><div class="node-shadow" style="width:34px; height:11px;"></div><div class="node-spin"><div class="node-orbit"><div class="node-orbit-fix">'+pumpkinTowerHtml(spriteMarkup(gym.boss))+'</div></div><div class="gym-label">'+gym.name+'</div><div class="dist-tag">…m</div></div>';
+    node.innerHTML = '<div class="node-ring"></div><div class="node-shadow" style="width:34px; height:11px;"></div><div class="node-spin"><div class="node-orbit"><div class="node-orbit-fix">'+gymArtHtml(gym.boss)+'</div></div><div class="gym-label">'+escapeHtml(gym.name)+'</div><div class="dist-tag">…m</div></div>';
     gym._distEl = node.querySelector('.dist-tag');
     gym._node = node;
     node.onclick = ()=> tryStartGymRaid(gym);
@@ -5897,35 +5987,17 @@
       }
     }
 
-    // Gym spawns immediately at a walkable fallback spot — no waiting on the network for it
-    // to appear — then quietly slides onto a real nearby park if the terrain fetch finds one.
+    // Gyms stand at the real map's popular places — parks, sports grounds, playgrounds and
+    // landmarks — like other GPS games; see placeGymsForChunk() once the map has loaded.
     let gym = null;
-    if (state.gyms.length < MAX_GYMS && rand(baseSeed+90) < 0.22){
-      const east = centerEast + (rand(baseSeed+91)-0.5)*CHUNK_SIZE_M*0.6;
-      const north = centerNorth + (rand(baseSeed+92)-0.5)*CHUNK_SIZE_M*0.6;
-      const pos = worldPosFromMeters(east, north);
-      const boss = makeToto(rand(baseSeed+93)<0.5 ? 'legendary' : 'mythical');
-      gym = { id:uid(), x:pos.x, y:pos.y, boss, name: GYM_NAMES[Math.floor(rand(baseSeed+94)*GYM_NAMES.length)], atPark:false };
-      state.gyms.push(gym);
-      appendGymNode(gym);
-      renderBattleList();
-    }
 
     // Live roads/buildings/parks/water — from the fixed map tile(s) this chunk touches
     // (see ensureRegionTerrain): drawn straight from the phone when saved, otherwise
     // downloaded through the shared, rate-limit-friendly queue.
     try {
-      const parks = await ensureRegionTerrain(cx, cy);
-      if (gym && parks.length){
-        // the nearest park that doesn't already have a gym (two gyms never share a park)
-        const free = parks.filter(pk=> !state.gyms.some(o=> o !== gym && o.atPark && Math.hypot(o.x-pk.x, o.y-pk.y) < 60*GPS_SCALE))
-          .map(pk=> ({ pk, d:Math.hypot(pk.x-gym.x, pk.y-gym.y) })).filter(o=> o.d < 600*GPS_SCALE).sort((a,b)=> a.d-b.d);
-        if (free.length){
-          gym.x = free[0].pk.x; gym.y = free[0].pk.y; gym.atPark = true;
-          refreshGymNode(gym);
-        }
-      }
-    } catch(e){ console.warn('terrain fetch failed', e); }
+      const sites = await ensureRegionTerrain(cx, cy);
+      placeGymsForChunk(cx, cy, sites, baseSeed);
+    } catch(e){ console.warn('terrain fetch failed', e); placeGymsForChunk(cx, cy, [], baseSeed); }
 
     refreshNodeDistances();
   }
@@ -6051,7 +6123,7 @@
           .then(j=>{
             clearTimeout(timer);
             if (!j || !Array.isArray(j.elements)) throw new Error('unexpected reply');
-            if (j.remark && /error|timed out|out of memory/i.test(j.remark) && !j.elements.length) throw new Error(j.remark);
+            if (j.remark && /runtime error|timed out|out of memory/i.test(j.remark)) throw new Error(j.remark);
             if (done) return;
             done = true; overpassCursor = idx;
             ctrls.forEach(c=>{ if (c !== ctrl) try { c.abort(); } catch(e){} });
@@ -6266,6 +6338,11 @@
     + '</pattern>'
     // Rail ties.
     + '<pattern id="pat-ties" patternUnits="userSpaceOnUse" width="12" height="12"><rect width="12" height="12" fill="none"/></pattern>'
+    // Ripples on lakes and ponds, drifting slowly.
+    + '<pattern id="pat-ripple" patternUnits="userSpaceOnUse" width="60" height="30">'
+    +   '<path d="M4 9 q7 -5 14 0 M30 22 q8 -5 16 0 M46 6 q5 -3 10 0" stroke="#9cc8f0" stroke-opacity="0.32" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+    +   '<animateTransform attributeName="patternTransform" type="translate" values="0 0;2 1;4 2;6 3;8 4;10 5;12 6;14 7;16 8;18 9;20 10;22 11;24 12;26 13;28 14;30 15;32 16;34 17;36 18;38 19;40 20;42 21;44 22;46 23;48 24;50 25;52 26;54 27;56 28;58 29;60 30" dur="9s" calcMode="discrete" repeatCount="indefinite"/>'
+    + '</pattern>'
     + '</defs>';
   function ensureTerrainDefs(){
     const svg = $('#terrain-svg');
@@ -6419,7 +6496,14 @@
     const rnd = seededRand(Array.from(String(regionKeyStr)).reduce((h,c)=>h*31+c.charCodeAt(0),7));
     const M2 = GPS_SCALE*GPS_SCALE;
     elements.forEach(el=>{
-      if (el.type === 'poi'){ const q = project(el.lat, el.lon); stopCands.push({ x:q.x, y:q.y, pri:4, name:stopPoiName(el.tags), id:el.id }); return; }
+      if (el.type === 'poi'){
+        const q = project(el.lat, el.lon), nm = stopPoiName(el.tags);
+        stopCands.push({ x:q.x, y:q.y, pri:4, name:nm, id:el.id });
+        const tg = el.tags || {};
+        if (/^(townhall|library|place_of_worship|community_centre|theatre|arts_centre)$/.test(tg.amenity||'') || /^(attraction|museum)$/.test(tg.tourism||'') || /^(monument|memorial|statue|ruins|church)$/.test(tg.historic||'') || /^(lighthouse|water_tower|windmill)$/.test(tg.man_made||''))
+          parkCentroids.push({ x:q.x, y:q.y, name:String(nm||'').slice(0,34), kind:'landmark', score:6000 });
+        return;
+      }
       if (!el.geometry || el.geometry.length<2) return;
       const t = el.tags || {};
       let geom = el.geometry;
@@ -6456,7 +6540,11 @@
       if (t.railway==='rail'){ L.rail.push(line('#2a2530', 16)); L.rail.push(line('#6f6878', 3.5, ' stroke-dasharray="3 7"')); L.rail.push(line('#9a93a6', 1.6)); return; }
       if (t.waterway){
         const w = t.waterway==='river' ? 30 : (t.waterway==='canal' ? 24 : 12);
-        L.water.push(line('#22385a', w+6)); L.water.push(line('#35577f', w)); return;
+        L.water.push(line('#22385a', w+6)); L.water.push(line('#35577f', w));
+        L.water.push(line('#4f79a6', w*0.55, ' stroke-opacity="0.55"'));
+        L.water.push(line('#a9d2f5', Math.max(2, w*0.12), ' class="wflow" stroke-dasharray="14 32" stroke-opacity="0.55"'));
+        L.water.push(line('#d8ecff', Math.max(1.2, w*0.06), ' class="wflow2" stroke-dasharray="6 40" stroke-dashoffset="20" stroke-opacity="0.6"'));
+        return;
       }
       if (!closed) return;
       const area = polyArea(P), areaM2 = area/M2;
@@ -6474,7 +6562,9 @@
       if (/^(commercial|retail|industrial)$/.test(t.landuse||'') || /^(school|college|university|hospital|kindergarten|place_of_worship)$/.test(t.amenity||'')){ noBuild.push(withBB(P)); return; }
       noBuild.push(withBB(P));   // everything below (water, fields, parks, woods, lots…) stays house-free
       if (t.natural==='water' || t.landuse==='reservoir' || t.leisure==='swimming_pool'){
-        L.water.push(poly(t.leisure==='swimming_pool' ? '#3d86b8' : '#2c4a72', '#4a6f9e', 4)); return;
+        L.water.push(poly(t.leisure==='swimming_pool' ? '#3d86b8' : '#2c4a72', '#4a6f9e', 4));
+        L.water.push(poly('url(#pat-ripple)', null, 0, ' class="wripple"'));
+        return;
       }
       const sportTag = String(t.sport||'').toLowerCase();
       if (t.leisure==='pitch' || (/baseball|softball/.test(sportTag) && t.leisure!=='sports_centre' && t.leisure!=='park')){
@@ -6498,13 +6588,16 @@
         return;
       }
       if (t.amenity==='parking'){ L.land.push(poly('#27232d', '#3a3442', 3)); return; }
-      if (t.leisure==='playground'){ L.land.push(poly('#6e5a3e', '#4a3b28', 3)); clearPolys.push(P); const c = polyCentroid(P); stopCands.push({ x:c.x, y:c.y, pri:3, name:String(t.name||'Playground').slice(0,40), id:el.id }); return; }
+      if (t.leisure==='playground'){ L.land.push(poly('#6e5a3e', '#4a3b28', 3)); clearPolys.push(P); const c = polyCentroid(P); parkCentroids.push({ x:c.x, y:c.y, name:String(t.name||'').slice(0,34), kind:'playground', score:2500 }); stopCands.push({ x:c.x, y:c.y, pri:3, name:String(t.name||'Playground').slice(0,40), id:el.id }); return; }
       if (t.leisure==='track'){ L.land.push(poly('#8a4234', '#5a2a22', 3)); return; }
       if (t.leisure==='park' || t.leisure==='garden' || t.leisure==='dog_park' || t.leisure==='golf_course' || t.leisure==='sports_centre' || t.leisure==='stadium'
           || /^(recreation_ground|grass|meadow|village_green)$/.test(t.landuse||'')){
         L.land.push(poly('#38584a', '#27403a', 3));
+        if (t.leisure==='park' || t.leisure==='garden' || t.landuse==='recreation_ground' || t.leisure==='sports_centre' || t.leisure==='stadium'){
+          const c = polyCentroid(P);
+          if (areaM2 >= 900) parkCentroids.push({ x:c.x, y:c.y, name:String(t.name||'').slice(0,34), kind: /sports_centre|stadium/.test(t.leisure||'') ? 'sports' : 'park', score: Math.min(areaM2, 60000) + (t.name ? 4000 : 0) });
+        }
         if (t.leisure==='park' || t.leisure==='garden' || t.landuse==='recreation_ground'){
-          parkCentroids.push(polyCentroid(P));
           parkAreas.push({ P, name:String(t.name||(t.leisure==='garden'?'Garden':'Park')).slice(0,40), id:el.id, areaM2 });
           scatterInPoly(P, Math.min(8, Math.max(1, Math.round(areaM2/1100))), rnd, 40).forEach(q=> props.push({ x:q.x, y:q.y, kind: rnd()<0.25 ? 'deadtree' : 'tree', w:44+rnd()*16, seed:Math.floor(rnd()*1e6) }));
         }
@@ -6512,6 +6605,7 @@
       }
     });
     placeBuildingProps();
+    placeFillerHouses();
     placePumpkinStops();
     // keep trees/tombs off ball fields, courts and playgrounds
     const isGreenery = k=> k==='tree' || k==='deadtree' || k==='pine';
@@ -6571,6 +6665,64 @@
         const cfg = PROP_W[kind];
         const w = Math.max(cfg[0], Math.min(cfg[1], Math.sqrt(b.area)*cfg[2]));
         props.push({ x:b.x, y:b.y, kind, w, seed:b.seed });
+      });
+    }
+
+    // ---- houses along streets the map hasn't drawn buildings for yet ----
+    // Plenty of neighbourhoods have their streets on OpenStreetMap but not their houses, which
+    // left whole streets empty. Along residential streets, wherever no real building stands
+    // close by, a house stands back from the road on each side, one lot apart. Real mapped
+    // buildings always win, and fields, woods, water, parks, lots and shops stay house-free.
+    function placeFillerHouses(){
+      const MP = GPS_SCALE;
+      const inRes = (x, y)=> resPolys.some(o=> x>=o.x0 && x<=o.x1 && y>=o.y0 && y<=o.y1 && pointInPoly(x, y, o.P));
+      const streets = roads.filter(r=> !r.path && (/^(residential|living_street)$/.test(r.hw||'')
+        || (/^(unclassified|tertiary)$/.test(r.hw||'') && r.P.some(q=> inRes(q.x, q.y)))));
+      if (!streets.length) return;
+      // spatial grid of real buildings (40 m cells)
+      const CELL = 40*MP, grid = new Map(), gk = (x, y)=> Math.floor(x/CELL)+','+Math.floor(y/CELL);
+      bldgs.forEach(b=>{ const k = gk(b.x, b.y); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(b); });
+      const nearBuilding = (x, y, R)=>{
+        const cx = Math.floor(x/CELL), cy = Math.floor(y/CELL);
+        for (let i=-1;i<=1;i++) for (let j=-1;j<=1;j++){ const list = grid.get((cx+i)+','+(cy+j)); if (list && list.some(b=> Math.hypot(b.x-x, b.y-y) < R + b.r)) return true; }
+        return false;
+      };
+      const blocked = (x, y, list)=> list.some(o=> x>=o.x0 && x<=o.x1 && y>=o.y0 && y<=o.y1 && pointInPoly(x, y, o.P));
+      const segs = [];
+      roads.forEach(r=>{ for (let i=1;i<r.P.length;i++) segs.push({ a:r.P[i-1], b:r.P[i], half:r.half }); });
+      const clearOfRoads = (x, y, gap)=>{
+        for (const s of segs){
+          const dx = s.b.x-s.a.x, dy = s.b.y-s.a.y, L2 = dx*dx+dy*dy;
+          let u = L2 ? ((x-s.a.x)*dx+(y-s.a.y)*dy)/L2 : 0; u = Math.max(0, Math.min(1, u));
+          if (Math.hypot(x-(s.a.x+u*dx), y-(s.a.y+u*dy)) < s.half + gap) return false;
+        }
+        return true;
+      };
+      const placed = [];
+      const STEP = 27*MP, SET = 12*MP;
+      streets.forEach(r=>{
+        let carry = 9*MP;
+        for (let i=1;i<r.P.length;i++){
+          const a = r.P[i-1], b = r.P[i], len = Math.hypot(b.x-a.x, b.y-a.y);
+          if (len < 1) continue;
+          const ux = (b.x-a.x)/len, uy = (b.y-a.y)/len;
+          let d = carry;
+          for (; d < len; d += STEP){
+            const px = a.x + ux*d, py = a.y + uy*d;
+            [-1, 1].forEach(side=>{
+              const x = px - uy*side*(r.half + SET), y = py + ux*side*(r.half + SET);
+              if (nearBuilding(x, y, 15*MP)) return;
+              if (placed.some(q=> Math.hypot(q.x-x, q.y-y) < 21*MP)) return;
+              if (blocked(x, y, noBuild) || blocked(x, y, farmPolys)) return;
+              if (!clearOfRoads(x, y, 6*MP)) return;
+              const seed = Math.floor(rnd()*1e6);
+              const kind = ['house1','house2','house3','house1','house2'][seed % 5], cfg = PROP_W[kind];
+              placed.push({ x, y });
+              props.push({ x, y, kind, w: cfg[0] + (cfg[1]-cfg[0])*0.32 + (seed % 9), seed, filler:true });
+            });
+          }
+          carry = d - len;
+        }
       });
     }
 
@@ -7318,7 +7470,7 @@
     const inRange = distM <= GYM_RADIUS_M;
     return '<div class="toto-card shrine-row" data-gym="'+g.id+'">'+
       '<div class="sp'+glowClassFor(g.boss.tier)+'">'+spriteMarkup(g.boss)+'</div>'+
-      '<div class="info"><div class="nm" style="font-size:13px;">'+g.name+'</div><div class="cp">'+g.boss.name+' · PWR '+g.boss.cp+' · '+g.boss.tier+'</div></div>'+
+      '<div class="info"><div class="nm" style="font-size:13px;">'+escapeHtml(g.name)+'</div><div class="cp">'+g.boss.name+' · PWR '+g.boss.cp+' · '+g.boss.tier+'</div></div>'+
       '<div><span class="range-tag '+(inRange?'range-in':'range-out')+'">'+fmtDist(distM)+' '+(inRange?'· In range':'· Too far')+'</span></div>'+
     '</div>';
   }
@@ -8145,7 +8297,7 @@
 
   function renderModeSelectStep(target){
     $('#setup-card').innerHTML =
-      '<div class="setup-title">'+target.name+'</div>'+
+      '<div class="setup-title">'+escapeHtml(target.name)+'</div>'+
       '<div class="setup-sub">'+target.label+': '+target.boss.name+' · PWR '+target.boss.cp+' · '+target.boss.tier+'</div>'+
       (target.label==='Champion' ? '<div class="setup-pass"><img src="'+ITEM_INFO.raidPass.img+'" alt="">Uses 1 Raid Pass · you have '+(ensureItems().raidPass||0)+'</div>' : '')+
       '<div class="mode-options">'+
@@ -9583,7 +9735,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v59';
+window.TQ_APP_VERSION = 'v60';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -11700,6 +11852,102 @@ window.TQ_APP_VERSION = 'v59';
       if (m.label && m.label.parentNode) m.label.parentNode.removeChild(m.label);
     }
 
+    // ---- raid gyms: the gym art standing upright with its guardian Toto on top (v60) ----
+    // The guardian hops, sways and every few seconds rears up with a flash of light and a
+    // shockwave ring; embers drift up off the platform.
+    const gymMeshes = new Map();
+    let gymArtRec = null;
+    function gymArtTex(){
+      if (gymArtRec) return gymArtRec;
+      const rec = { mat:null, aspect:560/493 };
+      const img = new Image();
+      img.onload = ()=>{ const t = new THREE.Texture(img); if ('colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.needsUpdate = true; rec.mat = mat({ map:t }); };
+      img.src = 'assets/gym/gym.webp';
+      return (gymArtRec = rec);
+    }
+    const GYM_GLOW = { legendary:0xffb347, mythical:0xc77dff, eternal:0xffe066, normal:0xffb347 };
+    function syncGyms(){
+      const gs = window.__gameState, list = (gs && Array.isArray(gs.gyms)) ? gs.gyms : [];
+      const ids = new Set();
+      list.forEach(g=>{
+        if (!g || !g._node || !g._node.isConnected) return;
+        ids.add(g.id);
+        let m = gymMeshes.get(g.id);
+        if (m && m.bossRef !== g.boss){ disposeGym(m); gymMeshes.delete(g.id); m = null; }
+        if (m) return;
+        const img = g._node.querySelector('.gym3-boss img.creature-img');
+        const col = GYM_GLOW[g.boss && g.boss.tier] || GYM_GLOW.legendary;
+        const group = new THREE.Group();
+        const shadow = new THREE.Mesh(GEO_DISC, mat({ map:shadowTex, opacity:0.9 }));
+        const art = new THREE.Mesh(GEO_SPRITE, mat({ opacity:0 }));
+        const aura = new THREE.Mesh(GEO_DISC, mat({ map:glowTex, color:col, blending:THREE.AdditiveBlending, opacity:0.9 }));
+        const wave = new THREE.Mesh(GEO_RING, mat({ color:col, opacity:0 }));
+        const halo = new THREE.Mesh(GEO_SPRITE, mat({ map:glowTex, color:col, blending:THREE.AdditiveBlending, opacity:0.55 }));
+        const boss = img ? new THREE.Mesh(GEO_SPRITE, mat({ map:getSpriteTexture(img.src) })) : null;
+        const embers = [0,1,2,3,4].map(()=> new THREE.Mesh(GEO_DISC, mat({ color:col, blending:THREE.AdditiveBlending, opacity:0 })));
+        group.add(shadow, art, aura, wave, halo); if (boss) group.add(boss); embers.forEach(e=> group.add(e));
+        scene.add(group);
+        if (boss) g._node.classList.add('is-3d-mounted');
+        gymMeshes.set(g.id, { group, shadow, art, aura, wave, halo, boss, embers, bossRef:g.boss, g, img, ph:(Math.abs(String(g.id).split('').reduce((h,c)=> h*31+c.charCodeAt(0), 7)) % 1000)/1000*6.4, hit:null });
+      });
+      gymMeshes.forEach((m, id)=>{ if (!ids.has(id)){ disposeGym(m); gymMeshes.delete(id); } });
+    }
+    function disposeGym(m){
+      scene.remove(m.group);
+      [m.shadow, m.art, m.aura, m.wave, m.halo, m.boss].concat(m.embers).forEach(o=>{ if (o && o.material) o.material.dispose(); });
+      if (m.g && m.g._node) m.g._node.classList.remove('is-3d-mounted');
+    }
+    function updateGyms(now){
+      const artRec = gymArtTex();
+      gymMeshes.forEach(m=>{
+        const g = m.g;
+        const q = hmap(g.x, g.y); const sx = q[0], sy = q[1], w = q[2];
+        if (w <= 0.05 || sx < -300 || sx > vw+300 || sy < -40 || sy > vh+520){ m.group.visible = false; m.hit = null; return; }
+        const qx = hmap(g.x+1, g.y); const ax = qx[0]-sx, ay = qx[1]-sy;
+        const qy = hmap(g.x, g.y+1); const bx = qy[0]-sx, by = qy[1]-sy;
+        const T = ax*ax+ay*ay+bx*bx+by*by, D = ax*by-ay*bx, disc = Math.sqrt(Math.max(0, T*T-4*D*D));
+        const sMax = Math.sqrt((T+disc)/2), sMin = Math.sqrt(Math.max(0,(T-disc)/2));
+        const k = Math.max(0.22, Math.min(0.6, sMin/(sMax||1)));
+        m.group.visible = true;
+        if (artRec.mat && m.art.material !== artRec.mat){ m.art.material.dispose(); m.art.material = artRec.mat; }
+        const W = 150*sMax, H = W/artRec.aspect;
+        m.group.position.set(sx - vw/2, vh/2 - sy, 0);
+        m.art.scale.set(W, H, 1);
+        m.shadow.scale.set(W*0.55, W*0.55*k, 1);
+        // the guardian on the top platform
+        const topY = H*0.79, t = now + m.ph, c = (t % 3.2)/3.2, big = ((t % 6.4)/6.4);
+        let hop = 0, sqx = 1, sqy = 1, rot = Math.sin(t*2.4)*0.07;
+        if (c < 0.46){ const u = c/0.46; hop = Math.sin(u*Math.PI); sqx = 1 - 0.04*hop; sqy = 1 + 0.05*hop; if (u > 0.92 || u < 0.08){ sqx = 1.06; sqy = 0.94; } }
+        const roar = big > 0.5 && big < 0.62 ? Math.sin((big - 0.5)/0.12*Math.PI) : 0;
+        if (m.boss){
+          const ti = m.img && m.img.naturalWidth ? m.img.naturalWidth/m.img.naturalHeight : 0.9;
+          const bh = W*0.5*(1 + 0.18*roar), bw = bh*ti;
+          m.boss.scale.set(bw*sqx, bh*sqy, 1);
+          m.boss.position.set(0, topY + hop*W*0.07, 0);
+          m.boss.rotation.z = rot*(1 - roar);
+          m.halo.scale.set(bh*1.5, bh*1.3, 1); m.halo.position.set(0, topY - bh*0.08, 0);
+          m.halo.material.opacity = 0.35 + 0.5*roar;
+        }
+        m.aura.scale.set(W*0.3*(1 + 0.2*hop + 0.4*roar), W*0.3*k*(1 + 0.2*hop + 0.4*roar), 1);
+        m.aura.position.set(0, topY - 2, 0); m.aura.material.opacity = 0.65 + 0.35*roar;
+        // shockwave when it rears up
+        const wc = big > 0.52 && big < 0.8 ? (big - 0.52)/0.28 : -1;
+        if (wc >= 0){ const r = W*(0.12 + 0.35*wc); m.wave.scale.set(r, r*k, 1); m.wave.material.opacity = 0.9*(1 - wc); } else m.wave.material.opacity = 0;
+        m.wave.position.set(0, topY - 2, 0);
+        m.embers.forEach((e, i)=>{
+          const u = ((t*0.36 + i*0.2) % 1);
+          const s = W*0.018*(1 - u*0.5);
+          e.scale.set(s, s, 1);
+          e.position.set(Math.sin(i*2.1 + t*0.6)*W*0.16 - u*W*0.03, topY + u*W*0.5, 0);
+          e.material.opacity = u < 0.15 ? u/0.15 : 1 - (u - 0.15)/0.85;
+        });
+        const order = Math.round(sy)*6;
+        m.shadow.renderOrder = order; m.art.renderOrder = order+2; m.aura.renderOrder = order+3; m.wave.renderOrder = order+3;
+        m.halo.renderOrder = order+3; if (m.boss) m.boss.renderOrder = order+4; m.embers.forEach(e=> e.renderOrder = order+5);
+        m.hit = { x0:sx - W*0.45, x1:sx + W*0.45, y0:sy - topY - W*0.45, y1:sy + 10, depth:sy };
+      });
+    }
+
     // where a creature is drawn on screen (the tutorial points at it)
     window.__toto3dHitBox = id=>{ const m = mounts.get(id); return m && m.hit && m.group.visible ? m.hit : null; };
     // where a PumpkinStop is drawn on screen (viewport coords)
@@ -11734,6 +11982,12 @@ window.TQ_APP_VERSION = 'v59';
         const h = m.hit; if (!m.p.stop || !h || !m.group.visible) return;
         if (cx >= h.x0 && cx <= h.x1 && cy >= h.y0 && cy <= h.y1 && (!best || h.depth > best.depth) && (!bestStop || h.depth > bestStop.hit.depth)) bestStop = m;
       });
+      let bestGym = null;
+      gymMeshes.forEach(m=>{
+        const h = m.hit; if (!h || !m.group.visible) return;
+        if (cx >= h.x0 && cx <= h.x1 && cy >= h.y0 && cy <= h.y1 && (!best || h.depth > best.depth) && (!bestStop || h.depth > bestStop.hit.depth) && (!bestGym || h.depth > bestGym.hit.depth)) bestGym = m;
+      });
+      if (bestGym && bestGym.g && bestGym.g._node){ bestGym.g._node.click(); return; }
       if (bestStop && window.__openPumpkinStop){ window.__openPumpkinStop(bestStop.p); return; }
       if (bestT && bestT._node) bestT._node.click();
     });
@@ -11773,7 +12027,7 @@ window.TQ_APP_VERSION = 'v59';
       if (ppos && ensureMarkers(ppos)){
         const dst = markerEls.map(d=>{ const r = d.getBoundingClientRect(); return [r.left+r.width/2-canvasRect.left, r.top+r.height/2-canvasRect.top]; });
         Hm = solveHomography([[-1,-1],[1,-1],[1,1],[-1,1]], dst);
-        if (Hm){ syncProps(ppos, now); updateProps(now); }
+        if (Hm){ syncProps(ppos, now); updateProps(now); syncGyms(); updateGyms(now); }
       }
       renderer.render(scene, camera);
     }
