@@ -110,3 +110,12 @@ Migration: `supabase/migrations/2026-10-03b_rank_rewards.sql`.
 - `heartbeat` also returns `awards`: the trainer's top-10 finishes in past seasons. The game unlocks the matching rewards on any device, so they survive a new phone or a reinstall.
 - `admin_gift` no longer accepts `rank1set`, and any unclaimed outfit gift was withdrawn.
 - `admin_set_rp` (with or without `make_top`) changes Rank Points only. It is still meant for testing.
+
+## v64: 2v2 PvP
+
+Migration: `supabase/migrations/2026-10-03c_pvp_2v2.sql`.
+
+- **Teams.** A lobby entry's `toto` is a team: a JSON array of two Toto snapshots. Matchmaking only pairs entries of the same JSON type (team with team), so older single-Toto clients never face a 2v2 client.
+- **Moves.** `pvp_move` accepts moves of the form `<who>:<skill>:<target>`, for example `1:s2:0`, as well as the older single-Toto moves, `auto` and `forfeit`. Turns still alternate, one move per turn.
+- **Rules.** The battle rules (Taunt for 3 turns, a Supporter's Hex Bolt hitting both rivals, and so on) live in the game's deterministic engine. Both phones replay the same moves through it.
+- **Lobby timeout.** A matched lobby entry is freed after 15 minutes instead of 10, since 2v2 battles run longer.
