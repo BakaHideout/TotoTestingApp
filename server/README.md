@@ -126,3 +126,11 @@ Migration: `supabase/migrations/2026-10-03d_pvp_engine3.sql`.
 
 - **Battle rules version.** Every Toto in a lobby team now carries `ev` (the battle engine version, 3 for v66). Matchmaking only pairs teams with the same `ev`, because both phones must replay a battle with identical rules. Older clients (no `ev`) keep matching each other.
 - **Moves.** The move format is unchanged (`<who>:<skill>:<target>`, `s1`–`s4` and `ult`), so `pvp_move` needs no change. What each slot does now depends on the Toto: its class, species and tier. Only Attackers have `ult`, ready after 4 hits.
+
+## v67: faster team moves first; Rank Champions
+
+Migration: `supabase/migrations/2026-10-03e_pvp_pass.sql`.
+
+- **Who moves first.** The team with the fastest Toto now moves first. Turns on the server still alternate (odd = player 1, even = player 2). When player 2's team is faster, player 1's game sends `pass` for turn 1, so `pvp_move` now accepts `pass`. If player 1 never sends it, the usual idle claim (`auto`) also counts as the pass.
+- **Engine 4.** Battle rules changed (first mover, Rank Champions), so every Toto snapshot now carries `ev: 4`. Matchmaking pairs only equal versions, so v66 and v67 players are never matched together.
+- **Rank Champions.** A top-10 season finish (from `season_claim` / heartbeat `awards`) gives the matching "Rank #N Champion" Toto once, saved in the player's game data (`rankChamps`). No server change was needed.
