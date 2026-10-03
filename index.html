@@ -283,7 +283,7 @@
   .lb-note { font-size:11px; font-weight:700; color:#8a7aa8; text-align:center; line-height:1.4; }
   .lb-rp { text-align:right; } .lb-rp b { display:block; font-weight:900; color:#6b3fa0; font-size:14px; } .lb-rp small { font-size:10px; font-weight:800; color:#999; }
   .lb-row.gm { border-color:#ffb3c2; background:linear-gradient(90deg,#fff0f3,#fff); }
-  #btn-menu-pvp { display:none; }
+
 
   /* ---------- PUMPKINSTOPS ---------- */
   .stop-card { text-align:center; }
@@ -765,6 +765,169 @@
   .btn-store { margin-top:12px; width:100%; padding:12px; border-radius:12px; border:none; background:linear-gradient(135deg,#7b5cff,#4d7cff); color:#fff; font-weight:800; cursor:pointer; }
   .store-warning { background:#fff4d6; border:1.5px solid #f0c96b; color:#8a6a1a; font-size:11px; font-weight:700; padding:9px 11px; border-radius:10px; line-height:1.4; }
   .store-tier { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px; padding:10px 12px; margin-bottom:8px; box-shadow:0 3px 8px rgba(0,0,0,0.06); }
+  /* ---- PvP lobby + arena (v57) ---- */
+  .pvp-panel .panel-body { background:linear-gradient(#24143f, #160b28); color:#fff; }
+  .pvp-panel .fr-h { color:#c9b3ee; }
+  .pvp-panel .fr-empty { color:#b9a6da; }
+  .pv-rank { display:flex; gap:12px; align-items:center; padding:14px; border-radius:18px; background:linear-gradient(135deg,#3b2168,#22123d); border:1.5px solid rgba(255,200,120,0.35); box-shadow:0 8px 22px rgba(0,0,0,0.35); }
+  .pv-rank-em { flex:0 0 64px; height:64px; display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+  .pv-rank-i { flex:1; min-width:0; }
+  .pv-rank-l { font-weight:900; font-size:19px; color:#ffe2a8; }
+  .pv-rank-s { font-weight:800; font-size:12px; color:#cdb9ef; margin-top:1px; }
+  .pv-rank-bar { height:8px; border-radius:6px; background:rgba(255,255,255,0.12); margin-top:8px; overflow:hidden; }
+  .pv-rank-bar i { display:block; height:100%; border-radius:6px; background:linear-gradient(90deg,#ffb347,#ff6a3d); }
+  .pv-rank-n { font-size:10.5px; font-weight:800; color:#b7a2dc; margin-top:4px; }
+  .pv-pick { display:flex; align-items:center; gap:12px; margin-top:12px; padding:10px 12px; border-radius:16px; background:rgba(255,255,255,0.07); }
+  .pv-pick-spr { width:64px; height:64px; flex:0 0 64px; display:flex; align-items:flex-end; justify-content:center; }
+  .pv-pick-spr .creature-img, .pv-pick-spr .creature-svg, .pv-lob-toto .creature-img, .pv-lob-toto .creature-svg { width:100%; height:100%; object-fit:contain; }
+  .pv-pick-i { flex:1; min-width:0; }
+  .pv-pick-i small { display:block; font-size:10.5px; font-weight:800; color:#b7a2dc; text-transform:uppercase; letter-spacing:0.06em; }
+  .pv-pick-i b { display:block; font-size:15px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pv-pick-i span { font-size:11.5px; font-weight:700; color:#d8c9f3; }
+  .pv-pick button, .pv-cancel { border:none; border-radius:12px; padding:9px 12px; font-family:inherit; font-weight:800; font-size:12.5px; background:rgba(255,255,255,0.14); color:#fff; cursor:pointer; }
+  .pv-find { width:100%; margin-top:12px; border:none; border-radius:16px; padding:15px; font-family:inherit; font-weight:900; font-size:17px; letter-spacing:0.02em; color:#fff; cursor:pointer;
+    background:linear-gradient(180deg,#ff8a3d,#d9480f); box-shadow:0 6px 0 #8a2a06, 0 10px 22px rgba(255,110,40,0.35); text-shadow:0 2px 0 rgba(0,0,0,0.25); }
+  .pv-find:active { transform:translateY(3px); box-shadow:0 3px 0 #8a2a06; }
+  .pv-find:disabled { opacity:0.5; }
+  .pv-search { display:none; align-items:center; gap:12px; margin-top:12px; padding:12px; border-radius:16px; background:rgba(255,170,80,0.12); border:1.5px solid rgba(255,170,80,0.4); }
+  .pv-search.show { display:flex; }
+  .pv-spin { width:30px; height:30px; flex:0 0 30px; border-radius:50%; border:3px solid rgba(255,255,255,0.18); border-top-color:#ffb347; animation:pvspin 0.9s linear infinite; }
+  @keyframes pvspin { to { transform:rotate(360deg); } }
+  .pv-search-t { flex:1; min-width:0; } .pv-search-t b { display:block; font-size:14px; } .pv-search-t small { font-size:11px; font-weight:700; color:#d9c6f5; }
+  .pv-lobby { display:grid; grid-template-columns:repeat(auto-fill, minmax(98px, 1fr)); gap:8px; }
+  .pv-lob { position:relative; border-radius:16px; padding:6px 6px 8px; text-align:center; background:linear-gradient(#3a2163,#251442); border:1.5px solid rgba(255,255,255,0.08); cursor:pointer; overflow:hidden; }
+  .pv-lob.me { border-color:rgba(255,179,71,0.7); }
+  .pv-lob-char { height:104px; display:flex; align-items:flex-end; justify-content:center; }
+  .pv-lob-char img { height:100%; width:auto; max-width:100%; object-fit:contain; filter:drop-shadow(0 6px 6px rgba(0,0,0,0.45)); }
+  .pv-lob-toto { position:absolute; right:4px; top:46px; width:38px; height:38px; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+  .pv-lob-n { font-weight:900; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .pv-lob .rank-chip { margin-top:3px; background:rgba(255,255,255,0.12); color:#fff; font-size:9.5px; }
+  .pv-lob-st { position:absolute; left:6px; top:6px; font-size:9px; font-weight:900; padding:2px 6px; border-radius:8px; background:rgba(0,0,0,0.45); color:#d8c9f3; }
+  .pv-lob-st.searching { background:#ff8a3d; color:#fff; } .pv-lob-st.battling { background:#c0143c; color:#fff; }
+  .pv-rules { margin-top:16px; padding:12px; border-radius:14px; background:rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:5px; font-size:11.5px; font-weight:700; color:#cbb8ec; line-height:1.4; }
+  .pv-rules b { color:#ffe2a8; font-size:12.5px; }
+  .pv-sheet-char { height:210px; display:flex; justify-content:center; } .pv-sheet-char img { height:100%; }
+  .pv-pick-list { display:flex; flex-direction:column; gap:6px; max-height:52vh; overflow-y:auto; margin:6px 0 4px; }
+  .pv-pick-row { display:flex; align-items:center; gap:10px; border:none; border-radius:12px; padding:6px 10px; background:#f5effc; font-family:inherit; text-align:left; cursor:pointer; }
+  .pv-pick-row.on { background:#2a1745; color:#ffd899; }
+  .pv-pick-row .pv-pick-spr { width:44px; height:44px; flex:0 0 44px; }
+  .pv-pick-row b { display:block; font-size:13.5px; } .pv-pick-row small { font-size:11px; font-weight:700; opacity:0.75; }
+
+  .pva { position:absolute; inset:0; z-index:100; display:none; overflow:hidden; background:#140b26; color:#fff; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+  .pva.show { display:block; }
+  .pva-bg { position:absolute; inset:0 0 18% 0; background:#1a1032 url(assets/battle/village.jpg) 50% 30% / cover no-repeat; }
+  .pva-bg::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,10,40,0.55) 0%, rgba(20,10,40,0.05) 22%, rgba(20,10,40,0) 45%, rgba(20,11,38,0.75) 88%, #140b26 100%); }
+  .pva-floor { position:absolute; left:-14%; right:-14%; bottom:13%; height:44%; }
+  .pva-floor svg { width:100%; height:100%; display:block; }
+  .pva-rune { animation:pvaRune 6s ease-in-out infinite; }
+  @keyframes pvaRune { 0%,100%{ opacity:0.75; } 50%{ opacity:1; } }
+  .pva-ring { position:absolute; width:30%; max-width:150px; aspect-ratio:3/1; border-radius:50%; transform:translate(-50%,-50%); border:2.5px solid rgba(255,196,96,0.9);
+    box-shadow:0 0 14px rgba(255,180,80,0.7), inset 0 0 12px rgba(255,180,80,0.45); background:radial-gradient(closest-side, rgba(255,190,90,0.22), rgba(255,190,90,0)); }
+  .pva-3d { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:3; }
+  .pva-toto { position:absolute; z-index:4; width:35%; max-width:185px; aspect-ratio:1/1.05; transform:translate(-50%,-100%); transition:left 0.25s, filter 0.2s; }
+  .pva-spr { position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; filter:drop-shadow(0 10px 10px rgba(0,0,0,0.55)); animation:pvaIdle 2.4s ease-in-out infinite; transform-origin:50% 100%; }
+  .pva-spr .creature-img, .pva-spr .creature-svg { width:100%; height:100%; object-fit:contain; object-position:50% 100%; }
+  .pva-toto.op .pva-spr > * { transform:scaleX(-1); }
+  @keyframes pvaIdle { 0%,100%{ transform:scale(1,1); } 50%{ transform:scale(1.02,0.98); } }
+  .pva-glow { position:absolute; left:50%; bottom:-6%; width:92%; aspect-ratio:3/1; transform:translateX(-50%); border-radius:50%; background:radial-gradient(closest-side, rgba(255,215,120,0.55), rgba(255,215,120,0)); opacity:0; transition:opacity 0.3s; }
+  .pva-toto.turn .pva-glow { opacity:1; }
+  .pva-toto.lunge-r .pva-spr { animation:pvaLungeR 0.42s ease-in-out; } .pva-toto.lunge-l .pva-spr { animation:pvaLungeL 0.42s ease-in-out; }
+  @keyframes pvaLungeR { 0%{ transform:translateX(0); } 45%{ transform:translateX(38%) scale(1.06); } 100%{ transform:translateX(0); } }
+  @keyframes pvaLungeL { 0%{ transform:translateX(0); } 45%{ transform:translateX(-38%) scale(1.06); } 100%{ transform:translateX(0); } }
+  .pva-toto.hurt .pva-spr { animation:pvaHurt 0.4s ease-in-out; filter:drop-shadow(0 0 10px rgba(255,40,40,0.95)) brightness(1.3) saturate(1.3); }
+  @keyframes pvaHurt { 0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-7%); } 40%{ transform:translateX(6%); } 60%{ transform:translateX(-4%); } 80%{ transform:translateX(3%); } }
+  .pva-toto.healed .pva-spr { filter:drop-shadow(0 0 14px rgba(110,255,140,0.95)) brightness(1.15); }
+  .pva-toto.ko .pva-spr { animation:pvaKo 0.9s ease-in forwards; }
+  @keyframes pvaKo { to { transform:translateY(12%) scale(0.85) rotate(-8deg); opacity:0; filter:grayscale(1); } }
+  .pva-bubble { position:absolute; left:50%; bottom:-2%; width:96%; aspect-ratio:1/1; transform:translateX(-50%) scale(0.6); border-radius:50%; opacity:0; transition:opacity 0.25s, transform 0.25s;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35), rgba(120,200,255,0.18) 40%, rgba(80,160,255,0.08) 70%); border:2px solid rgba(150,215,255,0.75); box-shadow:0 0 18px rgba(120,200,255,0.55), inset 0 0 18px rgba(120,200,255,0.4); pointer-events:none; }
+  .pva-toto.shielded .pva-bubble { opacity:1; transform:translateX(-50%) scale(1); }
+  .pva-plates { display:flex; justify-content:space-between; gap:10px; margin-top:7px; }
+  .pva-plate { width:min(46%, 210px); padding:5px 8px 6px; border-radius:12px; background:linear-gradient(180deg, rgba(40,22,72,0.9), rgba(24,12,44,0.9)); border:1.5px solid rgba(255,255,255,0.18); box-shadow:0 4px 12px rgba(0,0,0,0.45); transition:border-color 0.25s; }
+  .pva-plate.turn { border-color:#ffc46b; }
+  .pva-role { font-size:9px; font-weight:800; color:#b9a6da; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pva-pn { display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:900; white-space:nowrap; }
+  .pva-pn b { overflow:hidden; text-overflow:ellipsis; } .pva-pn i { font-style:normal; margin-left:auto; color:#ffd899; font-size:10.5px; }
+  .pva-pr { font-size:11px; }
+  .pva-hp { position:relative; height:9px; border-radius:6px; background:rgba(0,0,0,0.5); margin-top:3px; overflow:hidden; }
+  .pva-hp i { position:absolute; inset:0 auto 0 0; border-radius:6px; background:linear-gradient(180deg,#7dff8a,#22b04a); transition:width 0.45s; }
+  .pva-hp i.mid { background:linear-gradient(180deg,#ffe27a,#e0a512); } .pva-hp i.low { background:linear-gradient(180deg,#ff8a8a,#d12a2a); }
+  .pva-hpt { display:flex; justify-content:space-between; font-size:9.5px; font-weight:800; color:#d9c8f5; margin-top:2px; }
+  .pva-en { height:4px; border-radius:3px; background:rgba(255,255,255,0.12); margin-top:3px; overflow:hidden; } .pva-en i { display:block; height:100%; background:linear-gradient(90deg,#ffb347,#ff5ad1); transition:width 0.4s; }
+  .pva-buffs { display:flex; gap:4px; font-size:9.5px; font-weight:900; margin-top:2px; min-height:12px; } .pva-buffs span { padding:0 5px; border-radius:6px; background:rgba(255,255,255,0.12); }
+  .pva-fx { position:absolute; inset:0; z-index:6; pointer-events:none; }
+  .pva-num { position:absolute; transform:translate(-50%,-50%); font-weight:900; font-size:24px; color:#fff; text-shadow:0 2px 0 #7a1010, 0 0 10px rgba(255,60,60,0.85); animation:pvaNum 1.1s ease-out forwards; white-space:nowrap; }
+  .pva-num.crit { font-size:32px; color:#ffe27a; text-shadow:0 2px 0 #8a4a00, 0 0 14px rgba(255,180,40,0.95); }
+  .pva-num.heal { color:#9dffab; text-shadow:0 2px 0 #0f5a20, 0 0 10px rgba(80,255,120,0.85); }
+  .pva-num.curse { font-size:17px; color:#e2b6ff; text-shadow:0 2px 0 #3b0f6e; }
+  .pva-num small { display:block; font-size:12px; letter-spacing:0.06em; }
+  @keyframes pvaNum { 0%{ opacity:0; transform:translate(-50%,-30%) scale(0.6); } 15%{ opacity:1; transform:translate(-50%,-60%) scale(1.15); } 100%{ opacity:0; transform:translate(-50%,-190%) scale(1); } }
+  .pva-slash { position:absolute; width:34%; max-width:170px; aspect-ratio:1/1; transform:translate(-50%,-50%); pointer-events:none; animation:pvaSlash 0.45s ease-out forwards; }
+  @keyframes pvaSlash { 0%{ opacity:0; transform:translate(-50%,-50%) scale(0.5) rotate(-20deg); } 30%{ opacity:1; } 100%{ opacity:0; transform:translate(-50%,-50%) scale(1.25) rotate(10deg); } }
+  .pva-top { position:absolute; left:0; right:0; top:0; z-index:7; padding:calc(8px + env(safe-area-inset-top)) 10px 0; }
+  .pva-title { display:inline-flex; align-items:center; gap:8px; padding:5px 12px 5px 8px; border-radius:12px; background:rgba(20,10,40,0.75); border:1px solid rgba(255,255,255,0.14); }
+  .pva-title span { font-size:20px; } .pva-title b { display:block; font-size:14px; } .pva-title small { display:block; font-size:10px; font-weight:700; color:#cbb8ec; }
+  .pva-cards { display:flex; align-items:center; gap:6px; margin-top:8px; }
+  .pva-card { flex:1; min-width:0; display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:16px; background:linear-gradient(180deg, rgba(48,26,86,0.92), rgba(28,14,52,0.92)); border:1.5px solid rgba(255,255,255,0.16); box-shadow:0 4px 14px rgba(0,0,0,0.4); transition:border-color 0.25s, box-shadow 0.25s; }
+  .pva-card.op { flex-direction:row-reverse; text-align:right; }
+  .pva-card.turn { border-color:#ffc46b; box-shadow:0 0 16px rgba(255,190,90,0.55); }
+  .pva-port { width:46px; height:46px; flex:0 0 46px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 50% 35%, #5b3a96, #22123d); border:2px solid #ffc46b; display:flex; align-items:center; justify-content:center; }
+  .pva-port img { width:100%; height:100%; object-fit:cover; }
+  .pva-ci { min-width:0; flex:1; }
+  .pva-cn { font-weight:900; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .pva-cn small { color:#ffc46b; font-weight:800; }
+  .pva-ci .rank-chip { background:rgba(255,255,255,0.12); color:#fff; font-size:9.5px; margin-top:2px; }
+  .pva-cs { font-size:10px; font-weight:800; color:#cbb8ec; margin-top:2px; white-space:nowrap; }
+  .pva-vs { font-weight:900; font-size:15px; color:#ffc46b; text-shadow:0 2px 6px rgba(0,0,0,0.6); }
+  .pva-turn { position:absolute; left:50%; top:calc(27% + env(safe-area-inset-top)); z-index:7; transform:translateX(-50%); text-align:center; padding:6px 16px; border-radius:14px; background:rgba(20,10,40,0.7); border:1.5px solid rgba(255,196,107,0.55); white-space:nowrap; transition:opacity 0.25s; }
+  .pva-turn b { display:block; font-size:16px; letter-spacing:0.06em; color:#ffe2a8; text-transform:uppercase; }
+  .pva-turn span { font-size:11px; font-weight:800; color:#d9c8f5; }
+  .pva-turn.mine { border-color:#7dff8a; } .pva-turn.mine b { color:#b6ffbe; }
+  .pva-log { position:absolute; left:8%; right:8%; bottom:calc(25% + env(safe-area-inset-bottom)); z-index:7; text-align:center; font-size:12px; font-weight:800; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.8); min-height:16px; }
+  .pva-bottom { position:absolute; left:0; right:0; bottom:0; z-index:8; padding:8px 10px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(180deg, rgba(20,11,38,0), rgba(20,11,38,0.92) 30%); }
+  .pva-skills { display:grid; grid-template-columns:repeat(4, 1fr); gap:7px; }
+  .pva-sk { position:relative; border:none; border-radius:14px; padding:7px 4px 6px; font-family:inherit; color:#fff; cursor:pointer; background:linear-gradient(180deg,#3d2370,#26134a); border:1.5px solid rgba(255,255,255,0.18); box-shadow:0 3px 0 rgba(0,0,0,0.45); display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .pva-sk .ab-ic { width:34px; height:34px; }
+  .pva-sk b { font-size:10.5px; font-weight:900; white-space:nowrap; }
+  .pva-sk em { position:absolute; left:5px; top:3px; font-style:normal; font-size:9.5px; font-weight:900; color:#cbb8ec; }
+  .pva-sk:disabled { cursor:default; filter:grayscale(0.7) brightness(0.65); }
+  .pva-sk .cdv { position:absolute; inset:0; border-radius:13px; background:rgba(10,5,20,0.55); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff; }
+  .pva-sk:not(:disabled):active { transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.45); }
+  .pva-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .pva-left { display:flex; gap:6px; }
+  .pva-sq { width:44px; height:44px; border:none; border-radius:12px; font-family:inherit; font-weight:900; font-size:11px; color:#fff; cursor:pointer; background:rgba(40,22,72,0.9); border:1.5px solid rgba(255,255,255,0.2); display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.05; }
+  .pva-sq small { font-size:9px; color:#ffc46b; }
+  .pva-sq.on { background:#ff8a3d; border-color:#ffd2a8; }
+  .pva-ult { position:relative; flex:1; height:56px; border:none; border-radius:16px; overflow:hidden; font-family:inherit; color:#fff; cursor:pointer;
+    background:linear-gradient(180deg,#4a1d1d,#2a0f12); border:2px solid #ff9a3d; box-shadow:0 0 0 2px rgba(0,0,0,0.4), 0 6px 16px rgba(255,90,30,0.35); }
+  .pva-ult-fill { position:absolute; inset:0 auto 0 0; width:0%; background:linear-gradient(90deg,#c2410c,#ff8a3d,#ffd36b); transition:width 0.45s; }
+  .pva-ult-t { position:relative; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:900; font-size:16px; letter-spacing:0.05em; text-shadow:0 2px 0 rgba(0,0,0,0.45); }
+  .pva-ult-t i { font-style:normal; font-size:20px; } .pva-ult-t small { font-size:11px; opacity:0.85; }
+  .pva-ult.ready { animation:pvaUltPulse 1.1s ease-in-out infinite; }
+  @keyframes pvaUltPulse { 0%,100%{ box-shadow:0 0 0 2px rgba(0,0,0,0.4), 0 0 14px rgba(255,140,40,0.55); } 50%{ box-shadow:0 0 0 2px rgba(0,0,0,0.4), 0 0 30px rgba(255,200,80,0.95); } }
+  .pva-ult:disabled { cursor:default; }
+  .pva-ult:disabled:not(.ready) .pva-ult-t { opacity:0.7; }
+  .pva.waiting .pva-sk, .pva.waiting .pva-ult { pointer-events:none; }
+  .pva-flash { position:absolute; inset:0; z-index:9; pointer-events:none; background:radial-gradient(circle, rgba(255,240,200,0.95), rgba(255,140,40,0.6) 45%, rgba(255,80,0,0)); opacity:0; }
+  .pva-flash.on { animation:pvaFlash 0.7s ease-out; }
+  @keyframes pvaFlash { 0%{ opacity:0; } 15%{ opacity:1; } 100%{ opacity:0; } }
+  .pva.shake { animation:pvaShake 0.45s ease-in-out; }
+  @keyframes pvaShake { 0%,100%{ transform:translate(0,0); } 20%{ transform:translate(-6px,3px); } 40%{ transform:translate(6px,-3px); } 60%{ transform:translate(-4px,2px); } 80%{ transform:translate(3px,-1px); } }
+  .pva-result { position:absolute; inset:0; z-index:12; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(10,5,20,0.72); }
+  .pva-result.show { display:flex; }
+  .pva-res { width:100%; max-width:340px; text-align:center; padding:20px 16px 16px; border-radius:22px; background:linear-gradient(180deg,#3a1f6a,#1c0f36); border:2px solid #ffb347; box-shadow:0 18px 40px rgba(0,0,0,0.6); animation:pvaPop 0.45s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pvaPop { from { transform:scale(0.7); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .pva-res-t { font-size:32px; font-weight:900; letter-spacing:0.06em; color:#ffe27a; text-shadow:0 3px 0 #8a4a00, 0 0 18px rgba(255,190,60,0.7); }
+  .pva-res.lose .pva-res-t { color:#d9c8f5; text-shadow:0 3px 0 #3b2168; }
+  .pva-res-em { margin:10px auto 2px; display:flex; justify-content:center; }
+  .pva-res-l { font-weight:900; font-size:17px; color:#ffe2a8; }
+  .pva-res-rp { font-weight:900; font-size:22px; margin-top:6px; } .pva-res-rp.up { color:#7dff8a; } .pva-res-rp.down { color:#ff8a8a; }
+  .pva-res-s { font-size:12px; font-weight:700; color:#cbb8ec; margin-top:4px; line-height:1.4; }
+  .pva-res-promo { margin-top:8px; font-weight:900; font-size:13px; color:#ffd36b; }
+  .pva-res button { display:block; width:100%; margin-top:10px; border:none; border-radius:14px; padding:12px; font-family:inherit; font-weight:900; font-size:15px; cursor:pointer; }
+  .pva-res .again { background:linear-gradient(180deg,#ff8a3d,#d9480f); color:#fff; box-shadow:0 4px 0 #8a2a06; }
+  .pva-res .back { background:rgba(255,255,255,0.12); color:#fff; }
+  @media (min-aspect-ratio: 4/5){ .pva-toto { width:22%; } .pva-ring { width:20%; } }
+
   /* ---- Social: menu badges, friends, chat, admin, ranks, bans (v56) ---- */
   .qm-btn, .pd-action { position:relative; }
   .qm-badge { position:absolute; top:3px; right:6px; min-width:17px; height:17px; padding:0 5px; border-radius:9px; background:#ff3b5c; color:#fff; font-size:10.5px; font-weight:900; line-height:17px; text-align:center; box-shadow:0 0 0 2px #2a1745; }
@@ -1884,6 +2047,29 @@
       </div>
     </div>
 
+    <div class="panel-screen pvp-panel" data-panel="pvp">
+      <div class="panel-header">🏟️ PvP Arena <span class="close-x" data-close>✕</span></div>
+      <div class="panel-body">
+        <div class="pv-rank" id="pv-rank"></div>
+        <div class="pv-pick" id="pv-pick"></div>
+        <button class="pv-find" id="pv-find">⚔️ Find a match</button>
+        <div class="pv-search" id="pv-search">
+          <div class="pv-spin"></div>
+          <div class="pv-search-t"><b id="pv-search-t">Looking for a trainer…</b><small id="pv-search-s">No one found in 30 seconds? You'll face a computer rival.</small></div>
+          <button class="pv-cancel" id="pv-cancel">Cancel</button>
+        </div>
+        <div class="fr-h">In the lobby <span id="pv-count"></span></div>
+        <div class="pv-lobby" id="pv-lobby"><div class="fr-empty">Joining the lobby…</div></div>
+        <div class="pv-rules">
+          <b>How PvP works</b>
+          <span>• Pick 1 Toto, then take turns: Slash, Hex Bolt, Witch's Mend, Spirit Shield, and a big Ultimate once its energy fills.</span>
+          <span>• Win vs a trainer +25 RP, lose −15. Win vs a computer +10, lose −5.</span>
+          <span>• Ranks: Bronze 3 → Silver → Gold → Platinum → Diamond 1 → Master (1,500 RP). The top 10 Masters are Grandmasters.</span>
+          <span>• The season resets on the 1st of every month. Finish #1 to earn the Rank #1 Shirt, Hat and Pumpkin Staff.</span>
+        </div>
+      </div>
+    </div>
+
     <div class="panel-screen" data-panel="friends">
       <div class="panel-header">Friends <span class="close-x" data-close>✕</span></div>
       <div class="panel-body">
@@ -2105,6 +2291,37 @@
   <div class="ban-screen" id="ban-screen"><div class="ban-card"><div class="ban-ic">⛔</div><div class="ban-title" id="ban-title">You're banned from TotoQuest</div>
     <div class="ban-msg" id="ban-msg"></div><div class="ban-help">Think this is a mistake? Email <b>totoquestofficial@yahoo.com</b> with your username.</div>
     <button class="ban-out" id="ban-logout">Log out</button></div></div>
+
+  <!-- PVP ARENA -->
+  <div class="pva" id="pvp-arena">
+    <div class="pva-bg"></div>
+    <div class="pva-floor" id="pva-floor"></div>
+    <div class="pva-ring l" id="pva-ring-l"></div><div class="pva-ring r" id="pva-ring-r"></div>
+    <canvas class="pva-3d" id="pva-3d"></canvas>
+    <div class="pva-toto me" id="pva-toto-me"><div class="pva-glow"></div><div class="pva-spr"></div><div class="pva-bubble"></div></div>
+    <div class="pva-toto op" id="pva-toto-op"><div class="pva-glow"></div><div class="pva-spr"></div><div class="pva-bubble"></div></div>
+    <div class="pva-fx" id="pva-fx"></div>
+    <div class="pva-top">
+      <div class="pva-title"><span>💀</span><div><b>PvP Arena</b><small id="pva-sub">TotoQuest Ranked</small></div></div>
+      <div class="pva-cards"><div class="pva-card me" id="pva-card-me"></div><div class="pva-vs">VS</div><div class="pva-card op" id="pva-card-op"></div></div>
+      <div class="pva-plates"><div class="pva-plate me" id="pva-plate-me"></div><div class="pva-plate op" id="pva-plate-op"></div></div>
+    </div>
+    <div class="pva-turn" id="pva-turn"><b id="pva-turn-t">Battle start!</b><span id="pva-timer"></span></div>
+    <div class="pva-log" id="pva-log"></div>
+    <div class="pva-bottom">
+      <div class="pva-skills" id="pva-skills"></div>
+      <div class="pva-row">
+        <div class="pva-left">
+          <button class="pva-sq" id="pva-flee" title="Retreat">🏳️</button>
+          <button class="pva-sq" id="pva-auto" title="Auto battle">AUTO</button>
+          <button class="pva-sq" id="pva-speed" title="Battle speed">▶▶<small>x1</small></button>
+        </div>
+        <button class="pva-ult" id="pva-ult"><span class="pva-ult-fill" id="pva-ult-fill"></span><span class="pva-ult-t"><i>⚔️</i>ULTIMATE ATTACK<small id="pva-ult-s">0%</small></span></button>
+      </div>
+    </div>
+    <div class="pva-flash" id="pva-flash"></div>
+    <div class="pva-result" id="pva-result"></div>
+  </div>
 
   <!-- TOTOCHEST OPENING -->
   <div class="chest-overlay" id="chest-overlay" aria-live="polite">
@@ -2523,6 +2740,20 @@
       const preset = (item && item.preset && (ownsCosmetic(item) || tryId === item.id)) ? item.preset : null;
       target[slot] = base[slot] ? Object.assign({}, base[slot], preset || {}) : (preset ? Object.assign({}, preset) : base[slot]);
     });
+  };
+  // Another trainer's outfit ({ g, eq:{slot:itemId} }) as a 3D slot config — used to draw
+  // other players in the PvP lobby and arena. Only known catalog items are applied.
+  window.tqLookCfg = function(look){
+    if (!window.PLAYER_EQUIP_CATALOG) return null;
+    if (!cosmeticDefaults) cosmeticDefaults = JSON.parse(JSON.stringify(window.PLAYER_EQUIP_CATALOG));
+    const g = look && look.g === 'male' ? 'male' : 'female', base = cosmeticDefaults[g];
+    if (!base) return null;
+    const cfg = JSON.parse(JSON.stringify(base)), eq = (look && typeof look.eq === 'object' && look.eq) || {};
+    Object.keys(COSMETIC_CATALOG).forEach(slot=>{
+      const id = eq[slot], item = typeof id === 'string' ? COSMETIC_CATALOG[slot].find(i=> i.id === id) : null;
+      if (item && item.preset) cfg[slot] = base[slot] ? Object.assign({}, base[slot], item.preset) : Object.assign({}, item.preset);
+    });
+    return { g, cfg };
   };
   // Whatever level a Toto had in the wild (or as a boss), the one you catch starts at
   // Lv 1 — you raise it yourself through battles (XP) or candy (Power Up).
@@ -3503,7 +3734,7 @@
     if (onlineOn()){
       const fromCheckout = /[?&]purchase=done/.test(location.search);
       if (fromCheckout){ try { history.replaceState(null, '', location.pathname); } catch(e){} }
-      onlineRegister().then(()=>{ submitScoreOnline(true); heartbeat(); });
+      onlineRegister().then(()=>{ submitScoreOnline(true); heartbeat().then(()=> pvpClaimSeasonRewards()); });
       watchForPurchase(fromCheckout || checkoutRecent() ? 120 : 1);
     }
     // ALWAYS (re)build the world here, every single session. A returning player's last
@@ -4045,6 +4276,614 @@
   $('#ad-go').onclick = ()=>{ Admin.q = $('#ad-q').value.trim(); loadAdmin(true); };
   $('#ad-q').addEventListener('keydown', e=>{ if (e.key === 'Enter'){ Admin.q = $('#ad-q').value.trim(); loadAdmin(true); } });
   $('#ad-more').onclick = ()=> loadAdmin(false);
+
+  // ================= PvP ARENA (v57) =================
+  // 1-Toto ranked battles. Trainers take turns (odd turns: player 1, even: player 2). Every move
+  // goes through the server in order and both phones replay the same moves through the same
+  // seeded battle engine below, so they always agree on what happened. Nobody to fight after
+  // 30 s? A computer rival with a Toto built to match yours.
+  const PVP_TURN_SECS = 25, PVP_SEARCH_SECS = 30;
+  const PVP = { timer:null, searching:false, searchStart:0, lobbyKey:'', players:[], inArena:false, polling:false, open:false };
+  const PVP_SKILLS = [
+    { key:'s1', name:'Slash',         glyph:'claw', c:{ c1:'#8fdcff', c2:'#2a6fd6', b:'#0f3b80' }, cd:0, desc:'Quick hit · always ready' },
+    { key:'s2', name:'Hex Bolt',      glyph:'hex',  c:{ c1:'#e6b4ff', c2:'#7b2fd0', b:'#3b0f6e' }, cd:3, desc:'Big hit · their next 2 attacks are 25% weaker' },
+    { key:'s3', name:'Mend',          glyph:'mend', c:{ c1:'#b8ffb4', c2:'#2e9e46', b:'#0f5a20' }, cd:3, desc:'Heal 25% of max HP (Healers 35%)' },
+    { key:'s4', name:'Shield',        glyph:'ward', c:{ c1:'#b0e8ff', c2:'#2f86c9', b:'#0f4470' }, cd:3, desc:'Blocks half the damage of the next 2 hits' }
+  ];
+  const PVP_SKILL_BY = {}; PVP_SKILLS.forEach(s=> PVP_SKILL_BY[s.key] = s);
+  function pvpSkillIcon(s){ return '<span class="ab-ic" style="--abc-1:'+s.c.c1+';--abc-2:'+s.c.c2+';--abc-b:'+s.c.b+'">'+(ABILITY_GLYPH[s.glyph]||'')+'</span>'; }
+
+  // ---- battle engine (deterministic: same seed + same moves = same battle on every phone) ----
+  function pvpRng(seed){
+    let a = (seed >>> 0) || 1;
+    return ()=>{ a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  // what a trainer sends about their Toto — just its identity; stats are always rebuilt from tier/role/level
+  function pvpSnap(t){
+    if (!t) return null;
+    return { name:String(t.name||'Toto').slice(0,40), nature: typeof t.nature === 'string' ? t.nature.slice(0,20) : null, role: ROLE_KITS[t.role] ? t.role : 'attacker',
+             tier: TIER_IDX[t.tier] != null ? t.tier : 'normal', level: Math.max(1, Math.min(TOTO_MAX_LEVEL, Math.floor(t.level||1))),
+             statMult: Math.max(0.5, Math.min(1.3, Number(t.statMult)||1)), isToni: !!t.isToni };
+  }
+  // In the arena a Toto's strength comes from its tier and level (the same for every role), and
+  // its role sets the play style — so an Attacker, Tanker, Healer or Supporter of the same tier
+  // and level all have a fair shot. (Tuned over thousands of simulated battles: every matchup
+  // lands between about 36% and 64%.)
+  const PVP_ROLE = {
+    attacker:  { hp:1.05, atk:1.00, crit:0.18, label:'Crits more often' },
+    tanker:    { hp:1.40, atk:0.70, block:0.60, armor:0.12, label:'Takes 12% less damage · stronger Shield' },
+    healer:    { hp:1.30, atk:0.82, heal:0.26, label:'Big health pool · Mend heals more' },
+    supporter: { hp:1.04, atk:0.90, hexHits:3, energy:14, label:'Hex lasts 3 hits · Ultimate charges faster' }
+  };
+  function pvpFighter(snap){
+    const s = snap || {};
+    const tier = TIER_IDX[s.tier] != null ? s.tier : 'normal', role = ROLE_KITS[s.role] ? s.role : 'attacker';
+    const level = Math.max(1, Math.min(TOTO_MAX_LEVEL, Math.floor(Number(s.level)||1)));
+    const mult = Math.max(0.5, Math.min(1.3, Number(s.statMult)||1));
+    const base = powerLevelOf(statsForLevel(tier, 'attacker', level, mult)), R = PVP_ROLE[role];
+    const maxHp = Math.max(10, Math.round(base*0.5*R.hp));
+    return { name:String(s.name||'Toto').slice(0,40), nature: typeof s.nature === 'string' ? s.nature : null, isToni:!!s.isToni, tier, role, level,
+             maxHp, hp:maxHp, atk:Math.max(1, base*0.1*R.atk), spd:(statsForLevel(tier, role, level, mult).spd||1), cp:base,
+             energy:0, cd:{ s2:0, s3:0, s4:0 }, shield:0, weak:0, autos:0 };
+  }
+  function pvpEngine(seed, snap1, snap2){
+    const E = { F:{ p1:pvpFighter(snap1), p2:pvpFighter(snap2) }, turn:0, winner:null, rng:pvpRng(seed) };
+    // the faster Toto starts with a little Ultimate energy
+    if (E.F.p1.spd !== E.F.p2.spd) E.F[E.F.p1.spd > E.F.p2.spd ? 'p1' : 'p2'].energy += 15;
+    E.actor = k=> (k % 2 === 1) ? 'p1' : 'p2';
+    E.other = side=> side === 'p1' ? 'p2' : 'p1';
+    E.can = (side, key)=>{ const f = E.F[side]; if (key === 'ult') return f.energy >= 100; if (key === 's1') return true; return !!PVP_SKILL_BY[key] && (f.cd[key]|0) === 0; };
+    return E;
+  }
+  // r = one random number: the engine passes its own (so 'auto' moves replay identically);
+  // the AUTO button and computer rivals pass Math.random()
+  function pvpAiChoose(E, side, r){
+    const me = E.F[side], op = E.F[E.other(side)];
+    if (me.energy >= 100) return 'ult';
+    if (me.hp < me.maxHp*0.38 && me.cd.s3 === 0) return 's3';
+    if (op.energy >= 100 && me.cd.s4 === 0 && me.shield === 0) return 's4';
+    if (me.cd.s2 === 0 && r < 0.65) return 's2';
+    if (me.cd.s4 === 0 && me.shield === 0 && r > 0.92) return 's4';
+    return 's1';
+  }
+  function pvpHit(E, a, d, mult, ult){
+    const Ra = PVP_ROLE[a.role], Rd = PVP_ROLE[d.role];
+    let dmg = a.atk * 0.46 * mult;
+    if (a.weak > 0){ dmg *= 0.7; a.weak--; }
+    const v = 0.9 + E.rng()*0.2, cr = E.rng();
+    dmg *= v;
+    const crit = cr < (Ra.crit || 0.1); if (crit) dmg *= 1.5;
+    if (Rd.armor) dmg *= 1 - Rd.armor;
+    let blocked = false;
+    if (d.shield > 0){ dmg *= 1 - (Rd.block || 0.5) * (ult ? 0.5 : 1); d.shield--; blocked = true; }
+    dmg = Math.max(1, Math.round(dmg));
+    d.hp = Math.max(0, d.hp - dmg);
+    d.energy = Math.min(100, d.energy + 12);
+    return { dmg, crit, blocked };
+  }
+  // one move -> what happened (for the animation). move = { action, side? } (side only for a forfeit)
+  function pvpStep(E, move){
+    const k = E.turn + 1;
+    const ev = { turn:k, events:[] };
+    if (E.winner) return ev;
+    E.turn = k;
+    if (move.action === 'forfeit'){ const s = move.side || E.actor(k); ev.side = s; E.winner = E.other(s); ev.events.push({ t:'forfeit', side:s }); return ev; }
+    const side = E.actor(k), a = E.F[side], dside = E.other(side), d = E.F[dside];
+    ev.side = side;
+    ['s2','s3','s4'].forEach(key=>{ if (a.cd[key] > 0) a.cd[key]--; });
+    let act = move.action;
+    if (act === 'auto'){
+      a.autos++;
+      if (a.autos >= 2){ E.winner = dside; ev.events.push({ t:'idle', side }); return ev; }
+      act = pvpAiChoose(E, side, E.rng());
+      ev.auto = true;
+    } else a.autos = 0;
+    if (!['s1','s2','s3','s4','ult'].includes(act) || !E.can(side, act)) act = 's1';
+    ev.action = act;
+    if (act === 's1'){ ev.events.push(Object.assign({ t:'hit', side, target:dside }, pvpHit(E, a, d, 1.0, false))); }
+    else if (act === 's2'){ const h = pvpHit(E, a, d, 1.3, false); d.weak = PVP_ROLE[a.role].hexHits || 2; a.cd.s2 = 3; ev.events.push(Object.assign({ t:'hit', side, target:dside, hex:true }, h)); }
+    else if (act === 's3'){ const before = a.hp; a.hp = Math.min(a.maxHp, a.hp + Math.round(a.maxHp*(PVP_ROLE[a.role].heal || 0.25))); a.cd.s3 = 3; ev.events.push({ t:'heal', side, amount:a.hp - before }); }
+    else if (act === 's4'){ a.shield = 2; a.cd.s4 = 3; ev.events.push({ t:'shield', side }); }
+    else { a.energy = 0; ev.events.push(Object.assign({ t:'hit', side, target:dside, ult:true }, pvpHit(E, a, d, 2.6, true))); }
+    if (act !== 'ult') a.energy = Math.min(100, a.energy + 25 + (PVP_ROLE[a.role].energy || 0));
+    if (d.hp <= 0){ E.winner = side; ev.events.push({ t:'ko', side:dside }); return ev; }
+    // the arena's curse: from round 8 both Totos lose a growing slice of max HP after every round, so every battle ends
+    if (k >= 16 && k % 2 === 0){
+      const pct = 0.03 + 0.012*((k - 16)/2), h1 = E.F.p1.hp/E.F.p1.maxHp, h2 = E.F.p2.hp/E.F.p2.maxHp;
+      ['p1','p2'].forEach(s=>{ const f = E.F[s], c = Math.max(1, Math.round(f.maxHp*pct)); f.hp = Math.max(0, f.hp - c); ev.events.push({ t:'curse', side:s, amount:c }); });
+      const d1 = E.F.p1.hp <= 0, d2 = E.F.p2.hp <= 0;
+      if (d1 || d2){
+        E.winner = d1 && d2 ? (h1 > h2 ? 'p1' : h2 > h1 ? 'p2' : (E.rng() < 0.5 ? 'p1' : 'p2')) : (d1 ? 'p2' : 'p1');
+        ev.events.push({ t:'ko', side:E.other(E.winner) }); return ev;
+      }
+    }
+    if (k >= 80){ E.winner = (E.F.p1.hp/E.F.p1.maxHp >= E.F.p2.hp/E.F.p2.maxHp) ? 'p1' : 'p2'; ev.events.push({ t:'time' }); }
+    return ev;
+  }
+  window.__tqPvpSim = function(seed, a, b, n){   // dev check: plays n auto battles, returns wins + average turns
+    let w = { p1:0, p2:0 }, turns = 0;
+    for (let i=0;i<(n||100);i++){ const E = pvpEngine(seed + i, a, b); while (!E.winner) pvpStep(E, { action: pvpAiChoose(E, E.actor(E.turn+1), Math.random()) }); w[E.winner]++; turns += E.turn; }
+    return { wins:w, avgTurns: turns/(n||100) };
+  };
+
+  // ---- sprites: only ever drawn from the game's own art, by name (never HTML from another player) ----
+  let PVP_ETERNAL_ART = null;
+  function pvpSpriteHtml(s){
+    if (!s) return '';
+    if (s.isToni) return TONI_SVG;
+    const own = spriteFor(String(s.name||''), s.nature);
+    if (own) return own;
+    if (!PVP_ETERNAL_ART){ PVP_ETERNAL_ART = {}; try { ETERNAL_MAKERS.forEach(fn=>{ const t = fn(); PVP_ETERNAL_ART[t.name] = t.sprite; }); } catch(e){} }
+    return PVP_ETERNAL_ART[s.name] || SPECIES_SVG[Object.keys(SPECIES_SVG)[0]] || '';
+  }
+  function myPvpToto(){
+    const pick = state.pvpTotoId && state.collection.find(t=> t.id === state.pvpTotoId);
+    return pick || (state.collection.length ? state.collection.slice().sort((a,b)=> (b.cp||0)-(a.cp||0))[0] : null);
+  }
+  // character pictures (3D outfit snapshots) for the lobby + arena
+  function lookHash(look, mode){ const s = mode+'|'+JSON.stringify(look||{}); let h = 0; for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) | 0; return 'lk'+(h>>>0).toString(36); }
+  function lookImg(look, mode, alt){
+    const k = lookHash(look, mode);
+    let url = null;
+    if (window.__tqLookSnapshot){ try { url = window.__tqLookSnapshot(look, mode, u=> $$('img[data-lk="'+k+'"]').forEach(i=> i.src = u)); } catch(e){} }
+    if (!url) return mode === 'head' ? frontAvatarMarkup(look && look.g === 'male' ? 'male' : 'female', true) : frontAvatarMarkup(look && look.g === 'male' ? 'male' : 'female', false);
+    return '<img data-lk="'+k+'" src="'+url+'" alt="'+escapeHtml(alt||'trainer')+'" draggable="false">';
+  }
+
+  // ---- lobby ----
+  function pvpRankCard(){
+    const info = rankInfo(Social.rp|0, Social.place), pct = info.into != null ? Math.round(info.into / RP_PER_DIVISION * 100) : 100;
+    const next = info.next != null ? info.next+' RP to '+(rankInfo((Social.rp|0) + info.next).label) : (info.key === 'grandmaster' ? 'Top 10 this season!' : 'Reach the top 10 to become a Grandmaster');
+    $('#pv-rank').innerHTML = '<div class="pv-rank-em">'+rankEmblem(info, 62)+'</div><div class="pv-rank-i"><div class="pv-rank-l">'+info.label+'</div>'
+      + '<div class="pv-rank-s">'+(Social.rp|0).toLocaleString()+' RP · '+(Social.wins|0)+'W '+(Social.losses|0)+'L'+(Social.place && (Social.wins+Social.losses) ? ' · #'+Social.place+' this season' : '')+'</div>'
+      + '<div class="pv-rank-bar"><i style="width:'+pct+'%"></i></div><div class="pv-rank-n">'+next+' · '+seasonLabel(Social.season)+'</div></div>';
+  }
+  function pvpPickCard(){
+    const t = myPvpToto();
+    $('#pv-pick').innerHTML = t ? '<div class="pv-pick-spr">'+spriteMarkup(t)+'</div><div class="pv-pick-i"><small>Your Toto</small><b>'+escapeHtml(t.name)+'</b><span>Lv '+(t.level||1)+' · '+(ROLE_INFO[t.role]||ROLE_INFO.attacker).label+' · PWR '+(t.cp||0).toLocaleString()+'</span></div><button id="pv-change">Change</button>'
+      : '<div class="pv-pick-i"><b>You need a Toto first</b><span>Catch one on the map, then come back.</span></div>';
+    const b = $('#pv-change'); if (b) b.onclick = pvpChooseToto;
+    $('#pv-find').disabled = !t;
+  }
+  async function pvpChooseToto(){
+    const list = state.collection.slice().sort((a,b)=> (b.cp||0)-(a.cp||0));
+    const cur = myPvpToto();
+    const html = '<div class="pv-pick-list">'+list.map(t=> '<button class="pv-pick-row'+(cur && cur.id === t.id ? ' on' : '')+'" data-id="'+escapeHtml(t.id)+'"><div class="pv-pick-spr">'+spriteMarkup(t)+'</div><div><b>'+escapeHtml(t.name)+'</b><small>Lv '+(t.level||1)+' · '+(ROLE_INFO[t.role]||ROLE_INFO.attacker).label+' · PWR '+(t.cp||0).toLocaleString()+'</small></div></button>').join('')+'</div>';
+    const p2 = actionSheet('Choose your Toto', 'One Toto per battle. It always starts at full HP.', [{ html }]);
+    $$('#act-body .pv-pick-row').forEach(b=> b.onclick = ()=>{ state.pvpTotoId = b.dataset.id; markDirty(); $('#act-cancel').click(); });
+    await p2; pvpPickCard(); pvpPoll();
+  }
+  function pvpLobbyHtml(){
+    const me = { id:state.playerId, name:state.username, look:myLook(), toto:pvpSnap(myPvpToto()), rp:Social.rp|0, place:Social.place, status: PVP.searching ? 'searching' : 'idle', me:true };
+    const all = [me].concat(PVP.players);
+    const st = { searching:'🔎 Searching', battling:'⚔️ Battling', matched:'⚔️ Battling', idle:'In lobby' };
+    return all.map(pl=> '<div class="pv-lob'+(pl.me ? ' me' : '')+'" data-id="'+escapeHtml(pl.id||'')+'"><span class="pv-lob-st '+(pl.status||'idle')+'">'+(pl.me ? 'You' : (st[pl.status]||'In lobby'))+'</span>'
+      + '<div class="pv-lob-char">'+lookImg(pl.look || { g: pl.avatar }, 'full', pl.name)+'</div>'
+      + (pl.toto ? '<div class="pv-lob-toto">'+pvpSpriteHtml(pl.toto)+'</div>' : '')
+      + '<div class="pv-lob-n">'+escapeHtml(pl.name||'Trainer')+'</div>'+rankChip(pl.rp||0, (pl.rp|0) >= MASTER_RP ? pl.place : null)+'</div>').join('');
+  }
+  function pvpRenderLobby(){
+    const key = JSON.stringify([PVP.players.map(p=> [p.id, p.status, p.rp, p.look, p.toto && p.toto.name]), PVP.searching, Social.rp, state.pvpTotoId, state.equippedCosmetics]);
+    $('#pv-count').textContent = PVP.players.length ? PVP.players.length + ' other trainer' + (PVP.players.length > 1 ? 's' : '') : '';
+    if (key === PVP.lobbyKey) return;
+    PVP.lobbyKey = key;
+    $('#pv-lobby').innerHTML = pvpLobbyHtml() + (PVP.players.length ? '' : '<div class="fr-empty" style="grid-column:1/-1">No other trainers in the lobby right now — find a match and a computer rival will step in.</div>');
+    $$('#pv-lobby .pv-lob').forEach(el=> el.onclick = ()=>{ const pl = PVP.players.find(x=> x.id === el.dataset.id); if (pl) pvpPlayerSheet(pl); });
+  }
+  async function pvpPlayerSheet(pl){
+    const t = pl.toto;
+    const v = await actionSheet(pl.name || 'Trainer', rankInfo(pl.rp||0, pl.place).label+' · '+(pl.rp||0).toLocaleString()+' RP', [
+      { html:'<div class="pv-sheet-char">'+lookImg(pl.look || { g:pl.avatar }, 'full', pl.name)+'</div>'
+        + (t ? '<div class="fr-sub" style="text-align:center;margin:4px 0 8px">Battling with <b>'+escapeHtml(t.name)+'</b> · Lv '+(t.level||1)+'</div>' : '') },
+      pl.friend ? { label:'👥 Already friends', value:null } : { label:'👥 Add friend', value:'add', cls:'good' } ]);
+    if (v === 'add'){
+      try { const r = await sbRpc('friend_request', fArgs({ p_to:pl.id })); showToast(r && r.ok ? (r.status === 'friend' ? 'You’re now friends!' : 'Friend request sent') : 'Couldn’t send that request.'); }
+      catch(e){ showToast('Couldn’t reach the online service.'); }
+    }
+  }
+  async function openPvpLobby(){
+    PVP.open = true;
+    pvpRankCard(); pvpPickCard(); pvpRenderLobby();
+    $('#pv-search').classList.remove('show'); $('#pv-find').style.display = '';
+    if (!(await needOnline())){ $('#pv-lobby').innerHTML = '<div class="fr-empty">PvP needs the online service and an internet connection.</div>'; return; }
+    if (!Social.ready) await heartbeat();
+    pvpRankCard();
+    clearInterval(PVP.timer);
+    PVP.timer = setInterval(()=>{ if (!PVP.open){ clearInterval(PVP.timer); return; } if (!PVP.inArena) pvpTick(); }, 1000);
+    pvpPoll();
+    pvpClaimSeasonRewards();
+  }
+  function pvpLeaveLobby(){
+    if (!PVP.open) return;
+    PVP.open = false; PVP.searching = false; clearInterval(PVP.timer);
+    if (onlineOn() && state.playerId && !PVP.inArena){ sbRpc('pvp_lobby_poll', fArgs({ p_status:'leave', p_toto:null, p_look:null })).catch(()=>{}); }
+  }
+  let pvpTickN = 0;
+  function pvpTick(){
+    pvpTickN++;
+    if (PVP.searching){
+      const s = Math.floor((Date.now() - PVP.searchStart)/1000);
+      $('#pv-search-t').textContent = 'Looking for a trainer… 0:'+String(s).padStart(2,'0');
+      $('#pv-search-s').textContent = s < PVP_SEARCH_SECS ? 'No one found in '+(PVP_SEARCH_SECS - s)+'s? You’ll face a computer rival.' : 'Calling in a computer rival…';
+      if (s >= PVP_SEARCH_SECS && !PVP.polling){ pvpStartBot(); return; }
+      if (pvpTickN % 2 === 0) pvpPoll();
+    } else if (pvpTickN % 3 === 0) pvpPoll();
+  }
+  async function pvpPoll(){
+    if (PVP.polling || PVP.inArena || !PVP.open || !onlineOn() || !state.playerId) return;
+    PVP.polling = true;
+    try {
+      const t = myPvpToto();
+      const r = await sbRpc('pvp_lobby_poll', fArgs({ p_status: PVP.searching ? 'searching' : 'idle', p_toto: pvpSnap(t), p_look: myLook() }));
+      if (!r || !r.ok){ if (r && r.banned) heartbeat(); return; }
+      Object.assign(Social, { rp:r.rp|0, wins:r.wins|0, losses:r.losses|0, place:r.place||null, season:r.season||Social.season });
+      PVP.players = (r.players || []).filter(x=> x && x.id);
+      if (!PVP.inArena) { pvpRankCard(); pvpRenderLobby(); }
+      if (r.match && !PVP.inArena && PVP.open){
+        const m = r.match, mine = m.p1 === state.playerId ? 'p1' : 'p2';
+        PVP.searching = false; $('#pv-search').classList.remove('show'); $('#pv-find').style.display = '';
+        startArena({ mode:'pvp', match:m, mySide:mine, seed:m.seed, snaps:{ p1:m.p1_toto, p2:m.p2_toto },
+          names:{ p1:m.p1_name, p2:m.p2_name }, looks:{ p1:m.p1_look, p2:m.p2_look }, rps:{ p1:m.p1_rp|0, p2:m.p2_rp|0 }, places:{ p1:m.p1_place, p2:m.p2_place } });
+      }
+    } catch(e){ console.warn('pvp lobby', e); }
+    finally { PVP.polling = false; }
+  }
+  $('#pv-find').onclick = ()=>{
+    if (!myPvpToto()){ showToast('Catch a Toto first!'); return; }
+    PVP.searching = true; PVP.searchStart = Date.now();
+    $('#pv-search').classList.add('show'); $('#pv-find').style.display = 'none';
+    pvpTick(); pvpPoll();
+  };
+  $('#pv-cancel').onclick = ()=>{ PVP.searching = false; $('#pv-search').classList.remove('show'); $('#pv-find').style.display = ''; PVP.lobbyKey = ''; pvpPoll(); };
+
+  // ---- computer rivals ----
+  const BOT_NAMES = ['Luna','Aria','Rowan','Ezra','Willow','Jasper','Ivy','Felix','Hazel','Milo','Nova','Remy','Sage','Thorne','Wren','Ember','Corvin','Maeve','Silas','Juniper','Poppy','Grimm','Velvet','Onyx'];
+  function pvpMakeBot(mySnap){
+    const R = Math.random, me = pvpFighter(mySnap);
+    let pick;
+    if (me.tier === 'eternal'){ const t = ETERNAL_MAKERS[Math.floor(R()*ETERNAL_MAKERS.length)](); pick = { name:t.name, nature:t.nature||null, role:t.role, isToni:!!t.isToni, statMult:t.statMult||1 }; }
+    else { const pool = me.tier === 'normal' ? NORMAL_SPECIES : LEGENDARY_SPECIES, sp = pool[Math.floor(R()*pool.length)]; pick = { name:sp.name, nature:sp.role, role:roleOf(sp.name), statMult:1 }; }
+    if (!ROLE_KITS[pick.role]) pick.role = 'attacker';
+    // level it so its power matches yours (or a touch more)
+    const target = me.cp * (1 + R()*0.08);
+    let level = TOTO_MAX_LEVEL;
+    for (let L = 1; L <= TOTO_MAX_LEVEL; L++){ if (powerLevelOf(statsForLevel(me.tier, pick.role, L, pick.statMult)) >= target){ level = L; break; } }
+    let mult = pick.statMult;
+    const cpAt = powerLevelOf(statsForLevel(me.tier, pick.role, level, mult));
+    if (cpAt < target) mult = Math.min(1.3, mult * target / Math.max(1, cpAt));
+    const toto = { name:pick.name, nature:pick.nature, role:pick.role, tier:me.tier, level, statMult:+mult.toFixed(3), isToni:!!pick.isToni };
+    const g = R() < 0.5 ? 'female' : 'male', eq = {};
+    Object.keys(COSMETIC_CATALOG).forEach(slot=>{ const opts = COSMETIC_CATALOG[slot].filter(i=> i.unlock === 'default' || (!/100|rank/i.test(i.unlock||'') && R() < 0.5)); if (opts.length) eq[slot] = opts[Math.floor(R()*opts.length)].id; });
+    const rp = Math.max(0, (Social.rp|0) + Math.round((R()-0.5)*120));
+    return { name: BOT_NAMES[Math.floor(R()*BOT_NAMES.length)], look:{ g, eq }, toto, rp };
+  }
+  async function pvpStartBot(){
+    if (PVP.inArena || PVP.polling) return;
+    PVP.polling = true;
+    try {
+      // one last look for a real trainer
+      PVP.polling = false; await pvpPoll(); PVP.polling = true;
+      if (PVP.inArena) return;
+      const mySnap = pvpSnap(myPvpToto()), bot = pvpMakeBot(mySnap);
+      const r = await sbRpc('pvp_start_bot', fArgs({ p_toto:mySnap, p_look:myLook(), p_bot:{ name:bot.name, look:bot.look, toto:bot.toto, rp:bot.rp } }));
+      if (!r || !r.ok){ PVP.searchStart = Date.now() - (PVP_SEARCH_SECS - 8)*1000; return; }
+      PVP.searching = false; $('#pv-search').classList.remove('show'); $('#pv-find').style.display = '';
+      startArena({ mode:'bot', match:{ id:r.id }, mySide:'p1', seed:r.seed, snaps:{ p1:mySnap, p2:bot.toto },
+        names:{ p1:state.username, p2:bot.name }, looks:{ p1:myLook(), p2:bot.look }, rps:{ p1:Social.rp|0, p2:bot.rp }, places:{ p1:Social.place, p2:null } });
+    } catch(e){ showToast('Couldn’t reach the online service.'); PVP.searching = false; $('#pv-search').classList.remove('show'); $('#pv-find').style.display = ''; }
+    finally { PVP.polling = false; }
+  }
+
+  // ---- the arena ----
+  const Arena = { E:null, mode:null, side:'p1', match:null, pending:{}, busy:false, auto:false, speed:1, finished:false, poll:null, tick:null, ctl:null, turnStart:0, claimAt:0, sending:false, botTimer:null, info:null, lastPollOk:0 };
+  function arenaFloorSvg(){
+    const runes = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
+    let r = '';
+    for (let i=0;i<24;i++){ const a = i/24*Math.PI*2, x = 200 + Math.cos(a)*163, y = 128 + Math.sin(a)*71; r += '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-size="'+(13 + Math.sin(a)*3).toFixed(1)+'" text-anchor="middle" dominant-baseline="middle">'+runes[i]+'</text>'; }
+    const star = [0,1,2,3,4].map(i=>{ const a = -Math.PI/2 + i*4*Math.PI/5; return (200 + Math.cos(a)*120).toFixed(1)+','+(128 + Math.sin(a)*52).toFixed(1); }).join(' ');
+    return '<svg viewBox="0 0 400 240" preserveAspectRatio="none"><defs>'
+      + '<radialGradient id="pvfg" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="#5d5578"/><stop offset="0.72" stop-color="#3b3352"/><stop offset="1" stop-color="#1d1730" stop-opacity="0"/></radialGradient>'
+      + '<pattern id="pvfs" width="26" height="12" patternUnits="userSpaceOnUse"><path d="M0 .6 H26 M0 6.6 H26 M6 .6 V6.6 M19 6.6 V12" stroke="#211a35" stroke-width="1.1" fill="none" opacity=".75"/></pattern>'
+      + '<filter id="pvfgl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
+      + '<ellipse cx="200" cy="128" rx="232" ry="112" fill="url(#pvfg)"/><ellipse cx="200" cy="128" rx="232" ry="112" fill="url(#pvfs)"/>'
+      + '<g class="pva-rune" filter="url(#pvfgl)" fill="none" stroke="#c38cff"><ellipse cx="200" cy="128" rx="182" ry="80" stroke-width="2.4"/><ellipse cx="200" cy="128" rx="145" ry="62" stroke-width="1.5" opacity=".8"/>'
+      + '<polygon points="'+star+'" stroke-width="1.3" opacity=".55"/><ellipse cx="200" cy="128" rx="44" ry="19" stroke-width="1.2" opacity=".6"/></g>'
+      + '<g class="pva-rune" filter="url(#pvfgl)" fill="#e6c4ff" font-family="serif" font-weight="700">'+r+'</g></svg>';
+  }
+  // where things stand, as fractions of the arena (feet points)
+  const ARENA_POS = { trainerL:[0.145, 0.65], trainerR:[0.855, 0.65], totoL:[0.355, 0.75], totoR:[0.645, 0.75] };
+  function arenaLayout(){
+    const set = (el, [x,y])=>{ el.style.left = (x*100)+'%'; el.style.top = (y*100)+'%'; };
+    set($('#pva-ring-l'), ARENA_POS.trainerL); set($('#pva-ring-r'), ARENA_POS.trainerR);
+    set($('#pva-toto-me'), ARENA_POS.totoL); set($('#pva-toto-op'), ARENA_POS.totoR);
+  }
+  function arenaSideEl(side){ return side === Arena.side ? $('#pva-toto-me') : $('#pva-toto-op'); }
+  function arenaCard(side){
+    const I = Arena.info, rp = I.rps[side]|0, isMe = side === Arena.side;
+    return '<div class="pva-port">'+lookImg(I.looks[side] || {}, 'head', I.names[side])+'</div><div class="pva-ci"><div class="pva-cn">'+escapeHtml(I.names[side] || 'Trainer')+(isMe ? ' <small>(You)</small>' : '')+'</div>'
+      + rankChip(rp, rp >= MASTER_RP ? I.places[side] : null)+'<div class="pva-cs">'+rp.toLocaleString()+' RP'+(Arena.mode === 'bot' && !isMe ? ' · Computer' : '')+'</div></div>';
+  }
+  function arenaPlate(side){
+    const f = Arena.E.F[side], pct = Math.max(0, f.hp/f.maxHp*100), ri = ROLE_INFO[f.role] || ROLE_INFO.attacker;
+    const buffs = (f.shield ? '<span>🛡️ '+f.shield+'</span>' : '') + (f.weak ? '<span>🌀 weak</span>' : '');
+    return '<div class="pva-pn"><span class="pva-pr" style="color:'+ri.color+'">'+ri.icon+'</span><b>'+escapeHtml(f.name)+'</b><i>Lv '+f.level+'</i></div>'
+      + '<div class="pva-role">'+ri.label+' · '+PVP_ROLE[f.role].label+'</div>'
+      + '<div class="pva-hp"><i class="'+(pct < 25 ? 'low' : pct < 55 ? 'mid' : '')+'" style="width:'+pct.toFixed(1)+'%"></i></div>'
+      + '<div class="pva-hpt"><span>HP</span><span>'+f.hp.toLocaleString()+' / '+f.maxHp.toLocaleString()+'</span></div>'
+      + '<div class="pva-en"><i style="width:'+f.energy+'%"></i></div><div class="pva-buffs">'+buffs+'</div>';
+  }
+  function arenaRefresh(){
+    const E = Arena.E;
+    ['p1','p2'].forEach(side=>{
+      const el = arenaSideEl(side), f = E.F[side];
+      $(side === Arena.side ? '#pva-plate-me' : '#pva-plate-op').innerHTML = arenaPlate(side);
+      el.classList.toggle('shielded', f.shield > 0);
+    });
+    const next = E.winner ? null : E.actor(E.turn + 1), mine = next === Arena.side;
+    $('#pva-toto-me').classList.toggle('turn', mine); $('#pva-toto-op').classList.toggle('turn', !!next && !mine);
+    $('#pva-card-me').classList.toggle('turn', mine); $('#pva-card-op').classList.toggle('turn', !!next && !mine);
+    $('#pva-plate-me').classList.toggle('turn', mine); $('#pva-plate-op').classList.toggle('turn', !!next && !mine);
+    const me = E.F[Arena.side], canAct = mine && !Arena.busy && !Arena.sending && !Arena.finished;
+    $('#pvp-arena').classList.toggle('waiting', !canAct);
+    $('#pva-skills').innerHTML = PVP_SKILLS.map((s,i)=>{ const cd = me.cd[s.key]|0;
+      return '<button class="pva-sk" data-k="'+s.key+'" title="'+escapeHtml(s.desc)+'"'+(!canAct || cd ? ' disabled' : '')+'><em>'+(i+1)+'</em>'+pvpSkillIcon(s)+'<b>'+s.name+'</b>'+(cd ? '<span class="cdv">'+cd+'</span>' : '')+'</button>'; }).join('');
+    $$('#pva-skills .pva-sk').forEach(b=> b.onclick = ()=> arenaChoose(b.dataset.k));
+    const ult = $('#pva-ult'); ult.disabled = !canAct || me.energy < 100; ult.classList.toggle('ready', me.energy >= 100);
+    $('#pva-ult-fill').style.width = me.energy+'%'; $('#pva-ult-s').textContent = me.energy >= 100 ? 'READY' : me.energy+'%';
+    const tt = $('#pva-turn');
+    if (!E.winner && !Arena.finished){
+      tt.classList.toggle('mine', mine);
+      $('#pva-turn-t').textContent = mine ? 'Your turn' : (Arena.info.names[next] || 'Rival')+'’s turn';
+    }
+  }
+  function arenaLog(t){ $('#pva-log').textContent = t; }
+  function arenaFloat(side, text, cls){
+    const pos = side === Arena.side ? ARENA_POS.totoL : ARENA_POS.totoR;
+    const d = document.createElement('div'); d.className = 'pva-num '+(cls||''); d.innerHTML = text;
+    d.style.left = (pos[0]*100)+'%'; d.style.top = ((pos[1]-0.15)*100)+'%';
+    $('#pva-fx').appendChild(d); setTimeout(()=> d.remove(), 1200);
+  }
+  function arenaSlash(side, color){
+    const pos = side === Arena.side ? ARENA_POS.totoL : ARENA_POS.totoR;
+    const d = document.createElement('div'); d.className = 'pva-slash';
+    d.innerHTML = '<svg viewBox="0 0 100 100"><path d="M18 82 Q50 50 84 14" stroke="'+(color||'#fff')+'" stroke-width="7" stroke-linecap="round" fill="none" opacity=".95"/><path d="M28 88 Q58 58 90 28" stroke="'+(color||'#fff')+'" stroke-width="3" stroke-linecap="round" fill="none" opacity=".6"/></svg>';
+    d.style.left = (pos[0]*100)+'%'; d.style.top = ((pos[1]-0.1)*100)+'%';
+    $('#pva-fx').appendChild(d); setTimeout(()=> d.remove(), 600);
+  }
+  const arenaWait = ms=> new Promise(r=> setTimeout(r, ms / Arena.speed));
+  function pulse(el, cls, ms){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(()=> el.classList.remove(cls), ms); }
+  async function arenaAnimate(ev){
+    const I = Arena.info, E = Arena.E;
+    const nm = side=> side === Arena.side ? 'Your '+E.F[side].name : (I.names[side]||'Rival')+'’s '+E.F[side].name;
+    if (ev.side && Arena.ctl) Arena.ctl.command(ev.side === Arena.side ? 'L' : 'R');
+    for (const e of ev.events){
+      if (e.t === 'hit'){
+        const atkEl = arenaSideEl(e.side), defEl = arenaSideEl(e.target), sk = e.ult ? null : PVP_SKILL_BY[ev.action];
+        arenaLog(nm(e.side)+' used '+(e.ult ? 'ULTIMATE ATTACK' : sk.name)+(ev.auto ? ' (auto)' : '')+'!');
+        if (e.ult){ pulse($('#pva-flash'), 'on', 700); Sound.playAbility && Sound.playAbility(); await arenaWait(250); }
+        pulse(atkEl, e.side === Arena.side ? 'lunge-r' : 'lunge-l', 420);
+        await arenaWait(190);
+        arenaSlash(e.target, e.ult ? '#ffd36b' : (e.hex ? '#d9a8ff' : '#ffffff'));
+        pulse(defEl, 'hurt', 400);
+        if (e.ult || e.crit) pulse($('#pvp-arena'), 'shake', 450);
+        Sound.playAttack && Sound.playAttack();
+        arenaFloat(e.target, '-'+e.dmg.toLocaleString()+(e.crit ? '<small>CRIT!</small>' : (e.blocked ? '<small>BLOCKED</small>' : '')), e.crit || e.ult ? 'crit' : '');
+        arenaRefresh();
+        await arenaWait(e.ult ? 900 : 650);
+      } else if (e.t === 'heal'){
+        arenaLog(nm(e.side)+' used Mend!'); Sound.playAbility && Sound.playAbility();
+        pulse(arenaSideEl(e.side), 'healed', 700); arenaFloat(e.side, '+'+e.amount.toLocaleString(), 'heal'); arenaRefresh(); await arenaWait(750);
+      } else if (e.t === 'shield'){
+        arenaLog(nm(e.side)+' raised a Spirit Shield!'); Sound.playAbility && Sound.playAbility(); arenaRefresh(); await arenaWait(700);
+      } else if (e.t === 'curse'){
+        arenaFloat(e.side, '-'+e.amount.toLocaleString()+'<small>ARENA CURSE</small>', 'curse'); arenaRefresh(); await arenaWait(260);
+      } else if (e.t === 'ko'){
+        arenaLog(nm(e.side)+' is knocked out!'); arenaSideEl(e.side).classList.add('ko'); await arenaWait(900);
+      } else if (e.t === 'forfeit'){
+        arenaLog((e.side === Arena.side ? 'You' : (I.names[e.side]||'Your rival'))+' retreated.'); await arenaWait(500);
+      } else if (e.t === 'idle'){
+        arenaLog((e.side === Arena.side ? 'You' : (I.names[e.side]||'Your rival'))+' stopped responding.'); await arenaWait(500);
+      } else if (e.t === 'time'){
+        arenaLog('Time! The healthier Toto wins.'); await arenaWait(500);
+      }
+    }
+    arenaRefresh();
+  }
+  // process the next confirmed move (in turn order) if we have it
+  async function arenaPump(){
+    if (Arena.busy || Arena.finished) return;
+    const k = Arena.E.turn + 1, mv = Arena.pending[k];
+    if (!mv) return;
+    delete Arena.pending[k];
+    Arena.busy = true;
+    try {
+      const ev = pvpStep(Arena.E, mv);
+      Arena.turnStart = Date.now(); Arena.claimAt = 0;
+      await arenaAnimate(ev);
+    } finally { Arena.busy = false; }
+    if (Arena.E.winner) return arenaFinish();
+    arenaNext();
+    arenaPump();
+  }
+  function arenaNext(){
+    if (Arena.finished || Arena.E.winner) return;
+    Arena.turnStart = Date.now();
+    arenaRefresh();
+    const next = Arena.E.actor(Arena.E.turn + 1);
+    if (next === Arena.side){
+      if (Arena.auto) setTimeout(()=>{ if (!Arena.finished && Arena.E.actor(Arena.E.turn + 1) === Arena.side && !Arena.busy) arenaChoose(pvpAiChoose(Arena.E, Arena.side, Math.random())); }, 450 / Arena.speed);
+    } else if (Arena.mode === 'bot'){
+      clearTimeout(Arena.botTimer);
+      Arena.botTimer = setTimeout(()=>{
+        if (Arena.finished) return;
+        Arena.pending[Arena.E.turn + 1] = { action: pvpAiChoose(Arena.E, next, Math.random()) };
+        arenaPump();
+      }, (900 + Math.random()*1100) / Arena.speed);
+    }
+  }
+  async function arenaChoose(key){
+    const E = Arena.E;
+    if (Arena.finished || Arena.busy || Arena.sending || E.winner || E.actor(E.turn + 1) !== Arena.side) return;
+    if (!E.can(Arena.side, key)) return;
+    const turn = E.turn + 1;
+    if (Arena.mode === 'bot'){ Arena.pending[turn] = { action:key }; arenaPump(); return; }
+    Arena.sending = true; arenaRefresh();
+    try {
+      const r = await sbRpc('pvp_move', fArgs({ p_match:Arena.match.id, p_turn:turn, p_action:key, p_for_opponent:false }));
+      if (r && r.ok) Arena.pending[turn] = { action:key };
+      else arenaPollNow();
+    } catch(e){ showToast('Connection hiccup — trying again…'); }
+    finally { Arena.sending = false; arenaRefresh(); arenaPump(); }
+  }
+  async function arenaPollNow(){
+    if (Arena.mode !== 'pvp' || Arena.finished || Arena.polling) return;
+    Arena.polling = true;
+    try {
+      const r = await sbRpc('pvp_poll', fArgs({ p_match:Arena.match.id, p_since:Arena.E.turn }));
+      if (r && r.ok){
+        Arena.lastPollOk = Date.now();
+        (r.moves || []).forEach(mv=>{ if (mv.turn > Arena.E.turn && !Arena.pending[mv.turn]) Arena.pending[mv.turn] = { action:mv.action, side: mv.player === Arena.match.p1 ? 'p1' : 'p2' }; });
+        arenaPump();
+        if (r.status !== 'active' && !Arena.E.winner && !(r.moves||[]).length && r.status === 'abandoned'){ arenaLog('This match was cancelled.'); arenaFinish(true); }
+      }
+    } catch(e){}
+    finally { Arena.polling = false; }
+  }
+  function arenaTick(){
+    if (Arena.finished) return;
+    const E = Arena.E, next = E.winner ? null : E.actor(E.turn + 1);
+    const left = Math.max(0, PVP_TURN_SECS - Math.floor((Date.now() - Arena.turnStart)/1000));
+    $('#pva-timer').textContent = next && !Arena.busy ? '0:'+String(left).padStart(2,'0') : '';
+    if (!next || Arena.busy) return;
+    if (next === Arena.side){
+      if (left <= 0 && !Arena.sending) arenaChoose(pvpAiChoose(E, Arena.side, Math.random()));   // out of time: the game picks for you
+    } else if (Arena.mode === 'pvp'){
+      // the rival went quiet: after 27 s the server lets us play an automatic move for them
+      if (Date.now() - Arena.turnStart > (PVP_TURN_SECS + 2)*1000 && Date.now() > Arena.claimAt){
+        Arena.claimAt = Date.now() + 5000;
+        sbRpc('pvp_move', fArgs({ p_match:Arena.match.id, p_turn:E.turn + 1, p_action:'auto', p_for_opponent:true })).then(()=> arenaPollNow()).catch(()=>{});
+      }
+    }
+  }
+  function startArena(info){
+    PVP.inArena = true;
+    Arena.info = info; Arena.mode = info.mode; Arena.side = info.mySide; Arena.match = info.match;
+    Arena.E = pvpEngine(info.seed|0, info.snaps.p1, info.snaps.p2);
+    Arena.pending = {}; Arena.busy = false; Arena.finished = false; Arena.sending = false; Arena.polling = false; Arena.auto = false; Arena.speed = 1;
+    const op = Arena.E.other(Arena.side);
+    $('#pva-floor').innerHTML = arenaFloorSvg();
+    arenaLayout();
+    $('#pva-sub').textContent = (info.mode === 'bot' ? 'Ranked vs computer · ' : 'Ranked · ') + seasonLabel(Social.season).split(' · ')[0];
+    $('#pva-card-me').innerHTML = arenaCard(Arena.side); $('#pva-card-op').innerHTML = arenaCard(op);
+    [['#pva-toto-me', Arena.side], ['#pva-toto-op', op]].forEach(([sel, side])=>{ const el = $(sel); el.className = 'pva-toto '+(sel === '#pva-toto-me' ? 'me' : 'op'); el.querySelector('.pva-spr').innerHTML = pvpSpriteHtml(info.snaps[side]); });
+    $('#pva-auto').classList.remove('on'); $('#pva-speed').innerHTML = '▶▶<small>x1</small>'; $('#pva-speed').classList.remove('on');
+    $('#pva-result').classList.remove('show'); $('#pva-result').innerHTML = '';
+    $('#pva-fx').innerHTML = ''; arenaLog(''); $('#pva-turn').style.opacity = '';
+    $('#pvp-arena').classList.add('show');
+    try {
+      if (window.__tqArena3D){
+        if (!Arena.ctl) Arena.ctl = window.__tqArena3D($('#pva-3d'), ARENA_POS);
+        Arena.ctl.setTrainers(info.looks[Arena.side] || myLook(), info.looks[op] || { g:'female', eq:{} });
+      }
+    } catch(e){ console.warn('arena 3D', e); }
+    $('#pva-turn-t').textContent = 'Battle start!';
+    arenaRefresh();
+    $('#pvp-arena').classList.add('waiting');
+    clearInterval(Arena.tick); Arena.tick = setInterval(arenaTick, 500);
+    clearInterval(Arena.poll); if (info.mode === 'pvp') Arena.poll = setInterval(arenaPollNow, 1200);
+    setTimeout(()=>{ if (!Arena.finished){ Arena.turnStart = Date.now(); arenaNext(); if (info.mode === 'pvp') arenaPollNow(); } }, 1400);
+  }
+  $('#pva-auto').onclick = ()=>{ Arena.auto = !Arena.auto; $('#pva-auto').classList.toggle('on', Arena.auto); if (Arena.auto) arenaNext(); };
+  $('#pva-speed').onclick = ()=>{ Arena.speed = Arena.speed === 1 ? 2 : 1; $('#pva-speed').innerHTML = '▶▶<small>x'+Arena.speed+'</small>'; $('#pva-speed').classList.toggle('on', Arena.speed === 2); };
+  $('#pva-ult').onclick = ()=> arenaChoose('ult');
+  $('#pva-flee').onclick = async ()=>{
+    if (Arena.finished) return;
+    if (!(await gameConfirm('Retreating counts as a loss.', 'Retreat from this battle?', 'Retreat', 'Keep fighting'))) return;
+    if (Arena.finished) return;
+    if (Arena.mode === 'bot'){ Arena.pending[Arena.E.turn + 1] = { action:'forfeit', side:Arena.side }; clearTimeout(Arena.botTimer); arenaPump(); return; }
+    for (let tries = 0; tries < 4 && !Arena.finished; tries++){
+      try {
+        const turn = Arena.E.turn + 1;
+        const r = await sbRpc('pvp_move', fArgs({ p_match:Arena.match.id, p_turn:turn, p_action:'forfeit', p_for_opponent:false }));
+        if (r && r.ok){ Arena.pending[turn] = { action:'forfeit', side:Arena.side }; arenaPump(); return; }
+        await arenaPollNow(); await new Promise(res=> setTimeout(res, 600));
+      } catch(e){ await new Promise(res=> setTimeout(res, 800)); }
+    }
+    if (!Arena.finished) arenaFinish(true);
+  };
+  function rpDeltaHtml(d, won){
+    if (!d && !won) return '<div class="pva-res-rp">±0 RP</div><div class="pva-res-s">You can’t drop below 0 RP.</div>';
+    return '<div class="pva-res-rp '+(d >= 0 ? 'up' : 'down')+'">'+(d >= 0 ? '+' : '−')+Math.abs(d)+' RP</div>';
+  }
+  async function arenaFinish(cancelled){
+    if (Arena.finished) return;
+    Arena.finished = true;
+    clearInterval(Arena.tick); clearInterval(Arena.poll); clearTimeout(Arena.botTimer);
+    $('#pva-timer').textContent = '';
+    const won = !cancelled && Arena.E.winner === Arena.side;
+    $('#pva-turn-t').textContent = cancelled ? 'Match over' : (won ? 'Victory!' : 'Defeat');
+    $('#pva-turn').classList.toggle('mine', won);
+    if (Arena.ctl && !cancelled){ Arena.ctl.pose('L', won ? 'win' : 'lose'); Arena.ctl.pose('R', won ? 'lose' : 'win'); }
+    if (!cancelled){ if (won) Sound.playVictory && Sound.playVictory(); else Sound.playDefeat && Sound.playDefeat(); }
+    const before = rankInfo(Social.rp|0, Social.place), rpBefore = Social.rp|0;
+    let res = null;
+    for (let i = 0; i < 3 && !res; i++){
+      try { const r = await sbRpc('pvp_finish', fArgs({ p_match:Arena.match.id, p_result: won ? 'win' : 'loss' })); if (r && r.ok) res = r; } catch(e){ await new Promise(r=> setTimeout(r, 900)); }
+    }
+    if (res){ Social.rp = res.rp|0; Social.wins = res.wins|0; Social.losses = res.losses|0; }
+    await new Promise(r=> setTimeout(r, 900));
+    const after = rankInfo(Social.rp|0, Social.place), delta = res && res.delta != null ? res.delta : null;
+    const promo = after.label !== before.label ? ((Social.rp|0) > rpBefore ? '⬆️ Promoted to '+after.label+'!' : 'Dropped to '+after.label) : '';
+    const pending = res && res.status === 'active';
+    $('#pva-result').innerHTML = '<div class="pva-res'+(won ? '' : ' lose')+'"><div class="pva-res-t">'+(cancelled ? 'MATCH OVER' : (won ? 'VICTORY!' : 'DEFEAT'))+'</div>'
+      + '<div class="pva-res-em" id="pva-res-em">'+rankEmblem(after, 70)+'</div><div class="pva-res-l" id="pva-res-l">'+after.label+'</div>'
+      + '<div id="pva-res-rpbox">'+(delta != null ? rpDeltaHtml(delta, won) : (pending ? '<div class="pva-res-s">Waiting for your rival to confirm the result…</div>' : ''))+'</div>'
+      + '<div class="pva-res-s" id="pva-res-st">'+(Social.rp|0).toLocaleString()+' RP · '+(Social.wins|0)+'W '+(Social.losses|0)+'L'+(Arena.mode === 'bot' ? '<br>Computer wins give up to 100 RP a day.' : '')+'</div>'
+      + (promo ? '<div class="pva-res-promo">'+promo+'</div>' : '')
+      + '<button class="again" id="pva-again">⚔️ Battle again</button><button class="back" id="pva-back">Back to lobby</button></div>';
+    $('#pva-result').classList.add('show');
+    const close = ()=>{ $('#pvp-arena').classList.remove('show'); PVP.inArena = false; PVP.lobbyKey = ''; if (Arena.ctl){ Arena.ctl.dispose(); Arena.ctl = null; } heartbeat(); pvpRankCard(); pvpPickCard(); };
+    $('#pva-back').onclick = ()=>{ close(); pvpPoll(); };
+    $('#pva-again').onclick = ()=>{ close(); $('#pv-find').click(); };
+    // the server settles a trainer-vs-trainer match once both phones have reported
+    for (let i = 0; pending && i < 8 && $('#pva-result').classList.contains('show'); i++){
+      await new Promise(r=> setTimeout(r, 2500));
+      try {
+        const r = await sbRpc('pvp_finish', fArgs({ p_match:Arena.match.id, p_result: won ? 'win' : 'loss' }));
+        if (r && r.ok && r.status !== 'active'){
+          Social.rp = r.rp|0; Social.wins = r.wins|0; Social.losses = r.losses|0;
+          const box = $('#pva-res-rpbox'), now = rankInfo(Social.rp|0, Social.place);
+          if (box) box.innerHTML = r.delta != null ? rpDeltaHtml(r.delta, won)
+            : '<div class="pva-res-s">'+(r.status === 'disputed' ? 'Both trainers reported different results — no RP this time.' : 'Result recorded.')+'</div>';
+          if ($('#pva-res-st')) $('#pva-res-st').textContent = (Social.rp|0).toLocaleString()+' RP · '+(Social.wins|0)+'W '+(Social.losses|0)+'L';
+          if ($('#pva-res-em')) $('#pva-res-em').innerHTML = rankEmblem(now, 70);
+          if ($('#pva-res-l')) $('#pva-res-l').textContent = now.label;
+          break;
+        }
+      } catch(e){}
+    }
+  }
+
+  // ---- season rewards: finishing #1 earns the Rank #1 set (other places: rewards coming soon) ----
+  let seasonClaimDone = false;
+  async function pvpClaimSeasonRewards(){
+    if (seasonClaimDone || !onlineOn() || !state.playerId || underAge()) return;
+    seasonClaimDone = true;
+    let rows = [];
+    try { rows = await sbRpc('season_claim', fArgs()) || []; } catch(e){ seasonClaimDone = false; return; }
+    if (!Array.isArray(rows) || !rows.length) return;
+    state.seasonResults = (state.seasonResults || []).filter(x=> !rows.some(r=> r.season === x.season)).concat(rows.map(r=> ({ season:r.season, rank:r.rank, rp:r.rp, wins:r.wins }))).slice(-36);
+    markDirty();
+    if (typeof checkCosmeticUnlocks === 'function') { try { checkCosmeticUnlocks(); } catch(e){} }
+    saveNow && saveNow(true);
+    for (const r of rows.sort((a,b)=> a.season < b.season ? -1 : 1)){
+      const name = seasonLabel(r.season).split(' · ')[0].replace(' season','');
+      if (r.rank === 1) await gameDialog({ title:'🏆 Rank #1 — '+name+' season!', message:'You finished the '+name+' PvP season at #1 with '+(r.rp||0).toLocaleString()+' RP. The Rank #1 Shirt, Hat and Pumpkin Staff are now in your Wardrobe!', ok:'Awesome!', cancel:null });
+      else if (r.rank <= 10) await gameDialog({ title:'Season over — #'+r.rank+'!', message:'You finished the '+name+' PvP season at #'+r.rank+' ('+(r.rp||0).toLocaleString()+' RP) — a Grandmaster-level finish! Top 10 rewards are on the way.', ok:'Nice!', cancel:null });
+      else await gameDialog({ title:'Season over', message:'You finished the '+name+' PvP season at #'+r.rank+' with '+(r.rp||0).toLocaleString()+' RP. A new season has started — everyone is back at Bronze 3. Good luck!', ok:'Let’s go', cancel:null });
+    }
+  }
+  window.__tqSeasonClaim = pvpClaimSeasonRewards;
 
   // Anything bought for this trainer (Stripe -> webhook -> database) that the game hasn't
   // handed over yet: add it, save straight away, say thanks.
@@ -5857,6 +6696,7 @@
   // Customize/Profile popup (see below) — one place that knows how to switch
   // which full-screen panel is showing, so both entry points stay in sync.
   function openGamePanel(tab){
+    if (tab !== 'pvp' && typeof pvpLeaveLobby === 'function') pvpLeaveLobby();
     if (tab === 'profile'){ openProfileDrawer(); return; }
     closeProfileDrawer(); closeNearby();
     // Leaving the wardrobe panel stops its own little rotating-preview WebGL loop rather
@@ -8726,7 +9566,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v56';
+window.TQ_APP_VERSION = 'v57';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -9487,8 +10327,8 @@ window.TQ_APP_VERSION = 'v56';
     const BOOT_H = 0.2, LEG_LEN = 0.36, HIP_Y = BOOT_H + LEG_LEN - 0.02;
     const SHOULDER_Y = 1.06, HEAD_Y = 1.40, HEAD_R = 0.30;
 
-    function buildPlayerModel(gender){
-      const cfg = PLAYER_EQUIP_CATALOG[gender] || PLAYER_EQUIP_CATALOG.female;
+    function buildPlayerModel(gender, cfgOverride){
+      const cfg = cfgOverride || PLAYER_EQUIP_CATALOG[gender] || PLAYER_EQUIP_CATALOG.female;
       const isFemale = gender !== 'male';
       const root = new THREE.Group();
       const body = new THREE.Group(); root.add(body);         // rotates for facing
@@ -10023,6 +10863,120 @@ window.TQ_APP_VERSION = 'v56';
       if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(overrides); } catch(e){} }
       canvas.__wardrobe3d.rebuild(gender==='male' ? 'male' : 'female');
       if (overrides && window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
+    };
+
+    // ---- other trainers' outfits as pictures (PvP lobby + arena portraits) ----
+    let snapR = null, snapScene = null, snapCam = null;
+    const snapCache = new Map();
+    window.__tqLookSnapshot = function(look, mode, cb){
+      mode = mode === 'head' ? 'head' : 'full';
+      const key = mode + '|' + JSON.stringify(look || {});
+      const hit = snapCache.get(key);
+      if (hit && hit.final){ return hit.url; }
+      if (hit && !hit.final && hit.pending){ if (cb) hit.cbs.push(cb); return hit.url; }
+      if (!snapR){
+        const c = document.createElement('canvas');
+        snapR = new THREE.WebGLRenderer({ canvas:c, alpha:true, antialias:true, preserveDrawingBuffer:true });
+        snapR.setPixelRatio(1);
+        if ('outputColorSpace' in snapR) snapR.outputColorSpace = THREE.SRGBColorSpace;
+        snapScene = new THREE.Scene();
+        snapScene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.3));
+        const k = new THREE.DirectionalLight(0xffe2b8, 1.35); k.position.set(1.5, 3.8, 2.6); snapScene.add(k);
+        const f = new THREE.DirectionalLight(0xfff5e8, 0.55); f.position.set(-1.4, 1.6, 3); snapScene.add(f);
+        const r = new THREE.DirectionalLight(0xb7a2ff, 0.85); r.position.set(-2.2, 2.4, -3); snapScene.add(r);
+        snapCam = new THREE.PerspectiveCamera(24, 1, 0.1, 40);
+      }
+      const render = ()=>{
+        const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
+        const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
+        const group = buildPlayerModel(g, L && L.cfg);
+        animatePlayerModel(group, 1.0, false);
+        group.rotation.y = mode === 'head' ? -0.2 : -0.32;
+        const W = mode === 'head' ? 128 : 168, H = mode === 'head' ? 128 : 224;
+        snapR.setSize(W, H, false); snapCam.aspect = W/H; snapCam.updateProjectionMatrix();
+        const viewH = mode === 'head' ? 1.15 : 2.7, lookY = mode === 'head' ? 1.6 : 1.17;
+        const d = viewH / (2*Math.tan(THREE.MathUtils.degToRad(snapCam.fov)/2));
+        snapCam.position.set(0, lookY + d*0.14, d); snapCam.lookAt(0, lookY, 0);
+        snapScene.add(group); snapR.render(snapScene, snapCam);
+        const url = snapR.domElement.toDataURL('image/png');
+        snapScene.remove(group); disposePlayerModel(group);
+        return url;
+      };
+      try {
+        const url = render();
+        const entry = { url, final:false, pending:true, cbs: cb ? [cb] : [] };
+        snapCache.set(key, entry);
+        // textures (embroidered hats, printed shirts…) load a moment later: draw once more
+        setTimeout(()=>{ try { entry.url = render(); } catch(e){} entry.final = true; entry.pending = false; entry.cbs.forEach(fn=>{ try { fn(entry.url); } catch(e){} }); entry.cbs = []; }, 1300);
+        return url;
+      } catch(e){ console.warn('look snapshot failed', e); return null; }
+    };
+
+    // ---- the PvP arena's two trainers, standing behind their Totos ----
+    window.__tqArena3D = function(canvas, POS){
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+      renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
+      if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xffe9d6, 0x2a1e4a, 1.2));
+      const key = new THREE.DirectionalLight(0xffd9a8, 1.25); key.position.set(0.5, 4, 6); scene.add(key);
+      const rl = new THREE.DirectionalLight(0xb48cff, 0.9); rl.position.set(-5, 3, -3); scene.add(rl);
+      const rr = new THREE.DirectionalLight(0xff9a50, 0.7); rr.position.set(5, 3, -3); scene.add(rr);
+      const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 60);
+      const ELEV = 0.16;
+      const T = { L:null, R:null };
+      let W = 1, H = 1, S = 100, stopped = false;
+      function place(tr, frac){
+        if (!tr) return;
+        tr.root.position.set((frac[0] - 0.5)*W/S, (0.5 - frac[1])*H/S / Math.cos(ELEV), 0);
+      }
+      function resize(){
+        W = canvas.clientWidth || 360; H = canvas.clientHeight || 640;
+        renderer.setSize(W, H, false);
+        S = Math.min(H*0.215, W*0.48) / 2.35;               // a trainer stands about a fifth of the screen tall
+        cam.left = -W/2/S; cam.right = W/2/S; cam.top = H/2/S; cam.bottom = -H/2/S; cam.updateProjectionMatrix();
+        cam.position.set(0, Math.sin(ELEV)*20, Math.cos(ELEV)*20); cam.lookAt(0, 0, 0);
+        place(T.L, POS.trainerL); place(T.R, POS.trainerR);
+      }
+      function makeTrainer(look, side){
+        const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
+        const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
+        const model = buildPlayerModel(g, L && L.cfg);
+        const root = new THREE.Group(); root.add(model);
+        model.rotation.y = side === 'L' ? 0.55 : -0.55;     // turned in toward the fight
+        const sh = new THREE.Mesh(new THREE.CircleGeometry(0.42, 28), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.9 }));
+        sh.rotation.x = -Math.PI/2; sh.scale.set(1.4, 1, 1); sh.position.y = 0.01; root.add(sh);
+        scene.add(root);
+        return { root, model, cmd:0, pose:null };
+      }
+      function clear(side){ const tr = T[side]; if (!tr) return; scene.remove(tr.root); disposePlayerModel(tr.root); T[side] = null; }
+      function frame(){
+        if (stopped) return;
+        requestAnimationFrame(frame);
+        if (!canvas.offsetParent) return;
+        const t = performance.now()/1000;
+        ['L','R'].forEach(side=>{
+          const tr = T[side]; if (!tr) return;
+          animatePlayerModel(tr.model, t + (side === 'R' ? 0.7 : 0), false);
+          const p = tr.model.userData.parts; if (!p) return;
+          if (tr.cmd > t){
+            const k = Math.sin(Math.min(1, (0.9 - (tr.cmd - t))/0.9) * Math.PI);
+            p.rightArm.rotation.x = -1.5*k; p.rightArm.rotation.z += 0.25*k; p.body.position.y = 0.05*k; p.headGroup.rotation.x = -0.12*k;
+          }
+          if (tr.pose === 'win'){ const k = 0.5 + 0.5*Math.sin(t*6); p.leftArm.rotation.z = -2.4; p.rightArm.rotation.z = 2.4; p.body.position.y = 0.08*k; }
+          else if (tr.pose === 'lose'){ p.headGroup.rotation.x = 0.35; p.leftArm.rotation.z = -0.15; p.rightArm.rotation.z = 0.15; }
+        });
+        renderer.render(scene, cam);
+      }
+      window.addEventListener('resize', resize);
+      requestAnimationFrame(frame);
+      return {
+        setTrainers(lookL, lookR){ clear('L'); clear('R'); T.L = makeTrainer(lookL, 'L'); T.R = makeTrainer(lookR, 'R'); resize(); },
+        command(side){ const tr = T[side]; if (tr) tr.cmd = performance.now()/1000 + 0.9; },
+        pose(side, p){ const tr = T[side]; if (tr) tr.pose = p; },
+        resize,
+        dispose(){ stopped = true; clear('L'); clear('R'); renderer.dispose(); window.removeEventListener('resize', resize); }
+      };
     };
 
     window.mountPlayer3D = function(gender){

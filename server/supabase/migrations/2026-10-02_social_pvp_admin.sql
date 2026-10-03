@@ -488,6 +488,8 @@ begin
     who := case when p_id = m.p1 then m.p2 else m.p1 end;
     p_action := 'auto';
   end if;
+  -- turns alternate: odd turns belong to p1, even turns to p2
+  if p_action <> 'forfeit' and (p_turn % 2 = 1) <> (who = m.p1) then return json_build_object('ok', false, 'not_your_turn', true, 'turn', last_turn); end if;
   insert into private.pvp_moves(match_id, turn, player_id, action) values (p_match, p_turn, who, p_action);
   update private.pvp_matches set last_move_at = now() where id = p_match;
   update private.pvp_lobby set status = 'battling' where player_id = p_id and match_id = p_match;
