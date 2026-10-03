@@ -2675,6 +2675,10 @@
         description:'Purple velvet embroidered in gold — LEVEL 100 across the front, jack-o\'-lanterns, autumn leaves and a band of golden bats. Only for trainers who reach Level 100.',
         thumb:'assets/wardrobe/l100hat-thumb.png',
         preset:{ kind:'level100Hat', color:'#4a1c5c', trim:'#d9a93a' } },
+      { id:'hat_rank1', name:'Rank #1 Champion Hat', rarity:'Season Rank #1', unlock:'rank1',
+        description:'A white witch hat embroidered in copper and orange: TOTOQUEST across the front above a Rank #1 crest, with jack-o\'-lanterns, bats and autumn leaves round the brim. Only for the trainer who finishes a PvP season at #1.',
+        thumb:'assets/wardrobe/rank1-hat-thumb.png',
+        preset:{ kind:'rank1Hat', color:'#f4efe6', trim:'#c8743e' } },
     ],
     top: [
       { id:'top_default', name:'Classic Robe', rarity:'Starter', unlock:'default',
@@ -2683,6 +2687,10 @@
         description:'Royal purple with gold trim: the TotoQuest "Master Achiever" medallion big across the front and a gold LEVEL 100 on the back. Only for trainers who reach Level 100.',
         thumb:'assets/wardrobe/tee-thumb.png',
         preset:{ kind:'tee', color:'#5c3296', trim:'#e8b94a' } },
+      { id:'top_rank1', name:'Rank #1 Champion Shirt', rarity:'Season Rank #1', unlock:'rank1',
+        description:'A long-sleeved white shirt covered in orange embroidery: TOTOQUEST and a Rank #1 crest on the front, RANK #1 on the back and scrollwork down both sleeves. Only for the trainer who finishes a PvP season at #1.',
+        thumb:'assets/wardrobe/rank1-shirt-thumb.png',
+        preset:{ kind:'rank1Shirt', color:'#f4efe6', trim:'#e8873a' } },
     ],
     legwear: [
       { id:'legwear_default', name:'Candy-Corn Leggings', rarity:'Starter', unlock:'default',
@@ -2699,6 +2707,10 @@
         description:'A witch\'s broom wrapped in a golden ribbon, topped with a glowing pumpkin that reads LEVEL 100. Only for trainers who reach Level 100.',
         thumb:'assets/wardrobe/l100broom-thumb.png',
         preset:{ kind:'l100broom', color:'#5a341c', orb:'#ffb020' } },
+      { id:'acc_rank1_staff', name:'Rank #1 Pumpkin Staff', rarity:'Season Rank #1', unlock:'rank1',
+        description:'A twisted copper staff set with amethysts, topped by a carved Rank #1 pumpkin wearing a crown. Only for the trainer who finishes a PvP season at #1.',
+        thumb:'assets/wardrobe/rank1-staff-thumb.png',
+        preset:{ kind:'rank1Staff', color:'#c97b4b', orb:'#ffb347' } },
     ],
   };
   const COSMETIC_SLOT_LABEL = { hat:'Hat', top:'Top', legwear:'Legwear', shoes:'Shoes', accessory:'Accessory' };
@@ -2707,6 +2719,11 @@
   // includes() check means it only ever grants an item once no matter how often this runs).
   function checkCosmeticUnlocks(){
     state.unlockedCosmetics = state.unlockedCosmetics || [];
+    // finishing a PvP season at #1 (see pvpClaimSeasonRewards) earns the Rank #1 set
+    if ((state.seasonResults||[]).some(r=> r && r.rank === 1)){
+      const fresh = ['top_rank1','hat_rank1','acc_rank1_staff'].filter(id=> !state.unlockedCosmetics.includes(id));
+      if (fresh.length){ fresh.forEach(id=> state.unlockedCosmetics.push(id)); markDirty(); }
+    }
     if (state.charLevel >= PLAYER_MAX_LEVEL){
       const fresh = ['top_level100_tee','hat_prestige','acc_l100_broom'].filter(id=> !state.unlockedCosmetics.includes(id));
       if (fresh.length){
@@ -7149,7 +7166,7 @@
     const equippedId = wardrobeEquippedId(wardrobeUi.slot);
     const worn = items.find(i=> i.id===equippedId);
     detailEl.innerHTML = '<b>ITEM:</b> '+item.name+'<br><b>RARITY:</b> '+item.rarity+'<br><b>DESCRIPTION:</b> '+item.description
-      + (owned ? '' : '<br><span style="color:#c0392b; font-weight:800;">🔒 Unlocks at trainer Level 100 — you can still try it on here</span>');
+      + (owned ? '' : '<br><span style="color:#c0392b; font-weight:800;">🔒 '+(item.unlock === 'rank1' ? 'Finish a PvP season at #1 to unlock' : 'Unlocks at trainer Level 100')+' — you can still try it on here</span>');
     const alreadyWorn = item.id===equippedId;
     equipBtn.disabled = !owned || alreadyWorn;
     equipBtn.textContent = alreadyWorn ? 'Wearing it' : ('Equip'+(worn ? ' (replaces '+worn.name+')' : ''));
@@ -9566,7 +9583,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v58';
+window.TQ_APP_VERSION = 'v59';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -10362,6 +10379,73 @@ window.TQ_APP_VERSION = 'v58';
       tex.wrapS = THREE.RepeatWrapping; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       return (robeTex58Cache[key] = tex);
     }
+    // picture textures for wardrobe items (cached)
+    const wardTexCache = {};
+    function wardrobeTex(file, wrap){
+      if (wardTexCache[file]) return wardTexCache[file];
+      const t = new THREE.TextureLoader().load('assets/wardrobe/' + file);
+      t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; if (wrap) t.wrapS = THREE.RepeatWrapping;
+      return (wardTexCache[file] = t);
+    }
+    // ---- Rank #1 Pumpkin Staff: twisted copper, amethysts, and a crowned Rank #1 pumpkin ----
+    function buildRank1Staff(){
+      const g = new THREE.Group();
+      const copper = toon('#d08452', { emissive:'#4a1e08', emissiveIntensity:0.35 });
+      const copperDk = toon('#8f4c2a', { emissive:'#2a1004', emissiveIntensity:0.3 });
+      const ivory = toon('#f3e8da');
+      const gem = toon('#8a3be0', { emissive:'#3b0f6e', emissiveIntensity:0.7 });
+      part(g, new THREE.CylinderGeometry(0.021, 0.025, 1.3, 12), copperDk, { pos:[0, 0.7, 0], outline:0.006 });
+      const hel = []; for (let i=0;i<=160;i++){ const t = i/160, a = t*Math.PI*2*6; hel.push(new THREE.Vector3(Math.cos(a)*0.023, 0.12 + t*1.16, Math.sin(a)*0.023)); }
+      part(g, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(hel), 320, 0.0075, 5, false), ivory, { outline:0 });
+      [0.36, 0.62, 0.96, 1.2].forEach(y=> part(g, new THREE.CylinderGeometry(0.031, 0.031, 0.032, 14), copper, { pos:[0, y, 0], outline:0.004 }));
+      part(g, new THREE.CylinderGeometry(0.03, 0.022, 0.06, 12), copper, { pos:[0, 0.06, 0], outline:0.004 });
+      // amethyst setting
+      part(g, new THREE.SphereGeometry(0.038, 14, 10), copper, { pos:[0, 0.79, 0], scale:[1,1.55,1], outline:0.005 });
+      [[0,0.79,-0.036,0.021],[0.034,0.79,-0.012,0.013],[-0.034,0.79,-0.012,0.013],[0,0.845,-0.028,0.011],[0,0.735,-0.028,0.011]]
+        .forEach(([x,y,z,r])=> part(g, new THREE.SphereGeometry(r, 10, 8), gem, { pos:[x,y,z], outline:0.003 }));
+      // a little copper jack-o'-lantern with bat wings near the foot
+      const foot = new THREE.Group(); foot.position.set(0, 0.24, 0); g.add(foot);
+      part(foot, new THREE.SphereGeometry(0.042, 14, 10), copper, { scale:[1.1,0.85,1.1], outline:0.004 });
+      const eye = new THREE.MeshBasicMaterial({ color:'#3a1606' });
+      [-1,1].forEach(sx=>{ const e = new THREE.Mesh(new THREE.CircleGeometry(0.008, 3), eye); e.position.set(sx*0.014, 0.008, -0.04); e.rotation.y = Math.PI; foot.add(e);
+        const w = new THREE.Mesh(getBatWingGeo(), toon('#b8693c', { side:THREE.DoubleSide })); w.position.set(sx*0.03, 0.01, 0); w.rotation.set(0, sx > 0 ? 0 : Math.PI, 0.35); w.scale.setScalar(0.9); foot.add(w); });
+      // the pumpkin: ribbed, copper and ivory, carved with Rank #1 (picture from the owner's art)
+      const R = 0.13;
+      const geo = new THREE.SphereGeometry(R, 56, 36);
+      const pos = geo.attributes.position, v = new THREE.Vector3();
+      for (let i = 0; i < pos.count; i++){
+        v.fromBufferAttribute(pos, i);
+        const phi = Math.atan2(v.z, v.x), groove = 1 - 0.06*(1 - Math.pow(Math.abs(Math.sin(4*phi)), 0.35));
+        pos.setXYZ(i, v.x*groove*1.12, v.y*0.84, v.z*groove*1.12);
+      }
+      geo.computeVertexNormals();
+      const pumpkin = new THREE.Group(); pumpkin.position.set(0, 1.42 + R*0.8, 0); g.add(pumpkin);
+      part(pumpkin, geo, toon('#ffffff', { map: wardrobeTex('rank1-staff-pumpkin.jpg', true), emissive:'#ffb070', emissiveIntensity:0.12 }), { outline:0.008 });
+      part(g, new THREE.CylinderGeometry(0.045, 0.03, 0.05, 16), copper, { pos:[0, 1.395, 0], outline:0.005 });
+      // ribbon reading TOTOQUEST under the pumpkin
+      const rc = document.createElement('canvas'); rc.width = 512; rc.height = 64;
+      const rx = rc.getContext('2d'); const rg = rx.createLinearGradient(0,0,0,64); rg.addColorStop(0,'#e6a070'); rg.addColorStop(1,'#a85a30');
+      rx.fillStyle = rg; rx.fillRect(0,0,512,64); rx.strokeStyle = '#6a3214'; rx.lineWidth = 4; rx.strokeRect(2,2,508,60);
+      rx.fillStyle = '#5a2810'; rx.font = 'bold 40px Georgia, serif'; rx.textAlign = 'center'; rx.textBaseline = 'middle'; rx.fillText('TOTOQUEST', 256, 34);
+      const rt = new THREE.CanvasTexture(rc); rt.colorSpace = THREE.SRGBColorSpace;
+      part(g, new THREE.CylinderGeometry(0.13, 0.13, 0.04, 32, 1, true, Math.PI - 0.95, 1.9), toon('#ffffff', { map: rt, side:THREE.DoubleSide }), { pos:[0, 1.41, 0], outline:0.003 });
+      // little copper wings either side
+      const wing = new THREE.Shape(); wing.moveTo(0,0); wing.quadraticCurveTo(0.06,0.05,0.13,0.06); wing.lineTo(0.1,0.03); wing.lineTo(0.12,0.015); wing.lineTo(0.085,0.0); wing.lineTo(0.1,-0.02); wing.quadraticCurveTo(0.05,-0.02,0,0);
+      [-1,1].forEach(sx=>{ const w = part(g, new THREE.ShapeGeometry(wing), toon('#c67a48', { side:THREE.DoubleSide, emissive:'#3a1606', emissiveIntensity:0.3 }), { pos:[sx*0.13, 1.43, 0.01], rot:[0, sx > 0 ? 0 : Math.PI, 0.15], outline:0 }); });
+      // the crown
+      const crown = new THREE.Group(); crown.position.set(0, pumpkin.position.y + R*0.82, 0); g.add(crown);
+      part(crown, new THREE.CylinderGeometry(0.066, 0.06, 0.035, 24, 1, true), toon('#d08452', { side:THREE.DoubleSide, emissive:'#4a1e08', emissiveIntensity:0.35 }), { pos:[0,0.018,0], outline:0.004 });
+      for (let i=0;i<6;i++){ const a = i/6*Math.PI*2; part(crown, new THREE.ConeGeometry(0.014, 0.05, 6), copper, { pos:[Math.sin(a)*0.062, 0.058, Math.cos(a)*0.062], outline:0.003 }); part(crown, new THREE.SphereGeometry(0.008, 8, 6), copper, { pos:[Math.sin(a)*0.062, 0.088, Math.cos(a)*0.062], outline:0 }); }
+      part(crown, new THREE.SphereGeometry(0.012, 10, 8), gem, { pos:[0, 0.02, -0.066], outline:0.002 });
+      const star = new THREE.Shape(); for (let i=0;i<10;i++){ const a = -Math.PI/2 + i*Math.PI/5, r = i%2 ? 0.014 : 0.034; star[i ? 'lineTo' : 'moveTo'](Math.cos(a)*r, -Math.sin(a)*r); }
+      part(crown, new THREE.ExtrudeGeometry(star, { depth:0.01, bevelEnabled:false }), toon('#e8a06a', { emissive:'#7a3a10', emissiveIntensity:0.45 }), { pos:[0, 0.12, -0.005], outline:0.003 });
+      // a warm glow round the pumpkin
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map:getLanternHaloTexture(), color:0xffa040, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0.45 }));
+      halo.scale.set(0.62, 0.62, 1); halo.position.copy(pumpkin.position); g.add(halo);
+      g.userData.halo = halo;
+      return g;
+    }
+    window.__buildRank1Staff = buildRank1Staff;
     // hair strands for the smooth hair cap: darker strands, a soft shine band
     const hairTexCache = {};
     function makeHairTexture(col){
@@ -10404,7 +10488,9 @@ window.TQ_APP_VERSION = 'v58';
       const skin = toon(cfg.skin || '#ffcfa8');
       const hairCol = cfg.hair || '#c8561e';
       const topColor = (cfg.top&&cfg.top.color) || '#5b2d8f', topTrim = (cfg.top&&cfg.top.trim) || '#ff9a3d';
-      const isTee = cfg.top && cfg.top.kind === 'tee';
+      const isR1 = cfg.top && cfg.top.kind === 'rank1Shirt';
+      const isTee = cfg.top && (cfg.top.kind === 'tee' || isR1);
+      const r1Trim = toon('#e8873a', { emissive:'#5a2600', emissiveIntensity:0.25 });
       const teeGold = toon('#e8b94a', { emissive:'#6a4300', emissiveIntensity:0.35 });
 
       // ---- Legs: slim tights + strapped boots with little bat wings (hip pivots for walking) ----
@@ -10442,9 +10528,9 @@ window.TQ_APP_VERSION = 'v58';
         // point index, not the distance between points)
         const radii = [0.198,0.194,0.188,0.182,0.178,0.177,0.177,0.178,0.18,0.179,0.172,0.152,0.098];
         const prof = radii.map((r,i)=> new THREE.Vector2(r, 0.455 + i*0.0455));
-        const teeTex = getTeePrintTexture(false);
-        coat = part(body, new THREE.LatheGeometry(prof, 48), toon('#ffffff', { map: teeTex, emissive:'#ffffff', emissiveMap: teeTex, emissiveIntensity:0.22 }), { outline:0.013 });
-        part(body, new THREE.TorusGeometry(0.197, 0.013, 6, 40), teeGold, { pos:[0,0.46,0], rot:[Math.PI/2,0,0], outline:0.004 });
+        const teeTex = isR1 ? wardrobeTex('rank1-shirt.jpg', true) : getTeePrintTexture(false);
+        coat = part(body, new THREE.LatheGeometry(prof, 48), toon('#ffffff', { map: teeTex, emissive:'#ffffff', emissiveMap: teeTex, emissiveIntensity: isR1 ? 0.1 : 0.22 }), { outline:0.013 });
+        part(body, new THREE.TorusGeometry(0.197, 0.013, 6, 40), isR1 ? r1Trim : teeGold, { pos:[0,0.46,0], rot:[Math.PI/2,0,0], outline:0.004 });
         const sk = [[0.215,0.37],[0.206,0.41],[0.198,0.45],[0.19,0.49]].map(([r,y])=> new THREE.Vector2(r,y));
         part(body, new THREE.LatheGeometry(sk, 32), toon(isFemale ? ((cfg.legwear&&cfg.legwear.color) || '#3d2a5c') : '#2a2238'), { outline:0.01 });
       }
@@ -10456,7 +10542,7 @@ window.TQ_APP_VERSION = 'v58';
         const brooch = makeBat(0.058, '#ff9a2a'); brooch.position.set(0, 0.945, -0.17); body.add(brooch);
         brooch.traverse(o=>{ if (o.material && o.material.color && !o.userData.isOutline && o.material.type === 'MeshToonMaterial'){ o.material.emissive = new THREE.Color('#7a3a00'); o.material.emissiveIntensity = 0.35; } });
       } else {
-        part(body, new THREE.TorusGeometry(0.092, 0.02, 8, 28), teeGold, { pos:[0,1.0,0], rot:[Math.PI/2,0,0], outline:0.005 });
+        part(body, new THREE.TorusGeometry(0.092, 0.02, 8, 28), isR1 ? r1Trim : teeGold, { pos:[0,1.0,0], rot:[Math.PI/2,0,0], outline:0.005 });
       }
 
       // ---- Arms: bell sleeves with orange cuffs, little hands (shoulder pivots) ----
@@ -10468,6 +10554,11 @@ window.TQ_APP_VERSION = 'v58';
           const sl = [[0.044,0],[0.054,-0.07],[0.066,-0.16],[0.086,-0.245],[0.097,-0.285]].map(([r,y])=> new THREE.Vector2(r,y));
           part(pivot, new THREE.LatheGeometry(sl, 18), sleeveMat, { outline:0.01 });
           part(pivot, new THREE.TorusGeometry(0.095, 0.015, 8, 20), toon(topTrim), { pos:[0,-0.285,0], rot:[Math.PI/2,0,0], outline:0.005 });
+        } else if (isR1){
+          // long fitted sleeves with the embroidered scrollwork and an orange cuff
+          const sl = [[0.056,0.02],[0.06,-0.05],[0.058,-0.13],[0.054,-0.21],[0.05,-0.285]].map(([r,y])=> new THREE.Vector2(r,y));
+          part(pivot, new THREE.LatheGeometry(sl, 20), toon('#ffffff', { map: wardrobeTex('rank1-sleeve.jpg', true), side:THREE.DoubleSide }), { outline:0.009 });
+          part(pivot, new THREE.TorusGeometry(0.05, 0.011, 6, 18), r1Trim, { pos:[0,-0.285,0], rot:[Math.PI/2,0,0], outline:0.003 });
         } else {
           const sl = [[0.055,0.02],[0.062,-0.035],[0.067,-0.095],[0.068,-0.13]].map(([r,y])=> new THREE.Vector2(r,y));
           part(pivot, new THREE.LatheGeometry(sl, 18), sleeveMat, { outline:0.01 });
@@ -10564,7 +10655,37 @@ window.TQ_APP_VERSION = 'v58';
       part(headGroup, mergeParts(curls), hairMat, { outline:0.011 });
 
       // ---- Hat ----
-      if (cfg.hat && cfg.hat.kind === 'level100Hat'){
+      if (cfg.hat && cfg.hat.kind === 'rank1Hat'){
+        // the Rank #1 Champion Hat: embroidered white brim and cone, copper edging, tip curled over
+        const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.68, 0.03); hatGroup.rotation.x = -0.14; headGroup.add(hatGroup);
+        const copper = toon('#c8743e', { emissive:'#3a1606', emissiveIntensity:0.3 });
+        const brimR = 0.6;
+        const brimGeo = new THREE.CylinderGeometry(brimR, brimR, 0.032, 72, 1);
+        const bp = brimGeo.attributes.position;
+        for (let i=0;i<bp.count;i++){ const r = Math.hypot(bp.getX(i), bp.getZ(i)); bp.setY(i, bp.getY(i) - Math.pow(r/brimR, 2)*0.035); }
+        brimGeo.computeVertexNormals();
+        part(hatGroup, brimGeo, toon('#ffffff', { map: wardrobeTex('rank1-hat-brim.jpg') }), { outline:0.012 });
+        part(hatGroup, new THREE.TorusGeometry(brimR*0.99, 0.017, 8, 72), copper, { pos:[0,-0.034,0], rot:[Math.PI/2,0,0], outline:0.005 });
+        const H = 0.72, r0 = 0.25;
+        const cprof = [];
+        for (let i=0;i<=16;i++){
+          const t = i/16;
+          const k = t < 0.8 ? (1 - 0.58*t) : (1 - 0.58*0.8)*Math.pow(Math.max(0, 1 - (t-0.8)/0.2), 0.8);
+          cprof.push(new THREE.Vector2(Math.max(0.006, r0*k), t*H));
+        }
+        const coneGeo = new THREE.LatheGeometry(cprof, 56);
+        const cpp = coneGeo.attributes.position;
+        for (let i=0;i<cpp.count;i++){
+          const t = cpp.getY(i)/H;
+          cpp.setZ(i, cpp.getZ(i) + 0.12*Math.pow(t, 2.8));
+          cpp.setX(i, cpp.getX(i) - 0.3*Math.pow(t, 3.4));        // the tip flops over to the side, like the trophy
+          cpp.setY(i, cpp.getY(i) - 0.12*Math.pow(t, 3));
+        }
+        coneGeo.computeVertexNormals();
+        part(hatGroup, coneGeo, toon('#ffffff', { map: wardrobeTex('rank1-hat-cone.jpg', true) }), { pos:[0,0.01,0], outline:0.012 });
+        part(hatGroup, new THREE.TorusGeometry(r0*1.01, 0.014, 8, 56), copper, { pos:[0,0.016,0], rot:[Math.PI/2,0,0], outline:0.004 });
+        root.userData.hat = hatGroup;
+      } else if (cfg.hat && cfg.hat.kind === 'level100Hat'){
         const hatGroup = new THREE.Group(); hatGroup.position.set(0, HEAD_R*0.68, 0.03); hatGroup.rotation.x = -0.14; headGroup.add(hatGroup);
         const velvet = '#4a1c5c', lip = '#6c3a8c';
         const brimR = 0.6;
@@ -10649,6 +10770,11 @@ window.TQ_APP_VERSION = 'v58';
         halo.scale.set(0.7, 0.7, 1); halo.position.y = -0.22; hang.add(halo);
         root.userData.lanternHalo = halo;
         root.userData.lanternHang = hang;
+        rightArm.rotation.z = 0.5;
+      }
+      if (cfg.accessory && cfg.accessory.kind === 'rank1Staff'){
+        const st = buildRank1Staff(); st.position.set(0.3, 0, -0.05); body.add(st);
+        root.userData.lanternHalo = st.userData.halo;
         rightArm.rotation.z = 0.5;
       }
       if (cfg.accessory && cfg.accessory.kind === 'l100broom'){
