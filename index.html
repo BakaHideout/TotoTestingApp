@@ -280,6 +280,10 @@
   .lb-sub { font-size:11px; font-weight:700; color:#999; }
   .lb-power { font-weight:800; color:#ff8a3d; font-size:14px; }
   .lb-gap { text-align:center; color:#bbb; font-weight:800; margin:-2px 0 4px; }
+  .lb-note { font-size:11px; font-weight:700; color:#8a7aa8; text-align:center; line-height:1.4; }
+  .lb-rp { text-align:right; } .lb-rp b { display:block; font-weight:900; color:#6b3fa0; font-size:14px; } .lb-rp small { font-size:10px; font-weight:800; color:#999; }
+  .lb-row.gm { border-color:#ffb3c2; background:linear-gradient(90deg,#fff0f3,#fff); }
+  #btn-menu-pvp { display:none; }
 
   /* ---------- PUMPKINSTOPS ---------- */
   .stop-card { text-align:center; }
@@ -761,6 +765,81 @@
   .btn-store { margin-top:12px; width:100%; padding:12px; border-radius:12px; border:none; background:linear-gradient(135deg,#7b5cff,#4d7cff); color:#fff; font-weight:800; cursor:pointer; }
   .store-warning { background:#fff4d6; border:1.5px solid #f0c96b; color:#8a6a1a; font-size:11px; font-weight:700; padding:9px 11px; border-radius:10px; line-height:1.4; }
   .store-tier { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px; padding:10px 12px; margin-bottom:8px; box-shadow:0 3px 8px rgba(0,0,0,0.06); }
+  /* ---- Social: menu badges, friends, chat, admin, ranks, bans (v56) ---- */
+  .qm-btn, .pd-action { position:relative; }
+  .qm-badge { position:absolute; top:3px; right:6px; min-width:17px; height:17px; padding:0 5px; border-radius:9px; background:#ff3b5c; color:#fff; font-size:10.5px; font-weight:900; line-height:17px; text-align:center; box-shadow:0 0 0 2px #2a1745; }
+  .qm-badge:empty { display:none; }
+  .pd-action .qm-badge { position:static; margin-left:auto; box-shadow:none; }
+  .pumpkin-fab-wrap.has-news::after { content:''; position:absolute; top:6px; right:8px; width:14px; height:14px; border-radius:50%; background:#ff3b5c; box-shadow:0 0 0 2px #fff; z-index:3; }
+  .admin-only { display:none !important; }
+  html.tq-admin .admin-only { display:flex !important; }
+  .fr-search { display:flex; gap:6px; margin-bottom:10px; }
+  .fr-search input { flex:1; min-width:0; border:1.5px solid #e6dcf3; border-radius:12px; padding:10px 12px; font-family:inherit; font-weight:700; font-size:14px; background:#fff; }
+  .fr-search button { border:none; border-radius:12px; padding:0 14px; font-family:inherit; font-weight:800; background:#6b3fa0; color:#fff; cursor:pointer; }
+  .fr-h { font-size:12px; font-weight:900; letter-spacing:0.06em; text-transform:uppercase; color:#8a7aa8; margin:12px 2px 6px; display:flex; justify-content:space-between; }
+  .fr-row { display:flex; align-items:center; gap:10px; background:#fff; border-radius:14px; padding:9px 10px; margin-bottom:7px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .fr-row.tap { cursor:pointer; }
+  .fr-av { position:relative; width:42px; height:42px; flex:0 0 42px; border-radius:50%; background:linear-gradient(#3b2160,#24123c); overflow:hidden; display:flex; align-items:flex-end; justify-content:center; font-size:36px; }
+  .fr-av .player-avatar-svg { width:0.85em; height:1.19em; }
+  .fr-dot { position:absolute; right:1px; bottom:1px; width:11px; height:11px; border-radius:50%; background:#b9b0c8; box-shadow:0 0 0 2px #fff; }
+  .fr-dot.on { background:#2ecc71; }
+  .fr-info { flex:1; min-width:0; }
+  .fr-name { font-weight:900; font-size:14px; color:#2d2440; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px; }
+  .fr-sub { font-size:11.5px; font-weight:700; color:#8a7aa8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fr-btn { border:none; border-radius:10px; padding:8px 11px; font-family:inherit; font-weight:800; font-size:12px; cursor:pointer; background:#6b3fa0; color:#fff; white-space:nowrap; }
+  .fr-btn.ghost { background:#f1eaf8; color:#6b3fa0; }
+  .fr-btn.ok { background:#2e9e46; }
+  .fr-btn:disabled { opacity:0.55; cursor:default; }
+  .fr-unread { min-width:20px; height:20px; border-radius:10px; background:#ff3b5c; color:#fff; font-size:11px; font-weight:900; line-height:20px; text-align:center; padding:0 6px; }
+  .fr-empty { font-size:12.5px; font-weight:700; color:#9a8bb5; padding:8px 4px; }
+  .fr-safety { font-size:11px; font-weight:700; color:#9a8bb5; line-height:1.45; padding:12px 6px 4px; }
+  .chat-view { position:absolute; inset:0; z-index:5; display:none; flex-direction:column; background:linear-gradient(#fef9f2, #fdf1e4); }
+  .chat-view.show { display:flex; }
+  .chat-head { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,0.06); }
+  .chat-back, .chat-more { border:none; background:#f1eaf8; color:#6b3fa0; width:36px; height:36px; border-radius:12px; font-size:22px; font-weight:900; cursor:pointer; line-height:1; }
+  .chat-av { width:38px; height:38px; }
+  .chat-who { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .chat-who b { font-size:15px; color:#2d2440; } .chat-who small { font-size:11px; font-weight:800; color:#8a7aa8; }
+  .chat-list { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px; }
+  .chat-msg { max-width:78%; padding:8px 11px; border-radius:16px; font-size:14px; font-weight:600; line-height:1.35; word-wrap:break-word; white-space:pre-wrap; }
+  .chat-msg.them { align-self:flex-start; background:#fff; color:#2d2440; border-bottom-left-radius:5px; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  .chat-msg.me { align-self:flex-end; background:linear-gradient(135deg,#7b4bc4,#5a2d99); color:#fff; border-bottom-right-radius:5px; }
+  .chat-msg small { display:block; font-size:10px; font-weight:700; opacity:0.6; margin-top:2px; }
+  .chat-day { align-self:center; font-size:10.5px; font-weight:800; color:#a698bf; margin:4px 0; }
+  .chat-input { display:flex; gap:6px; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); background:#fff; box-shadow:0 -3px 10px rgba(0,0,0,0.05); }
+  .chat-input input { flex:1; min-width:0; border:1.5px solid #e6dcf3; border-radius:20px; padding:10px 14px; font-family:inherit; font-size:14px; font-weight:600; }
+  .chat-input button { border:none; border-radius:20px; padding:0 16px; font-family:inherit; font-weight:900; background:#6b3fa0; color:#fff; cursor:pointer; }
+  .act-card { width:100%; max-width:360px; background:#fff; border-radius:20px; padding:16px; max-height:100%; overflow-y:auto; }
+  .act-title { font-weight:900; font-size:16px; color:#2d2440; text-align:center; }
+  .act-sub { font-weight:700; font-size:12px; color:#8a7aa8; text-align:center; margin:2px 0 10px; }
+  .act-btn { display:block; width:100%; border:none; border-radius:12px; padding:12px; margin-bottom:7px; font-family:inherit; font-weight:800; font-size:14px; cursor:pointer; background:#f1eaf8; color:#4a2a7a; text-align:left; }
+  .act-btn.warn { background:#fff1e6; color:#b5520f; } .act-btn.danger { background:#ffe8ea; color:#c0392b; } .act-btn.good { background:#e6f7ea; color:#1f7a35; }
+  .act-btn.cancel { text-align:center; background:#fff; border:1.5px solid #e6dcf3; color:#8a7aa8; margin:6px 0 0; }
+  .act-field { display:flex; flex-direction:column; gap:4px; margin:6px 0 10px; font-size:12px; font-weight:800; color:#8a7aa8; }
+  .act-field input[type=text] { border:1.5px solid #e6dcf3; border-radius:10px; padding:9px 10px; font-family:inherit; font-weight:700; font-size:13px; }
+  .act-check { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; color:#4a2a7a; margin:4px 0 10px; }
+  .ad-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
+  .ad-stat { background:#fff; border-radius:12px; padding:8px 4px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .ad-stat b { display:block; font-size:18px; color:#2d2440; } .ad-stat span { font-size:10px; font-weight:800; color:#8a7aa8; text-transform:uppercase; }
+  .ad-tabs, .ad-filters { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .ad-tab, .ad-f { border:none; border-radius:10px; padding:7px 12px; font-family:inherit; font-weight:800; font-size:12.5px; cursor:pointer; background:#f1eaf8; color:#6b3fa0; }
+  .ad-tab.active, .ad-f.active { background:#2a1745; color:#ffd899; }
+  .ad-tab b { background:#ff3b5c; color:#fff; border-radius:8px; padding:0 5px; font-size:10.5px; }
+  .ad-tab b:empty { display:none; }
+  .ad-tag { font-size:9.5px; font-weight:900; padding:2px 6px; border-radius:6px; text-transform:uppercase; letter-spacing:0.04em; }
+  .ad-tag.adm { background:#e9ddff; color:#5a2d99; } .ad-tag.own { background:#ffe9b3; color:#8a5a00; } .ad-tag.ban { background:#ffd6db; color:#c0392b; }
+  .ad-ip { font-family:ui-monospace,Menlo,monospace; font-size:10.5px; color:#a698bf; }
+  .ad-rep { background:#fff; border-radius:14px; padding:10px 12px; margin-bottom:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .ad-rep q { display:block; margin:6px 0; font-size:13px; font-weight:700; color:#2d2440; quotes:none; background:#faf6ff; border-radius:10px; padding:7px 9px; }
+  .rank-chip { display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:900; padding:1px 7px 1px 2px; border-radius:999px; background:rgba(0,0,0,0.06); color:#4a2a7a; white-space:nowrap; }
+  .rank-chip svg { width:16px; height:16px; }
+  .ban-screen { position:absolute; inset:0; z-index:200; display:none; align-items:center; justify-content:center; padding:24px; background:radial-gradient(circle at 50% 40%, #3a1020, #12060c 70%); }
+  .ban-screen.show { display:flex; }
+  .ban-card { max-width:340px; text-align:center; color:#fff; }
+  .ban-ic { font-size:56px; } .ban-title { font-weight:900; font-size:21px; margin:8px 0; }
+  .ban-msg { font-weight:700; font-size:14px; color:#ffd0d6; line-height:1.5; }
+  .ban-help { font-weight:700; font-size:12px; color:#d9b8c0; margin-top:14px; line-height:1.5; }
+  .ban-out { margin-top:18px; border:none; border-radius:12px; padding:11px 24px; font-family:inherit; font-weight:900; background:#fff; color:#6b1020; cursor:pointer; }
   /* ---- Store tabs + Gem Shop (v53) ---- */
   .store-tabs { display:flex; gap:6px; background:#f1eaf9; border-radius:12px; padding:4px; margin-bottom:10px; }
   .store-tab { flex:1; border:none; background:transparent; border-radius:9px; padding:8px 6px; font-family:inherit; font-weight:800; font-size:12.5px; color:#6b5a88; cursor:pointer; }
@@ -1709,7 +1788,13 @@
         <div class="qm-row">
           <button class="nav-btn qm-btn" data-tab="battle"><span class="nav-icon">⚔️</span>Gyms</button>
           <button class="nav-btn qm-btn" data-tab="challenger"><span class="nav-icon">🕯️</span>Challenger</button>
+          <button class="nav-btn qm-btn" data-tab="pvp" id="btn-menu-pvp"><span class="nav-icon">🏟️</span>PvP Arena</button>
+        </div>
+        <div class="qm-section">Social</div>
+        <div class="qm-row">
+          <button class="nav-btn qm-btn" data-tab="friends" id="btn-menu-friends"><span class="nav-icon">👥</span>Friends<b class="qm-badge" id="friends-badge"></b></button>
           <button class="qm-btn" id="btn-leaderboard"><span class="nav-icon">🏆</span>Ranks</button>
+          <button class="nav-btn qm-btn admin-only" data-tab="admin" id="btn-menu-admin"><span class="nav-icon">🛡️</span>Admin</button>
         </div>
       </div>
       <div class="pumpkin-fab-wrap">
@@ -1743,6 +1828,8 @@
         <div class="pd-best" id="pd-best" style="display:none;"></div>
         <button class="pd-action" id="btn-open-wardrobe">👗<span>Wardrobe<small>Dress your trainer</small></span><i>›</i></button>
         <button class="pd-action" id="btn-open-settings">⚙️<span>Settings<small>Sound, display &amp; account</small></span><i>›</i></button>
+        <button class="pd-action" id="btn-open-friends">👥<span>Friends<small id="pd-friends-sub">Find trainers &amp; send messages</small></span><b class="qm-badge" id="pd-friends-badge"></b><i>›</i></button>
+        <button class="pd-action admin-only" id="btn-open-admin">🛡️<span>Admin<small>Players, bans &amp; reports</small></span><i>›</i></button>
         <button class="pd-action" id="btn-install-drawer" style="display:none;">📲<span>Install the app<small>Play full screen from your home screen</small></span><i>›</i></button>
         <div class="pd-owner" id="pd-owner" style="display:none;">
           <div>🔐 Owner tools unlock after you sign in with Google.</div>
@@ -1794,6 +1881,40 @@
         <span id="transfer-reward"></span>
         <button class="btn-cancel" id="btn-transfer-cancel">Cancel</button>
         <button class="btn-catch" id="btn-transfer-confirm">Transfer</button>
+      </div>
+    </div>
+
+    <div class="panel-screen" data-panel="friends">
+      <div class="panel-header">Friends <span class="close-x" data-close>✕</span></div>
+      <div class="panel-body">
+        <div class="fr-search"><input id="fr-q" type="search" placeholder="Find a trainer by username" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false"><button id="fr-go">Search</button></div>
+        <div id="fr-results"></div>
+        <div id="fr-requests"></div>
+        <div class="fr-h">Your friends <span id="fr-count"></span></div>
+        <div id="fr-list"><div class="fr-empty">Loading…</div></div>
+        <div id="fr-outgoing"></div>
+        <div class="fr-safety">Be kind, and never share personal info like where you live, your school, phone number or passwords. Tap ⋯ in a chat to report or block someone.</div>
+      </div>
+      <div class="chat-view" id="chat-view">
+        <div class="chat-head"><button class="chat-back" id="chat-back" aria-label="Back">‹</button><div class="chat-av" id="chat-av"></div>
+          <div class="chat-who"><b id="chat-name">Friend</b><small id="chat-status"></small></div><button class="chat-more" id="chat-more" aria-label="More">⋯</button></div>
+        <div class="chat-list" id="chat-list"></div>
+        <div class="chat-input"><input id="chat-text" maxlength="300" placeholder="Message…" autocomplete="off"><button id="chat-send">Send</button></div>
+      </div>
+    </div>
+
+    <div class="panel-screen" data-panel="admin">
+      <div class="panel-header">🛡️ Admin <span class="close-x" data-close>✕</span></div>
+      <div class="panel-body">
+        <div class="ad-stats" id="ad-stats"></div>
+        <div class="ad-tabs"><button class="ad-tab active" data-adtab="players">Players</button><button class="ad-tab" data-adtab="reports">Reports <b id="ad-rep-n"></b></button></div>
+        <div id="ad-players-pane">
+          <div class="fr-search"><input id="ad-q" type="search" placeholder="Search players" maxlength="24" autocomplete="off"><button id="ad-go">Search</button></div>
+          <div class="ad-filters"><button class="ad-f active" data-f="all">All</button><button class="ad-f" data-f="online">Online</button><button class="ad-f" data-f="banned">Banned</button><button class="ad-f" data-f="admins">Admins</button></div>
+          <div id="ad-list"></div>
+          <button class="set-wide" id="ad-more" style="display:none;">Load more</button>
+        </div>
+        <div id="ad-reports-pane" style="display:none;"><div id="ad-reports"></div></div>
       </div>
     </div>
 
@@ -1866,6 +1987,7 @@
           <button class="set-row set-btn" id="btn-install-settings" style="display:none;"><span>📲 Install the app<small>Play full screen from your home screen</small></span><i>›</i></button>
           <button class="set-row set-btn" id="btn-tutorial"><span>📘 Replay the tutorial</span><i>›</i></button>
           <button class="set-row set-btn" id="btn-diagnostics"><span>🛠️ Map status</span><i>›</i></button>
+          <button class="set-row set-btn" id="btn-admin-key"><span>🔑 Admin sign-in<small>For the game's owner and admins</small></span><i>›</i></button>
           <a class="set-row set-btn" href="mailto:totoquestofficial@yahoo.com?subject=TotoQuest%20help"><span>✉️ Contact support<small>totoquestofficial@yahoo.com</small></span><i>›</i></a>
           <div class="legal-links" style="padding:10px 0 4px;"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a></div>
           <div class="set-version">TotoQuest <span id="profile-version">-</span></div>
@@ -1950,9 +2072,11 @@
   <!-- LEADERBOARD -->
   <div class="modal-back" id="leaderboard-modal">
     <div class="modal-card" style="max-width:360px; text-align:left;">
-      <div class="modal-name" style="text-align:center; margin-bottom:2px;">🏆 Power Leaderboard</div>
-      <div class="modal-sub" style="text-align:center;">Every trainer, ranked by power (your 6 strongest Totos)</div>
-      <div id="leaderboard-list" style="max-height:340px; overflow-y:auto; margin-top:8px;"></div>
+      <div class="modal-name" style="text-align:center; margin-bottom:2px;">🏆 Season Rankings</div>
+      <div class="modal-sub" style="text-align:center;" id="lb-season">This month's season</div>
+      <div class="store-tabs lb-tabs" style="margin-top:8px;"><button class="store-tab active" data-lb="pve">PvE · Power</button><button class="store-tab" data-lb="pvp">PvP · Ranked</button></div>
+      <div class="lb-note" id="lb-note"></div>
+      <div id="leaderboard-list" style="max-height:340px; overflow-y:auto; margin-top:6px;"></div>
       <button class="btn-cancel" style="width:100%; margin-top:10px;" data-close-leaderboard>Close</button>
     </div>
   </div>
@@ -1974,6 +2098,13 @@
       <button class="btn-cancel" style="width:100%; margin-top:10px;" data-close-store>Close</button>
     </div>
   </div>
+
+  <!-- ACTION SHEET (admin actions, chat menu) -->
+  <div class="modal-back" id="act-sheet"><div class="act-card"><div class="act-title" id="act-title"></div><div class="act-sub" id="act-sub"></div><div id="act-body"></div><button class="act-btn cancel" id="act-cancel">Cancel</button></div></div>
+  <!-- BANNED -->
+  <div class="ban-screen" id="ban-screen"><div class="ban-card"><div class="ban-ic">⛔</div><div class="ban-title" id="ban-title">You're banned from TotoQuest</div>
+    <div class="ban-msg" id="ban-msg"></div><div class="ban-help">Think this is a mistake? Email <b>totoquestofficial@yahoo.com</b> with your username.</div>
+    <button class="ban-out" id="ban-logout">Log out</button></div></div>
 
   <!-- TOTOCHEST OPENING -->
   <div class="chest-overlay" id="chest-overlay" aria-live="polite">
@@ -3153,7 +3284,7 @@
   // Owner tools: only after the server confirmed a Google sign-in for the owner's account, and
   // only for this session (signing in again with Google brings them back).
   let ownerVerifiedEmail = '', loggedInIsOwnerEmail = false;
-  function isAdminSession(){ return !!ownerVerifiedEmail && !!state.loggedIn && state.email === ownerVerifiedEmail; }
+  function isAdminSession(){ return !!state.loggedIn && ((!!ownerVerifiedEmail && state.email === ownerVerifiedEmail) || !!(window.__tqSocial && window.__tqSocial.owner)); }
   async function checkOwnerEmail(){ loggedInIsOwnerEmail = await isOwnerEmail(state.email); }
   function applyOwnerUi(){
     const admin = isAdminSession();
@@ -3193,7 +3324,8 @@
   }
   async function verifyGoogle(credential){
     const r = await fetch(TQ_ONLINE.url.replace(/\/$/, '') + '/functions/v1/google-auth', {
-      method:'POST', headers:{ 'Content-Type':'application/json', apikey: TQ_ONLINE.anonKey }, body: JSON.stringify({ credential }) });
+      method:'POST', headers:{ 'Content-Type':'application/json', apikey: TQ_ONLINE.anonKey },
+      body: JSON.stringify(Object.assign({ credential }, (state.loggedIn && state.playerId && state.playerSecret) ? { player_id: state.playerId, player_secret: state.playerSecret } : {})) });
     let j = null; try { j = await r.json(); } catch(e){}
     if (!r.ok || !j || !j.ok) throw new Error((j && j.error) || 'Google sign-in didn\'t go through. Try again.');
     return j;
@@ -3371,7 +3503,7 @@
     if (onlineOn()){
       const fromCheckout = /[?&]purchase=done/.test(location.search);
       if (fromCheckout){ try { history.replaceState(null, '', location.pathname); } catch(e){} }
-      onlineRegister().then(()=> submitScoreOnline(true));
+      onlineRegister().then(()=>{ submitScoreOnline(true); heartbeat(); });
       watchForPurchase(fromCheckout || checkoutRecent() ? 120 : 1);
     }
     // ALWAYS (re)build the world here, every single session. A returning player's last
@@ -3544,6 +3676,376 @@
         p_level: Math.max(1, Math.min(100, state.charLevel||1)), p_totos: state.collection.length });
     } catch(e){ lbLast.sig = ''; console.warn('leaderboard update failed', e); }
   }
+  // ================= ONLINE ACCOUNT: heartbeat, bans, admins, ranks (v56) =================
+  // Every minute while you play, the game checks in: you show as online, your profile and
+  // season standing stay current, and it hears about bans, a removed account, friend requests
+  // and unread messages.
+  const Social = { admin:false, owner:false, unread:0, requests:0, rp:0, wins:0, losses:0, place:null, season:'', ban:null, ready:false };
+  window.__tqSocial = Social;
+  function myLook(){ return { g: state.avatar==='male' ? 'male' : 'female', eq: Object.assign({}, state.equippedCosmetics||{}) }; }
+  const RANK_TIERS = [
+    { key:'bronze',   name:'Bronze',   c1:'#e3a06a', c2:'#8a4b1f' },
+    { key:'silver',   name:'Silver',   c1:'#f1f4fa', c2:'#8d97a9' },
+    { key:'gold',     name:'Gold',     c1:'#ffe27a', c2:'#c28a12' },
+    { key:'platinum', name:'Platinum', c1:'#bff7ee', c2:'#2f9f92' },
+    { key:'diamond',  name:'Diamond',  c1:'#cfe9ff', c2:'#3b78d8' }
+  ];
+  const RP_PER_DIVISION = 100, MASTER_RP = 1500;
+  // Bronze 3 -> Bronze 2 -> Bronze 1 -> Silver 3 … Diamond 1 -> Master; the top 10 Masters are Grandmasters
+  function rankInfo(rp, place){
+    rp = Math.max(0, rp|0);
+    if (rp >= MASTER_RP){
+      const gm = !!place && place <= 10;
+      return gm ? { key:'grandmaster', name:'Grandmaster', label:'Grandmaster', c1:'#ff9ab0', c2:'#c0143c', into:null, next:null }
+                : { key:'master', name:'Master', label:'Master', c1:'#e7c6ff', c2:'#7b2fd0', into:null, next:null };
+    }
+    const d = Math.floor(rp / RP_PER_DIVISION), t = RANK_TIERS[Math.floor(d/3)], div = 3 - (d % 3);
+    return { key:t.key, name:t.name, div, label:t.name+' '+div, c1:t.c1, c2:t.c2, into: rp % RP_PER_DIVISION, next: RP_PER_DIVISION - rp % RP_PER_DIVISION };
+  }
+  window.__tqRankInfo = rankInfo;
+  function rankEmblem(info, size){
+    const s = size||22, id = 'rg'+Math.random().toString(36).slice(2,8);
+    const top = info.key === 'grandmaster' ? '<path d="M7 5 l3 3 2-4 2 4 3-3 -1 5 H8z" fill="#ffd34d" stroke="#7a4a00" stroke-width=".8"/>' : (info.key === 'master' ? '<circle cx="12" cy="5.5" r="2.2" fill="#ffd34d" stroke="#7a4a00" stroke-width=".8"/>' : '');
+    const pips = info.div ? Array.from({length: 4 - info.div}, (_,i)=> '<circle cx="'+(12 + (i - (3 - info.div)/2)*3.4).toFixed(1)+'" cy="18.4" r="1.15" fill="#fff"/>').join('') : '';
+    return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+info.c1+'"/><stop offset="1" stop-color="'+info.c2+'"/></linearGradient></defs>'
+      + '<path d="M12 2.5 L20 6 V12.2 C20 16.8 16.6 20.2 12 21.6 C7.4 20.2 4 16.8 4 12.2 V6 Z" fill="url(#'+id+')" stroke="rgba(0,0,0,0.45)" stroke-width="1.1"/>'
+      + '<path d="M12 7.5 l3 3.2 -3 3.4 -3-3.4z" fill="rgba(255,255,255,0.85)"/>' + top + pips + '</svg>';
+  }
+  function rankChip(rp, place){ const i = rankInfo(rp, place); return '<span class="rank-chip">'+rankEmblem(i, 16)+i.label+'</span>'; }
+  window.__tqRankChip = rankChip;
+  function timeAgo(ts){
+    const t = typeof ts === 'string' ? Date.parse(ts) : ts; if (!t) return 'never';
+    const s = Math.max(0, (Date.now() - t)/1000);
+    if (s < 90) return 'just now'; if (s < 3600) return Math.round(s/60)+'m ago'; if (s < 86400) return Math.round(s/3600)+'h ago';
+    if (s < 86400*30) return Math.round(s/86400)+'d ago'; return new Date(t).toLocaleDateString();
+  }
+  function setAdminUi(){ document.documentElement.classList.toggle('tq-admin', !!(Social.admin || isAdminSession())); }
+  function updateSocialBadges(){
+    const n = (Social.unread|0) + (Social.requests|0);
+    const txt = n ? (n > 99 ? '99+' : String(n)) : '';
+    ['#friends-badge', '#pd-friends-badge'].forEach(sel=>{ const b = $(sel); if (b) b.textContent = txt; });
+    const fab = document.querySelector('.pumpkin-fab-wrap'); if (fab) fab.classList.toggle('has-news', n > 0);
+    const sub = $('#pd-friends-sub'); if (sub) sub.textContent = Social.requests ? Social.requests+' friend request'+(Social.requests>1?'s':'') : (Social.unread ? Social.unread+' new message'+(Social.unread>1?'s':'') : 'Find trainers & send messages');
+  }
+  let hbBusy = false;
+  async function heartbeat(){
+    if (!onlineOn() || !state.loggedIn || underAge() || hbBusy) return null;
+    hbBusy = true;
+    try {
+      if (!(await onlineRegister())) return null;
+      const r = await sbRpc('heartbeat', { p_id:state.playerId, p_secret:state.playerSecret, p_name:String(state.username||'Trainer').slice(0,24),
+        p_avatar: state.avatar==='male' ? 'male' : 'female', p_level: Math.max(1, Math.min(100, state.charLevel||1)), p_power: Math.max(0, Math.round(state.powerLevel||0)),
+        p_totos: state.collection.length, p_look: myLook() });
+      if (!r) return null;
+      if (r.deleted){ accountRemovedByAdmin(); return r; }
+      if (!r.ok) return r;
+      Object.assign(Social, { admin:!!r.admin, owner:!!r.owner, unread:r.unread|0, requests:r.requests|0, rp:r.rp|0, wins:r.wins|0, losses:r.losses|0, place:r.place||null, season:r.season||'', ban:r.ban||null, ready:true });
+      setAdminUi(); applyOwnerUi(); updateSocialBadges();
+      if (r.ban) showBan(r.ban); else hideBan();
+      if (typeof onHeartbeat === 'function') onHeartbeat(r);
+      return r;
+    } catch(e){ console.warn('heartbeat failed', e); return null; }
+    finally { hbBusy = false; }
+  }
+  window.__tqHeartbeat = heartbeat;
+  setInterval(()=>{ if (document.visibilityState === 'visible' && state.loggedIn) heartbeat(); }, 60000);
+  document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'visible' && state.loggedIn) heartbeat(); });
+  function showBan(b){
+    const until = b && b.until ? new Date(b.until) : null;
+    $('#ban-title').textContent = b && b.kind === 'ip' ? 'TotoQuest is blocked on this network' : 'You’re banned from TotoQuest';
+    $('#ban-msg').innerHTML = (b && b.reason ? 'Reason: <b>'+escapeHtml(b.reason)+'</b><br>' : '')
+      + (until ? 'You can play again on <b>'+until.toLocaleString([], { dateStyle:'medium', timeStyle:'short' })+'</b>.' : 'This ban is permanent.');
+    $('#ban-logout').style.display = state.loggedIn ? '' : 'none';
+    $('#ban-screen').classList.add('show');
+  }
+  function hideBan(){ $('#ban-screen').classList.remove('show'); }
+  $('#ban-logout').onclick = ()=>{ hideBan(); const b = $('#btn-logout'); if (b) b.click(); setTimeout(checkIpBan, 400); };
+  // the sign-in screen asks once whether this device's network is banned
+  async function checkIpBan(){
+    if (!onlineOn()) return;
+    try { const r = await sbRpc('ip_status', {}); if (r && r.banned) showBan({ kind:'ip', until:r.until, reason:r.reason }); } catch(e){}
+  }
+  setTimeout(()=>{ if (!state.loggedIn) checkIpBan(); }, 1500);
+  async function accountRemovedByAdmin(){
+    const email = state.email;
+    try { stopAutosave(); } catch(e){}
+    dirty = false;
+    if (email){ await rawDelete('totoquest-profile:'+email); await forgetRememberedEmail(); }
+    try { if (watchId!==null) navigator.geolocation.clearWatch(watchId); } catch(e){}
+    watchId = null; ownerVerifiedEmail = ''; trackedId = null;
+    state.loggedIn = false; state.email = '';
+    Object.assign(Social, { admin:false, owner:false, unread:0, requests:0 }); setAdminUi(); updateSocialBadges();
+    openGamePanel('map'); showScreen('auth');
+    gameDialog({ title:'Account removed', message:'This TotoQuest account was removed by the game’s admins. Questions? Email totoquestofficial@yahoo.com.', ok:'OK', cancel:null });
+  }
+  // the owner (or an admin given the key) unlocks the admin tools on this device
+  $('#btn-admin-key').onclick = async ()=>{
+    if (!onlineOn()){ showToast('The online service isn’t reachable.'); return; }
+    const key = await gameDialog({ title:'Admin sign-in', message:'Enter the TotoQuest admin key. It unlocks the admin tools on this device for your account.', input:'Admin key', inputType:'password', ok:'Unlock', cancel:'Cancel' });
+    if (!key) return;
+    try {
+      if (!(await onlineRegister())) throw new Error('offline');
+      const r = await sbRpc('admin_claim', { p_id:state.playerId, p_secret:state.playerSecret, p_key:String(key).trim() });
+      if (!r || !r.ok){ showToast('That key didn’t work.'); return; }
+      await heartbeat();
+      showToast('🛡️ Admin tools unlocked on this device');
+    } catch(e){ showToast('Couldn’t reach the online service — try again.'); }
+  };
+
+  // ================= ACTION SHEET =================
+  function actionSheet(title, sub, buttons){
+    return new Promise(resolve=>{
+      $('#act-title').textContent = title || ''; $('#act-sub').textContent = sub || '';
+      const body = $('#act-body'); body.innerHTML = '';
+      buttons.forEach(b=>{
+        if (b.html){ const d = document.createElement('div'); d.innerHTML = b.html; body.appendChild(d); return; }
+        const el = document.createElement('button'); el.className = 'act-btn' + (b.cls ? ' '+b.cls : ''); el.textContent = b.label;
+        el.onclick = ()=>{ close(b.value); }; body.appendChild(el);
+      });
+      const close = v=>{ $('#act-sheet').classList.remove('active'); resolve(v); };
+      $('#act-cancel').onclick = ()=> close(null);
+      $('#act-sheet').classList.add('active');
+    });
+  }
+
+  // ================= FRIENDS + MESSAGES =================
+  const Friends = { data:null, chatWith:null, lastId:0, chatTimer:null, listTimer:null };
+  function avatarBubble(gender, online){
+    return '<div class="fr-av">'+frontAvatarMarkup(gender==='male' ? 'male' : 'female', true)+(online != null ? '<i class="fr-dot'+(online ? ' on' : '')+'"></i>' : '')+'</div>';
+  }
+  async function needOnline(){
+    if (!onlineOn()){ showToast('Friends need the online service.'); return false; }
+    if (underAge()){ showToast('Friends and messages are for players 13 and older.'); return false; }
+    if (!(await onlineRegister())){ showToast('Can’t reach the online service — check your connection.'); return false; }
+    return true;
+  }
+  const fArgs = extra=> Object.assign({ p_id:state.playerId, p_secret:state.playerSecret }, extra||{});
+  async function loadFriends(){
+    if (!(await needOnline())){ $('#fr-list').innerHTML = '<div class="fr-empty">Friends need an internet connection.</div>'; return; }
+    try { const r = await sbRpc('friends_list', fArgs()); if (r && r.ok){ Friends.data = r; renderFriends(); } }
+    catch(e){ $('#fr-list').innerHTML = '<div class="fr-empty">Couldn’t load your friends — check your connection.</div>'; }
+  }
+  function renderFriends(){
+    const d = Friends.data || { friends:[], incoming:[], outgoing:[] };
+    $('#fr-requests').innerHTML = d.incoming.length ? '<div class="fr-h">Friend requests</div>' + d.incoming.map(p=>
+      '<div class="fr-row" data-id="'+escapeHtml(p.id)+'">'+avatarBubble(p.avatar)+'<div class="fr-info"><div class="fr-name">'+escapeHtml(p.name||'Trainer')+'</div><div class="fr-sub">Trainer Lv '+(p.level||1)+' wants to be friends</div></div>'
+      + '<button class="fr-btn ok" data-acc="1">Accept</button><button class="fr-btn ghost" data-acc="0">✕</button></div>').join('') : '';
+    $$('#fr-requests .fr-row').forEach(row=> $$('[data-acc]', row).forEach(b=> b.onclick = async ()=>{
+      b.disabled = true;
+      try { await sbRpc('friend_respond', fArgs({ p_from:row.dataset.id, p_accept: b.dataset.acc === '1' })); } catch(e){ showToast('Couldn’t reach the online service.'); }
+      await loadFriends(); heartbeat();
+    }));
+    $('#fr-count').textContent = d.friends.length ? d.friends.length : '';
+    $('#fr-list').innerHTML = d.friends.length ? d.friends.map(f=>
+      '<div class="fr-row tap" data-id="'+escapeHtml(f.id)+'">'+avatarBubble(f.avatar, f.online)
+      + '<div class="fr-info"><div class="fr-name">'+escapeHtml(f.name||'Trainer')+' '+rankChip(f.rp||0)+'</div><div class="fr-sub">'+(f.online ? '🟢 Online now' : 'Last seen '+timeAgo(f.last_seen))+' · Lv '+(f.level||1)+'</div></div>'
+      + (f.unread ? '<span class="fr-unread">'+f.unread+'</span>' : '') + '<span style="color:#b8a6d4;font-size:20px;">›</span></div>').join('')
+      : '<div class="fr-empty">No friends yet — search for a trainer above and send a request.</div>';
+    $$('#fr-list .fr-row').forEach(row=> row.onclick = ()=>{ const f = (Friends.data.friends||[]).find(x=> x.id === row.dataset.id); if (f) openChat(f); });
+    $('#fr-outgoing').innerHTML = d.outgoing.length ? '<div class="fr-h">Waiting for them to accept</div>' + d.outgoing.map(p=>
+      '<div class="fr-row">'+avatarBubble(p.avatar)+'<div class="fr-info"><div class="fr-name">'+escapeHtml(p.name||'Trainer')+'</div><div class="fr-sub">Request sent</div></div></div>').join('') : '';
+  }
+  async function searchFriends(){
+    const q = $('#fr-q').value.trim();
+    if (q.length < 2){ $('#fr-results').innerHTML = '<div class="fr-empty">Type at least 2 letters of their username.</div>'; return; }
+    if (!(await needOnline())) return;
+    $('#fr-results').innerHTML = '<div class="fr-empty">Searching…</div>';
+    let rows = [];
+    try { rows = await sbRpc('search_players', fArgs({ p_q:q })) || []; } catch(e){ $('#fr-results').innerHTML = '<div class="fr-empty">Couldn’t search right now.</div>'; return; }
+    const label = { friend:'Friends ✓', sent:'Requested', received:'Accept', none:'Add friend' };
+    $('#fr-results').innerHTML = '<div class="fr-h">Results</div>' + (rows.length ? rows.map(p=>
+      '<div class="fr-row" data-id="'+escapeHtml(p.id)+'">'+avatarBubble(p.avatar, p.online)+'<div class="fr-info"><div class="fr-name">'+escapeHtml(p.name||'Trainer')+'</div><div class="fr-sub">Trainer Lv '+(p.level||1)+(p.online ? ' · online' : '')+'</div></div>'
+      + '<button class="fr-btn'+(p.relation==='none' || p.relation==='received' ? '' : ' ghost')+'" '+(p.relation==='friend' || p.relation==='sent' ? 'disabled' : '')+'>'+label[p.relation||'none']+'</button></div>').join('')
+      : '<div class="fr-empty">No trainer found with that name.</div>');
+    $$('#fr-results .fr-row').forEach(row=>{ const b = row.querySelector('.fr-btn'); if (b) b.onclick = async ()=>{
+      b.disabled = true;
+      try {
+        const r = await sbRpc('friend_request', fArgs({ p_to:row.dataset.id }));
+        if (r && r.ok){ b.textContent = r.status === 'friend' ? 'Friends ✓' : 'Requested'; b.classList.add('ghost'); showToast(r.status === 'friend' ? 'You’re now friends!' : 'Friend request sent'); loadFriends(); }
+        else { b.disabled = false; showToast(r && r.error === 'too_many' ? 'You have too many requests waiting.' : (r && r.error === 'full' ? 'Your friends list is full.' : 'Couldn’t send that request.')); }
+      } catch(e){ b.disabled = false; showToast('Couldn’t reach the online service.'); }
+    }; });
+  }
+  $('#fr-go').onclick = searchFriends;
+  $('#fr-q').addEventListener('keydown', e=>{ if (e.key === 'Enter') searchFriends(); });
+  function openFriends(){ openGamePanel('friends'); }
+  $('#btn-open-friends').onclick = openFriends;
+  $('#btn-open-admin').onclick = ()=> openGamePanel('admin');
+  function onFriendsPanel(){
+    $('#chat-view').classList.remove('show');
+    loadFriends();
+    clearInterval(Friends.listTimer);
+    Friends.listTimer = setInterval(()=>{ if (!document.querySelector('.panel-screen[data-panel="friends"].active')){ clearInterval(Friends.listTimer); return; } if (!Friends.chatWith) loadFriends(); }, 20000);
+  }
+  // ---- chat ----
+  function chatHtml(msgs){
+    let lastDay = '';
+    return msgs.map(m=>{
+      const d = new Date(m.created_at), day = d.toDateString();
+      const sep = day !== lastDay ? '<div class="chat-day">'+(day === new Date().toDateString() ? 'Today' : d.toLocaleDateString())+'</div>' : '';
+      lastDay = day;
+      return sep + '<div class="chat-msg '+(m.mine ? 'me' : 'them')+'" data-mid="'+m.id+'">'+escapeHtml(m.body)+'<small>'+d.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })+'</small></div>';
+    }).join('');
+  }
+  async function openChat(f){
+    Friends.chatWith = f; Friends.lastId = 0; Friends.msgs = [];
+    $('#chat-name').textContent = f.name || 'Trainer';
+    $('#chat-status').textContent = f.online ? '🟢 Online now' : 'Last seen '+timeAgo(f.last_seen);
+    $('#chat-av').innerHTML = avatarBubble(f.avatar, f.online);
+    $('#chat-list').innerHTML = '<div class="chat-day">Loading…</div>';
+    $('#chat-view').classList.add('show');
+    await pollChat(true);
+    clearInterval(Friends.chatTimer);
+    Friends.chatTimer = setInterval(()=>{ if (!$('#chat-view').classList.contains('show') || !document.querySelector('.panel-screen[data-panel="friends"].active')){ clearInterval(Friends.chatTimer); Friends.chatWith = null; return; } pollChat(false); }, 4000);
+    setTimeout(()=> $('#chat-text').focus(), 100);
+  }
+  async function pollChat(first){
+    const f = Friends.chatWith; if (!f) return;
+    try {
+      const r = await sbRpc('get_messages', fArgs({ p_other:f.id, p_after:Friends.lastId }));
+      if (!r || !r.ok || Friends.chatWith !== f) return;
+      if (r.messages.length || first){
+        Friends.msgs = (Friends.msgs||[]).concat(r.messages).slice(-200);
+        Friends.lastId = Friends.msgs.length ? Friends.msgs[Friends.msgs.length-1].id : Friends.lastId;
+        const list = $('#chat-list');
+        const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+        list.innerHTML = Friends.msgs.length ? chatHtml(Friends.msgs) : '<div class="chat-day">Say hi to '+escapeHtml(f.name||'your friend')+'! 👋</div>';
+        if (first || atBottom) list.scrollTop = list.scrollHeight;
+        if (r.messages.some(m=> !m.mine)) heartbeat();
+      }
+    } catch(e){ if (first) $('#chat-list').innerHTML = '<div class="chat-day">Couldn’t load messages.</div>'; }
+  }
+  let chatSending = false;
+  async function sendChat(){
+    const f = Friends.chatWith, inp = $('#chat-text'), text = inp.value.trim();
+    if (!f || !text || chatSending) return;
+    chatSending = true; $('#chat-send').disabled = true;
+    try {
+      const r = await sbRpc('send_message', fArgs({ p_to:f.id, p_body:text.slice(0,300) }));
+      if (r && r.ok){ inp.value = ''; await pollChat(false); const l = $('#chat-list'); l.scrollTop = l.scrollHeight; }
+      else showToast(r && r.error === 'slow_down' ? 'Slow down a little!' : (r && r.error === 'not_friends' ? 'You can only message friends.' : (r && r.error === 'banned' ? 'You can’t send messages right now.' : 'Message not sent.')));
+    } catch(e){ showToast('Message not sent — check your connection.'); }
+    finally { chatSending = false; $('#chat-send').disabled = false; }
+  }
+  $('#chat-send').onclick = sendChat;
+  $('#chat-text').addEventListener('keydown', e=>{ if (e.key === 'Enter') sendChat(); });
+  $('#chat-back').onclick = ()=>{ $('#chat-view').classList.remove('show'); Friends.chatWith = null; clearInterval(Friends.chatTimer); loadFriends(); };
+  $('#chat-more').onclick = async ()=>{
+    const f = Friends.chatWith; if (!f) return;
+    const v = await actionSheet(f.name || 'Trainer', 'What would you like to do?', [
+      { label:'🚩 Report this chat', value:'report', cls:'warn' }, { label:'🚫 Block '+(f.name||'them'), value:'block', cls:'danger' }, { label:'➖ Remove friend', value:'remove' } ]);
+    if (!v) return;
+    try {
+      if (v === 'report'){
+        const why = await gameDialog({ title:'Report '+(f.name||'this trainer'), message:'Tell us what happened. Our admins will look at their latest message.', input:'Reason', inputType:'text', ok:'Report', cancel:'Cancel' });
+        if (why === null || why === undefined || why === false) return;
+        const lastTheirs = (Friends.msgs||[]).filter(m=> !m.mine).slice(-1)[0];
+        const r = await sbRpc('report_player', fArgs({ p_other:f.id, p_message: lastTheirs ? lastTheirs.id : null, p_reason:String(why||'').slice(0,200) }));
+        showToast(r && r.ok ? 'Thanks — our admins will take a look.' : 'Couldn’t send the report.');
+      } else if (v === 'block'){
+        if (!(await gameConfirm('They won’t be able to message you or find you, and they’ll be removed from your friends.', 'Block '+(f.name||'this trainer')+'?', 'Block', 'Cancel'))) return;
+        await sbRpc('block_player', fArgs({ p_other:f.id, p_block:true })); showToast('Blocked.'); $('#chat-back').click();
+      } else if (v === 'remove'){
+        if (!(await gameConfirm('Remove '+(f.name||'them')+' from your friends?', 'Remove friend', 'Remove', 'Cancel'))) return;
+        await sbRpc('friend_remove', fArgs({ p_other:f.id })); showToast('Removed.'); $('#chat-back').click();
+      }
+    } catch(e){ showToast('Couldn’t reach the online service.'); }
+  };
+
+  // ================= ADMIN: players, bans, reports =================
+  const Admin = { filter:'all', offset:0, rows:[], q:'' };
+  async function adminCall(fn, extra){
+    const r = await sbRpc(fn, fArgs(extra));
+    if (!r || r.ok === false){ if (r && r.error === 'protected') showToast('You can’t do that to the owner or another admin.'); else if (r && r.error === 'owner_only') showToast('Only the owner can do that.'); else showToast('That didn’t work.'); return null; }
+    return r;
+  }
+  async function loadAdmin(reset){
+    if (!(await needOnline())) return;
+    if (reset){ Admin.offset = 0; Admin.rows = []; }
+    $('#ad-list').innerHTML = reset ? '<div class="fr-empty">Loading players…</div>' : $('#ad-list').innerHTML;
+    let r;
+    try { r = await sbRpc('admin_players', fArgs({ p_search:Admin.q, p_filter:Admin.filter, p_limit:50, p_offset:Admin.offset })); } catch(e){ $('#ad-list').innerHTML = '<div class="fr-empty">Couldn’t reach the online service.</div>'; return; }
+    if (!r || !r.ok){ $('#ad-list').innerHTML = '<div class="fr-empty">Admin tools are locked on this device. Use Settings → Admin sign-in.</div>'; return; }
+    $('#ad-stats').innerHTML = [['Players', r.total], ['Online', r.online], ['Banned', r.banned], ['Reports', r.reports]].map(([k,v])=> '<div class="ad-stat"><b>'+(v||0).toLocaleString()+'</b><span>'+k+'</span></div>').join('');
+    $('#ad-rep-n').textContent = r.reports ? r.reports : '';
+    Admin.rows = Admin.rows.concat(r.players || []); Admin.offset = Admin.rows.length;
+    $('#ad-more').style.display = (r.players || []).length >= 50 ? '' : 'none';
+    renderAdminRows();
+  }
+  function banText(p){
+    if (!p.banned_until) return '';
+    const t = Date.parse(p.banned_until);
+    return (!isFinite(t) || new Date(t).getFullYear() > 9000) ? 'Banned for good' : 'Banned until '+new Date(t).toLocaleString([], { dateStyle:'short', timeStyle:'short' });
+  }
+  function isBanned(p){ if (!p.banned_until) return false; const t = Date.parse(p.banned_until); return !isFinite(t) || t > Date.now(); }
+  function renderAdminRows(){
+    $('#ad-list').innerHTML = Admin.rows.length ? Admin.rows.map(p=>
+      '<div class="fr-row tap" data-id="'+escapeHtml(p.id)+'">'+avatarBubble(p.avatar, p.online)
+      + '<div class="fr-info"><div class="fr-name">'+escapeHtml(p.name||'Trainer')+(p.is_owner ? ' <span class="ad-tag own">Owner</span>' : (p.is_admin ? ' <span class="ad-tag adm">Admin</span>' : ''))+(isBanned(p) ? ' <span class="ad-tag ban">'+(p.ip_banned ? 'IP ban' : 'Banned')+'</span>' : '')+'</div>'
+      + '<div class="fr-sub">'+(p.online ? '🟢 Online now' : 'Offline · seen '+timeAgo(p.last_seen))+' · Lv '+(p.level||1)+' · PWR '+(p.power||0).toLocaleString()+'</div>'
+      + '<div class="fr-sub">'+rankChip(p.rp||0)+' <span class="ad-ip">'+escapeHtml(p.ip||'no IP yet')+'</span> · joined '+new Date(p.created_at).toLocaleDateString()+'</div>'
+      + (isBanned(p) ? '<div class="fr-sub" style="color:#c0392b">'+escapeHtml(banText(p))+(p.ban_reason ? ' — '+escapeHtml(p.ban_reason) : '')+'</div>' : '')
+      + '</div><span style="color:#b8a6d4;font-size:20px;">⋯</span></div>').join('')
+      : '<div class="fr-empty">No players match.</div>';
+    $$('#ad-list .fr-row').forEach(row=> row.onclick = ()=>{ const p = Admin.rows.find(x=> x.id === row.dataset.id); if (p) adminActions(p); });
+  }
+  async function adminActions(p){
+    const banned = isBanned(p), btns = [];
+    if (!p.is_owner){
+      if (banned) btns.push({ label:'✅ Unban'+(p.ip_banned ? ' (and their IP)' : ''), value:'unban', cls:'good' });
+      btns.push({ label:'⏳ Temporary ban…', value:'temp', cls:'warn' });
+      btns.push({ label:'⛔ Ban for good…', value:'perm', cls:'danger' });
+      btns.push({ label:'🗑️ Delete account…', value:'del', cls:'danger' });
+      if (Social.owner) btns.push({ label: p.is_admin ? '🛡️ Remove admin' : '🛡️ Make admin', value:'admin' });
+    }
+    if (!btns.length){ showToast('That’s the owner’s account.'); return; }
+    const v = await actionSheet(p.name || 'Trainer', (p.online ? 'Online now' : 'Last seen '+timeAgo(p.last_seen))+' · IP '+(p.ip || 'unknown'), btns);
+    if (!v) return;
+    if (v === 'unban'){ if (await adminCall('admin_unban', { p_target:p.id })) showToast('Unbanned.'); return loadAdmin(true); }
+    if (v === 'admin'){ if (await adminCall('admin_set_admin', { p_target:p.id, p_on: !p.is_admin })) showToast(p.is_admin ? 'Admin removed.' : (p.name||'They')+' is now an admin.'); return loadAdmin(true); }
+    if (v === 'del'){
+      if (!(await gameConfirm('This permanently removes '+(p.name||'this trainer')+'’s account: their leaderboard entries, friends and messages. Next time they open the game their save is wiped. This can’t be undone.', 'Delete this account?', 'Delete', 'Cancel'))) return;
+      if (await adminCall('admin_delete', { p_target:p.id })) showToast('Account deleted.');
+      return loadAdmin(true);
+    }
+    let minutes = 0;
+    if (v === 'temp'){
+      const d = await actionSheet('Ban '+(p.name||'them')+' for…', '', [ { label:'1 hour', value:60 }, { label:'1 day', value:1440 }, { label:'3 days', value:4320 }, { label:'7 days', value:10080 }, { label:'30 days', value:43200 } ]);
+      if (!d) return; minutes = d;
+    }
+    const opts = await actionSheet((v === 'perm' ? 'Ban for good: ' : 'Temporary ban: ')+(p.name||'Trainer'), minutes ? 'For '+(minutes >= 1440 ? (minutes/1440)+' day'+(minutes>1440?'s':'') : '1 hour') : 'Until an admin unbans them', [
+      { html:'<label class="act-field">Reason (they’ll see this)<input type="text" id="ban-reason" maxlength="200" placeholder="e.g. Cheating, bullying"></label>'
+        + '<label class="act-check"><input type="checkbox" id="ban-ip"> Also ban their IP address'+(p.ip ? ' ('+escapeHtml(p.ip)+')' : ' (none recorded yet)')+'</label>' },
+      { label:'Ban '+(p.name||'them'), value:'go', cls:'danger' } ]);
+    if (opts !== 'go') return;
+    const reason = ($('#ban-reason') && $('#ban-reason').value) || '', ip = !!($('#ban-ip') && $('#ban-ip').checked);
+    const r = await adminCall('admin_ban', { p_target:p.id, p_minutes:minutes, p_reason:reason, p_ip:ip });
+    if (r) showToast('Banned'+(r.ip ? ' (and their IP)' : '')+'.');
+    loadAdmin(true);
+  }
+  async function loadReports(){
+    let r; try { r = await adminCall('admin_reports'); } catch(e){ r = null; }
+    if (!r){ $('#ad-reports').innerHTML = '<div class="fr-empty">Couldn’t load reports.</div>'; return; }
+    $('#ad-reports').innerHTML = r.reports.length ? r.reports.map(x=> '<div class="ad-rep" data-id="'+x.id+'"><div class="fr-name">'+escapeHtml(x.reported_name||'Trainer')+' <small style="font-weight:700;color:#8a7aa8">reported by '+escapeHtml(x.reporter_name||'?')+' · '+timeAgo(x.created_at)+'</small></div>'
+      + (x.body ? '<q>“'+escapeHtml(x.body)+'”</q>' : '') + (x.reason ? '<div class="fr-sub">Reason: '+escapeHtml(x.reason)+'</div>' : '')
+      + '<div style="display:flex;gap:6px;margin-top:8px;"><button class="fr-btn" data-act="player">Actions…</button><button class="fr-btn ghost" data-act="done">Mark handled</button></div></div>').join('')
+      : '<div class="fr-empty">No open reports. 🎉</div>';
+    $$('#ad-reports .ad-rep').forEach(el=>{ const rep = r.reports.find(x=> String(x.id) === el.dataset.id);
+      el.querySelector('[data-act="done"]').onclick = async ()=>{ await adminCall('admin_resolve_report', { p_report:rep.id }); loadReports(); loadAdmin(true); };
+      el.querySelector('[data-act="player"]').onclick = async ()=>{
+        let row = Admin.rows.find(x=> x.id === rep.reported);
+        if (!row){ const s = await adminCall('admin_players', { p_search:rep.reported_name||'', p_filter:'all', p_limit:20, p_offset:0 }); row = s && (s.players||[]).find(x=> x.id === rep.reported); }
+        if (row) adminActions(row); else showToast('That account no longer exists.');
+      };
+    });
+  }
+  $$('.ad-tab').forEach(t=> t.onclick = ()=>{ $$('.ad-tab').forEach(x=> x.classList.toggle('active', x===t)); const rep = t.dataset.adtab === 'reports';
+    $('#ad-players-pane').style.display = rep ? 'none' : ''; $('#ad-reports-pane').style.display = rep ? '' : 'none'; if (rep) loadReports(); });
+  $$('.ad-f').forEach(b=> b.onclick = ()=>{ $$('.ad-f').forEach(x=> x.classList.toggle('active', x===b)); Admin.filter = b.dataset.f; loadAdmin(true); });
+  $('#ad-go').onclick = ()=>{ Admin.q = $('#ad-q').value.trim(); loadAdmin(true); };
+  $('#ad-q').addEventListener('keydown', e=>{ if (e.key === 'Enter'){ Admin.q = $('#ad-q').value.trim(); loadAdmin(true); } });
+  $('#ad-more').onclick = ()=> loadAdmin(false);
+
   // Anything bought for this trainer (Stripe -> webhook -> database) that the game hasn't
   // handed over yet: add it, save straight away, say thanks.
   let claiming = false;
@@ -3603,24 +4105,52 @@
       + '<div class="lb-sub">Lv '+(r.level||1)+' · '+(r.totos||0)+' Totos</div></div>'
       + '<div class="lb-power">'+Number(r.power||0).toLocaleString()+'</div></div>';
   }
+  // Monthly seasons (Michigan time): both boards start fresh on the 1st. PvE ranks trainers by
+  // power; PvP ranks them by Rank Points won in arena battles (Bronze 3 … Master, top 10 = Grandmaster).
+  let lbBoard = 'pve';
+  function seasonLabel(season){
+    const [y, m] = String(season||'').split('-').map(Number);
+    const name = (y && m) ? new Date(y, m-1, 1).toLocaleDateString([], { month:'long', year:'numeric' }) : 'This month';
+    const now = new Date(), next = new Date(now.getFullYear(), now.getMonth()+1, 1), days = Math.max(1, Math.ceil((next - now)/86400000));
+    return name+' season · resets in '+days+' day'+(days>1?'s':'');
+  }
+  $$('[data-lb]').forEach(b=> b.onclick = ()=>{ lbBoard = b.dataset.lb; $$('[data-lb]').forEach(x=> x.classList.toggle('active', x===b)); loadLeaderboard(); });
+  function seasonRowHtml(r, isMe){
+    const rank = r.rank, medal = rank===1 ? '🥇' : rank===2 ? '🥈' : rank===3 ? '🥉' : '#'+rank;
+    if (lbBoard === 'pvp'){
+      const info = rankInfo(r.rp||0, rank);
+      return '<div class="lb-row'+(isMe ? ' me' : '')+(info.key==='grandmaster' ? ' gm' : '')+'"><div class="lb-rank">'+medal+'</div>'
+        + '<div class="lb-av">'+playerAvatarMarkup(r.avatar, true)+'</div>'
+        + '<div class="lb-info"><div class="lb-name">'+escapeHtml(r.name||'Trainer')+(isMe ? ' <span>(you)</span>' : '')+'</div>'
+        + '<div class="lb-sub">'+rankChip(r.rp||0, rank)+' '+(r.wins||0)+'W · '+(r.losses||0)+'L</div></div>'
+        + '<div class="lb-rp"><b>'+Number(r.rp||0).toLocaleString()+'</b><small>RP</small></div></div>';
+    }
+    return '<div class="lb-row'+(isMe ? ' me' : '')+'"><div class="lb-rank">'+medal+'</div>'
+      + '<div class="lb-av">'+playerAvatarMarkup(r.avatar, true)+'</div>'
+      + '<div class="lb-info"><div class="lb-name">'+escapeHtml(r.name||'Trainer')+(isMe ? ' <span>(you)</span>' : '')+'</div>'
+      + '<div class="lb-sub">Lv '+(r.level||1)+' · '+(r.totos||0)+' Totos</div></div>'
+      + '<div class="lb-power">'+Number(r.power||0).toLocaleString()+'</div></div>';
+  }
   async function loadLeaderboard(){
     const list = $('#leaderboard-list');
     list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">Loading…</p>';
+    $('#lb-note').textContent = lbBoard === 'pvp'
+      ? 'Win PvP Arena battles for Rank Points. Everyone starts at Bronze 3 · Master at '+MASTER_RP.toLocaleString()+' RP · the top 10 Masters are Grandmasters. Finish #1 for the Rank #1 rewards!'
+      : 'Ranked by power (your 6 strongest Totos).';
+    $('#lb-season').textContent = seasonLabel(Social.season);
     let rows = [];
     if (onlineOn()){
       try {
         await submitScoreOnline(true);
-        rows = await sb('leaderboard?select=player_id,name,avatar,power,level,totos&order=power.desc,updated_at.asc&limit=100').then(r=> r.json());
+        rows = await sbRpc('season_board', { p_board: lbBoard, p_season: null, p_limit: 100 }) || [];
         const meIdx = rows.findIndex(r=> r.player_id === state.playerId);
-        let html = rows.length ? rows.map((r,i)=> leaderboardRowHtml(r, i+1, i===meIdx)).join('') : '<p style="color:#999; font-weight:700; font-size:12.5px;">No trainers on the board yet — you\'re first!</p>';
-        if (meIdx < 0 && state.playerId){
-          let myRank = null;
-          try {
-            const r = await sb('leaderboard?select=player_id&power=gt.'+Math.max(0, Math.round(state.powerLevel||0)), { method:'HEAD', headers:{ Prefer:'count=exact' } });
-            const n = parseInt(String(r.headers.get('content-range')||'').split('/')[1], 10);
-            if (isFinite(n)) myRank = n + 1;
-          } catch(e){}
-          html += '<div class="lb-gap">⋯</div>' + leaderboardRowHtml({ name:state.username, avatar:state.avatar, power:state.powerLevel, level:state.charLevel, totos:state.collection.length }, myRank || '—', true);
+        let html = rows.length ? rows.map((r,i)=> seasonRowHtml(r, i===meIdx)).join('')
+          : '<p style="color:#999; font-weight:700; font-size:12.5px;">'+(lbBoard==='pvp' ? 'No ranked battles yet this season — win one in the PvP Arena to get on the board!' : 'No trainers on the board yet this season — you\'re first!')+'</p>';
+        if (meIdx < 0 && state.playerId && !underAge()){
+          let mine = null;
+          try { mine = await sbRpc('season_my_rank', { p_id:state.playerId, p_secret:state.playerSecret, p_board:lbBoard }); } catch(e){}
+          if (mine && mine.rank && (lbBoard !== 'pvp' || (mine.wins + mine.losses) > 0))
+            html += '<div class="lb-gap">⋯</div>' + seasonRowHtml({ rank:mine.rank, name:state.username, avatar:state.avatar, power:state.powerLevel, level:state.charLevel, totos:state.collection.length, rp:mine.rp, wins:mine.wins, losses:mine.losses }, true);
         }
         list.innerHTML = html;
       } catch(e){
@@ -5346,6 +5876,9 @@
     if (tab==='profile') refreshHUD();
     if (tab==='wardrobe') renderWardrobe();
     if (tab==='settings') renderSettings();
+    if (tab==='friends') onFriendsPanel();
+    if (tab==='admin'){ $('#ad-q').value = Admin.q; loadAdmin(true); }
+    if (tab==='pvp' && typeof openPvpLobby === 'function') openPvpLobby();
   }
   $$('.nav-btn').forEach(btn=>{
     btn.onclick = ()=>{
@@ -6717,11 +7250,11 @@
   };
   function setStoreTab(tab){
     if (tab === 'buy' && window.__tqAppAndroid) tab = 'gems';
-    $$('.store-tab').forEach(b=> b.classList.toggle('active', b.dataset.stab === tab));
+    $$('.store-tab[data-stab]').forEach(b=> b.classList.toggle('active', b.dataset.stab === tab));
     $$('.store-pane').forEach(p=> p.style.display = p.dataset.spane === tab ? '' : 'none');
     if (tab === 'gems') renderGemShop(); else renderStore();
   }
-  $$('.store-tab').forEach(b=> b.onclick = ()=> setStoreTab(b.dataset.stab));
+  $$('.store-tab[data-stab]').forEach(b=> b.onclick = ()=> setStoreTab(b.dataset.stab));
   function openStore(tab){ $('#store-modal').classList.add('active'); setStoreTab(tab || 'gems'); if (paymentsOn()) watchForPurchase(1); }
   window.__openGemShop = ()=> openStore('gems');
   // tapping your gem count in the corner opens the Gem Shop
@@ -6736,6 +7269,7 @@
     await forgetRememberedEmail();
     try { if (watchId!==null) navigator.geolocation.clearWatch(watchId); } catch(e){}
     watchId=null; ownerVerifiedEmail = ''; trackedId = null;
+    Object.assign(Social, { admin:false, owner:false, unread:0, requests:0, ban:null }); setAdminUi(); updateSocialBadges();
     closeProfileDrawer(); closeNearby(); openGamePanel('map');
     state.loggedIn = false; showScreen('auth'); showToast('Logged out — progress saved.');
   };
@@ -8192,7 +8726,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v55';
+window.TQ_APP_VERSION = 'v56';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;

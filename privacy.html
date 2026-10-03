@@ -19,7 +19,7 @@
 </header>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="updated">Effective October 1, 2026 · Updated October 2, 2026</p>
+  <p class="updated">Effective October 1, 2026 · Updated October 3, 2026</p>
 
   <p>TotoQuest ("we", "us") is a location-based Halloween game where you explore the real world to find, collect and battle creatures called Totos. This policy explains what information the game uses, where it goes, and the choices you have. If you have a question, email us at <span class="contact"><a href="mailto:totoquestofficial@yahoo.com">totoquestofficial@yahoo.com</a></span>.</p>
 
@@ -29,6 +29,7 @@
       <li>Your account and game progress are saved on your own phone or computer, not on our servers.</li>
       <li>Your GPS location is used on your device to draw the map. We don't store it or send it to our servers.</li>
       <li>If you're on the online leaderboard, your username, character and game stats are public.</li>
+      <li>If you use Friends, messages or the PvP Arena, those are stored on our online service so they can work, along with the network (IP) address you connect from, which we use to stop banned players.</li>
       <li>Payments are handled by Stripe. We never see your full card number.</li>
       <li>No ads, no tracking, and we never sell your information.</li>
       <li>TotoQuest is for players 13 and older.</li>
@@ -67,6 +68,20 @@
   </ul>
   <p>Your leaderboard entry is <strong>public</strong>: anyone who plays can see it. Your email, age and location are never sent to the leaderboard.</p>
 
+  <h2>Online account, friends, messages and PvP</h2>
+  <p>While you play with the online service on, the game checks in with our online database (Supabase) about once a minute. For your random player ID it stores:</p>
+  <ul>
+    <li><strong>Your trainer profile:</strong> username, character (girl or boy), the outfit you're wearing, player level, power and number of Totos. Other trainers can see this when they search for you, in the PvP lobby and in battles.</li>
+    <li><strong>Online status:</strong> when you were last seen, so friends and admins can see whether you're online.</li>
+    <li><strong>Network (IP) address:</strong> the last address you connected from. It's visible only to our admins and is used to enforce bans and protect players.</li>
+    <li><strong>Friends:</strong> who you've sent or accepted friend requests from, and anyone you've blocked.</li>
+    <li><strong>Messages:</strong> the messages you send to and receive from friends. Messages are filtered automatically for links and some bad words. Our admins can read a message if someone reports it.</li>
+    <li><strong>Reports:</strong> if you report someone, we store your report, the reason and the reported message so our admins can review it.</li>
+    <li><strong>Seasons and PvP:</strong> your monthly season scores, Rank Points, wins and losses, PvP matches (including the Toto you used and each move) and any season rewards you've collected.</li>
+    <li><strong>Bans:</strong> if you're banned, the ban, its reason and when it ends.</li>
+  </ul>
+  <p>Your email address, password, age and GPS location are never sent with any of this.</p>
+
   <h2>Purchases</h2>
   <p>You can buy candy and gems in the store. Checkout happens on Stripe's secure payment page, and Stripe's Link service acts as the reseller (merchant of record). That means:</p>
   <ul>
@@ -92,7 +107,8 @@
     <li>To run the game, save your progress and show the map around you.</li>
     <li>To show the leaderboard.</li>
     <li>To deliver purchases, handle refunds and keep financial records.</li>
-    <li>To keep the game fair and secure, for example by removing cheating or offensive usernames.</li>
+    <li>To keep the game fair and secure, for example by removing cheating or offensive usernames, reviewing reports, and enforcing bans (including bans on a network address).</li>
+    <li>To run friends, messages, the PvP Arena and the monthly seasons.</li>
     <li>To answer you when you contact us.</li>
   </ul>
   <p>We do <strong>not</strong> sell your personal information, share it for targeted advertising, or use it to build advertising profiles.</p>
@@ -103,7 +119,9 @@
   <h2>How long we keep it</h2>
   <ul>
     <li><strong>On your device:</strong> until you log out and clear the site's data, or uninstall the game.</li>
-    <li><strong>Leaderboard entries:</strong> while you play, or until you ask us to delete yours.</li>
+    <li><strong>Leaderboard entries and season scores:</strong> while you play, or until you delete your account.</li>
+    <li><strong>Messages and friend lists:</strong> until you or the other trainer delete your account, or an admin removes them. When an account is deleted, its messages are wiped.</li>
+    <li><strong>Network address, reports and bans:</strong> as long as needed to keep players safe, and no longer than 2 years after you last play.</li>
     <li><strong>Purchase records:</strong> as long as tax and accounting laws require (usually up to 7 years).</li>
   </ul>
 
@@ -111,7 +129,7 @@
   <ul>
     <li><strong>Location:</strong> you can turn off location access in your browser or phone settings at any time. The map needs it to work.</li>
     <li><strong>Your save:</strong> it lives on your device. Clearing this site's data in your browser deletes it.</li>
-    <li><strong>Delete your account:</strong> in the game, open your profile, then <strong>Settings → Delete my account</strong>. That removes your save from your device and your leaderboard entry from our online service. Purchase records are kept as described above. You can also email us with your username. Full steps: <a href="delete-account.html">Delete your account</a>.</li>
+    <li><strong>Delete your account:</strong> in the game, open your profile, then <strong>Settings → Delete my account</strong>. That removes your save from your device and, on our online service, your leaderboard entries, profile, friends and messages. Purchase records are kept as described above. You can also email us with your username. Full steps: <a href="delete-account.html">Delete your account</a>.</li>
     <li><strong>Access, correction or deletion:</strong> depending on where you live, you may have the right to ask what we hold about you, or to correct or delete it. Email us and we'll respond within 30 days. We'll never treat you differently for using these rights.</li>
   </ul>
 

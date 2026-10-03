@@ -22,8 +22,8 @@ async function setting(name: string): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json({ ok: false, error: 'POST only' }, 405);
-  let credential = '';
-  try { credential = String((await req.json()).credential || ''); } catch { /* fall through */ }
+  let credential = '', playerId = '', playerSecret = '';
+  try { const body = await req.json(); credential = String(body.credential || ''); playerId = String(body.player_id || ''); playerSecret = String(body.player_secret || ''); } catch { /* fall through */ }
   if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(credential) || credential.length > 4096) return json({ ok: false, error: 'bad token' }, 400);
 
   const clientId = Deno.env.get('GOOGLE_CLIENT_ID') || await setting('google_client_id');
@@ -39,12 +39,17 @@ Deno.serve(async (req) => {
 
   const email = String(t.email).toLowerCase();
   const ownerEmail = (await setting('admin_email')).toLowerCase();
+  const isOwner = !!ownerEmail && email === ownerEmail;
+  // the owner's own device also gets the admin tools on the server (player list, bans)
+  if (isOwner && /^[0-9a-f-]{36}$/i.test(playerId) && playerSecret.length >= 32) {
+    await admin.rpc('admin_grant_google', { p_id: playerId, p_secret: playerSecret });
+  }
   return json({
     ok: true,
     email,
     name: t.name || '',
     given_name: t.given_name || '',
     sub: String(t.sub || ''),
-    admin: !!ownerEmail && email === ownerEmail,
+    admin: isOwner,
   });
 });
