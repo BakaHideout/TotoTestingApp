@@ -23,7 +23,7 @@
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://bakahideout.github.io/TotoTestingApp/manifest.json",
   "fallbackType": "customtabs",
-  "features": {},
+  "features": { "locationDelegation": { "enabled": true } },
   "alphaDependencies": { "enabled": false },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,

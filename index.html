@@ -234,11 +234,9 @@
   .set-wide.danger { background:none; color:#e0405c; margin-top:0; font-size:13px; }
   .set-version { text-align:center; font-size:11.5px; font-weight:700; color:#8a7aa8; padding:4px 0 10px; }
   #toto-root.no-weatherfx .weather-fx, #toto-root.no-weatherfx .clouds, #toto-root.gfx-low .clouds { display:none !important; }
-  /* flowing rivers and streams (stepped, so the map isn't repainted every frame) */
-  #terrain-svg .wflow { animation: wflow 2.8s steps(28) infinite; }
-  #terrain-svg .wflow2 { animation: wflow 4.6s steps(46) infinite; }
-  @keyframes wflow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -46; } }
-  #toto-root.gfx-low #terrain-svg .wflow, #toto-root.gfx-low #terrain-svg .wflow2 { animation:none; }
+  /* Rivers flow in the 3D layer (sparkles drifting downstream). Nothing in the ground map
+     animates: any change there made the phone repaint the whole map several times a second. */
+  #terrain-svg .wflow, #terrain-svg .wflow2 { animation:none !important; }
 
   /* ---------- SIGN-IN ---------- */
   .google-slot { display:flex; justify-content:center; min-height:44px; }
@@ -572,6 +570,7 @@
   .toto-node.is-3d-mounted .cp-tag,
   .toto-node.is-3d-mounted .dist-tag { visibility:hidden; }
   .gym-node.is-3d-mounted .gym3, .gym-node.is-3d-mounted .node-ring, .gym-node.is-3d-mounted .node-shadow { visibility:hidden; }
+  .gym-node.is-3d-mounted .gym3, .gym-node.is-3d-mounted .gym3 * { animation:none !important; filter:none !important; }
   /* The 3D layer reads the img's rect every frame for its foot point/scale — stop the
      2D bob/squash/tilt animations on it so that measurement is steady (the small
      wander-in-a-circle on .node-orbit stays, and carries the 3D creature with it). */
@@ -6242,6 +6241,9 @@
       g.innerHTML = art.svg;
       $('#terrain-svg').appendChild(g);
     }
+    // the tile's waterways ride along with its props (the 3D layer draws the flow; a river
+    // that crosses several tiles is drawn by whichever tile each stretch of it is in)
+    art.props.rivers = art.rivers.length ? { list:art.rivers, x0:Math.min(p1.x,p2.x), x1:Math.max(p1.x,p2.x), y0:Math.min(p1.y,p2.y), y1:Math.max(p1.y,p2.y) } : null;
     setMapProps('r:'+key, art.props);
     state.regionEls.set(key, { els: g ? [g] : [], parks: art.parkCentroids, ilat:t.ilat, ilon:t.ilon, wx:(p1.x+p2.x)/2, wy:(p1.y+p2.y)/2 });
     return art.parkCentroids;
@@ -6338,15 +6340,15 @@
     + '</pattern>'
     // Rail ties.
     + '<pattern id="pat-ties" patternUnits="userSpaceOnUse" width="12" height="12"><rect width="12" height="12" fill="none"/></pattern>'
-    // Ripples on lakes and ponds, drifting slowly.
+    // Ripples on lakes and ponds (still: an animated pattern repaints the whole map).
     + '<pattern id="pat-ripple" patternUnits="userSpaceOnUse" width="60" height="30">'
     +   '<path d="M4 9 q7 -5 14 0 M30 22 q8 -5 16 0 M46 6 q5 -3 10 0" stroke="#9cc8f0" stroke-opacity="0.32" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
-    +   '<animateTransform attributeName="patternTransform" type="translate" values="0 0;2 1;4 2;6 3;8 4;10 5;12 6;14 7;16 8;18 9;20 10;22 11;24 12;26 13;28 14;30 15;32 16;34 17;36 18;38 19;40 20;42 21;44 22;46 23;48 24;50 25;52 26;54 27;56 28;58 29;60 30" dur="9s" calcMode="discrete" repeatCount="indefinite"/>'
     + '</pattern>'
     + '</defs>';
   function ensureTerrainDefs(){
     const svg = $('#terrain-svg');
     if (!svg.querySelector('#pat-cobble')) svg.insertAdjacentHTML('afterbegin', TERRAIN_DEFS);
+    svg.querySelectorAll('animate, animateTransform').forEach(a=> a.remove());
   }
 
   // Road widths in world px (3.2px = 1m). Deliberately chunkier than survey-true so a
@@ -6489,6 +6491,7 @@
   function renderTerrainArt(elements, project, regionKeyStr, bounds){
     const L = { land:[], water:[], marks:[], lots:[], rail:[], roadCase:[], roadTop:[], pathCase:[], pathTop:[], bridge:[] };
     const props = [], parkCentroids = [], clearPolys = [];   // clearPolys: fields/courts trees must not stand on
+    const rivers = [];                                         // waterways, for the flowing sparkles
     // gathered for the building and PumpkinStop passes at the end
     const roads = [], bldgs = [], noBuild = [], resPolys = [], farmPolys = [];
     const stopCands = [], poiAreas = [], parkAreas = [];
@@ -6529,7 +6532,7 @@
           L.pathCase.push(line('#1d1823', w+5)); L.pathTop.push(line('url(#pat-flag)', w));
         } else {
           const w = ROAD_W[t.highway] || 48;
-          roads.push({ P, half:w/2+6, path:false, hw:t.highway, name:t.name||'', id:el.id });
+          roads.push({ P, half:w/2+6, path:false, hw:t.highway, name:t.name||'', id:el.id, bridge:isBridge });
           if (isBridge){ woodenBridge(P, w); return; }
           L.roadCase.push(line('#16121c', w+12)); L.roadCase.push(line('#3b3446', w+6));
           L.roadTop.push(line('url(#pat-cobble)', w));
@@ -6542,8 +6545,9 @@
         const w = t.waterway==='river' ? 30 : (t.waterway==='canal' ? 24 : 12);
         L.water.push(line('#22385a', w+6)); L.water.push(line('#35577f', w));
         L.water.push(line('#4f79a6', w*0.55, ' stroke-opacity="0.55"'));
-        L.water.push(line('#a9d2f5', Math.max(2, w*0.12), ' class="wflow" stroke-dasharray="14 32" stroke-opacity="0.55"'));
-        L.water.push(line('#d8ecff', Math.max(1.2, w*0.06), ' class="wflow2" stroke-dasharray="6 40" stroke-dashoffset="20" stroke-opacity="0.6"'));
+        L.water.push(line('#a9d2f5', Math.max(2, w*0.12), ' stroke-dasharray="14 32" stroke-opacity="0.4"'));
+        L.water.push(line('#d8ecff', Math.max(1.2, w*0.06), ' stroke-dasharray="6 40" stroke-dashoffset="20" stroke-opacity="0.45"'));
+        rivers.push({ P, w, half:(w+6)/2 + 4 });
         return;
       }
       if (!closed) return;
@@ -6614,7 +6618,7 @@
     props.length = 0; keptProps.forEach(pr=> props.push(pr));
     const svg = L.land.join('') + L.water.join('') + L.marks.join('') + L.lots.join('') + L.rail.join('')
       + L.pathCase.join('') + L.roadCase.join('') + L.pathTop.join('') + L.roadTop.join('') + L.bridge.join('');
-    return { svg, props, parkCentroids };
+    return { svg, props, parkCentroids, rivers };
 
     // ---- wooden bridges ----
     // Any road or path the map marks as a bridge is drawn as a timber bridge: a shadow on
@@ -6676,30 +6680,56 @@
     function placeFillerHouses(){
       const MP = GPS_SCALE;
       const inRes = (x, y)=> resPolys.some(o=> x>=o.x0 && x<=o.x1 && y>=o.y0 && y<=o.y1 && pointInPoly(x, y, o.P));
-      const streets = roads.filter(r=> !r.path && (/^(residential|living_street)$/.test(r.hw||'')
+      const streets = roads.filter(r=> !r.path && !r.bridge && (/^(residential|living_street)$/.test(r.hw||'')
         || (/^(unclassified|tertiary)$/.test(r.hw||'') && r.P.some(q=> inRes(q.x, q.y)))));
       if (!streets.length) return;
-      // spatial grid of real buildings (40 m cells)
-      const CELL = 40*MP, grid = new Map(), gk = (x, y)=> Math.floor(x/CELL)+','+Math.floor(y/CELL);
-      bldgs.forEach(b=>{ const k = gk(b.x, b.y); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(b); });
+      // Spatial grids, so each spot only checks what's around it (checking every road in a
+      // 1 km tile for every spot froze phones while a tile loaded).
+      const GK = (gx, gy)=> gx*100003 + gy;
+      // real buildings (40 m cells)
+      const CELL = 40*MP, grid = new Map();
+      bldgs.forEach(b=>{ const k = GK(Math.floor(b.x/CELL), Math.floor(b.y/CELL)); let l = grid.get(k); if (!l) grid.set(k, l = []); l.push(b); });
       const nearBuilding = (x, y, R)=>{
         const cx = Math.floor(x/CELL), cy = Math.floor(y/CELL);
-        for (let i=-1;i<=1;i++) for (let j=-1;j<=1;j++){ const list = grid.get((cx+i)+','+(cy+j)); if (list && list.some(b=> Math.hypot(b.x-x, b.y-y) < R + b.r)) return true; }
+        for (let i=-1;i<=1;i++) for (let j=-1;j<=1;j++){
+          const list = grid.get(GK(cx+i, cy+j)); if (!list) continue;
+          for (const b of list){ const dx = b.x-x, dy = b.y-y, lim = R + b.r; if (dx*dx+dy*dy < lim*lim) return true; }
+        }
         return false;
       };
       const blocked = (x, y, list)=> list.some(o=> x>=o.x0 && x<=o.x1 && y>=o.y0 && y<=o.y1 && pointInPoly(x, y, o.P));
-      const segs = [];
-      roads.forEach(r=>{ for (let i=1;i<r.P.length;i++) segs.push({ a:r.P[i-1], b:r.P[i], half:r.half }); });
-      const clearOfRoads = (x, y, gap)=>{
-        for (const s of segs){
-          const dx = s.b.x-s.a.x, dy = s.b.y-s.a.y, L2 = dx*dx+dy*dy;
-          let u = L2 ? ((x-s.a.x)*dx+(y-s.a.y)*dy)/L2 : 0; u = Math.max(0, Math.min(1, u));
-          if (Math.hypot(x-(s.a.x+u*dx), y-(s.a.y+u*dy)) < s.half + gap) return false;
+      // road and river segments (50 m cells; each segment is filed in every cell within reach of it)
+      const RC = 50*MP, GAP = 6*MP, rgrid = new Map();
+      roads.concat(rivers).forEach(r=>{
+        for (let i=1;i<r.P.length;i++){
+          const a = r.P[i-1], b = r.P[i], pad = r.half + GAP + 2;
+          const s = { ax:a.x, ay:a.y, dx:b.x-a.x, dy:b.y-a.y, lim:r.half + GAP }; s.L2 = s.dx*s.dx + s.dy*s.dy;
+          const gx0 = Math.floor((Math.min(a.x,b.x)-pad)/RC), gx1 = Math.floor((Math.max(a.x,b.x)+pad)/RC);
+          const gy0 = Math.floor((Math.min(a.y,b.y)-pad)/RC), gy1 = Math.floor((Math.max(a.y,b.y)+pad)/RC);
+          if ((gx1-gx0+1)*(gy1-gy0+1) > 3000) continue;
+          for (let gx=gx0; gx<=gx1; gx++) for (let gy=gy0; gy<=gy1; gy++){ const k = GK(gx, gy); let l = rgrid.get(k); if (!l) rgrid.set(k, l = []); l.push(s); }
+        }
+      });
+      const clearOfRoads = (x, y)=>{
+        const l = rgrid.get(GK(Math.floor(x/RC), Math.floor(y/RC))); if (!l) return true;
+        for (const s of l){
+          let u = s.L2 ? ((x-s.ax)*s.dx + (y-s.ay)*s.dy)/s.L2 : 0; u = u < 0 ? 0 : (u > 1 ? 1 : u);
+          const ex = x-(s.ax+u*s.dx), ey = y-(s.ay+u*s.dy);
+          if (ex*ex + ey*ey < s.lim*s.lim) return false;
         }
         return true;
       };
-      const placed = [];
-      const STEP = 27*MP, SET = 12*MP;
+      // houses already placed (21 m apart)
+      const PC = 21*MP, pgrid = new Map();
+      const nearPlaced = (x, y)=>{
+        const cx = Math.floor(x/PC), cy = Math.floor(y/PC);
+        for (let i=-1;i<=1;i++) for (let j=-1;j<=1;j++){
+          const l = pgrid.get(GK(cx+i, cy+j)); if (!l) continue;
+          for (const q of l){ const dx = q.x-x, dy = q.y-y; if (dx*dx+dy*dy < PC*PC) return true; }
+        }
+        return false;
+      };
+      const STEP = 30*MP, SET = 12*MP;
       streets.forEach(r=>{
         let carry = 9*MP;
         for (let i=1;i<r.P.length;i++){
@@ -6709,17 +6739,17 @@
           let d = carry;
           for (; d < len; d += STEP){
             const px = a.x + ux*d, py = a.y + uy*d;
-            [-1, 1].forEach(side=>{
+            for (let side=-1; side<=1; side+=2){
               const x = px - uy*side*(r.half + SET), y = py + ux*side*(r.half + SET);
-              if (nearBuilding(x, y, 15*MP)) return;
-              if (placed.some(q=> Math.hypot(q.x-x, q.y-y) < 21*MP)) return;
-              if (blocked(x, y, noBuild) || blocked(x, y, farmPolys)) return;
-              if (!clearOfRoads(x, y, 6*MP)) return;
+              if (bounds && (x < bounds.x0 || x >= bounds.x1 || y < bounds.y0 || y >= bounds.y1)) continue;   // another tile's
+              if (nearBuilding(x, y, 15*MP) || nearPlaced(x, y)) continue;
+              if (blocked(x, y, noBuild) || blocked(x, y, farmPolys)) continue;
+              if (!clearOfRoads(x, y)) continue;
               const seed = Math.floor(rnd()*1e6);
               const kind = ['house1','house2','house3','house1','house2'][seed % 5], cfg = PROP_W[kind];
-              placed.push({ x, y });
+              const k = GK(Math.floor(x/PC), Math.floor(y/PC)); let l = pgrid.get(k); if (!l) pgrid.set(k, l = []); l.push({ x, y });
               props.push({ x, y, kind, w: cfg[0] + (cfg[1]-cfg[0])*0.32 + (seed % 9), seed, filler:true });
-            });
+            }
           }
           carry = d - len;
         }
@@ -9735,7 +9765,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v60';
+window.TQ_APP_VERSION = 'v61';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;
@@ -11689,8 +11719,20 @@ window.TQ_APP_VERSION = 'v60';
     // ---- pooled prop meshes near the player ----
     const propMeshes = new Map();
     let propVer = -1, propSyncT = 0, propCenter = null;
-    const PROP_RADIUS = 1400, PROP_CAP = 420;
+    const PROP_RADIUS = 1400, PROP_CAP = 340;
     let propShadowMat = null;
+    // Every prop's ground shadow is one instance of a single mesh: one draw call for all of
+    // them instead of one each (they're flat on the ground, so they all go under the props).
+    const SHADOW_MAX = 600, _sm = new THREE.Matrix4();
+    let propShadowInst = null;
+    function ensureShadowInst(){
+      if (propShadowInst) return propShadowInst;
+      propShadowInst = new THREE.InstancedMesh(GEO_DISC, mat({ map:shadowTex, opacity:0.85 }), SHADOW_MAX);
+      propShadowInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      propShadowInst.count = 0; propShadowInst.frustumCulled = false; propShadowInst.renderOrder = -2000000;
+      scene.add(propShadowInst);
+      return propShadowInst;
+    }
     function syncProps(pos, now){
       const mp = window.__mapProps; if (!mp || !pos) return;
       const moved = !propCenter || Math.hypot(pos.x-propCenter.x, pos.y-propCenter.y) > 80;
@@ -11707,15 +11749,15 @@ window.TQ_APP_VERSION = 'v60';
         if (propMeshes.has(k)) return;
         const rec = getPropTex(pr.stop && (window.__stopRestingUntil||0) > Date.now() ? 'pstop_rest' : pr.kind); if (!rec) return;
         const group = new THREE.Group();
-        const shadow = new THREE.Mesh(GEO_DISC, propShadowMat);
         const sprite = new THREE.Mesh(GEO_SPRITE, rec.mat || propShadowMat);
         sprite.visible = !!rec.mat;
-        group.add(shadow, sprite); scene.add(group);
-        propMeshes.set(k, { group, shadow, sprite, rec, p:pr, sway:(pr.seed%1000)/1000*Math.PI*2 });
+        group.add(sprite); scene.add(group);
+        propMeshes.set(k, { group, sprite, rec, p:pr, sway:(pr.seed%1000)/1000*Math.PI*2 });
       });
     }
     function updateProps(now){
       const stopsResting = (window.__stopRestingUntil||0) > Date.now();
+      const si = ensureShadowInst(); let ns = 0;
       propMeshes.forEach(m=>{
         const pr = m.p;
         if (pr.stop){
@@ -11736,11 +11778,94 @@ window.TQ_APP_VERSION = 'v60';
         m.sprite.scale.set(W, H, 1);
         // trees sway a touch in the night breeze; buildings stay put
         m.sprite.rotation.z = (pr.kind==='tree'||pr.kind==='pine'||pr.kind==='deadtree') ? Math.sin(now*0.9+m.sway)*0.018 : 0;
-        m.shadow.scale.set(W*0.56, W*0.56*k, 1);
+        if (ns < SHADOW_MAX){ _sm.makeScale(W*0.56, W*0.56*k, 1); _sm.setPosition(sx - vw/2, vh/2 - sy, 0); si.setMatrixAt(ns++, _sm); }
         if (pr.stop) m.hit = { x0:sx - W*0.46, x1:sx + W*0.46, y0:sy - H*0.97, y1:sy + 8, depth:sy };
         const order = Math.round(sy)*6;
-        m.shadow.renderOrder = order; m.sprite.renderOrder = order+3;
+        m.sprite.renderOrder = order+3;
       });
+      si.count = ns; si.instanceMatrix.needsUpdate = true;
+    }
+
+    // ---- flowing water: sparkles drifting downstream along rivers and streams (v61) ----
+    // Two draw calls in all. (v60 animated the river lines in the ground map instead, and the
+    // phone had to repaint the entire map several times a second — that was the lag.)
+    const sparkTex = radialTexture([[0,'rgba(255,255,255,1)'],[0.22,'rgba(255,255,255,0.75)'],[0.55,'rgba(255,255,255,0.16)'],[1,'rgba(255,255,255,0)']]);
+    const RV_MAX = 1800;
+    function makeRvLayer(size){
+      const pos = new Float32Array(RV_MAX*3), col = new Float32Array(RV_MAX*3);
+      const geo = new THREE.BufferGeometry();
+      const pa = new THREE.BufferAttribute(pos, 3), ca = new THREE.BufferAttribute(col, 3);
+      pa.setUsage(THREE.DynamicDrawUsage); ca.setUsage(THREE.DynamicDrawUsage);
+      geo.setAttribute('position', pa); geo.setAttribute('color', ca); geo.setDrawRange(0, 0);
+      const m = new THREE.PointsMaterial({ map:sparkTex, size, sizeAttenuation:false, vertexColors:true, transparent:true, depthTest:false, depthWrite:false, blending:THREE.AdditiveBlending });
+      const pts = new THREE.Points(geo, m); pts.frustumCulled = false; pts.renderOrder = -1000000; pts.visible = false;
+      scene.add(pts);
+      return { pts, geo, pos, col, pa, ca, m, base:size, n:0 };
+    }
+    const rvBig = makeRvLayer(11), rvSmall = makeRvLayer(7);
+    let rvList = [], rvVer = -1, rvCenter = null;
+    function syncRivers(pos){
+      const mp = window.__mapProps; if (!mp || !pos) return;
+      const moved = !rvCenter || Math.hypot(pos.x-rvCenter.x, pos.y-rvCenter.y) > 240;
+      if (mp.version===rvVer && !moved) return;
+      rvVer = mp.version; rvCenter = { x:pos.x, y:pos.y };
+      const R = 2000; rvList = [];
+      mp.groups.forEach(list=>{
+        const rv = list.rivers; if (!rv) return;
+        if (rv.x1 < pos.x-R || rv.x0 > pos.x+R || rv.y1 < pos.y-R || rv.y0 > pos.y+R) return;
+        rv.list.forEach(r=>{
+          if (!r.cum){
+            r.cum = [0];
+            for (let i=1;i<r.P.length;i++) r.cum.push(r.cum[i-1] + Math.hypot(r.P[i].x-r.P[i-1].x, r.P[i].y-r.P[i-1].y));
+          }
+          // only the stretch of it near the player
+          let s0 = Infinity, s1 = -Infinity;
+          for (let i=1;i<r.P.length;i++){
+            const a = r.P[i-1], b = r.P[i];
+            if (Math.max(a.x,b.x) < pos.x-R || Math.min(a.x,b.x) > pos.x+R || Math.max(a.y,b.y) < pos.y-R || Math.min(a.y,b.y) > pos.y+R) continue;
+            s0 = Math.min(s0, r.cum[i-1]); s1 = Math.max(s1, r.cum[i]);
+          }
+          if (s1 > s0) rvList.push({ r, t:rv, s0, s1 });
+        });
+      });
+    }
+    function updateRivers(now, ppos){
+      const q0 = hmap(ppos.x, ppos.y), x0 = q0[0], y0 = q0[1];
+      const q1 = hmap(ppos.x+1, ppos.y), zx = Math.hypot(q1[0]-x0, q1[1]-y0);   // screen px per world px here
+      rvBig.n = 0; rvSmall.n = 0;
+      for (const it of rvList){
+        const r = it.r, t = it.t, big = r.w >= 24, L = big ? rvBig : rvSmall;
+        const SP = big ? 44 : 56, SPEED = big ? 24 : 17;
+        const travel = now*SPEED, off = travel % SP, cyc = Math.floor(travel/SP);
+        let s = off + Math.ceil((it.s0 - off)/SP)*SP, seg = 1;
+        for (; s < it.s1; s += SP){
+          if (L.n + 3 > RV_MAX) break;
+          while (seg < r.cum.length-1 && r.cum[seg] < s) seg++;
+          const a = r.P[seg-1], b = r.P[seg], sl = (r.cum[seg]-r.cum[seg-1]) || 1;
+          const dx = (b.x-a.x)/sl, dy = (b.y-a.y)/sl, along = s - r.cum[seg-1];
+          const id = Math.round((s - off)/SP) - cyc;                       // follows one sparkle downstream
+          const h = (((id*2654435761) >>> 0) % 10007)/10007;
+          const lat = (h - 0.5)*r.w*0.6;
+          const px = a.x + dx*along - dy*lat, py = a.y + dy*along + dx*lat;
+          if (px < t.x0 || px >= t.x1 || py < t.y0 || py >= t.y1) continue;  // the neighbouring tile draws that bit
+          const tw = 0.5 + 0.5*Math.sin(now*2.3 + h*37);
+          for (let j=0;j<3;j++){
+            const q = hmap(px - dx*j*5, py - dy*j*5); if (q[2] <= 0.05) continue;
+            const sx = q[0], sy = q[1];
+            if (sx < -24 || sx > vw+24 || sy < -24 || sy > vh+24) continue;
+            const i3 = L.n*3, f = tw*(j===0 ? 0.85 : (j===1 ? 0.42 : 0.18));
+            L.pos[i3] = sx - vw/2; L.pos[i3+1] = vh/2 - sy; L.pos[i3+2] = 0;
+            L.col[i3] = 0.6*f; L.col[i3+1] = 0.82*f; L.col[i3+2] = f;
+            L.n++;
+          }
+        }
+      }
+      for (const L of [rvBig, rvSmall]){
+        L.geo.setDrawRange(0, L.n);
+        if (L.n){ L.pa.needsUpdate = true; L.ca.needsUpdate = true; }
+        L.m.size = L.base*Math.max(0.4, Math.min(2.2, zx));
+        L.pts.visible = L.n > 0;
+      }
     }
 
     const mounts = new Map(); // toto id -> mount record
@@ -11992,6 +12117,19 @@ window.TQ_APP_VERSION = 'v60';
       if (bestT && bestT._node) bestT._node.click();
     });
 
+    // If this phone can't keep up, the 3D layer is drawn a little less sharp (never below 1x).
+    let govT0 = 0, govN = 0, govLast = 0, govDrops = 0;
+    function perfGovernor(t){
+      if (!govLast || t - govLast > 250){ govT0 = t; govN = 0; }      // first frame, or back from a pause/panel
+      govLast = t; govN++;
+      if (t - govT0 < 6000) return;
+      const fps = govN*1000/(t - govT0); govT0 = t; govN = 0;
+      if (fps < 30 && curPR > 1 && govDrops < 2 && !(window.__tqLowFps && window.__tqLowFps())){
+        govDrops++; curPR = Math.max(1, curPR - 0.5); renderer.setPixelRatio(curPR); resize();
+      }
+    }
+    window.__tq3dStats = ()=>{ let vis = 0; propMeshes.forEach(m=>{ if (m.group.visible) vis++; }); const i = renderer.info.render; return { calls:i.calls, tris:i.triangles, propMeshes:propMeshes.size, visibleProps:vis, shadows:propShadowInst ? propShadowInst.count : 0, sparkles:rvBig.n + rvSmall.n, pr:curPR }; };
+
     function syncFrame(){
       requestAnimationFrame(syncFrame);
       if (window.__tqLowFps && window.__tqLowFps() && (++lowTick & 1)) return;     // Battery saver: every other frame
@@ -12027,8 +12165,9 @@ window.TQ_APP_VERSION = 'v60';
       if (ppos && ensureMarkers(ppos)){
         const dst = markerEls.map(d=>{ const r = d.getBoundingClientRect(); return [r.left+r.width/2-canvasRect.left, r.top+r.height/2-canvasRect.top]; });
         Hm = solveHomography([[-1,-1],[1,-1],[1,1],[-1,1]], dst);
-        if (Hm){ syncProps(ppos, now); updateProps(now); syncGyms(); updateGyms(now); }
+        if (Hm){ syncProps(ppos, now); updateProps(now); syncGyms(); updateGyms(now); syncRivers(ppos); updateRivers(now, ppos); }
       }
+      perfGovernor(performance.now());
       renderer.render(scene, camera);
     }
     requestAnimationFrame(syncFrame);

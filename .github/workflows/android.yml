@@ -43,8 +43,8 @@ jobs:
           cp android/app/build/outputs/bundle/release/app-release.aab "/tmp/out/totoquest-$VER-$CODE-unsigned.aab"
           cd /tmp/out
           git init -q -b android-build
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "TotoQuestAdmin"
+          git config user.email "totoquestofficial@yahoo.com"
           echo "Unsigned TotoQuest app bundle $VER ($CODE), built from ${GITHUB_SHA}. Sign it with the upload key before uploading to Google Play." > README.txt
           git add -A && git commit -qm "TotoQuest $VER ($CODE) unsigned bundle"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" android-build
