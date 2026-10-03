@@ -969,6 +969,8 @@
   .pumpkin-fab-wrap.has-news::after { content:''; position:absolute; top:6px; right:8px; width:14px; height:14px; border-radius:50%; background:#ff3b5c; box-shadow:0 0 0 2px #fff; z-index:3; }
   .admin-only { display:none !important; }
   html.tq-admin .admin-only { display:flex !important; }
+  .owner-only { display:none !important; }
+  html.tq-owner .owner-only { display:block !important; }
   .fr-search { display:flex; gap:6px; margin-bottom:10px; }
   .fr-search input { flex:1; min-width:0; border:1.5px solid #e6dcf3; border-radius:12px; padding:10px 12px; font-family:inherit; font-weight:700; font-size:14px; background:#fff; }
   .fr-search button { border:none; border-radius:12px; padding:0 14px; font-family:inherit; font-weight:800; background:#6b3fa0; color:#fff; cursor:pointer; }
@@ -1013,6 +1015,8 @@
   .act-btn.cancel { text-align:center; background:#fff; border:1.5px solid #e6dcf3; color:#8a7aa8; margin:6px 0 0; }
   .act-field { display:flex; flex-direction:column; gap:4px; margin:6px 0 10px; font-size:12px; font-weight:800; color:#8a7aa8; }
   .act-field input[type=text] { border:1.5px solid #e6dcf3; border-radius:10px; padding:9px 10px; font-family:inherit; font-weight:700; font-size:13px; }
+  .act-field input[type=number], .act-field select { border:1.5px solid #e6dcf3; border-radius:10px; padding:9px 10px; font-family:inherit; font-weight:700; font-size:13px; background:#fff; color:#3a2560; width:100%; box-sizing:border-box; }
+  .act-row { display:flex; gap:10px; } .act-row .act-field { flex:1; min-width:0; }
   .act-check { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; color:#4a2a7a; margin:4px 0 10px; }
   .ad-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
   .ad-stat { background:#fff; border-radius:12px; padding:8px 4px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
@@ -2126,6 +2130,7 @@
       <div class="panel-header">🛡️ Admin <span class="close-x" data-close>✕</span></div>
       <div class="panel-body">
         <div class="ad-stats" id="ad-stats"></div>
+        <button class="set-wide owner-only" id="ad-self" style="margin:0 0 10px;">🎁 Gifts &amp; Rank #1 for my account</button>
         <div class="ad-tabs"><button class="ad-tab active" data-adtab="players">Players</button><button class="ad-tab" data-adtab="reports">Reports <b id="ad-rep-n"></b></button></div>
         <div id="ad-players-pane">
           <div class="fr-search"><input id="ad-q" type="search" placeholder="Search players" maxlength="24" autocomplete="off"><button id="ad-go">Search</button></div>
@@ -2753,7 +2758,7 @@
   function checkCosmeticUnlocks(){
     state.unlockedCosmetics = state.unlockedCosmetics || [];
     // finishing a PvP season at #1 (see pvpClaimSeasonRewards) earns the Rank #1 set
-    if ((state.seasonResults||[]).some(r=> r && r.rank === 1)){
+    if ((state.seasonResults||[]).some(r=> r && r.rank === 1) || (state.cosmeticGrants||[]).includes('rank1')){
       const fresh = ['top_rank1','hat_rank1','acc_rank1_staff'].filter(id=> !state.unlockedCosmetics.includes(id));
       if (fresh.length){ fresh.forEach(id=> state.unlockedCosmetics.push(id)); markDirty(); }
     }
@@ -4000,7 +4005,7 @@
     if (s < 90) return 'just now'; if (s < 3600) return Math.round(s/60)+'m ago'; if (s < 86400) return Math.round(s/3600)+'h ago';
     if (s < 86400*30) return Math.round(s/86400)+'d ago'; return new Date(t).toLocaleDateString();
   }
-  function setAdminUi(){ document.documentElement.classList.toggle('tq-admin', !!(Social.admin || isAdminSession())); }
+  function setAdminUi(){ document.documentElement.classList.toggle('tq-admin', !!(Social.admin || isAdminSession())); document.documentElement.classList.toggle('tq-owner', !!Social.owner); }
   function updateSocialBadges(){
     const n = (Social.unread|0) + (Social.requests|0);
     const txt = n ? (n > 99 ? '99+' : String(n)) : '';
@@ -4023,12 +4028,91 @@
       Object.assign(Social, { admin:!!r.admin, owner:!!r.owner, unread:r.unread|0, requests:r.requests|0, rp:r.rp|0, wins:r.wins|0, losses:r.losses|0, place:r.place||null, season:r.season||'', ban:r.ban||null, ready:true });
       setAdminUi(); applyOwnerUi(); updateSocialBadges();
       if (r.ban) showBan(r.ban); else hideBan();
+      if (!r.ban && (r.gifts|0) > 0) setTimeout(claimGifts, 300);
       if (typeof onHeartbeat === 'function') onHeartbeat(r);
       return r;
     } catch(e){ console.warn('heartbeat failed', e); return null; }
     finally { hbBusy = false; }
   }
   window.__tqHeartbeat = heartbeat;
+
+  // ================= GIFTS from the TotoQuest team (v62) =================
+  // The owner can send any trainer gems, candy, Raid Passes, Healing Elixirs, a Toto or the
+  // Rank #1 outfit. The server holds each gift until this game picks it up; the game adds it,
+  // saves, and only then tells the server it arrived. Gift ids already added are remembered in
+  // the save, so a gift can never be added twice (even if that last step doesn't get through).
+  const GIFT_LABEL = { gems:['Gem','Gems'], candy:['Candy','Candy'], raidPass:['Raid Pass','Raid Passes'], elixir:['Healing Elixir','Healing Elixirs'] };
+  let eternalNames = null;
+  function eternalMakerByName(name){
+    for (const f of ETERNAL_MAKERS){ try { if (f().name === name) return f; } catch(e){} }
+    return null;
+  }
+  function giftEternalNames(){
+    if (!eternalNames){ eternalNames = []; ETERNAL_MAKERS.forEach(f=>{ try { const n = f().name; if (n && !eternalNames.includes(n)) eternalNames.push(n); } catch(e){} }); }
+    return eternalNames;
+  }
+  // builds the gifted Toto the same way a caught or chest Toto is made, at the chosen level
+  function giftToto(spec){
+    const name = String((spec && spec.name) || ''), tier = spec && spec.tier;
+    const lvl = Math.max(1, Math.min(TOTO_MAX_LEVEL, parseInt(spec && spec.level, 10) || 1));
+    let t = null;
+    if (tier === 'eternal'){ const mk = eternalMakerByName(name); if (mk) t = mk(); }
+    else if (TIER_ORDER.includes(tier) && SPECIES_ROLE[name] && TOTO_IMG[name] && !/^eternal\//.test(TOTO_IMG[name])){
+      t = makeToto(tier); t.name = name; t.role = roleOf(name); t.nature = t.role; t.sprite = spriteFor(name, t.role);
+    }
+    if (!t) return null;
+    const c = finalizeCatch(t);
+    applyLevelStats(c, lvl);
+    return c;
+  }
+  function applyGift(g){
+    const n = Math.max(1, Math.floor(Number(g.amount) || 1));
+    if (g.kind === 'gems'){ state.gems = gemBalance() + n; return '💎 '+n.toLocaleString()+' '+GIFT_LABEL.gems[n === 1 ? 0 : 1]; }
+    if (g.kind === 'candy'){ state.candy = (Number(state.candy) || 0) + n; return '🍬 '+n.toLocaleString()+' Candy'; }
+    if (g.kind === 'raidPass' || g.kind === 'elixir'){ const it = ensureItems(); it[g.kind] = (it[g.kind] || 0) + n; return (g.kind === 'raidPass' ? '🎟️ ' : '🧪 ')+n+' '+GIFT_LABEL[g.kind][n === 1 ? 0 : 1]; }
+    if (g.kind === 'toto'){
+      const got = []; for (let i=0;i<Math.min(n, 10);i++){ const t = giftToto(g.toto); if (t) got.push(t); }
+      if (!got.length) return null;
+      return '🐾 '+(got.length > 1 ? got.length+'× ' : '')+got[0].name+' ('+(got[0].tier.charAt(0).toUpperCase()+got[0].tier.slice(1))+', Lv '+got[0].level+')';
+    }
+    if (g.kind === 'rank1set'){
+      state.cosmeticGrants = state.cosmeticGrants || [];
+      if (!state.cosmeticGrants.includes('rank1')) state.cosmeticGrants.push('rank1');
+      checkCosmeticUnlocks();
+      return '👑 The Rank #1 set: Champion Shirt, Champion Hat and Pumpkin Staff (wear them from your profile → Wardrobe)';
+    }
+    return null;
+  }
+  let giftBusy = false;
+  async function claimGifts(){
+    if (giftBusy || !onlineOn() || !state.loggedIn) return;
+    giftBusy = true;
+    try {
+      const r = await sbRpc('gifts_pending', { p_id:state.playerId, p_secret:state.playerSecret });
+      if (!r || !r.ok || !Array.isArray(r.gifts) || !r.gifts.length) return;
+      state.giftIds = Array.isArray(state.giftIds) ? state.giftIds : [];
+      const lines = [], notes = [], ids = [];
+      r.gifts.forEach(g=>{
+        ids.push(g.id);
+        if (state.giftIds.includes(g.id)) return;            // already added on an earlier try
+        let line = null; try { line = applyGift(g); } catch(e){ console.warn('gift failed', e); }
+        state.giftIds.push(g.id);
+        if (line){ lines.push(line); if (g.note && !notes.includes(g.note)) notes.push(g.note); }
+      });
+      state.giftIds = state.giftIds.slice(-300);
+      refreshHUD(); markDirty();
+      try { renderCollection(); } catch(e){}
+      try { renderItems(); } catch(e){}
+      await saveNow(true);
+      sbRpc('gifts_ack', { p_id:state.playerId, p_secret:state.playerSecret, p_ids:ids }).catch(()=>{});
+      if (lines.length){
+        if (Sound.playCatch) Sound.playCatch();
+        gameDialog({ title:'🎁 A gift from the TotoQuest team!', message: lines.join('  •  ') + (notes.length ? '  —  “'+notes.join(' / ')+'”' : ''), ok:'Awesome!', cancel:null });
+      }
+    } catch(e){ console.warn('gifts', e); }
+    finally { giftBusy = false; }
+  }
+  window.__tqClaimGifts = claimGifts;
   setInterval(()=>{ if (document.visibilityState === 'visible' && state.loggedIn) heartbeat(); }, 60000);
   document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'visible' && state.loggedIn) heartbeat(); });
   function showBan(b){
@@ -4272,6 +4356,12 @@
   }
   async function adminActions(p){
     const banned = isBanned(p), btns = [];
+    const self = p.id === state.playerId;
+    if (Social.owner){
+      btns.push({ label:'🎁 Send a gift…', value:'gift', cls:'good' });
+      btns.push({ label: self ? '🏆 Make me Rank #1 this season (testing)' : '🏆 Make Rank #1 this season (testing)', value:'top' });
+      btns.push({ label:'🔢 Set season Rank Points…', value:'rp' });
+    }
     if (!p.is_owner){
       if (banned) btns.push({ label:'✅ Unban'+(p.ip_banned ? ' (and their IP)' : ''), value:'unban', cls:'good' });
       btns.push({ label:'⏳ Temporary ban…', value:'temp', cls:'warn' });
@@ -4282,6 +4372,22 @@
     if (!btns.length){ showToast('That’s the owner’s account.'); return; }
     const v = await actionSheet(p.name || 'Trainer', (p.online ? 'Online now' : 'Last seen '+timeAgo(p.last_seen))+' · IP '+(p.ip || 'unknown'), btns);
     if (!v) return;
+    if (v === 'gift') return adminGift(p);
+    if (v === 'top' || v === 'rp'){
+      let rp = null;
+      if (v === 'rp'){
+        const o = await actionSheet('Season Rank Points: '+(p.name||'Trainer'), 'Now '+(p.rp||0)+' RP · '+rankInfo(p.rp||0).label+'. Bronze 3 starts at 0, each division is 100 RP, Master is 1,500+.', [
+          { html:'<label class="act-field">Rank Points<input type="number" id="ad-rp" min="0" max="100000" step="25" value="'+(p.rp||0)+'"></label>' },
+          { label:'Set Rank Points', value:'go', cls:'good' } ]);
+        if (o !== 'go') return;
+        rp = Math.max(0, Math.min(100000, parseInt(($('#ad-rp')||{}).value, 10) || 0));
+      } else if (!(await gameConfirm((self ? 'You' : (p.name||'They'))+' will go to the top of this month’s PvP board (above everyone, Grandmaster) and get the Rank #1 set — Champion Shirt, Champion Hat and Pumpkin Staff. Meant for testing.', 'Make Rank #1?', 'Do it', 'Cancel'))) return;
+      const r = await adminCall('admin_set_rp', { p_target:p.id, p_rp:rp, p_make_top: v === 'top' });
+      if (!r) return;
+      showToast(v === 'top' ? '🏆 '+(self ? 'You’re' : (p.name||'They')+' is')+' #1 with '+r.rp.toLocaleString()+' RP' : 'Rank Points set to '+r.rp.toLocaleString()+' (#'+r.place+')');
+      if (self){ await heartbeat(); claimGifts(); }
+      return loadAdmin(true);
+    }
     if (v === 'unban'){ if (await adminCall('admin_unban', { p_target:p.id })) showToast('Unbanned.'); return loadAdmin(true); }
     if (v === 'admin'){ if (await adminCall('admin_set_admin', { p_target:p.id, p_on: !p.is_admin })) showToast(p.is_admin ? 'Admin removed.' : (p.name||'They')+' is now an admin.'); return loadAdmin(true); }
     if (v === 'del'){
@@ -4303,6 +4409,51 @@
     const r = await adminCall('admin_ban', { p_target:p.id, p_minutes:minutes, p_reason:reason, p_ip:ip });
     if (r) showToast('Banned'+(r.ip ? ' (and their IP)' : '')+'.');
     loadAdmin(true);
+  }
+  // the owner's gift composer
+  async function adminGift(p){
+    const who = p.id === state.playerId ? 'yourself' : (p.name || 'this trainer');
+    const kind = await actionSheet('Send a gift to '+who, 'It arrives the next time they have the game open (within a minute if they’re online).', [
+      { label:'💎 Gems', value:'gems' }, { label:'🍬 Candy', value:'candy' }, { label:'🎟️ Raid Passes', value:'raidPass' },
+      { label:'🧪 Healing Elixirs', value:'elixir' }, { label:'🐾 A Toto…', value:'toto' }, { label:'👑 Rank #1 outfit set', value:'rank1set' } ]);
+    if (!kind) return;
+    const note = '<label class="act-field">Message (optional, they’ll see it)<input type="text" id="gift-note" maxlength="140" placeholder="e.g. Thanks for testing!"></label>';
+    let amount = 1, toto = null;
+    if (kind === 'toto'){
+      const opt = (v, t)=> '<option value="'+escapeHtml(v)+'">'+escapeHtml(t)+'</option>';
+      const byName = (a, b)=> a.name.localeCompare(b.name);
+      const sel = '<select id="gift-sp">'
+        + '<optgroup label="Eternal">'+giftEternalNames().slice().sort().map(n=> opt('eternal|'+n, n)).join('')+'</optgroup>'
+        + '<optgroup label="Mythical">'+LEGENDARY_SPECIES.slice().sort(byName).map(s=> opt('mythical|'+s.name, s.name+' (Mythical)')).join('')+'</optgroup>'
+        + '<optgroup label="Legendary">'+LEGENDARY_SPECIES.slice().sort(byName).map(s=> opt('legendary|'+s.name, s.name)).join('')+'</optgroup>'
+        + '<optgroup label="Normal">'+NORMAL_SPECIES.slice().sort(byName).map(s=> opt('normal|'+s.name, s.name)).join('')+'</optgroup></select>';
+      const go = await actionSheet('Gift a Toto to '+who, '', [
+        { html:'<label class="act-field">Toto'+sel+'</label>'
+          + '<div class="act-row"><label class="act-field">Level (1–'+TOTO_MAX_LEVEL+')<input type="number" id="gift-lv" min="1" max="'+TOTO_MAX_LEVEL+'" value="'+TOTO_MAX_LEVEL+'"></label>'
+          + '<label class="act-field">How many<input type="number" id="gift-n" min="1" max="10" value="1"></label></div>' + note },
+        { label:'🎁 Send', value:'go', cls:'good' } ]);
+      if (go !== 'go') return;
+      const [tier, name] = String(($('#gift-sp')||{}).value || '').split('|');
+      if (!name) return;
+      toto = { name, tier, level: Math.max(1, Math.min(TOTO_MAX_LEVEL, parseInt(($('#gift-lv')||{}).value, 10) || 1)) };
+      amount = Math.max(1, Math.min(10, parseInt(($('#gift-n')||{}).value, 10) || 1));
+    } else if (kind !== 'rank1set'){
+      const max = (kind === 'gems' || kind === 'candy') ? 1000000 : 999, def = { gems:500, candy:1000, raidPass:5, elixir:10 }[kind];
+      const go = await actionSheet('Gift '+GIFT_LABEL[kind][1]+' to '+who, '', [
+        { html:'<label class="act-field">How many (1–'+max.toLocaleString()+')<input type="number" id="gift-n" min="1" max="'+max+'" value="'+def+'"></label>' + note },
+        { label:'🎁 Send', value:'go', cls:'good' } ]);
+      if (go !== 'go') return;
+      amount = Math.max(1, Math.min(max, parseInt(($('#gift-n')||{}).value, 10) || 1));
+    } else {
+      const go = await actionSheet('Gift the Rank #1 set to '+who, 'Champion Shirt, Champion Hat and Pumpkin Staff (Wardrobe).', [ { html:note }, { label:'🎁 Send', value:'go', cls:'good' } ]);
+      if (go !== 'go') return;
+    }
+    const msg = (($('#gift-note')||{}).value || '').trim().slice(0, 140);
+    const r = await adminCall('admin_gift', { p_target:p.id, p_kind:kind, p_amount:amount, p_toto:toto, p_note:msg || null });
+    if (!r) return;
+    const what = kind === 'toto' ? (r.amount > 1 ? r.amount+'× ' : '')+toto.name : kind === 'rank1set' ? 'the Rank #1 set' : r.amount.toLocaleString()+' '+GIFT_LABEL[kind][r.amount === 1 ? 0 : 1];
+    if (p.id === state.playerId){ showToast('🎁 Sent '+what+' to yourself'); claimGifts(); }
+    else showToast('🎁 Sent '+what+' to '+(p.name||'them')+(r.online ? ' — they’ll get it within a minute' : ' — they’ll get it next time they play'));
   }
   async function loadReports(){
     let r; try { r = await adminCall('admin_reports'); } catch(e){ r = null; }
@@ -4326,6 +4477,11 @@
   $('#ad-go').onclick = ()=>{ Admin.q = $('#ad-q').value.trim(); loadAdmin(true); };
   $('#ad-q').addEventListener('keydown', e=>{ if (e.key === 'Enter'){ Admin.q = $('#ad-q').value.trim(); loadAdmin(true); } });
   $('#ad-more').onclick = ()=> loadAdmin(false);
+  $('#ad-self').onclick = ()=>{
+    if (!Social.owner){ showToast('Only the owner can send gifts.'); return; }
+    const mine = Admin.rows.find(x=> x.id === state.playerId);
+    adminActions(mine || { id:state.playerId, name:state.username || 'You', is_owner:true, online:true, last_seen:new Date().toISOString(), rp:Social.rp|0 });
+  };
 
   // ================= PvP ARENA (v57) =================
   // 1-Toto ranked battles. Trainers take turns (odd turns: player 1, even: player 2). Every move
@@ -9765,7 +9921,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v61';
+window.TQ_APP_VERSION = 'v62';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   if (!('serviceWorker' in navigator)) return;

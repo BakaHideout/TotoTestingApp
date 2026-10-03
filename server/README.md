@@ -88,3 +88,16 @@ Everyone can read `leaderboard`. A trainer can only write their own row through
   | Loss against the computer | −5 |
 
   Every 100 RP is one division: Bronze 3 → … → Diamond 1. Master starts at 1500 RP, and the top 10 are Grandmaster.
+
+## v62: gifts and testing ranks
+
+Migration: `supabase/migrations/2026-10-03_admin_gifts.sql`.
+
+- **Private table:** `gifts`. Each gift waits there, unclaimed, until the trainer's game picks it up.
+- **Owner-only RPCs:**
+  - `admin_gift(target, kind, amount, toto, note)` sends a gift. The kinds are `gems`, `candy`, `raidPass`, `elixir`, `toto` (`{name, tier, level}`) and `rank1set` (the Rank #1 outfit).
+  - `admin_set_rp(target, rp, make_top)` sets a trainer's Rank Points for this season. With `make_top` it puts them 50 RP above everyone else, with at least 1600, and sends them the Rank #1 outfit. It is meant for testing.
+- **Trainer RPCs:**
+  - `heartbeat` now also returns `gifts`, the number of gifts waiting.
+  - `gifts_pending` lists the waiting gifts.
+  - `gifts_ack(ids)` marks gifts as received. The game adds the gifts and saves before it calls this. It also remembers the ids it has added, so a gift is never added twice.
