@@ -3926,8 +3926,8 @@
     // always runs right after either of those, so re-pointing the alias here keeps it
     // correct across logins without touching every place state gets reassigned.
     window.__gameState = state;
-    const avFront = frontAvatarMarkup(state.avatar, true);
-    $('#hud-avatar').innerHTML = avFront; $('#player-avatar').innerHTML = avFront; $('#profile-avatar').innerHTML = avFront;
+    const avFront = frontAvatarMarkup(state.avatar, true), avBack = backAvatarMarkup(state.avatar, true);
+    $('#hud-avatar').innerHTML = avFront; $('#player-avatar').innerHTML = avBack; $('#profile-avatar').innerHTML = avFront;
     // Try to upgrade the flat on-map marker to a real rotatable 3D model. This is purely
     // additive: if the 3D module hasn't finished loading yet (slow network) we stash the
     // gender and it mounts itself as soon as it's ready; if WebGL/Three.js is unavailable
@@ -5159,9 +5159,8 @@
     const k = lookHash(look, mode);
     let url = null;
     if (window.__tqLookSnapshot){ try { url = window.__tqLookSnapshot(look, mode, u=> $$('img[data-lk="'+k+'"]').forEach(i=> i.src = u)); } catch(e){} }
-    const g = look && look.g === 'male' ? 'male' : 'female';
-    // until the outfit picture is ready (a moment), the plain character stands in
-    return '<img data-lk="'+k+'" class="'+(url ? '' : 'player-avatar-svg')+'" src="'+(url || (mode === 'head' ? AVATAR_IMG[g].frontSm : AVATAR_IMG[g].front))+'" alt="'+escapeHtml(alt||'trainer')+'" draggable="false">';
+    if (!url) return mode === 'head' ? frontAvatarMarkup(look && look.g === 'male' ? 'male' : 'female', true) : frontAvatarMarkup(look && look.g === 'male' ? 'male' : 'female', false);
+    return '<img data-lk="'+k+'" src="'+url+'" alt="'+escapeHtml(alt||'trainer')+'" draggable="false">';
   }
 
   // ---- lobby ----
@@ -10639,7 +10638,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v74';
+window.TQ_APP_VERSION = 'v75';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
@@ -11092,6 +11091,31 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       return new THREE.MeshPhysicalMaterial(Object.assign(base, extra));     // a little self-light keeps shadows soft and colourful
     }
     // skin: smooth and warm, a peachy glow in the shadows (like light passing through)
+    // ---- the face picture on the head (v75) ----
+    // A patch of a slightly bigger sphere over the front of the head (front = -Z), the face picture
+    // projected straight onto it: art pixels -> head units at 0.0027 (eyes 0.26 apart, at y = -0.02).
+    let faceGeoCache = null; const faceTexCache = {};
+    function faceDecalGeo(){
+      if (faceGeoCache) return faceGeoCache;
+      const R = HEAD_R*1.006, HX = 0.29, HY = 0.232, YC = -0.071;
+      const g = new THREE.SphereGeometry(R, 48, 36, Math.PI*1.5 - 1.4, 2.8, 0.85, Math.PI - 0.85);
+      const pos = g.attributes.position, uv = g.attributes.uv;
+      for (let i=0;i<pos.count;i++) uv.setXY(i, 0.5 - pos.getX(i)/(2*HX), 0.5 + (pos.getY(i) - YC)/(2*HY));
+      uv.needsUpdate = true;
+      return faceGeoCache = g;
+    }
+    function faceMaterial(key, skinHex){
+      let tex = faceTexCache[key];
+      if (!tex){
+        tex = faceTexCache[key] = new THREE.TextureLoader().load('assets/player/face-'+key+'.webp');
+        if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.anisotropy = 4;
+      }
+      const m = skinMaterial(skinHex);
+      m.color.set('#ffffff'); m.map = tex; m.transparent = true; m.depthWrite = false;
+      m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2;
+      return m;
+    }
     function skinMaterial(color){
       const c = new THREE.Color(color);
       return new THREE.MeshPhysicalMaterial({ color:c, roughness:0.5, metalness:0, sheen:0.3, sheenRoughness:0.6, sheenColor:new THREE.Color('#ffe0cc'),
@@ -11699,35 +11723,11 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         grp.lookAt(new THREE.Vector3(x*2.5, y*2.2, z*2.5));
         headGroup.add(grp); return grp;
       }
-      // big green eyes (both characters in the new art), lashes, freckles, rosy cheeks
-      const eyeWhite = new THREE.MeshBasicMaterial({ color:'#fffaf2' });
-      const irisMat = new THREE.MeshBasicMaterial({ color:'#4caa5e' });
-      const irisDark = new THREE.MeshBasicMaterial({ color:'#1f4a2a' });
-      const pupilMat = new THREE.MeshBasicMaterial({ color:'#120c10' });
-      const shine = new THREE.MeshBasicMaterial({ color:'#ffffff' });
-      const lashMat = new THREE.MeshBasicMaterial({ color:'#2a1612' });
+      // v75: the face from the character art (eyes, brows, nose, smile, rosy cheeks), painted onto the
+      // front of the head and melting into its skin
       const eyes = [];
-      [-1,1].forEach(sx=>{
-        const e = onFace(sx*0.112, -0.02); eyes.push(e);
-        const w = new THREE.Mesh(new THREE.CircleGeometry(0.07, 24), eyeWhite); w.scale.set(0.86,1.06,1); w.position.z = 0.004; e.add(w);
-        const ir = new THREE.Mesh(new THREE.CircleGeometry(0.055, 24), irisDark); ir.scale.set(0.92,1.06,1); ir.position.set(0,-0.006,0.008); e.add(ir);
-        const ir2 = new THREE.Mesh(new THREE.CircleGeometry(0.044, 24), irisMat); ir2.scale.set(0.92,1.06,1); ir2.position.set(0,-0.012,0.011); e.add(ir2);
-        const pu = new THREE.Mesh(new THREE.CircleGeometry(0.021, 16), pupilMat); pu.position.set(0,-0.006,0.014); e.add(pu);
-        const s1 = new THREE.Mesh(new THREE.CircleGeometry(0.017, 12), shine); s1.position.set(-sx*0.017, 0.021, 0.017); e.add(s1);
-        const s2 = new THREE.Mesh(new THREE.CircleGeometry(0.008, 10), shine); s2.position.set(sx*0.015, -0.03, 0.017); e.add(s2);
-        const lash = new THREE.Mesh(new THREE.TorusGeometry(0.064, 0.008, 4, 16, Math.PI*0.95), lashMat); lash.scale.set(0.9,1.03,1); lash.position.set(0,0.004,0.016); lash.rotation.z = Math.PI*0.025; e.add(lash);
-        if (isFemale){ const flick = new THREE.Mesh(new THREE.ConeGeometry(0.011, 0.032, 4), lashMat); flick.position.set(sx*0.06, 0.04, 0.016); flick.rotation.z = -sx*0.9; e.add(flick); }
-        const brow = onFace(sx*0.112, 0.1);
-        const b = new THREE.Mesh(new THREE.CapsuleGeometry(0.0075, 0.046, 3, 6), new THREE.MeshBasicMaterial({ color:'#a4481a' })); b.rotation.z = Math.PI/2 + sx*0.1; b.position.z = 0.006; brow.add(b);
-        const ch = onFace(sx*0.172, -0.1);
-        const blush = new THREE.Mesh(new THREE.CircleGeometry(0.04, 18), new THREE.MeshBasicMaterial({ color:'#ff8f86', transparent:true, opacity:0.5 })); blush.scale.set(1.25,0.8,1); blush.position.z = 0.004; ch.add(blush);
-      });
-      const frk = new THREE.MeshBasicMaterial({ color:'#c9774d' });
-      [[-0.15,-0.065],[-0.128,-0.088],[-0.168,-0.098],[-0.14,-0.11],[0.15,-0.065],[0.128,-0.088],[0.168,-0.098],[0.14,-0.11]].forEach(([x,y])=>{ const f = onFace(x,y); const d = new THREE.Mesh(new THREE.CircleGeometry(0.0055, 6), frk); d.position.z = 0.006; f.add(d); });
-      const nose = onFace(0, -0.072); nose.add(new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), skin));
-      const mouthG = onFace(0, -0.138);
-      const smile = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.0065, 6, 14, Math.PI), new THREE.MeshBasicMaterial({ color:'#9a3030' }));
-      smile.rotation.z = Math.PI; smile.position.z = 0.006; mouthG.add(smile);
+      const face = new THREE.Mesh(faceDecalGeo(), faceMaterial(isFemale ? 'girl' : 'boy', cfg.skin || '#ffcfa8'));
+      face.scale.set(1.02, 0.98, 1); face.renderOrder = 2; headGroup.add(face);
       // little ears peeking out of the hair
       [-1,1].forEach(sx=> part(headGroup, new THREE.SphereGeometry(0.05, 12, 10), skin, { pos:[sx*0.285, -0.03, 0.01], scale:[0.55,1,0.8], outline:0.007 }));
 
@@ -12212,66 +12212,6 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
     }
 
 
-    // ================= v74: the player is drawn from the character art, front and back =================
-    // Each character has two pictures: the front, and the back (as seen from behind). They become one
-    // lit, puffed-out 3D figure — the front relief faces the camera, the back relief faces away — so
-    // turning the camera round the character shows the front, the sides and the back, like the old model.
-    // Wardrobe items are picture layers made to fit each part of the art (hat cone/band/brim, shirt and
-    // sleeves, tights, boots — front and back), stacked over the picture; a reward staff replaces the
-    // starter one.
-    const PA = 'assets/player/';
-    const PLAYER_ART = {
-      female:{ key:'girl', front:PA+'girl.webp', frontBare:PA+'girl-nostaff.webp', back:PA+'girl-back.webp', backBare:PA+'girl-back-nostaff.webp' },
-      male:  { key:'boy',  front:PA+'boy.webp',  frontBare:PA+'boy-nostaff.webp',  back:PA+'boy-back.webp',  backBare:PA+'boy-back-nostaff.webp' }
-    };
-    // per picture: its size, where the feet are (across, 0..1) and where a reward staff stands [x, top, bottom]
-    const ART_INFO = {"girl-front":{"w":579,"h":954,"feet":0.5639,"staff":[155,399,936]},"girl-back":{"w":477,"h":716,"feet":0.5136,"staff":[409,250,709]},"boy-front":{"w":579,"h":956,"feet":0.5613,"staff":[155,400,938]},"boy-back":{"w":498,"h":709,"feet":0.491,"staff":[402,250,704]}};
-    // item layer -> where it sits on its picture [x, y]
-    const ART_LAYERS = {"girl-front-rank1Hat":[82,6],"girl-front-level100Hat":[82,6],"girl-front-rank1Shirt":[166,503],"girl-front-tee":[166,503],"girl-front-rank1Legs":[253,786],"girl-front-rank1Shoes":[241,840],"girl-front-staffover":[117,301],"girl-back-rank1Hat":[93,6],"girl-back-level100Hat":[93,6],"girl-back-rank1Shirt":[89,312],"girl-back-tee":[89,312],"girl-back-rank1Legs":[177,546],"girl-back-rank1Shoes":[152,598],"boy-front-rank1Hat":[82,6],"boy-front-level100Hat":[82,6],"boy-front-rank1Shirt":[166,503],"boy-front-tee":[166,503],"boy-front-rank1Legs":[253,786],"boy-front-rank1Shoes":[241,840],"boy-front-staffover":[118,302],"boy-back-rank1Hat":[91,6],"boy-back-level100Hat":[91,6],"boy-back-rank1Shirt":[89,267],"boy-back-tee":[89,267],"boy-back-rank1Legs":[177,545],"boy-back-rank1Shoes":[148,593]};
-    const ART_ITEMS = { level100Hat:1, rank1Hat:1, tee:1, rank1Shirt:1, rank1Legs:1, rank1Shoes:1, l100broom:PA+'acc-broom.webp', rank1Staff:PA+'acc-r1staff.webp' };
-    const ART_LAYER_ORDER = ['top','legwear','shoes','hat'];
-    const artImgs = new Map();
-    function artImg(src){
-      if (!artImgs.has(src)) artImgs.set(src, new Promise((res, rej)=>{ const im = new Image(); im.onload = ()=> res(im); im.onerror = ()=>{ artImgs.delete(src); rej(new Error('image '+src)); }; im.src = src; }));
-      return artImgs.get(src);
-    }
-    const ART_SLOTS = ['hat','top','legwear','shoes','accessory'];
-    function artKey(g, cfg){ return (g === 'male' ? 'male' : 'female') + '|' + ART_SLOTS.map(s=> (cfg && cfg[s] && ART_ITEMS[cfg[s].kind]) ? cfg[s].kind : '').join(','); }
-    function playerCfg(g){ const c = window.PLAYER_EQUIP_CATALOG && window.PLAYER_EQUIP_CATALOG[g === 'male' ? 'male' : 'female']; return c ? JSON.parse(JSON.stringify(c)) : null; }
-    const dressedCache = new Map();
-    // the character's picture (front or back) wearing these items: a canvas, cached per outfit
-    function dressedArt(g, cfg, side){
-      g = g === 'male' ? 'male' : 'female'; side = side === 'back' ? 'back' : 'front';
-      const key = side + '|' + artKey(g, cfg);
-      if (dressedCache.has(key)) return dressedCache.get(key);
-      const pr = (async()=>{
-        const A = PLAYER_ART[g], info = ART_INFO[A.key + '-' + side];
-        const kinds = {}; ART_SLOTS.forEach(s=>{ const k = cfg && cfg[s] && cfg[s].kind; if (k && ART_ITEMS[k]) kinds[s] = k; });
-        const swap = kinds.accessory ? ART_ITEMS[kinds.accessory] : null;
-        // a reward staff goes on the picture without its starter staff
-        const names = ART_LAYER_ORDER.filter(s=> kinds[s]).map(s=> A.key + '-' + side + '-' + kinds[s]).filter(n=> ART_LAYERS[n]);
-        if (side === 'front' && kinds.hat && !swap) names.push(A.key + '-front-staffover');   // the starter staff crosses the brim
-        const [base, si, ...layers] = await Promise.all([artImg(swap ? A[side + 'Bare'] : A[side]), swap ? artImg(swap) : null].concat(names.map(n=> artImg(PA + 'items/' + n + '.webp'))));
-        const W = base.naturalWidth, H = base.naturalHeight;
-        const c = document.createElement('canvas'); c.width = W; c.height = H;
-        const ctx = c.getContext('2d'); ctx.drawImage(base, 0, 0);
-        layers.forEach((im, i)=>{ const o = ART_LAYERS[names[i]]; ctx.drawImage(im, o[0], o[1]); });
-        if (si){
-          // the reward staff stands behind the hand that holds it
-          const st = info.staff, h = st[2] - st[1], w = h*si.naturalWidth/si.naturalHeight;
-          ctx.globalCompositeOperation = 'destination-over'; ctx.drawImage(si, st[0] - w/2, st[2] - h, w, h); ctx.globalCompositeOperation = 'source-over';
-        }
-        c.feetU = info.feet;
-        return c;
-      })();
-      dressedCache.set(key, pr); pr.catch(()=> dressedCache.delete(key));
-      if (dressedCache.size > 16) dressedCache.delete(dressedCache.keys().next().value);
-      return pr;
-    }
-    // both sides at once (the 3D figure needs the two)
-    function dressedPair(g, cfg){ return Promise.all([dressedArt(g, cfg, 'front'), dressedArt(g, cfg, 'back')]); }
-    window.__tqDressedArt = (g, cfg, side)=> dressedArt(g, cfg || playerCfg(g), side);
-
     // ---- a picture as a lit, puffed-out 3D figure (shared by the player and the PvP Totos) ----
     const RELIEF_DEPTH = 0.27;
     function buildRelief(img, side){
@@ -12334,111 +12274,56 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       mat.customProgramCacheKey = ()=> 'tq-relief-toto';
       return mat;
     }
-    function addArtLights(scene){
-      scene.add(new THREE.HemisphereLight(0xfff4e8, 0x4a3a6a, 1.2));
-      const k = new THREE.DirectionalLight(0xffe6c8, 1.4); k.position.set(-0.45, 0.75, 1); scene.add(k);
-      const r1 = new THREE.DirectionalLight(0xc9a8ff, 1.5); r1.position.set(0.9, 0.35, -0.6); scene.add(r1);
-      const r2 = new THREE.DirectionalLight(0xffb070, 0.7); r2.position.set(-0.9, 0.3, -0.6); scene.add(r2);
-    }
-    // The player's figure, figH tall with the feet at the origin (the middle of the boots): the front
-    // picture faces +Z (the camera), the back picture faces -Z, both breathing and swaying together.
-    function makeArtFigure(front, back, glow, figH){
-      const uni = { uTime:{ value:0 }, uSeed:{ value:Math.random()*6.28 }, uSway:{ value:0.012 }, uBreath:{ value:0.014 }, uLean:{ value:0 } };
-      const fig = new THREE.Group(), parts = [];
-      [front, back].forEach((art, i)=>{
-        if (!art) return;
-        const R = buildRelief(art, false);
-        R.geo.translate(-((art.feetU || 0.5) - 0.5), 0, 0);
-        const mat = reliefMaterial(R.tex, Object.assign({}, uni, { uH:{ value:1/R.aspect } }), glow == null ? 0.42 : glow, THREE.FrontSide);
-        const mesh = new THREE.Mesh(R.geo, mat);
-        mesh.scale.setScalar(figH*R.aspect);
-        if (i === 1) mesh.rotation.y = Math.PI;
-        fig.add(mesh); parts.push({ R, mat, mesh });
-      });
-      if (parts[1]) parts[1].mesh.visible = false;
-      return { fig, mesh:parts[0].mesh, mat:parts[0].mat, uni, aspect:parts[0].R.aspect,
-        tint(v){ parts.forEach(q=> q.mat.color.setScalar(v)); },
-        // only the picture facing the camera is drawn (0 front, 1 back)
-        setSide(s){ parts.forEach((q, i)=>{ q.mesh.visible = i === (s && parts.length > 1 ? 1 : 0); }); },
-        dispose(){ parts.forEach(q=>{ q.R.geo.dispose(); q.R.tex.dispose(); q.mat.dispose(); }); } };
-    }
-    // Turning round the character. A picture seen edge-on is a thin sliver, so the figure turns up to
-    // about 55° either way, and as the camera passes her side she turns round (a quick flip) to show the
-    // other picture. Returns the figure's turn and its width (1, or less during the flip).
-    function artTurner(){
-      let side = -1, shown = 0, flip = 1;
-      const K = 0.62, half = Math.PI/2;
-      return function(rad, dt){
-        const a = Math.atan2(Math.sin(rad), Math.cos(rad)), want = Math.abs(a) > half ? 1 : 0;
-        if (side < 0){ side = shown = want; }
-        else if (want !== side){ side = want; flip = 0; }
-        if (flip < 1){ flip = Math.min(1, flip + (dt || 0.03)/0.26); if (flip >= 0.5) shown = side; }
-        const lf = Math.max(-half, Math.min(half, a)), lb = Math.max(-half, Math.min(half, a > 0 ? a - Math.PI : a + Math.PI));
-        return { side: shown, rot: shown ? -(Math.PI + lb*K) : -lf*K, width: flip < 1 ? Math.max(0.04, Math.abs(Math.cos(flip*Math.PI))) : 1 };
-      };
-    }
-
     function initPlayer3D(canvas, gender){
       const scene = new THREE.Scene();
-      addArtLights(scene);
+      const rig = addPlayerLighting(scene);
 
-      // screen pixels: the canvas is PLAYER_CANVAS_W x H, feet FRAME_FEET_PX above its bottom
-      const camera = new THREE.OrthographicCamera(-PLAYER_CANVAS_W/2, PLAYER_CANVAS_W/2, PLAYER_CANVAS_H, 0, 1, 2000);
-      camera.position.z = 1000;
+      const camera = new THREE.PerspectiveCamera(FRAME_FOV, PLAYER_CANVAS_W/PLAYER_CANVAS_H, 0.1, 30);
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
       renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
-      if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+      setupPlayerRenderer(renderer);
       // Fixed intended size (matches the .player-avatar-3d CSS) rather than measuring
       // layout — this marker never resizes, and reading clientWidth/Height here would
       // return 0 if mounted before the game screen is the active one on screen.
       renderer.setSize(PLAYER_CANVAS_W, PLAYER_CANVAS_H, false);
-      // soft contact shadow under the boots
-      const shadow = new THREE.Mesh(new THREE.CircleGeometry(1, 28), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.95 }));
-      shadow.position.set(0, FRAME_FEET_PX + 1, -600); scene.add(shadow);
-      const FIG_H = 134;                    // px tall on the map
-      let F = null, want = '', stopped = false, gate = {}, walkK = 0, lastT = 0;
-      const turner = artTurner(); let flipping = false;
-      function load(g){
-        const cfg = playerCfg(g), key = want = artKey(g, cfg);
-        dressedPair(g, cfg).then(([front, back])=>{
-          if (stopped || want !== key) return;
-          if (F){ scene.remove(F.fig); F.dispose(); }
-          F = makeArtFigure(front, back, 0.42, FIG_H); scene.add(F.fig);
-          gate = {};
-        }).catch(e=> console.warn('player art', e));
-      }
-      load(gender);
 
+      // On the map she's only ~110 px tall and already stands on soft contact shadows, so the
+      // real-time shadow pass (which drew every part of her twice) is switched off here.
+      renderer.shadowMap.enabled = false;
+      scene.traverse(o=>{ if (o.material && o.material.isShadowMaterial) o.visible = false; });
+
+      let group = buildPlayerModel(gender);
+      scene.add(group);
+
+      let stopped = false; const gate = {};
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
         // Only spend GPU time while the game/map screen is actually the one showing (not
         // under a battle or a full-screen panel).
-        if (tqMapCovered() || !F) return;
-        const walking = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
+        if (tqMapCovered()) return;
+        const gs = window.__gameState;
+        const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
+        const walkingNow = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
         // walking or turning: 30 frames a second is plenty at this size; standing still: 15
-        if (!tqGate(gate, (walking || walkK > 0.01 || !tqCameraCalm() || flipping) ? 30 : 15)) return;
-        const t = performance.now()/1000, dt = Math.min(0.1, Math.max(0, t - (lastT || t))); lastT = t;
-        walkK += ((walking ? 1 : 0) - walkK)*Math.min(1, dt*8);
-        // walking: a bouncy little step, rocking side to side; standing: breathing and looking around
-        const ph = t*8.5, step = Math.abs(Math.sin(ph));
-        F.fig.position.set(0, FRAME_FEET_PX + step*5*walkK, 0);
-        F.fig.rotation.z = Math.sin(ph)*0.065*walkK;
-        // the character faces one way; turning the camera (the map's orbit) walks round her
-        const gs = window.__gameState, orbit = gs && typeof gs.viewOrbit === 'number' ? gs.viewOrbit : 0;
-        const tv = turner(THREE.MathUtils.degToRad(orbit), dt);
-        F.fig.rotation.y = tv.rot; F.setSide(tv.side); flipping = tv.width < 1;
-        F.fig.scale.set((1 + (1-step)*0.03*walkK)*tv.width, 1 - (1-step)*0.035*walkK, 1);
-        F.uni.uTime.value = t; F.uni.uSway.value = 0.014*(1 - walkK); F.uni.uLean.value = 0;
-        const sw = 30*(1 - step*0.18*walkK);
-        shadow.scale.set(sw, sw*0.24, 1);
+        if (!tqGate(gate, (walkingNow || !tqCameraCalm()) ? 30 : 15)) return;
+        const rad = THREE.MathUtils.degToRad(orbitDeg);
+        placePlayerCamera(camera, rad, FRAME_VIEW_H, FRAME_FEET_PX, PLAYER_CANVAS_H);
+        rig.rotation.y = rad;   // studio lighting follows the camera around her
+        const walking = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
+        animatePlayerModel(group, performance.now()/1000, walking);
         renderer.render(scene, camera);
       }
       requestAnimationFrame(frame);
 
       return {
-        setGender(g){ load(g); },          // also called after an outfit change
-        dispose(){ stopped = true; if (F) F.dispose(); renderer.dispose(); }
+        setGender(g){
+          scene.remove(group);
+          disposePlayerModel(group);
+          group = buildPlayerModel(g);
+          scene.add(group);
+        },
+        dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); }
       };
     }
 
@@ -12448,75 +12333,81 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
     // animatePlayerModel/getGroundShadowTexture rather than duplicating the model itself,
     // but keeps its own scene/camera/render-loop since it has different sizing and input
     // needs than the tiny fixed HUD marker in initPlayer3D() below.
-    function initWardrobePreview3D(canvas, gender, cfg){
+    function initWardrobePreview3D(canvas, gender){
       const scene = new THREE.Scene();
-      addArtLights(scene);
+      const rig = addPlayerLighting(scene);
+
       const camera = new THREE.PerspectiveCamera(FRAME_FOV, 1, 0.1, 30);
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
       renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
-      if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+      setupPlayerRenderer(renderer);
+      let ch = 260;
       function resize(){
         const w = canvas.clientWidth || 200, h = canvas.clientHeight || 260;
+        ch = h;
         renderer.setSize(w, h, false);
         camera.aspect = w/h; camera.updateProjectionMatrix();
       }
       resize();
       window.addEventListener('resize', resize);
-      const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.42, 32), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.95 }));
-      shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.004; shadow.scale.set(1.5, 0.9, 1); scene.add(shadow);
-      const FIG_H = 2.6;
-      let F = null, want = '', stopped = false;
-      function load(g, c){
-        const key = want = artKey(g, c);
-        dressedPair(g, c).then(([front, back])=>{
-          if (stopped || want !== key) return;
-          if (F){ scene.remove(F.fig); F.dispose(); }
-          F = makeArtFigure(front, back, 0.42, FIG_H); scene.add(F.fig);
-        }).catch(e=> console.warn('player art', e));
-      }
-      load(gender, cfg);
 
-      // Drag to turn the character all the way round; Front / Back face her that way; Spin turns her
-      // slowly. The close-ups frame the slot you're dressing (hat, robe, legs, feet).
-      let turn = 0, dragging = false, lastX = 0, autoSpin = true, targetTurn = null, focus = 'full', curH = 3.3, curCy = null, curCx = null, lastT = 0;
-      const turner = artTurner();
-      const FOCUS = { full:{ h:3.3, cy:1.13, cx:-0.1 }, head:{ h:1.6, cy:1.86, cx:-0.02 }, torso:{ h:1.5, cy:0.92, cx:-0.02 }, legs:{ h:0.78, cy:0.38, cx:0 }, feet:{ h:0.58, cy:0.17, cx:0 } };
-      canvas.addEventListener('pointerdown', e=>{ dragging = true; autoSpin = false; targetTurn = null; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
-      canvas.addEventListener('pointermove', e=>{ if (!dragging) return; turn += (e.clientX-lastX)*0.012; lastX = e.clientX; });
+      let group = buildPlayerModel(gender);
+      scene.add(group);
+
+      // Starts at a 3/4 angle (not dead-on front) so the silhouette reads as 3D the
+      // instant the panel opens, and auto-spins gently whenever the player isn't actively
+      // dragging — the live-rotating preview the brief asked for, without needing the
+      // player to discover the drag gesture first.
+      let orbitDeg = 20, dragging = false, lastX = 0;   // idle pose faces +Z, so ~0° = front
+      // Front / Back buttons glide the camera round; Spin turns slowly on its own; dragging
+      // takes over. Close-ups frame the slot you're dressing (head, torso, legs, feet).
+      let autoSpin = true, targetOrbit = null, focus = 'full', curH = 2.75, curCy = null;
+      const FOCUS = { full:{ h:2.75, cy:null }, head:{ h:1.55, cy:1.45 }, torso:{ h:1.15, cy:0.76 }, legs:{ h:0.95, cy:0.36 }, feet:{ h:0.7, cy:0.17 } };
+      canvas.addEventListener('pointerdown', e=>{ dragging = true; autoSpin = false; targetOrbit = null; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
+      canvas.addEventListener('pointermove', e=>{ if (!dragging) return; orbitDeg += (e.clientX-lastX)*0.6; lastX = e.clientX; });
       window.addEventListener('pointerup', ()=>{ dragging = false; });
       canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
 
+      let stopped = false;
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
         if (!canvas.offsetParent) return;
-        const t = performance.now()/1000, dt = Math.min(0.1, t - (lastT || t)); lastT = t;
-        if (targetTurn != null){ const d = Math.atan2(Math.sin(targetTurn - turn), Math.cos(targetTurn - turn)); turn += d*0.14; if (Math.abs(d) < 0.002){ turn = targetTurn; targetTurn = null; } }
-        else if (!dragging && autoSpin) turn += dt*0.55;
+        if (targetOrbit != null){
+          const d = ((targetOrbit - orbitDeg) % 360 + 540) % 360 - 180;
+          orbitDeg += d*0.14; if (Math.abs(d) < 0.2) orbitDeg = targetOrbit;
+        } else if (!dragging && autoSpin) orbitDeg += 0.3;
+        const rad = THREE.MathUtils.degToRad(orbitDeg);
         const f = FOCUS[focus] || FOCUS.full;
-        curH += (f.h - curH)*0.14; curCy = curCy == null ? f.cy : curCy + (f.cy - curCy)*0.14; curCx = curCx == null ? f.cx : curCx + (f.cx - curCx)*0.14;
+        const wantCy = f.cy == null ? (3.0/2 - 20*(3.0/ch)) : f.cy;
+        curH += (f.h - curH)*0.14; curCy = curCy == null ? wantCy : curCy + (wantCy - curCy)*0.14;
         const dist = curH / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2));
-        camera.position.set(curCx, curCy + dist*Math.sin(FRAME_ELEV), dist*Math.cos(FRAME_ELEV));
-        camera.lookAt(curCx, curCy, 0);
-        if (F){ const tv = turner(-turn, dt); F.fig.rotation.y = tv.rot; F.setSide(tv.side); F.fig.scale.x = tv.width; F.uni.uTime.value = t; }
+        camera.position.set(Math.sin(rad)*dist*Math.cos(FRAME_ELEV), curCy + dist*Math.sin(FRAME_ELEV), Math.cos(rad)*dist*Math.cos(FRAME_ELEV));
+        camera.lookAt(0, curCy, 0);
+        rig.rotation.y = rad;
+        animatePlayerModel(group, performance.now()/1000, false);
         renderer.render(scene, camera);
       }
       requestAnimationFrame(frame);
 
       return {
-        rebuild(g, c){ load(g, c); },
-        setView(v){ if (v === 'spin'){ autoSpin = true; targetTurn = null; } else { autoSpin = false; targetTurn = v === 'back' ? Math.PI : 0; } },
+        rebuild(g){
+          scene.remove(group);
+          disposePlayerModel(group);
+          group = buildPlayerModel(g);
+          scene.add(group);
+        },
+        setView(v){ if (v === 'spin'){ autoSpin = true; targetOrbit = null; } else { autoSpin = false; targetOrbit = v === 'back' ? 180 : 0; } },
         setFocus(name){ focus = FOCUS[name] ? name : 'full'; },
-        getView(){ return { orbitDeg: turn*180/Math.PI, focus }; },
-        dispose(){ stopped = true; if (F) F.dispose(); renderer.dispose(); window.removeEventListener('resize', resize); }
+        getView(){ return { orbitDeg, focus }; },
+        dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); window.removeEventListener('resize', resize); }
       };
     }
     window.mountWardrobePreview3D = function(canvas, gender, overrides){
       if (!canvas) return;
       if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(overrides); } catch(e){} }
       if (canvas.__wardrobe3d) canvas.__wardrobe3d.dispose();
-      const g = gender==='male' ? 'male' : 'female';
-      canvas.__wardrobe3d = initWardrobePreview3D(canvas, g, playerCfg(g));
+      canvas.__wardrobe3d = initWardrobePreview3D(canvas, gender==='male' ? 'male' : 'female');
       if (overrides && window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
     };
     // overrides = items being tried on (preview only — the map avatar keeps what's equipped)
@@ -12524,41 +12415,55 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       if (!canvas) return;
       if (!canvas.__wardrobe3d){ window.mountWardrobePreview3D(canvas, gender, overrides); return; }
       if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(overrides); } catch(e){} }
-      const g = gender==='male' ? 'male' : 'female';
-      canvas.__wardrobe3d.rebuild(g, playerCfg(g));
+      canvas.__wardrobe3d.rebuild(gender==='male' ? 'male' : 'female');
       if (overrides && window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
     };
 
     // ---- other trainers' outfits as pictures (PvP lobby + arena portraits) ----
-    // Returns the picture's address once it's ready (null the first time: cb gets it a moment later).
+    let snapR = null, snapScene = null, snapCam = null;
     const snapCache = new Map();
     window.__tqLookSnapshot = function(look, mode, cb){
-      mode = mode === 'head' ? 'head' : 'full';
-      const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
-      const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
-      const key = mode + '|' + artKey(g, L && L.cfg);
+      mode = mode === 'head' ? 'head' : (mode === 'back' ? 'back' : 'full');
+      const key = mode + '|' + JSON.stringify(look || {});
       const hit = snapCache.get(key);
-      if (hit && hit.url) return hit.url;
-      if (hit){ if (cb) hit.cbs.push(cb); return null; }
-      const entry = { url:null, cbs: cb ? [cb] : [] };
-      snapCache.set(key, entry);
-      dressedArt(g, L && L.cfg, 'front').then(art=>{
-        const aw = art.width, ah = art.height;
-        const out = document.createElement('canvas');
-        if (mode === 'head'){
-          // hat and face
-          out.width = out.height = 176;
-          const s = aw*0.76, sx = aw*0.19, sy = ah*0.115;
-          out.getContext('2d').drawImage(art, sx, sy, s, s, 0, 0, 176, 176);
-        } else {
-          out.width = 216; out.height = 300;
-          const k = Math.min(216/aw, 296/ah), w = aw*k, h = ah*k;
-          out.getContext('2d').drawImage(art, (216 - w)/2, 300 - h - 2, w, h);
-        }
-        entry.url = out.toDataURL('image/png');
-        entry.cbs.forEach(fn=>{ try { fn(entry.url); } catch(e){} }); entry.cbs = [];
-      }).catch(e=>{ snapCache.delete(key); console.warn('look snapshot failed', e); });
-      return null;
+      if (hit && hit.final){ return hit.url; }
+      if (hit && !hit.final && hit.pending){ if (cb) hit.cbs.push(cb); return hit.url; }
+      if (!snapR){
+        const c = document.createElement('canvas');
+        snapR = new THREE.WebGLRenderer({ canvas:c, alpha:true, antialias:true, preserveDrawingBuffer:true });
+        snapR.setPixelRatio(1);
+        if ('outputColorSpace' in snapR) snapR.outputColorSpace = THREE.SRGBColorSpace;
+        snapScene = new THREE.Scene();
+        snapScene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.4));
+        const k = new THREE.DirectionalLight(0xffe2b8, 2.1); k.position.set(1.5, 3.8, 2.6); snapScene.add(k);
+        const f = new THREE.DirectionalLight(0xfff5e8, 0.9); f.position.set(-1.4, 1.6, 3); snapScene.add(f);
+        const r = new THREE.DirectionalLight(0xc2adff, 1.8); r.position.set(-2.2, 2.4, -3); snapScene.add(r);
+        snapCam = new THREE.PerspectiveCamera(24, 1, 0.1, 40);
+      }
+      const render = ()=>{
+        const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
+        const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
+        const group = buildPlayerModel(g, L && L.cfg);
+        animatePlayerModel(group, 1.0, false);
+        group.rotation.y = mode === 'head' ? -0.2 : (mode === 'back' ? Math.PI : -0.32);
+        const W = mode === 'head' ? 128 : (mode === 'back' ? 600 : 168), H = mode === 'head' ? 128 : (mode === 'back' ? 800 : 224);
+        snapR.setSize(W, H, false); snapCam.aspect = W/H; snapCam.updateProjectionMatrix();
+        const viewH = mode === 'head' ? 1.15 : 2.7, lookY = mode === 'head' ? 1.6 : 1.17;
+        const d = viewH / (2*Math.tan(THREE.MathUtils.degToRad(snapCam.fov)/2));
+        snapCam.position.set(0, lookY + d*0.14, d); snapCam.lookAt(0, lookY, 0);
+        snapScene.add(group); snapR.render(snapScene, snapCam);
+        const url = snapR.domElement.toDataURL('image/png');
+        snapScene.remove(group); disposePlayerModel(group);
+        return url;
+      };
+      try {
+        const url = render();
+        const entry = { url, final:false, pending:true, cbs: cb ? [cb] : [] };
+        snapCache.set(key, entry);
+        // textures (embroidered hats, printed shirts…) load a moment later: draw once more
+        setTimeout(()=>{ try { entry.url = render(); } catch(e){} entry.final = true; entry.pending = false; entry.cbs.forEach(fn=>{ try { fn(entry.url); } catch(e){} }); entry.cbs = []; }, 1300);
+        return url;
+      } catch(e){ console.warn('look snapshot failed', e); return null; }
     };
 
     // ---- the PvP arena's two trainers, standing behind their Totos ----
@@ -12591,21 +12496,15 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       function makeTrainer(look, side){
         const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
         const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
-        const root = new THREE.Group();
+        const model = buildPlayerModel(g, L && L.cfg);
+        const root = new THREE.Group(); root.add(model);
+        model.rotation.y = side === 'L' ? 0.55 : -0.55;     // turned in toward the fight
         const sh = new THREE.Mesh(new THREE.CircleGeometry(0.42, 28), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.9 }));
         sh.rotation.x = -Math.PI/2; sh.scale.set(1.4, 1, 1); sh.position.y = 0.01; root.add(sh);
         scene.add(root);
-        const tr = { root, F:null, cmd:0, pose:null, side, seed:Math.random()*6 };
-        dressedPair(g, L && L.cfg).then(([front, back])=>{
-          if (stopped || T[side] !== tr) return;
-          tr.F = makeArtFigure(front, back, 0.3, 2.35);
-          tr.F.fig.rotation.y = side === 'L' ? 0.45 : -0.45;      // turned in toward the fight
-          if (side === 'L') tr.F.fig.position.x = 0.2;              // the staff and lantern stick out to the left: keep them on screen
-          root.add(tr.F.fig);
-        }).catch(e=> console.warn('trainer art', e));
-        return tr;
+        return { root, model, cmd:0, pose:null };
       }
-      function clear(side){ const tr = T[side]; if (!tr) return; scene.remove(tr.root); if (tr.F) tr.F.dispose(); tr.root.traverse(o=>{ if (o.geometry) o.geometry.dispose(); }); T[side] = null; }
+      function clear(side){ const tr = T[side]; if (!tr) return; scene.remove(tr.root); disposePlayerModel(tr.root); T[side] = null; }
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
@@ -12613,17 +12512,15 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         if (!tqGate(gate, arenaBusy ? 60 : 30)) return;   // calm: 30 frames a second; attacks and hits: 60
         const t = performance.now()/1000;
         ['L','R'].forEach(side=>{
-          const tr = T[side]; if (!tr || !tr.F) return;
-          const F = tr.F, dir = side === 'L' ? 1 : -1;
-          F.uni.uTime.value = t + tr.seed;
-          let lean = 0, hop = 0;
-          // giving an order: leans in toward the fight with a little hop
-          if (tr.cmd > t){ const k = Math.sin(Math.min(1, (0.9 - (tr.cmd - t))/0.9) * Math.PI); lean = 0.12*k*dir; hop = 0.08*k; }
-          if (tr.pose === 'win') hop = Math.max(0, Math.sin(t*6))*0.14;
-          F.uni.uLean.value = lean;
-          F.fig.position.y = hop;
-          F.fig.rotation.z = tr.pose === 'lose' ? 0.08*dir : 0;
-          F.tint(tr.pose === 'lose' ? 0.72 : 1);
+          const tr = T[side]; if (!tr) return;
+          animatePlayerModel(tr.model, t + (side === 'R' ? 0.7 : 0), false);
+          const p = tr.model.userData.parts; if (!p) return;
+          if (tr.cmd > t){
+            const k = Math.sin(Math.min(1, (0.9 - (tr.cmd - t))/0.9) * Math.PI);
+            p.rightArm.rotation.x = -1.5*k; p.rightArm.rotation.z += 0.25*k; p.body.position.y = 0.05*k; p.headGroup.rotation.x = -0.12*k;
+          }
+          if (tr.pose === 'win'){ const k = 0.5 + 0.5*Math.sin(t*6); p.leftArm.rotation.z = -2.4; p.rightArm.rotation.z = 2.4; p.body.position.y = 0.08*k; }
+          else if (tr.pose === 'lose'){ p.headGroup.rotation.x = 0.35; p.leftArm.rotation.z = -0.15; p.rightArm.rotation.z = 0.15; }
         });
         renderer.render(scene, cam);
         arenaBusy = updateTotos();
