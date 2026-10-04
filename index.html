@@ -392,7 +392,10 @@
   /* Full width, natural height (not a full-bleed cover crop) so the whole banner — including
      the "TotoQuest" title text baked into the art — is always visible instead of getting cut
      off on tall/narrow phone screens. The loading bar/status sits in the space below it. */
-  .loading-bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 0%; z-index:1; }
+  .loading-bg-img { position:absolute; left:50%; top:0; width:112%; max-width:none; height:auto; transform:translateX(-50%); z-index:1;
+    -webkit-mask-image:linear-gradient(to bottom, #000 82%, transparent 100%); mask-image:linear-gradient(to bottom, #000 82%, transparent 100%); }
+  /* a screen wider than the art: fill the width and let the bottom run off instead */
+  @media (min-aspect-ratio: 3/4){ .loading-bg-img { width:100%; } }
   .loading-overlay, .loading-content { z-index:2; }
   /* the art fills the width; whatever screen is left below it gets a soft, blurred
      continuation of the same picture instead of a flat colour */
@@ -10583,7 +10586,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v70';
+window.TQ_APP_VERSION = 'v71';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
