@@ -2387,7 +2387,7 @@
           <button data-sp="users"><i>🧟</i>Users</button>
           <button data-sp="content"><i>📜</i>Content<b id="ad-rep-n"></b></button>
           <button data-sp="settings" class="owner-only"><i>⚙️</i>Settings</button>
-          <button data-sp="reports"><i>🔮</i>Reports</button>
+          <button data-sp="reports"><i>🔮</i>Reports<b id="sp-prep-n"></b></button>
           <button data-sp="support"><i>🕷️</i>Support</button>
           <button data-sp="chat" class="sp-chat-nav"><i>💬</i>Sanctum<b id="sp-chat-n"></b></button>
         </nav>
@@ -2404,20 +2404,22 @@
             <div class="sp-tiles" id="sp-tiles"></div>
             <div class="sp-chart-card sp-wood"><div class="sp-chart-h"><h4>Daily Active Players</h4></div><div class="sp-chart" id="sp-chart2"></div></div>
             <div class="sp-chart-card sp-wood"><div class="sp-chart-h"><h4>New Players Per Day</h4></div><div class="sp-chart" id="sp-chart3"></div></div>
+            <div class="sp-h2" style="font-size:17px">PvP Season Top 25</div>
+            <div id="sp-board"></div>
           </section>
           <section class="sp-sec" data-sec="users">
             <div class="sp-h2">Users</div>
             <div class="ad-stats" id="ad-stats" style="display:none"></div>
             <button class="set-wide owner-only" id="ad-self" style="margin:0 0 10px;">🎁 Gifts, take-backs &amp; rank for my account</button>
             <div class="fr-search"><input id="ad-q" type="search" placeholder="Search players" maxlength="24" autocomplete="off"><button id="ad-go">Search</button></div>
-            <div class="ad-filters"><button class="ad-f active" data-f="all">All</button><button class="ad-f" data-f="online">Online</button><button class="ad-f" data-f="banned">Banned</button><button class="ad-f" data-f="admins">Admins</button></div>
+            <div class="ad-filters"><button class="ad-f active" data-f="all">All</button><button class="ad-f" data-f="online">Online</button><button class="ad-f" data-f="muted">Muted</button><button class="ad-f" data-f="banned">Banned</button><button class="ad-f" data-f="admins">Admins</button></div>
             <div id="ad-list"></div>
             <button class="set-wide" id="ad-more" style="display:none;">Load more</button>
           </section>
           <section class="sp-sec" data-sec="content">
-            <div class="sp-h2">Content <small>reports from players</small></div>
+            <div class="sp-h2">Content <small>bugs, glitches &amp; other problems players reported</small></div>
             <div class="rp-filters" id="rp-filters">
-              <button data-rk="all" class="on">All</button><button data-rk="chat">🚩 Chat &amp; players</button><button data-rk="bug">🐞 Bugs</button>
+              <button data-rk="issues" class="on">All problems</button><button data-rk="bug">🐞 Bugs</button>
               <button data-rk="glitch">✨ Glitches</button><button data-rk="store">🛍️ Store</button><button data-rk="other">💬 Other</button><button data-rk="handled">✅ Handled</button>
             </div>
             <div id="ad-reports"></div>
@@ -2427,8 +2429,9 @@
             <div id="sp-settings"></div>
           </section>
           <section class="sp-sec" data-sec="reports">
-            <div class="sp-h2">Reports <small>this season’s PvP top 25</small></div>
-            <div id="sp-board"></div>
+            <div class="sp-h2">Reports <small>reports about players and their messages</small></div>
+            <div class="rp-filters" id="rpp-filters"><button data-rs="open" class="on">🚩 Open</button><button data-rs="handled">✅ Handled</button></div>
+            <div id="sp-preports"></div>
           </section>
           <section class="sp-sec" data-sec="support">
             <div class="sp-h2">Support</div>
@@ -2436,7 +2439,9 @@
             <div class="sp-help"><b>Gifts &amp; take-backs</b> (owner) reach the player the next time their game is open, usually within a minute. A take-back never goes below zero: taking 1,000,000 gems takes all they have.</div>
             <div class="sp-help"><b>Rank:</b> “Set season Rank Points” lowers or raises a rank (0 = Bronze 3, 1,500+ = Master); “Reset rank” puts them back to Bronze 3.</div>
             <div class="sp-help"><b>Trades:</b> players can only trade with friends, and Totos earned from achievements (Rank Champions, their partner Toni) can’t be traded.</div>
-            <div class="sp-help"><b>Content:</b> reports come from the ⋯ menu in player chats. Mark a report handled once you’ve dealt with it.</div>
+            <div class="sp-help"><b>Reports</b> are about players: a message someone reported (you see it with the chat around it) or a player reported from “Report a problem”. Tap <b>⚖️ Take action</b> to mute them, ban them (you choose how long), remove the message, or take no action. Muting or banning also removes the reported message from the chat.</div>
+            <div class="sp-help"><b>Content</b> is bugs, glitches, store problems and anything else players report, with their description and their game version and device. Mark them handled once they’re dealt with.</div>
+            <div class="sp-help"><b>Muted</b> players can still play but can’t send chat messages until the mute ends.</div>
             <div class="sp-help"><b>Need help?</b> totoquestofficial@yahoo.com</div>
           </section>
         </div>
@@ -4792,7 +4797,13 @@
     try {
       const r = await sbRpc('get_messages', fArgs({ p_other:f.id, p_after:Friends.lastId }));
       if (!r || !r.ok || Friends.chatWith !== f) return;
-      if (r.messages.length || first){
+      // messages an admin removed leave the chat
+      let gone = false;
+      if (Array.isArray(r.removed) && r.removed.length && Friends.msgs && Friends.msgs.length){
+        const rm = new Set(r.removed), n0 = Friends.msgs.length; Friends.msgs = Friends.msgs.filter(m=> !rm.has(m.id)); gone = Friends.msgs.length !== n0;
+      }
+      $('#chat-text').placeholder = r.muted ? '🔇 You’re muted' : 'Message…';
+      if (r.messages.length || first || gone){
         Friends.msgs = (Friends.msgs||[]).concat(r.messages).slice(-200);
         Friends.lastId = Friends.msgs.length ? Friends.msgs[Friends.msgs.length-1].id : Friends.lastId;
         const list = $('#chat-list');
@@ -4811,6 +4822,10 @@
     try {
       const r = await sbRpc('send_message', fArgs({ p_to:f.id, p_body:text.slice(0,300) }));
       if (r && r.ok){ inp.value = ''; await pollChat(false); const l = $('#chat-list'); l.scrollTop = l.scrollHeight; }
+      else if (r && r.error === 'muted'){
+        const t = r.until ? new Date(r.until).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : null;
+        gameDialog({ title:'🔇 You’re muted', message:'An admin muted your chat '+(t ? 'until '+t : 'for good')+'.'+(r.reason ? ' Reason: '+r.reason : '')+' You can still play everything else.', ok:'OK', cancel:null });
+      }
       else showToast(r && r.error === 'slow_down' ? 'Slow down a little!' : (r && r.error === 'not_friends' ? 'You can only message friends.' : (r && r.error === 'banned' ? 'You can’t send messages right now.' : 'Message not sent.')));
     } catch(e){ showToast('Message not sent — check your connection.'); }
     finally { chatSending = false; $('#chat-send').disabled = false; }
@@ -4914,10 +4929,11 @@
     return (!isFinite(t) || new Date(t).getFullYear() > 9000) ? 'Banned for good' : 'Banned until '+new Date(t).toLocaleString([], { dateStyle:'short', timeStyle:'short' });
   }
   function isBanned(p){ if (!p.banned_until) return false; const t = Date.parse(p.banned_until); return !isFinite(t) || t > Date.now(); }
+  function isMuted(p){ if (!p.muted_until) return false; const t = Date.parse(p.muted_until); return !isFinite(t) || t > Date.now(); }
   function renderAdminRows(){
     $('#ad-list').innerHTML = Admin.rows.length ? Admin.rows.map(p=>
       '<div class="fr-row tap" data-id="'+escapeHtml(p.id)+'">'+avatarBubble(p.avatar, p.online)
-      + '<div class="fr-info"><div class="fr-name">'+escapeHtml(p.name||'Trainer')+(p.is_owner ? ' <span class="ad-tag own">Owner</span>' : (p.is_admin ? ' <span class="ad-tag adm">Admin</span>' : ''))+(isBanned(p) ? ' <span class="ad-tag ban">'+(p.ip_banned ? 'IP ban' : 'Banned')+'</span>' : '')+'</div>'
+      + '<div class="fr-info"><div class="fr-name">'+escapeHtml(p.name||'Trainer')+(p.is_owner ? ' <span class="ad-tag own">Owner</span>' : (p.is_admin ? ' <span class="ad-tag adm">Admin</span>' : ''))+(isBanned(p) ? ' <span class="ad-tag ban">'+(p.ip_banned ? 'IP ban' : 'Banned')+'</span>' : '')+(isMuted(p) ? ' <span class="ad-tag ban" style="background:#6c5ce7">Muted</span>' : '')+(p.times_reported ? ' <span class="ad-tag" style="background:#d35400;color:#fff">🚩 '+p.times_reported+'</span>' : '')+'</div>'
       + '<div class="fr-sub">'+(p.online ? '🟢 Online now' : 'Offline · seen '+timeAgo(p.last_seen))+' · Lv '+(p.level||1)+' · PWR '+(p.power||0).toLocaleString()+'</div>'
       + '<div class="fr-sub">'+rankChip(p.rp||0)+' <span class="ad-ip">'+escapeHtml(p.ip||'no IP yet')+'</span> · joined '+new Date(p.created_at).toLocaleDateString()+'</div>'
       + (isBanned(p) ? '<div class="fr-sub" style="color:#c0392b">'+escapeHtml(banText(p))+(p.ban_reason ? ' — '+escapeHtml(p.ban_reason) : '')+'</div>' : '')
@@ -4928,6 +4944,14 @@
   async function adminActions(p){
     const banned = isBanned(p), btns = [];
     const self = p.id === state.playerId;
+    const muted = isMuted(p);
+    if (!p.is_owner && !self){
+      if (muted) btns.push({ label:'🔈 Unmute', value:'unmute', cls:'good' });
+      btns.push({ label: muted ? '🔇 Change mute…' : '🔇 Mute (no chat)…', value:'mute', cls:'warn' });
+      if (banned || p.ip_banned) btns.push({ label:'✅ Unban'+(p.ip_banned ? ' (and their IP)' : ''), value:'unban', cls:'good' });
+      btns.push({ label:'⏳ Ban for a while…', value:'temp', cls:'warn' });
+      btns.push({ label:'⛔ Ban for good…', value:'perm', cls:'danger' });
+    }
     if (Social.owner){
       btns.push({ label:'🎁 Send a gift…', value:'gift', cls:'good' });
       btns.push({ label:'➖ Take away gems, candy, items or a Toto…', value:'take', cls:'warn' });
@@ -4936,15 +4960,29 @@
       btns.push({ label:'🔢 Set season Rank Points…', value:'rp' });
     }
     if (!p.is_owner){
-      if (banned || p.ip_banned) btns.push({ label:'✅ Unban'+(p.ip_banned ? ' (and their IP)' : ''), value:'unban', cls:'good' });
-      btns.push({ label:'⏳ Temporary ban…', value:'temp', cls:'warn' });
-      btns.push({ label:'⛔ Ban for good…', value:'perm', cls:'danger' });
       btns.push({ label:'🗑️ Delete account…', value:'del', cls:'danger' });
       if (Social.owner) btns.push({ label: p.is_admin ? '🛡️ Remove admin' : '🛡️ Make admin', value:'admin' });
     }
     if (!btns.length){ showToast('That’s the owner’s account.'); return; }
-    const v = await actionSheet(p.name || 'Trainer', (p.online ? 'Online now' : 'Last seen '+timeAgo(p.last_seen))+' · IP '+(p.ip || 'unknown'), btns);
+    const v = await actionSheet(p.name || 'Trainer', (p.online ? 'Online now' : 'Last seen '+timeAgo(p.last_seen))+' · IP '+(p.ip || 'unknown')
+      + (p.is_owner ? ' · the owner’s account can’t be muted or banned' : '') + (p.times_reported ? ' · reported '+p.times_reported+'×' : ''), btns);
     if (!v) return;
+    if (v === 'unmute'){
+      if (!(await gameConfirm((p.name||'They')+' will be able to send chat messages again.', 'Unmute '+(p.name||'this trainer')+'?', 'Unmute', 'Cancel'))) return;
+      if (await adminCall('admin_unmute', { p_target:p.id })) showToast('🔈 '+(p.name||'They')+' can chat again.');
+      return loadAdmin(true);
+    }
+    if (v === 'mute'){
+      const span = await actionSheet('Mute '+(p.name||'them')+' for how long?', 'Muted players can still play but can’t send chat messages.', MOD_SPANS);
+      if (!span) return;
+      const minutes = span === -1 ? 0 : span;
+      const go = await actionSheet('Mute '+(p.name||'them')+' '+spanText(minutes), '', [ { html:'<label class="act-field">Reason (they’ll see this)<input type="text" id="mod-reason" maxlength="200" placeholder="e.g. Bullying in chat"></label>' }, { label:'🔇 Mute', value:'go', cls:'warn' } ]);
+      if (go !== 'go') return;
+      const reason = (($('#mod-reason')||{}).value || '').trim();
+      if (!(await gameConfirm((p.name||'They')+' won’t be able to send chat messages '+spanText(minutes)+'.', 'Mute '+(p.name||'this trainer')+'?', 'Mute', 'Cancel'))) return;
+      if (await adminCall('admin_mute', { p_target:p.id, p_minutes:minutes, p_reason:reason || null })) showToast('🔇 '+(p.name||'They')+' is muted '+spanText(minutes));
+      return loadAdmin(true);
+    }
     if (v === 'gift') return adminGift(p);
     if (v === 'take') return adminTake(p);
     if (v === 'rank0'){
@@ -5081,18 +5119,29 @@
     else showToast('➖ '+what+' will be taken from '+(p.name||'them')+(r.online ? ' within a minute' : ' next time they play'));
   }
   const RP_KIND = { message:'Chat message', player:'Player', bug:'Bug', glitch:'Glitch', store:'Store', other:'Other' };
-  const RepUi = { kind:'all' };
-  async function loadReports(){
-    const handled = RepUi.kind === 'handled';
+  const RepUi = { kind:'issues', pState:'open' };
+  const RP_ACTION = { mute:'🔇 Muted', ban:'⛔ Banned', remove:'🗑️ Message removed', dismiss:'✋ No action' };
+  const spanText = m=> !m ? 'for good' : m < 1440 ? 'for '+Math.round(m/60)+' hour'+(m >= 120 ? 's' : '') : 'for '+Math.round(m/1440)+' day'+(m >= 2880 ? 's' : '');
+  function setBadge(sel, v){ const el = $(sel); if (el) el.textContent = v ? (v > 99 ? '99+' : String(v)) : ''; }
+  // Reports tab: about players.  Content tab: bugs, glitches, store, other.
+  async function loadPlayerReports(){ return renderReportList('#sp-preports', 'chat', RepUi.pState === 'handled'); }
+  async function loadReports(){ return renderReportList('#ad-reports', RepUi.kind === 'handled' ? 'issues' : RepUi.kind, RepUi.kind === 'handled'); }
+  async function renderReportList(sel, kind, handled){
+    const box = $(sel); if (!box) return;
     let r = null;
-    try { r = await sbRpc('admin_reports2', fArgs({ p_kind: handled ? 'all' : RepUi.kind, p_resolved: handled })); } catch(e){}
-    if (!r || r.ok === undefined){ try { r = await sbRpc('admin_reports', fArgs()); } catch(e){ r = null; } }
-    if (!r || !r.ok){ $('#ad-reports').innerHTML = '<div class="fr-empty">Couldn’t load reports.</div>'; return; }
-    const c = r.counts || {}, n = k=> k === 'chat' ? (c.message||0) + (c.player||0) : (k === 'all' ? Object.values(c).reduce((a, b)=> a + b, 0) : (c[k]||0));
+    try { r = await sbRpc('admin_reports2', fArgs({ p_kind: kind, p_resolved: handled })); } catch(e){}
+    if (!r || !r.ok){ box.innerHTML = '<div class="fr-empty">Couldn’t load reports.</div>'; return; }
+    const c = r.counts || {}, chat = (c.message||0) + (c.player||0), issues = (c.bug||0) + (c.glitch||0) + (c.store||0) + (c.other||0);
+    setBadge('#sp-prep-n', chat); setBadge('#ad-rep-n', issues); setBadge('#sp-bell-n', chat + issues);
+    const n = k=> k === 'issues' ? issues : (c[k]||0);
     $$('#rp-filters [data-rk]').forEach(b=>{ const k = b.dataset.rk; let bb = b.querySelector('b'); const v = k === 'handled' ? 0 : n(k);
       if (v && !bb){ bb = document.createElement('b'); b.appendChild(bb); } if (bb){ bb.textContent = v || ''; if (!v) bb.remove(); } b.classList.toggle('on', k === RepUi.kind); });
+    $$('#rpp-filters [data-rs]').forEach(b=>{ b.classList.toggle('on', b.dataset.rs === RepUi.pState); let bb = b.querySelector('b'); const v = b.dataset.rs === 'open' ? chat : 0;
+      if (v && !bb){ bb = document.createElement('b'); b.appendChild(bb); } if (bb){ bb.textContent = v || ''; if (!v) bb.remove(); } });
     const ts = t=> new Date(t).toLocaleString([], { dateStyle:'medium', timeStyle:'short' });
-    $('#ad-reports').innerHTML = r.reports.length ? r.reports.map(x=>{
+    const until = t=>{ if (!t) return ''; const v = Date.parse(t); return (!isFinite(v) || new Date(v).getFullYear() > 9000) ? 'for good' : 'until '+new Date(v).toLocaleString([], { dateStyle:'short', timeStyle:'short' }); };
+    const isOn = t=>{ if (!t) return false; const v = Date.parse(t); return !isFinite(v) || v > Date.now(); };
+    box.innerHTML = r.reports.length ? r.reports.map(x=>{
       const kind = x.kind || 'message', d = x.details || {}, meta = d.meta || null;
       const who = x.reported_name ? 'About <b>'+escapeHtml(x.reported_name)+'</b>' : (d.player ? 'About “'+escapeHtml(d.player)+'” (no trainer with that name)' : RP_KIND[kind] || 'Report');
       const ctx = Array.isArray(x.context) && x.context.length ? '<div class="rp-ctx">'+x.context.map(m=> '<div class="'+(m.id === x.message_id ? 'hl' : '')+'"><b>'+escapeHtml(m.who === 'reporter' ? (x.reporter_name||'Reporter') : (x.reported_name||'Them'))+':</b> '+escapeHtml(m.body)+'</div>').join('')+'</div>' : '';
@@ -5103,24 +5152,68 @@
         + (d.where ? '<div class="rp-meta">📍 Where: '+escapeHtml(d.where)+'</div>' : '')
         + (meta ? '<div class="rp-meta">📱 '+escapeHtml([meta.v, meta.screen, meta.panel ? 'on '+meta.panel : '', meta.lvl ? 'Lv '+meta.lvl : ''].filter(Boolean).join(' · '))+'<br>'+escapeHtml(meta.ua || '')+'</div>' : '')
         + (ctx ? '<details style="margin-top:6px"><summary class="rp-meta" style="cursor:pointer">💬 Show the chat ('+x.context.length+' messages)</summary>'+ctx+'</details>' : '')
-        + (x.resolved_at ? '<div class="rp-meta">✅ Handled '+ts(x.resolved_at)+(x.resolved_by_name ? ' by '+escapeHtml(x.resolved_by_name) : '')+'</div>' : '')
-        + '<div class="rp-btns">'+(x.reported ? '<button class="fr-btn" data-act="player">Actions for '+escapeHtml(x.reported_name||'player')+'…</button>' : '')
+        + (x.reported && (isOn(x.reported_muted_until) || isOn(x.reported_banned_until)) ? '<div class="rp-meta">'+(isOn(x.reported_banned_until) ? '⛔ '+escapeHtml(x.reported_name||'They')+' is banned '+until(x.reported_banned_until)+' ' : '')+(isOn(x.reported_muted_until) ? '🔇 '+escapeHtml(x.reported_name||'They')+' is muted '+until(x.reported_muted_until) : '')+'</div>' : '')
+        + (x.message_removed_at ? '<div class="rp-meta">🗑️ The message was removed from the chat</div>' : '')
+        + (x.resolved_at ? '<div class="rp-meta">✅ Handled '+ts(x.resolved_at)+(x.resolved_by_name ? ' by '+escapeHtml(x.resolved_by_name) : '')+(d.action ? ' · '+(RP_ACTION[d.action]||d.action)+((d.action === 'mute' || d.action === 'ban') ? ' '+spanText(d.minutes) : '') : '')+(d.action_reason ? ' — '+escapeHtml(d.action_reason) : '')+'</div>' : '')
+        + '<div class="rp-btns">'
+        + (!x.resolved_at && (x.reported || x.message_id) ? '<button class="fr-btn ok" data-act="act">⚖️ Take action</button>' : '')
+        + (x.reported ? '<button class="fr-btn" data-act="player">'+escapeHtml(x.reported_name||'Player')+'…</button>' : '')
         + (x.reporter ? '<button class="fr-btn ghost" data-act="reporter">Reporter…</button>' : '')
-        + (x.resolved_at ? '' : '<button class="fr-btn ok" data-act="done">✅ Mark handled</button>')+'</div></div>';
+        + (!x.resolved_at && !x.reported && !x.message_id ? '<button class="fr-btn ok" data-act="done">✅ Mark handled</button>' : '')+'</div></div>';
     }).join('') : '<div class="fr-empty">'+(handled ? 'No handled reports yet.' : 'No open reports here. 🎉')+'</div>';
     const findPlayer = async (id, name)=>{
       let row = Admin.rows.find(x=> x.id === id);
       if (!row){ const s = await adminCall('admin_players', { p_search:name||'', p_filter:'all', p_limit:20, p_offset:0 }); row = s && (s.players||[]).find(x=> x.id === id); }
       if (row) adminActions(row); else showToast('That account no longer exists.');
     };
-    $$('#ad-reports .rp-card').forEach(el=>{ const rep = r.reports.find(x=> String(x.id) === el.dataset.id);
+    $$(sel+' .rp-card').forEach(el=>{ const rep = r.reports.find(x=> String(x.id) === el.dataset.id);
       const b = (a)=> el.querySelector('[data-act="'+a+'"]');
-      if (b('done')) b('done').onclick = async ()=>{ await adminCall('admin_resolve_report', { p_report:rep.id }); loadReports(); spLoadStats(); };
+      if (b('done')) b('done').onclick = async ()=>{ await adminCall('admin_resolve_report', { p_report:rep.id }); renderReportList(sel, kind, handled); spLoadStats(); };
+      if (b('act')) b('act').onclick = ()=> moderateReport(rep, ()=>{ renderReportList(sel, kind, handled); spLoadStats(); });
       if (b('player')) b('player').onclick = ()=> findPlayer(rep.reported, rep.reported_name);
       if (b('reporter')) b('reporter').onclick = ()=> findPlayer(rep.reporter, rep.reporter_name);
     });
   }
   $$('#rp-filters [data-rk]').forEach(b=> b.onclick = ()=>{ RepUi.kind = b.dataset.rk; loadReports(); });
+  $$('#rpp-filters [data-rs]').forEach(b=> b.onclick = ()=>{ RepUi.pState = b.dataset.rs; loadPlayerReports(); });
+  const MOD_SPANS = [ { label:'1 hour', value:60 }, { label:'1 day', value:1440 }, { label:'3 days', value:4320 }, { label:'7 days', value:10080 }, { label:'30 days', value:43200 }, { label:'For good', value:-1 } ];
+  // Act on a report: mute or ban the player (choose how long), remove the message, or no action.
+  // Muting, banning or removing takes the reported message out of the chat; the report is marked handled.
+  async function moderateReport(rep, done){
+    const who = rep.reported_name || 'this player';
+    const btns = [];
+    if (rep.reported){ btns.push({ label:'🔇 Mute '+who+'…', value:'mute', cls:'warn' }); btns.push({ label:'⛔ Ban '+who+'…', value:'ban', cls:'danger' }); }
+    if (rep.message_id && !rep.message_removed_at) btns.push({ label:'🗑️ Just remove the message', value:'remove' });
+    btns.push({ label:'✋ No action — mark handled', value:'dismiss' });
+    if (rep.reported) btns.push({ label:'👤 More for '+who+' (gifts, rank, account)…', value:'more' });
+    const v = await actionSheet('Take action: '+who, rep.body ? '“'+String(rep.body).slice(0, 140)+'”' : (rep.details && rep.details.text ? String(rep.details.text).slice(0, 140) : ''), btns);
+    if (!v) return;
+    if (v === 'more'){
+      let row = Admin.rows.find(x=> x.id === rep.reported);
+      if (!row){ const s = await adminCall('admin_players', { p_search:rep.reported_name||'', p_filter:'all', p_limit:20, p_offset:0 }); row = s && (s.players||[]).find(x=> x.id === rep.reported); }
+      if (row) adminActions(row); else showToast('That account no longer exists.');
+      return;
+    }
+    let minutes = 0, reason = '', ip = false;
+    if (v === 'mute' || v === 'ban'){
+      const span = await actionSheet((v === 'mute' ? 'Mute ' : 'Ban ')+who+' for how long?', v === 'mute' ? 'Muted players can still play but can’t send chat messages.' : 'Banned players can’t play until the ban ends.', MOD_SPANS);
+      if (!span) return;
+      minutes = span === -1 ? 0 : span;
+      const opts = await actionSheet((v === 'mute' ? 'Mute ' : 'Ban ')+who+' '+spanText(minutes), '', [
+        { html:'<label class="act-field">Reason (they’ll see this)<input type="text" id="mod-reason" maxlength="200" value="'+escapeHtml(rep.reason && rep.kind === 'message' ? rep.reason : '')+'" placeholder="e.g. Bullying in chat"></label>'
+          + (v === 'ban' ? '<label class="act-check"><input type="checkbox" id="mod-ip"> Also ban their IP address</label>' : '') },
+        { label:(v === 'mute' ? '🔇 Mute ' : '⛔ Ban ')+who, value:'go', cls: v === 'ban' ? 'danger' : 'warn' } ]);
+      if (opts !== 'go') return;
+      reason = (($('#mod-reason')||{}).value || '').trim(); ip = !!($('#mod-ip') && $('#mod-ip').checked);
+    }
+    const what = v === 'mute' ? 'Mute '+who+' '+spanText(minutes) : v === 'ban' ? 'Ban '+who+' '+spanText(minutes)+(ip ? ' (and their IP)' : '') : v === 'remove' ? 'Remove the reported message' : 'Close this report with no action';
+    const extra = (v === 'mute' || v === 'ban' || v === 'remove') && rep.message_id ? ' The reported message will be removed from the chat.' : '';
+    if (!(await gameConfirm(what+'?'+extra, 'Confirm', 'Confirm', 'Cancel'))) return;
+    const r = await adminCall('admin_report_action', { p_report:rep.id, p_action:v, p_minutes:minutes, p_reason:reason || null, p_ip:ip });
+    if (!r) return;
+    showToast(v === 'mute' ? '🔇 '+who+' is muted '+spanText(minutes) : v === 'ban' ? '⛔ '+who+' is banned '+spanText(minutes) : v === 'remove' ? '🗑️ Message removed' : 'Report closed');
+    if (done) done();
+  }
   // ---------- The Spooky Staff Panel (v76) ----------
   const Staff = { sec:'dash', stats:null, chatAfter:0, chatTimer:null, statTimer:null, series:'both' };
   const spEsc = s=> escapeHtml(String(s == null ? '' : s));
@@ -5133,13 +5226,14 @@
     $('#sp-chat').classList.toggle('on', chatOnly);
     if (name === 'users' && !Admin.rows.length) loadAdmin(true);
     if (name === 'content') loadReports();
-    if (name === 'reports') spBoard();
+    if (name === 'reports') loadPlayerReports();
+    if (name === 'analytics') spBoard();
     if (name === 'settings') spSettings();
     if (name === 'chat'){ $('#sp-chat-n').textContent = ''; const l = $('#sp-chat-list'); l.scrollTop = l.scrollHeight; }
     if (name === 'dash' || name === 'analytics') spDrawStats();
   }
   $$('#sp-nav [data-sp]').forEach(b=> b.onclick = ()=> spSection(b.dataset.sp));
-  $('#sp-bell').onclick = ()=> spSection('content');
+  $('#sp-bell').onclick = ()=> spSection(($('#sp-prep-n').textContent || '') !== '' || !($('#ad-rep-n').textContent) ? 'reports' : 'content');
   $('#sp-gear').onclick = ()=> spSection('settings');
   $('#sp-series').onchange = e=>{ Staff.series = e.target.value; spDrawStats(); };
   // a smooth line chart (SVG) of one or two daily series
@@ -5269,7 +5363,7 @@
   function onStaffPanel(){
     if (!onlineOn()) return;
     spSection(Staff.sec || 'dash');
-    spLoadStats(); spChatPoll(true); loadAdmin(true);
+    spLoadStats(); spChatPoll(true); loadAdmin(true); loadPlayerReports();
     const tick = ()=>{ const t = $('#sp-time'); if (t) t.textContent = 'Local time: '+new Date().toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); };
     tick();
     clearInterval(Staff.chatTimer); clearInterval(Staff.statTimer);
@@ -11282,7 +11376,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v77';
+window.TQ_APP_VERSION = 'v78';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address

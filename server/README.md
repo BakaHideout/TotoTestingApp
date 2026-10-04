@@ -145,3 +145,6 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 
 ## v77: reports
 `supabase/migrations/2026-10-04b_reports.sql` (applied live together with v76, additive only): players report a chat message (`report_message`, with the conversation attached) or a bug / glitch / store problem / player / other (`report_issue`, with game version and device); admins read them with `admin_reports2` (filter by kind, or handled). v76 gift kinds are stored with an `op` column (take / trade / trade_back) instead of new kinds.
+
+## v78: moderation
+`supabase/migrations/2026-10-04c_moderation.sql` (applied live, additive): mute (`admin_mute` / `admin_unmute`, muted players cannot send chat), act on a report (`admin_report_action`: mute / ban for a chosen time, remove the message, or no action; acting removes the reported message), removed messages are hidden by `get_messages`; `admin_players` shows mutes and how often a player was reported.
