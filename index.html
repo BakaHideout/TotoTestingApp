@@ -91,7 +91,7 @@
   #tq-update-banner.show { display:block; animation: tqSlideUp 0.35s ease-out; }
   @keyframes tqSlideUp { from{ transform:translateY(30px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" media="print" onload="this.media='all'">
 </head>
 <body>
 <style>
@@ -1235,6 +1235,29 @@
   .act-field input[type=number], .act-field select { border:1.5px solid #e6dcf3; border-radius:10px; padding:9px 10px; font-family:inherit; font-weight:700; font-size:13px; background:#fff; color:#3a2560; width:100%; box-sizing:border-box; }
   .act-row { display:flex; gap:10px; } .act-row .act-field { flex:1; min-width:0; }
   .act-check { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; color:#4a2a7a; margin:4px 0 10px; }
+  .act-field textarea { border:1.5px solid #e6dcf3; border-radius:10px; padding:9px 10px; font-family:inherit; font-weight:600; font-size:13.5px; min-height:96px; resize:vertical; color:#2d2440; }
+  .rp-quote { background:#f6f0ff; border-left:4px solid #b48be8; border-radius:10px; padding:8px 10px; font-size:13px; font-weight:700; color:#3a2560; margin:2px 0 8px; word-wrap:break-word; }
+  .chat-msg.them { cursor:pointer; }
+  .chat-hint { text-align:center; font-size:10.5px; font-weight:800; color:#b0a2c8; margin:2px 0 6px; }
+  /* admin: reports */
+  .rp-filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .rp-filters button { border:1.5px solid #4c4255; background:#2a2632; color:#e7dcf3; border-radius:10px; padding:6px 11px; font-family:inherit; font-weight:800; font-size:12.5px; cursor:pointer; }
+  .rp-filters button.on { background:#8d5ed4; border-color:#c9a8ff; color:#fff; }
+  .rp-filters button b { margin-left:4px; background:#ff3b5c; color:#fff; border-radius:8px; padding:0 5px; font-size:10.5px; }
+  .rp-card { background:#25212c; border:1.5px solid #3b3445; border-radius:12px; padding:10px 12px; margin-bottom:10px; }
+  .rp-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .rp-kind { font-size:11px; font-weight:900; padding:2px 8px; border-radius:9px; color:#fff; letter-spacing:0.03em; text-transform:uppercase; }
+  .rp-kind.k-message, .rp-kind.k-player { background:#c0392b; } .rp-kind.k-bug { background:#2d7dd2; } .rp-kind.k-glitch { background:#8e44ad; }
+  .rp-kind.k-store { background:#d68910; } .rp-kind.k-other { background:#5d6d7e; }
+  .rp-who { flex:1; min-width:0; font-size:13px; font-weight:800; color:#f2e9fb; } .rp-who small { display:block; font-weight:700; color:#b3a4c9; font-size:11.5px; }
+  .rp-text { margin-top:8px; font-size:13.5px; font-weight:600; color:#ece3f6; line-height:1.4; white-space:pre-wrap; word-wrap:break-word; }
+  .rp-msg { margin-top:8px; background:#3a1f26; border-left:4px solid #ff5a5a; border-radius:8px; padding:7px 10px; color:#ffdede; font-size:13.5px; font-weight:700; word-wrap:break-word; }
+  .rp-msg small { display:block; color:#ff9f9f; font-size:11px; font-weight:800; margin-bottom:2px; }
+  .rp-meta { margin-top:6px; font-size:11px; font-weight:700; color:#9a8bb3; word-wrap:break-word; }
+  .rp-ctx { margin-top:8px; background:#1d1a23; border-radius:10px; padding:6px 8px; max-height:220px; overflow-y:auto; }
+  .rp-ctx div { font-size:12.5px; font-weight:600; color:#d8cce8; padding:3px 0; border-bottom:1px solid #2c2734; word-wrap:break-word; }
+  .rp-ctx div b { color:#ffcf8a; } .rp-ctx div.hl { background:#3a1f26; color:#ffdede; border-radius:6px; padding:3px 5px; }
+  .rp-btns { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; } .rp-btns .fr-btn { flex:1; }
   .ad-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
   .ad-stat { background:#fff; border-radius:12px; padding:8px 4px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
   .ad-stat b { display:block; font-size:18px; color:#2d2440; } .ad-stat span { font-size:10px; font-weight:800; color:#8a7aa8; text-transform:uppercase; }
@@ -2246,6 +2269,7 @@
         <div class="pd-best" id="pd-best" style="display:none;"></div>
         <button class="pd-action" id="btn-open-wardrobe">👗<span>Wardrobe<small>Dress your trainer</small></span><i>›</i></button>
         <button class="pd-action" id="btn-open-settings">⚙️<span>Settings<small>Sound, display &amp; account</small></span><i>›</i></button>
+        <button class="pd-action" id="btn-report-problem">🐞<span>Report a problem<small>A bug, a glitch, a player or anything else</small></span><i>›</i></button>
         <button class="pd-action" id="btn-open-friends">👥<span>Friends, Chat &amp; Trades<small id="pd-friends-sub">Find trainers, chat &amp; trade Totos</small></span><b class="qm-badge" id="pd-friends-badge"></b><i>›</i></button>
         <button class="pd-action admin-only" id="btn-open-admin">🛡️<span>Admin<small>Players, bans &amp; reports</small></span><i>›</i></button>
         <button class="pd-action" id="btn-install-drawer" style="display:none;">📲<span>Install the app<small>Play full screen from your home screen</small></span><i>›</i></button>
@@ -2391,7 +2415,11 @@
             <button class="set-wide" id="ad-more" style="display:none;">Load more</button>
           </section>
           <section class="sp-sec" data-sec="content">
-            <div class="sp-h2">Content <small>player reports waiting for review</small></div>
+            <div class="sp-h2">Content <small>reports from players</small></div>
+            <div class="rp-filters" id="rp-filters">
+              <button data-rk="all" class="on">All</button><button data-rk="chat">🚩 Chat &amp; players</button><button data-rk="bug">🐞 Bugs</button>
+              <button data-rk="glitch">✨ Glitches</button><button data-rk="store">🛍️ Store</button><button data-rk="other">💬 Other</button><button data-rk="handled">✅ Handled</button>
+            </div>
             <div id="ad-reports"></div>
           </section>
           <section class="sp-sec" data-sec="settings">
@@ -4769,7 +4797,7 @@
         Friends.lastId = Friends.msgs.length ? Friends.msgs[Friends.msgs.length-1].id : Friends.lastId;
         const list = $('#chat-list');
         const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
-        list.innerHTML = Friends.msgs.length ? chatHtml(Friends.msgs) : '<div class="chat-day">Say hi to '+escapeHtml(f.name||'your friend')+'! 👋</div>';
+        list.innerHTML = Friends.msgs.length ? '<div class="chat-hint">Tap a message from '+escapeHtml(f.name||'them')+' to report it</div>' + chatHtml(Friends.msgs) : '<div class="chat-day">Say hi to '+escapeHtml(f.name||'your friend')+'! 👋</div>';
         if (first || atBottom) list.scrollTop = list.scrollHeight;
         if (r.messages.some(m=> !m.mine)) heartbeat();
       }
@@ -4787,22 +4815,69 @@
     } catch(e){ showToast('Message not sent — check your connection.'); }
     finally { chatSending = false; $('#chat-send').disabled = false; }
   }
+  // ---- reports (v77) ----
+  // Tap a friend's message to report it; the admins see that message and the conversation around it.
+  const CHAT_REPORT_REASONS = ['Bullying or mean messages', 'Bad language', 'Spam or a scam', 'Asking for personal info', 'Something else'];
+  async function reportChat(f, msg){
+    if (!f) return;
+    const opts = CHAT_REPORT_REASONS.map(r=> '<option>'+escapeHtml(r)+'</option>').join('');
+    const go = await actionSheet('Report '+(f.name || 'this trainer'), msg ? 'The admins will see this message and your chat around it.' : 'The admins will see your recent chat with them.', [
+      { html:(msg ? '<div class="rp-quote">“'+escapeHtml(msg.body)+'”</div>' : '')
+        + '<label class="act-field">What’s wrong?<select id="rp-reason">'+opts+'</select></label>'
+        + '<label class="act-field">Tell us what happened<textarea id="rp-text" maxlength="1000" placeholder="Describe the problem…"></textarea></label>' },
+      { label:'🚩 Send report', value:'go', cls:'warn' } ]);
+    if (go !== 'go') return;
+    const reason = ($('#rp-reason')||{}).value || 'Something else', text = (($('#rp-text')||{}).value || '').trim();
+    try {
+      let r = await sbRpc('report_message', fArgs({ p_other:f.id, p_message: msg ? msg.id : null, p_category:reason, p_text:text.slice(0, 1000) }));
+      if (r && r.ok === undefined) r = await sbRpc('report_player', fArgs({ p_other:f.id, p_message: msg ? msg.id : null, p_reason:(reason+': '+text).slice(0, 200) }));
+      showToast(r && r.ok ? 'Thanks — our admins will take a look.' : (r && r.error === 'slow_down' ? 'You’ve sent a lot of reports — try again later.' : 'Couldn’t send the report.'));
+    } catch(e){ showToast('Couldn’t send the report — check your connection.'); }
+  }
+  // Report a bug, glitch, store problem, a player or anything else, with a description.
+  const ISSUE_KINDS = [['bug','🐞 Bug — something doesn’t work'], ['glitch','✨ Glitch — something looks or acts wrong'], ['player','🚩 A player'], ['store','🛍️ Store or purchase'], ['other','💬 Something else']];
+  async function reportProblem(){
+    if (!(await needOnline())) return;
+    const panel = (document.querySelector('.panel-screen.active') || {}).dataset;
+    const go = await actionSheet('Report a problem', 'Our admins read every report. Please describe it so we can fix it.', [
+      { html:'<label class="act-field">What kind of problem?<select id="ri-kind">'+ISSUE_KINDS.map(([v, t])=> '<option value="'+v+'">'+escapeHtml(t)+'</option>').join('')+'</select></label>'
+        + '<label class="act-field" id="ri-player-f" style="display:none">Their username<input type="text" id="ri-player" maxlength="24" placeholder="Trainer name"></label>'
+        + '<label class="act-field">Where in the game? (optional)<input type="text" id="ri-where" maxlength="120" placeholder="e.g. PvP Arena, the map, the Store"></label>'
+        + '<label class="act-field">Describe the problem<textarea id="ri-text" maxlength="1500" placeholder="What happened? What did you expect? Steps to make it happen again help a lot."></textarea></label>' },
+      { label:'📨 Send report', value:'go', cls:'good' } ]);
+    if (go !== 'go') return;
+    const kind = ($('#ri-kind')||{}).value || 'other', text = (($('#ri-text')||{}).value || '').trim();
+    if (text.length < 10){ showToast('Please describe the problem (at least a sentence).'); return reportProblem(); }
+    const meta = { v: window.TQ_APP_VERSION || '', ua: navigator.userAgent.slice(0, 200), screen: innerWidth+'x'+innerHeight+'@'+(devicePixelRatio||1), panel: panel ? panel.panel : 'map', lvl: state.charLevel||1, totos: state.collection.length };
+    try {
+      const r = await sbRpc('report_issue', fArgs({ p_kind:kind, p_text:text, p_where:(($('#ri-where')||{}).value || '').trim() || null, p_meta:meta, p_player: kind === 'player' ? ((($('#ri-player')||{}).value || '').trim() || null) : null }));
+      if (r && r.ok) showToast(kind === 'player' && r.found_player === false && $('#ri-player') ? 'Report sent (we couldn’t find that username, but the admins will look into it).' : '📨 Report sent — thanks for helping make TotoQuest better!');
+      else showToast(r && r.error === 'slow_down' ? 'You’ve sent a lot of reports — try again later.' : 'Couldn’t send the report.');
+    } catch(e){ showToast('Couldn’t send the report — check your connection.'); }
+  }
+  document.addEventListener('change', e=>{ if (e.target && e.target.id === 'ri-kind'){ const f = $('#ri-player-f'); if (f) f.style.display = e.target.value === 'player' ? '' : 'none'; } });
+  $('#btn-report-problem').onclick = reportProblem;
+  // tapping one of their messages
+  $('#chat-list').addEventListener('click', async e=>{
+    const el = e.target.closest && e.target.closest('.chat-msg.them'); if (!el) return;
+    const f = Friends.chatWith, m = (Friends.msgs||[]).find(x=> String(x.id) === el.dataset.mid);
+    if (!f || !m) return;
+    const v = await actionSheet('Message from '+(f.name || 'your friend'), '“'+String(m.body).slice(0, 120)+'”', [ { label:'🚩 Report this message', value:'report', cls:'warn' }, { label:'📋 Copy', value:'copy' } ]);
+    if (v === 'report') reportChat(f, m);
+    else if (v === 'copy'){ try { await navigator.clipboard.writeText(m.body); showToast('Copied'); } catch(err){} }
+  });
   $('#chat-send').onclick = sendChat;
   $('#chat-text').addEventListener('keydown', e=>{ if (e.key === 'Enter') sendChat(); });
   $('#chat-back').onclick = ()=>{ $('#chat-view').classList.remove('show'); Friends.chatWith = null; clearInterval(Friends.chatTimer); loadFriends(); };
   $('#chat-more').onclick = async ()=>{
     const f = Friends.chatWith; if (!f) return;
     const v = await actionSheet(f.name || 'Trainer', 'What would you like to do?', [
-      { label:'🔄 Trade Totos', value:'trade', cls:'good' }, { label:'🚩 Report this chat', value:'report', cls:'warn' }, { label:'🚫 Block '+(f.name||'them'), value:'block', cls:'danger' }, { label:'➖ Remove friend', value:'remove' } ]);
+      { label:'🔄 Trade Totos', value:'trade', cls:'good' }, { label:'🚩 Report '+(f.name||'them'), value:'report', cls:'warn' }, { label:'🚫 Block '+(f.name||'them'), value:'block', cls:'danger' }, { label:'➖ Remove friend', value:'remove' } ]);
     if (!v) return;
     if (v === 'trade') return startTrade(f);
     try {
       if (v === 'report'){
-        const why = await gameDialog({ title:'Report '+(f.name||'this trainer'), message:'Tell us what happened. Our admins will look at their latest message.', input:'Reason', inputType:'text', ok:'Report', cancel:'Cancel' });
-        if (why === null || why === undefined || why === false) return;
-        const lastTheirs = (Friends.msgs||[]).filter(m=> !m.mine).slice(-1)[0];
-        const r = await sbRpc('report_player', fArgs({ p_other:f.id, p_message: lastTheirs ? lastTheirs.id : null, p_reason:String(why||'').slice(0,200) }));
-        showToast(r && r.ok ? 'Thanks — our admins will take a look.' : 'Couldn’t send the report.');
+        return reportChat(f, (Friends.msgs||[]).filter(m=> !m.mine).slice(-1)[0] || null);
       } else if (v === 'block'){
         if (!(await gameConfirm('They won’t be able to message you or find you, and they’ll be removed from your friends.', 'Block '+(f.name||'this trainer')+'?', 'Block', 'Cancel'))) return;
         await sbRpc('block_player', fArgs({ p_other:f.id, p_block:true })); showToast('Blocked.'); $('#chat-back').click();
@@ -5005,22 +5080,47 @@
     if (p.id === state.playerId){ showToast('➖ Taking '+what+' from yourself'); claimGifts(); }
     else showToast('➖ '+what+' will be taken from '+(p.name||'them')+(r.online ? ' within a minute' : ' next time they play'));
   }
+  const RP_KIND = { message:'Chat message', player:'Player', bug:'Bug', glitch:'Glitch', store:'Store', other:'Other' };
+  const RepUi = { kind:'all' };
   async function loadReports(){
-    let r; try { r = await adminCall('admin_reports'); } catch(e){ r = null; }
-    if (!r){ $('#ad-reports').innerHTML = '<div class="fr-empty">Couldn’t load reports.</div>'; return; }
-    $('#ad-reports').innerHTML = r.reports.length ? r.reports.map(x=> '<div class="ad-rep" data-id="'+x.id+'"><div class="fr-name">'+escapeHtml(x.reported_name||'Trainer')+' <small style="font-weight:700;color:#8a7aa8">reported by '+escapeHtml(x.reporter_name||'?')+' · '+timeAgo(x.created_at)+'</small></div>'
-      + (x.body ? '<q>“'+escapeHtml(x.body)+'”</q>' : '') + (x.reason ? '<div class="fr-sub">Reason: '+escapeHtml(x.reason)+'</div>' : '')
-      + '<div style="display:flex;gap:6px;margin-top:8px;"><button class="fr-btn" data-act="player">Actions…</button><button class="fr-btn ghost" data-act="done">Mark handled</button></div></div>').join('')
-      : '<div class="fr-empty">No open reports. 🎉</div>';
-    $$('#ad-reports .ad-rep').forEach(el=>{ const rep = r.reports.find(x=> String(x.id) === el.dataset.id);
-      el.querySelector('[data-act="done"]').onclick = async ()=>{ await adminCall('admin_resolve_report', { p_report:rep.id }); loadReports(); loadAdmin(true); };
-      el.querySelector('[data-act="player"]').onclick = async ()=>{
-        let row = Admin.rows.find(x=> x.id === rep.reported);
-        if (!row){ const s = await adminCall('admin_players', { p_search:rep.reported_name||'', p_filter:'all', p_limit:20, p_offset:0 }); row = s && (s.players||[]).find(x=> x.id === rep.reported); }
-        if (row) adminActions(row); else showToast('That account no longer exists.');
-      };
+    const handled = RepUi.kind === 'handled';
+    let r = null;
+    try { r = await sbRpc('admin_reports2', fArgs({ p_kind: handled ? 'all' : RepUi.kind, p_resolved: handled })); } catch(e){}
+    if (!r || r.ok === undefined){ try { r = await sbRpc('admin_reports', fArgs()); } catch(e){ r = null; } }
+    if (!r || !r.ok){ $('#ad-reports').innerHTML = '<div class="fr-empty">Couldn’t load reports.</div>'; return; }
+    const c = r.counts || {}, n = k=> k === 'chat' ? (c.message||0) + (c.player||0) : (k === 'all' ? Object.values(c).reduce((a, b)=> a + b, 0) : (c[k]||0));
+    $$('#rp-filters [data-rk]').forEach(b=>{ const k = b.dataset.rk; let bb = b.querySelector('b'); const v = k === 'handled' ? 0 : n(k);
+      if (v && !bb){ bb = document.createElement('b'); b.appendChild(bb); } if (bb){ bb.textContent = v || ''; if (!v) bb.remove(); } b.classList.toggle('on', k === RepUi.kind); });
+    const ts = t=> new Date(t).toLocaleString([], { dateStyle:'medium', timeStyle:'short' });
+    $('#ad-reports').innerHTML = r.reports.length ? r.reports.map(x=>{
+      const kind = x.kind || 'message', d = x.details || {}, meta = d.meta || null;
+      const who = x.reported_name ? 'About <b>'+escapeHtml(x.reported_name)+'</b>' : (d.player ? 'About “'+escapeHtml(d.player)+'” (no trainer with that name)' : RP_KIND[kind] || 'Report');
+      const ctx = Array.isArray(x.context) && x.context.length ? '<div class="rp-ctx">'+x.context.map(m=> '<div class="'+(m.id === x.message_id ? 'hl' : '')+'"><b>'+escapeHtml(m.who === 'reporter' ? (x.reporter_name||'Reporter') : (x.reported_name||'Them'))+':</b> '+escapeHtml(m.body)+'</div>').join('')+'</div>' : '';
+      return '<div class="rp-card" data-id="'+x.id+'"><div class="rp-head"><span class="rp-kind k-'+escapeHtml(kind)+'">'+escapeHtml(RP_KIND[kind] || kind)+'</span>'
+        + '<div class="rp-who">'+who+'<small>Reported by '+escapeHtml(x.reporter_name||'?')+' · '+ts(x.created_at)+(x.reason && kind !== 'bug' && kind !== 'glitch' && kind !== 'store' && kind !== 'other' ? ' · '+escapeHtml(x.reason) : '')+'</small></div></div>'
+        + (x.body ? '<div class="rp-msg"><small>The reported message</small>“'+escapeHtml(x.body)+'”</div>' : '')
+        + (d.text ? '<div class="rp-text">'+escapeHtml(d.text)+'</div>' : (x.reason && !d.text ? '<div class="rp-text">'+escapeHtml(x.reason)+'</div>' : ''))
+        + (d.where ? '<div class="rp-meta">📍 Where: '+escapeHtml(d.where)+'</div>' : '')
+        + (meta ? '<div class="rp-meta">📱 '+escapeHtml([meta.v, meta.screen, meta.panel ? 'on '+meta.panel : '', meta.lvl ? 'Lv '+meta.lvl : ''].filter(Boolean).join(' · '))+'<br>'+escapeHtml(meta.ua || '')+'</div>' : '')
+        + (ctx ? '<details style="margin-top:6px"><summary class="rp-meta" style="cursor:pointer">💬 Show the chat ('+x.context.length+' messages)</summary>'+ctx+'</details>' : '')
+        + (x.resolved_at ? '<div class="rp-meta">✅ Handled '+ts(x.resolved_at)+(x.resolved_by_name ? ' by '+escapeHtml(x.resolved_by_name) : '')+'</div>' : '')
+        + '<div class="rp-btns">'+(x.reported ? '<button class="fr-btn" data-act="player">Actions for '+escapeHtml(x.reported_name||'player')+'…</button>' : '')
+        + (x.reporter ? '<button class="fr-btn ghost" data-act="reporter">Reporter…</button>' : '')
+        + (x.resolved_at ? '' : '<button class="fr-btn ok" data-act="done">✅ Mark handled</button>')+'</div></div>';
+    }).join('') : '<div class="fr-empty">'+(handled ? 'No handled reports yet.' : 'No open reports here. 🎉')+'</div>';
+    const findPlayer = async (id, name)=>{
+      let row = Admin.rows.find(x=> x.id === id);
+      if (!row){ const s = await adminCall('admin_players', { p_search:name||'', p_filter:'all', p_limit:20, p_offset:0 }); row = s && (s.players||[]).find(x=> x.id === id); }
+      if (row) adminActions(row); else showToast('That account no longer exists.');
+    };
+    $$('#ad-reports .rp-card').forEach(el=>{ const rep = r.reports.find(x=> String(x.id) === el.dataset.id);
+      const b = (a)=> el.querySelector('[data-act="'+a+'"]');
+      if (b('done')) b('done').onclick = async ()=>{ await adminCall('admin_resolve_report', { p_report:rep.id }); loadReports(); spLoadStats(); };
+      if (b('player')) b('player').onclick = ()=> findPlayer(rep.reported, rep.reported_name);
+      if (b('reporter')) b('reporter').onclick = ()=> findPlayer(rep.reporter, rep.reporter_name);
     });
   }
+  $$('#rp-filters [data-rk]').forEach(b=> b.onclick = ()=>{ RepUi.kind = b.dataset.rk; loadReports(); });
   // ---------- The Spooky Staff Panel (v76) ----------
   const Staff = { sec:'dash', stats:null, chatAfter:0, chatTimer:null, statTimer:null, series:'both' };
   const spEsc = s=> escapeHtml(String(s == null ? '' : s));
@@ -11182,7 +11282,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v76';
+window.TQ_APP_VERSION = 'v77';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
@@ -12818,13 +12918,34 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       mat.customProgramCacheKey = ()=> 'tq-relief-toto';
       return mat;
     }
+    // v77: the small map character uses plain (non-velvet) shading — the same colours and pictures,
+    // a much cheaper shader on phones. Materials are converted once and shared.
+    const liteMats = new Map();
+    function liteMat(m){
+      if (!m || !m.isMeshPhysicalMaterial) return m;
+      let l = liteMats.get(m.uuid);
+      if (l) return l;
+      l = new THREE.MeshStandardMaterial({ color:m.color, map:m.map, emissive:m.emissive, emissiveMap:m.emissiveMap, emissiveIntensity:m.emissiveIntensity,
+        roughness:m.roughness, metalness:m.metalness, vertexColors:m.vertexColors, side:m.side, flatShading:m.flatShading, transparent:m.transparent,
+        opacity:m.opacity, alphaTest:m.alphaTest, depthWrite:m.depthWrite, depthTest:m.depthTest, normalMap:m.normalMap, alphaMap:m.alphaMap,
+        polygonOffset:m.polygonOffset, polygonOffsetFactor:m.polygonOffsetFactor, polygonOffsetUnits:m.polygonOffsetUnits, toneMapped:m.toneMapped });
+      if (m.onBeforeCompile){ l.onBeforeCompile = m.onBeforeCompile; const key = m.customProgramCacheKey ? m.customProgramCacheKey() : ''; l.customProgramCacheKey = ()=> key + '-lite'; }
+      liteMats.set(m.uuid, l);
+      return l;
+    }
+    function liteModel(group){
+      group.traverse(o=>{ if (o.isMesh && o.material) o.material = Array.isArray(o.material) ? o.material.map(liteMat) : liteMat(o.material); });
+      return group;
+    }
     function initPlayer3D(canvas, gender){
       const scene = new THREE.Scene();
       const rig = addPlayerLighting(scene);
 
       const camera = new THREE.PerspectiveCamera(FRAME_FOV, PLAYER_CANVAS_W/PLAYER_CANVAS_H, 0.1, 30);
-      const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
-      renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
+      // v77: the character on the map is small — sharp phones (2x/3x screens) draw it at up to 1.75x without
+      // extra edge smoothing, which costs a third to a quarter of the pixels it used to
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:TQ_AA, powerPreference:'low-power' });
+      renderer.setPixelRatio(Math.min(1.75, window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2)));
       setupPlayerRenderer(renderer);
       // Fixed intended size (matches the .player-avatar-3d CSS) rather than measuring
       // layout — this marker never resizes, and reading clientWidth/Height here would
@@ -12836,7 +12957,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       renderer.shadowMap.enabled = false;
       scene.traverse(o=>{ if (o.material && o.material.isShadowMaterial) o.visible = false; });
 
-      let group = buildPlayerModel(gender);
+      let group = liteModel(buildPlayerModel(gender));
       scene.add(group);
 
       let stopped = false; const gate = {};
@@ -12850,7 +12971,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
         const walkingNow = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
         // walking or turning: 30 frames a second is plenty at this size; standing still: 15
-        if (!tqGate(gate, (walkingNow || !tqCameraCalm()) ? 30 : 15)) return;
+        if (!tqGate(gate, (walkingNow || !tqCameraCalm()) ? 24 : 12)) return;
         const rad = THREE.MathUtils.degToRad(orbitDeg);
         placePlayerCamera(camera, rad, FRAME_VIEW_H, FRAME_FEET_PX, PLAYER_CANVAS_H);
         rig.rotation.y = rad;   // studio lighting follows the camera around her
@@ -12864,7 +12985,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         setGender(g){
           scene.remove(group);
           disposePlayerModel(group);
-          group = buildPlayerModel(g);
+          group = liteModel(buildPlayerModel(g));
           scene.add(group);
         },
         dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); }

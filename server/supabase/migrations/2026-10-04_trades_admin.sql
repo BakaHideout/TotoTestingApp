@@ -4,9 +4,20 @@
 -- ---------------------------------------------------------------- gifts: takes and trade deliveries
 -- take_* : the owner takes gems/candy/items/a Toto back (the game subtracts it, never below zero)
 -- trade / trade_back : a Toto arriving from a finished trade, or coming home from a cancelled one
-alter table private.gifts drop constraint if exists gifts_kind_check;
-alter table private.gifts add constraint gifts_kind_check check (kind in
-  ('gems','candy','raidPass','elixir','toto','rank1set','take_gems','take_candy','take_raidPass','take_elixir','take_toto','trade','trade_back'));
+-- (stored as the usual kinds plus an "op": take / trade / trade_back; the pickup reports them as
+--  take_gems … take_toto, trade and trade_back)
+alter table private.gifts add column if not exists op text;
+
+create or replace function public.gifts_pending(p_id uuid, p_secret text)
+returns json language plpgsql stable security definer set search_path = public, private, extensions as $$
+declare r public.players;
+begin
+  r := private.me(p_id, p_secret); if r.id is null then return json_build_object('ok', false); end if;
+  return json_build_object('ok', true, 'gifts', coalesce((select json_agg(x order by x.id) from (
+    select g.id, case when g.op = 'take' then 'take_' || g.kind when g.op in ('trade','trade_back') then g.op else g.kind end as kind,
+           g.amount, g.toto, g.note, g.created_at from private.gifts g
+     where g.player_id = p_id and g.claimed_at is null order by g.id limit 50) x), '[]'::json));
+end $$;
 
 create or replace function public.admin_take(p_id uuid, p_secret text, p_target uuid, p_kind text, p_amount integer, p_toto jsonb default null, p_note text default null)
 returns json language plpgsql security definer set search_path = public, private, extensions as $$
@@ -21,8 +32,8 @@ begin
     if p_toto is null or jsonb_typeof(p_toto) <> 'object' or coalesce(p_toto->>'name', '') = '' then return json_build_object('ok', false, 'error', 'bad_toto'); end if;
     tj := jsonb_build_object('name', left(p_toto->>'name', 40));
   end if;
-  insert into private.gifts(player_id, kind, amount, toto, note, created_by)
-    values (p_target, 'take_' || p_kind, n, tj, nullif(left(regexp_replace(trim(coalesce(p_note, '')), '[[:cntrl:]<>]', '', 'g'), 140), ''), p_id)
+  insert into private.gifts(player_id, kind, op, amount, toto, note, created_by)
+    values (p_target, p_kind, 'take', n, tj, nullif(left(regexp_replace(trim(coalesce(p_note, '')), '[[:cntrl:]<>]', '', 'g'), 140), ''), p_id)
     returning id into gid;
   return json_build_object('ok', true, 'id', gid, 'amount', n, 'online', private.is_online(t.last_seen));
 end $$;
@@ -64,7 +75,7 @@ end $$;
 
 create or replace function private.trade_give(p_player uuid, p_kind text, p_toto jsonb, p_note text) returns void
 language sql security definer set search_path = private as $$
-  insert into private.gifts(player_id, kind, amount, toto, note) values (p_player, p_kind, 1, p_toto, left(p_note, 140));
+  insert into private.gifts(player_id, kind, op, amount, toto, note) values (p_player, 'toto', p_kind, 1, p_toto, left(p_note, 140));
 $$;
 
 create or replace function public.trade_offer(p_id uuid, p_secret text, p_to uuid, p_toto jsonb)
@@ -199,7 +210,6 @@ begin
     return json_build_object('ok', false, 'error', 'slow_down');
   end if;
   insert into private.admin_chat(player_id, body) values (p_id, b);
-  delete from private.admin_chat where id < (select max(id) - 2000 from private.admin_chat);
   return json_build_object('ok', true);
 end $$;
 

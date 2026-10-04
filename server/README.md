@@ -142,3 +142,6 @@ Migration: `supabase/migrations/2026-10-03e_pvp_pass.sql`.
 
 ## v76: trading, take-backs, Staff Panel
 Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supabase tool). It adds Toto trading between friends (achievement Totos are refused), owner take-backs (`admin_take`), the Staff Panel numbers (`admin_stats`, daily activity) and the admin chat (`admin_chat_send` / `admin_chat_poll`), and updates `heartbeat` to count trades waiting on you. The game works without it; those features just stay off until it is applied.
+
+## v77: reports
+`supabase/migrations/2026-10-04b_reports.sql` (applied live together with v76, additive only): players report a chat message (`report_message`, with the conversation attached) or a bug / glitch / store problem / player / other (`report_issue`, with game version and device); admins read them with `admin_reports2` (filter by kind, or handled). v76 gift kinds are stored with an `op` column (take / trade / trade_back) instead of new kinds.
