@@ -2324,7 +2324,7 @@
         <div class="wardrobe-stage">
           <canvas id="wardrobe-preview-canvas" class="wardrobe-preview-canvas"></canvas>
           <div class="wardrobe-view-btns" id="wardrobe-view-btns">
-            <button data-view="front">Front</button><button data-view="spin" class="on">⟳ Sway</button>
+            <button data-view="front">Front</button><button data-view="back">Back</button><button data-view="spin" class="on">⟳ Spin</button>
           </div>
           <button class="wardrobe-zoom" id="wardrobe-zoom">🔍 Close-up</button>
           <div class="wardrobe-tryon" id="wardrobe-tryon" style="display:none;"></div>
@@ -10639,7 +10639,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v73';
+window.TQ_APP_VERSION = 'v74';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
@@ -12212,112 +12212,65 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
     }
 
 
-    // ================= v73: the player is drawn from the character art itself =================
-    // The two pictures (assets/player/girl|boy.webp) become a lit, puffed-out 3D figure — the same
-    // relief the PvP Totos use — that breathes, looks around and bounces along when walking. Wardrobe
-    // items are laid onto the picture: each item's own embroidery is mapped over the hat, robe, tights
-    // or boots (shaded by the picture's own light and folds), and reward staffs replace the starter one.
-    const PLAYER_ART = { female:{ img:'assets/player/girl.webp', bare:'assets/player/girl-nostaff.webp', reg:'assets/player/girl-reg.png' }, male:{ img:'assets/player/boy.webp', bare:'assets/player/boy-nostaff.webp', reg:'assets/player/boy-reg.png' } };
-    const ART_FEET_U = 0.572;          // the middle of the boots, across the picture (the staff sticks out to the left)
-    // region map values (x30); 8 = where the staff crosses the brim (brim once the staff is swapped)
-    const ART_REG = { cone:1, band:2, brim:3, torso:4, tights:5, boots:6, staff:7 };
-    const WDR = 'assets/wardrobe/';
-    const ART_ITEMS = {
-      level100Hat: { cone:{ tex:WDR+'l100hat-cone.jpg', r:[0.27,0.1,0.73,1] }, band:{ tex:WDR+'l100hat-band.jpg', r:[0.3,0.08,0.75,0.92] }, brim:{ tex:WDR+'l100hat-brim.jpg', r:[0.12,0.72,0.88,0.98] } },
-      rank1Hat:    { cone:{ tex:WDR+'rank1-hat-cone-pvp.jpg', r:[0.26,0.06,0.74,1] }, band:{ color:'#c8743e' }, brim:{ tex:WDR+'rank1-hat-brim.jpg', r:[0.12,0.72,0.88,0.98] } },
-      tee:         { torso:{ tex:WDR+'tee-tex2.jpg', r:[0.26,0.02,0.74,1] } },
-      rank1Shirt:  { torso:{ tex:WDR+'rank1-shirt-pvp.jpg', r:[0.26,0,0.74,1] } },
-      rank1Legs:   { tights:{ tex:WDR+'rank1-legs.jpg', r:[0.3,0.15,0.66,0.85] } },
-      rank1Shoes:  { boots:{ tex:WDR+'rank1-shoe-side.jpg', r:[0.03,0.06,0.97,0.94] } },
-      l100broom:   { staff:{ swap:'assets/player/acc-broom.webp' } },
-      rank1Staff:  { staff:{ swap:'assets/player/acc-r1staff.webp' } }
+    // ================= v74: the player is drawn from the character art, front and back =================
+    // Each character has two pictures: the front, and the back (as seen from behind). They become one
+    // lit, puffed-out 3D figure — the front relief faces the camera, the back relief faces away — so
+    // turning the camera round the character shows the front, the sides and the back, like the old model.
+    // Wardrobe items are picture layers made to fit each part of the art (hat cone/band/brim, shirt and
+    // sleeves, tights, boots — front and back), stacked over the picture; a reward staff replaces the
+    // starter one.
+    const PA = 'assets/player/';
+    const PLAYER_ART = {
+      female:{ key:'girl', front:PA+'girl.webp', frontBare:PA+'girl-nostaff.webp', back:PA+'girl-back.webp', backBare:PA+'girl-back-nostaff.webp' },
+      male:  { key:'boy',  front:PA+'boy.webp',  frontBare:PA+'boy-nostaff.webp',  back:PA+'boy-back.webp',  backBare:PA+'boy-back-nostaff.webp' }
     };
+    // per picture: its size, where the feet are (across, 0..1) and where a reward staff stands [x, top, bottom]
+    const ART_INFO = {"girl-front":{"w":579,"h":954,"feet":0.5639,"staff":[155,399,936]},"girl-back":{"w":477,"h":716,"feet":0.5136,"staff":[409,250,709]},"boy-front":{"w":579,"h":956,"feet":0.5613,"staff":[155,400,938]},"boy-back":{"w":498,"h":709,"feet":0.491,"staff":[402,250,704]}};
+    // item layer -> where it sits on its picture [x, y]
+    const ART_LAYERS = {"girl-front-rank1Hat":[82,6],"girl-front-level100Hat":[82,6],"girl-front-rank1Shirt":[166,503],"girl-front-tee":[166,503],"girl-front-rank1Legs":[253,786],"girl-front-rank1Shoes":[241,840],"girl-front-staffover":[117,301],"girl-back-rank1Hat":[93,6],"girl-back-level100Hat":[93,6],"girl-back-rank1Shirt":[89,312],"girl-back-tee":[89,312],"girl-back-rank1Legs":[177,546],"girl-back-rank1Shoes":[152,598],"boy-front-rank1Hat":[82,6],"boy-front-level100Hat":[82,6],"boy-front-rank1Shirt":[166,503],"boy-front-tee":[166,503],"boy-front-rank1Legs":[253,786],"boy-front-rank1Shoes":[241,840],"boy-front-staffover":[118,302],"boy-back-rank1Hat":[91,6],"boy-back-level100Hat":[91,6],"boy-back-rank1Shirt":[89,267],"boy-back-tee":[89,267],"boy-back-rank1Legs":[177,545],"boy-back-rank1Shoes":[148,593]};
+    const ART_ITEMS = { level100Hat:1, rank1Hat:1, tee:1, rank1Shirt:1, rank1Legs:1, rank1Shoes:1, l100broom:PA+'acc-broom.webp', rank1Staff:PA+'acc-r1staff.webp' };
+    const ART_LAYER_ORDER = ['top','legwear','shoes','hat'];
     const artImgs = new Map();
     function artImg(src){
       if (!artImgs.has(src)) artImgs.set(src, new Promise((res, rej)=>{ const im = new Image(); im.onload = ()=> res(im); im.onerror = ()=>{ artImgs.delete(src); rej(new Error('image '+src)); }; im.src = src; }));
       return artImgs.get(src);
     }
-    function boxBlur(src, W, H, r){
-      const tmp = new Float32Array(W*H), out = new Float32Array(W*H), n = 2*r+1;
-      for (let y=0;y<H;y++){ const o = y*W; let s = 0; for (let x=-r; x<=r; x++) s += src[o + Math.min(W-1, Math.max(0, x))];
-        for (let x=0;x<W;x++){ tmp[o+x] = s/n; s += src[o + Math.min(W-1, x+r+1)] - src[o + Math.max(0, x-r)]; } }
-      for (let x=0;x<W;x++){ let s = 0; for (let y=-r; y<=r; y++) s += tmp[Math.min(H-1, Math.max(0, y))*W + x];
-        for (let y=0;y<H;y++){ out[y*W+x] = s/n; s += tmp[Math.min(H-1, y+r+1)*W + x] - tmp[Math.max(0, y-r)*W + x]; } }
-      return out;
-    }
     const ART_SLOTS = ['hat','top','legwear','shoes','accessory'];
     function artKey(g, cfg){ return (g === 'male' ? 'male' : 'female') + '|' + ART_SLOTS.map(s=> (cfg && cfg[s] && ART_ITEMS[cfg[s].kind]) ? cfg[s].kind : '').join(','); }
     function playerCfg(g){ const c = window.PLAYER_EQUIP_CATALOG && window.PLAYER_EQUIP_CATALOG[g === 'male' ? 'male' : 'female']; return c ? JSON.parse(JSON.stringify(c)) : null; }
     const dressedCache = new Map();
-    // the character's picture wearing these items (a canvas, cached per outfit)
-    function dressedArt(g, cfg){
-      g = g === 'male' ? 'male' : 'female';
-      const key = artKey(g, cfg);
+    // the character's picture (front or back) wearing these items: a canvas, cached per outfit
+    function dressedArt(g, cfg, side){
+      g = g === 'male' ? 'male' : 'female'; side = side === 'back' ? 'back' : 'front';
+      const key = side + '|' + artKey(g, cfg);
       if (dressedCache.has(key)) return dressedCache.get(key);
       const pr = (async()=>{
-        const looks = ART_SLOTS.map(s=> cfg && cfg[s] && ART_ITEMS[cfg[s].kind]).filter(Boolean);
-        const swapLook = looks.find(l=> l.staff && l.staff.swap), swap = swapLook ? swapLook.staff.swap : null;
-        // a reward staff goes on the picture without its starter staff (the brim behind it filled in)
-        const A = PLAYER_ART[g], base = await artImg(swap ? A.bare : A.img), W = base.naturalWidth, H = base.naturalHeight;
+        const A = PLAYER_ART[g], info = ART_INFO[A.key + '-' + side];
+        const kinds = {}; ART_SLOTS.forEach(s=>{ const k = cfg && cfg[s] && cfg[s].kind; if (k && ART_ITEMS[k]) kinds[s] = k; });
+        const swap = kinds.accessory ? ART_ITEMS[kinds.accessory] : null;
+        // a reward staff goes on the picture without its starter staff
+        const names = ART_LAYER_ORDER.filter(s=> kinds[s]).map(s=> A.key + '-' + side + '-' + kinds[s]).filter(n=> ART_LAYERS[n]);
+        if (side === 'front' && kinds.hat && !swap) names.push(A.key + '-front-staffover');   // the starter staff crosses the brim
+        const [base, si, ...layers] = await Promise.all([artImg(swap ? A[side + 'Bare'] : A[side]), swap ? artImg(swap) : null].concat(names.map(n=> artImg(PA + 'items/' + n + '.webp'))));
+        const W = base.naturalWidth, H = base.naturalHeight;
         const c = document.createElement('canvas'); c.width = W; c.height = H;
-        const ctx = c.getContext('2d', { willReadFrequently:true }); ctx.drawImage(base, 0, 0);
-        if (!looks.length) return c;
-        const reg = await artImg(A.reg);
-        const rc = document.createElement('canvas'); rc.width = W; rc.height = H;
-        const rx = rc.getContext('2d', { willReadFrequently:true }); rx.drawImage(reg, 0, 0, W, H);
-        const rp = rx.getImageData(0, 0, W, H).data, N = W*H, lab = new Uint8Array(N);
-        for (let i=0;i<N;i++) lab[i] = Math.round(rp[i*4]/30);
-        const im = ctx.getImageData(0, 0, W, H), px = im.data;
-        const L = new Float32Array(N); for (let i=0;i<N;i++) L[i] = 0.3*px[i*4] + 0.59*px[i*4+1] + 0.11*px[i*4+2];
-        // light maps, each worked out only if an item needs it
-        const LM = {}, lmap = k=> LM[k] || (LM[k] = k === 'soft' ? boxBlur(L, W, H, 6) : (k === 'broad' ? boxBlur(boxBlur(L, W, H, 9), W, H, 9) : boxBlur(L, W, H, 1)));
-        if (swap) for (let i=0;i<N;i++) if (lab[i] === 8) lab[i] = 3;
-        let sb = null;
-        if (swap){ sb = { x0:W, y0:H, x1:-1, y1:-1 }; for (let y=0;y<H;y++) for (let x=0;x<W;x++){ const v = Math.round(rp[(y*W+x)*4]/30); if (v !== 7 && v !== 8) continue; if (x < sb.x0) sb.x0 = x; if (x > sb.x1) sb.x1 = x; if (y < sb.y0) sb.y0 = y; if (y > sb.y1) sb.y1 = y; } }
-        for (const look of looks) for (const part of Object.keys(look)){
-          const spec = look[part], id = ART_REG[part];
-          if (spec.swap) continue;
-          // a new shirt shows the robe's folds, not its stripes; a new hat, not the old one's moon and stars
-          const Ls = lmap(part === 'torso' ? 'soft' : (part === 'cone' ? 'broad' : 'fine'));
-          let x0 = W, y0 = H, x1 = -1, y1 = -1, cnt = 0; const hist = new Uint32Array(256);
-          for (let y=0;y<H;y++) for (let x=0;x<W;x++){ const i = y*W+x; if (lab[i] !== id) continue;
-            if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; hist[Math.min(255, Ls[i]|0)]++; cnt++; }
-          if (!cnt) continue;
-          let acc = 0, ref = 128; for (let k=0;k<256;k++){ acc += hist[k]; if (acc >= cnt/2){ ref = Math.max(12, k); break; } }
-          const bw = x1-x0+1, bh = y1-y0+1;
-          let T = null, col = null;
-          if (spec.tex){
-            const ti = await artImg(spec.tex), r = spec.r, tw = ti.naturalWidth, th = ti.naturalHeight;
-            const tc = document.createElement('canvas'); tc.width = bw; tc.height = bh;
-            const tx = tc.getContext('2d', { willReadFrequently:true }); tx.drawImage(ti, r[0]*tw, r[1]*th, (r[2]-r[0])*tw, (r[3]-r[1])*th, 0, 0, bw, bh);
-            T = tx.getImageData(0, 0, bw, bh).data;
-          } else { const h = spec.color.replace('#',''); col = [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
-          // a soft (feathered) edge, so the new item doesn't end in jaggies against hair and hands
-          const M = new Float32Array(N); for (let i=0;i<N;i++) M[i] = lab[i] === id ? 1 : 0;
-          const Ms = boxBlur(M, W, H, 1);
-          for (let y=Math.max(0, y0-2);y<=Math.min(H-1, y1+2);y++) for (let x=Math.max(0, x0-2);x<=Math.min(W-1, x1+2);x++){
-            const i = y*W+x, wgt = lab[i] === id ? Math.max(0.5, Ms[i]) : Ms[i]*0.9;
-            if (wgt <= 0.01 || px[i*4+3] < 8) continue;
-            const sh = Math.min(1.45, Math.max(0.3, Ls[i]/ref));
-            const tx = Math.min(bw-1, Math.max(0, x-x0)), ty = Math.min(bh-1, Math.max(0, y-y0));
-            let r, gg, b; if (T){ const j = (ty*bw + tx)*4; r = T[j]; gg = T[j+1]; b = T[j+2]; } else { r = col[0]; gg = col[1]; b = col[2]; }
-            px[i*4] = px[i*4]*(1-wgt) + Math.min(255, r*sh)*wgt; px[i*4+1] = px[i*4+1]*(1-wgt) + Math.min(255, gg*sh)*wgt; px[i*4+2] = px[i*4+2]*(1-wgt) + Math.min(255, b*sh)*wgt;
-          }
+        const ctx = c.getContext('2d'); ctx.drawImage(base, 0, 0);
+        layers.forEach((im, i)=>{ const o = ART_LAYERS[names[i]]; ctx.drawImage(im, o[0], o[1]); });
+        if (si){
+          // the reward staff stands behind the hand that holds it
+          const st = info.staff, h = st[2] - st[1], w = h*si.naturalWidth/si.naturalHeight;
+          ctx.globalCompositeOperation = 'destination-over'; ctx.drawImage(si, st[0] - w/2, st[2] - h, w, h); ctx.globalCompositeOperation = 'source-over';
         }
-        ctx.putImageData(im, 0, 0);
-        if (sb && sb.x1 >= 0){
-          // the reward staff stands where the starter one was, behind the hand that holds it
-          const top = Math.max(sb.y0, H*0.43), si = await artImg(swap), h = (sb.y1 - top)*1.02, w = h*si.naturalWidth/si.naturalHeight;   // its top clears the hat brim
-          const cx = sb.x0 + (sb.x1 - sb.x0)*0.82;        // the shaft (the hook and lantern hung off to its left)
-          ctx.globalCompositeOperation = 'destination-over'; ctx.drawImage(si, cx - w/2, sb.y1 - h, w, h); ctx.globalCompositeOperation = 'source-over';
-        }
+        c.feetU = info.feet;
         return c;
       })();
       dressedCache.set(key, pr); pr.catch(()=> dressedCache.delete(key));
-      if (dressedCache.size > 12) dressedCache.delete(dressedCache.keys().next().value);
+      if (dressedCache.size > 16) dressedCache.delete(dressedCache.keys().next().value);
       return pr;
     }
-    window.__tqDressedArt = (g, cfg)=> dressedArt(g, cfg || playerCfg(g));
+    // both sides at once (the 3D figure needs the two)
+    function dressedPair(g, cfg){ return Promise.all([dressedArt(g, cfg, 'front'), dressedArt(g, cfg, 'back')]); }
+    window.__tqDressedArt = (g, cfg, side)=> dressedArt(g, cfg || playerCfg(g), side);
 
     // ---- a picture as a lit, puffed-out 3D figure (shared by the player and the PvP Totos) ----
     const RELIEF_DEPTH = 0.27;
@@ -12364,8 +12317,8 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       return { geo, tex, aspect };
     }
     // the standing-figure material: the art lit softly, breathing and swaying (the feet stay put)
-    function reliefMaterial(tex, uni, glow){
-      const mat = new THREE.MeshStandardMaterial({ map:tex, emissiveMap:tex, emissive:new THREE.Color(glow, glow, glow), roughness:0.68, metalness:0, alphaTest:0.4, side:THREE.DoubleSide });
+    function reliefMaterial(tex, uni, glow, side){
+      const mat = new THREE.MeshStandardMaterial({ map:tex, emissiveMap:tex, emissive:new THREE.Color(glow, glow, glow), roughness:0.68, metalness:0, alphaTest:0.4, side: side || THREE.DoubleSide });
       mat.onBeforeCompile = sh=>{
         Object.assign(sh.uniforms, uni);
         sh.vertexShader = 'uniform float uTime;\nuniform float uSeed;\nuniform float uH;\nuniform float uSway;\nuniform float uBreath;\nuniform float uLean;\n' + sh.vertexShader.replace('#include <begin_vertex>', [
@@ -12387,15 +12340,42 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       const r1 = new THREE.DirectionalLight(0xc9a8ff, 1.5); r1.position.set(0.9, 0.35, -0.6); scene.add(r1);
       const r2 = new THREE.DirectionalLight(0xffb070, 0.7); r2.position.set(-0.9, 0.3, -0.6); scene.add(r2);
     }
-    // the player's figure: feet at the origin (the middle of the boots), 1 unit wide
-    function makeArtFigure(art, glow){
-      const R = buildRelief(art, false);
-      R.geo.translate(-(ART_FEET_U - 0.5), 0, 0);
-      const uni = { uTime:{ value:0 }, uSeed:{ value:Math.random()*6.28 }, uH:{ value:1/R.aspect }, uSway:{ value:0.012 }, uBreath:{ value:0.014 }, uLean:{ value:0 } };
-      const mat = reliefMaterial(R.tex, uni, glow == null ? 0.42 : glow);
-      const mesh = new THREE.Mesh(R.geo, mat);
-      const fig = new THREE.Group(); fig.add(mesh);
-      return { fig, mesh, mat, uni, aspect:R.aspect, dispose(){ R.geo.dispose(); R.tex.dispose(); mat.dispose(); } };
+    // The player's figure, figH tall with the feet at the origin (the middle of the boots): the front
+    // picture faces +Z (the camera), the back picture faces -Z, both breathing and swaying together.
+    function makeArtFigure(front, back, glow, figH){
+      const uni = { uTime:{ value:0 }, uSeed:{ value:Math.random()*6.28 }, uSway:{ value:0.012 }, uBreath:{ value:0.014 }, uLean:{ value:0 } };
+      const fig = new THREE.Group(), parts = [];
+      [front, back].forEach((art, i)=>{
+        if (!art) return;
+        const R = buildRelief(art, false);
+        R.geo.translate(-((art.feetU || 0.5) - 0.5), 0, 0);
+        const mat = reliefMaterial(R.tex, Object.assign({}, uni, { uH:{ value:1/R.aspect } }), glow == null ? 0.42 : glow, THREE.FrontSide);
+        const mesh = new THREE.Mesh(R.geo, mat);
+        mesh.scale.setScalar(figH*R.aspect);
+        if (i === 1) mesh.rotation.y = Math.PI;
+        fig.add(mesh); parts.push({ R, mat, mesh });
+      });
+      if (parts[1]) parts[1].mesh.visible = false;
+      return { fig, mesh:parts[0].mesh, mat:parts[0].mat, uni, aspect:parts[0].R.aspect,
+        tint(v){ parts.forEach(q=> q.mat.color.setScalar(v)); },
+        // only the picture facing the camera is drawn (0 front, 1 back)
+        setSide(s){ parts.forEach((q, i)=>{ q.mesh.visible = i === (s && parts.length > 1 ? 1 : 0); }); },
+        dispose(){ parts.forEach(q=>{ q.R.geo.dispose(); q.R.tex.dispose(); q.mat.dispose(); }); } };
+    }
+    // Turning round the character. A picture seen edge-on is a thin sliver, so the figure turns up to
+    // about 55° either way, and as the camera passes her side she turns round (a quick flip) to show the
+    // other picture. Returns the figure's turn and its width (1, or less during the flip).
+    function artTurner(){
+      let side = -1, shown = 0, flip = 1;
+      const K = 0.62, half = Math.PI/2;
+      return function(rad, dt){
+        const a = Math.atan2(Math.sin(rad), Math.cos(rad)), want = Math.abs(a) > half ? 1 : 0;
+        if (side < 0){ side = shown = want; }
+        else if (want !== side){ side = want; flip = 0; }
+        if (flip < 1){ flip = Math.min(1, flip + (dt || 0.03)/0.26); if (flip >= 0.5) shown = side; }
+        const lf = Math.max(-half, Math.min(half, a)), lb = Math.max(-half, Math.min(half, a > 0 ? a - Math.PI : a + Math.PI));
+        return { side: shown, rot: shown ? -(Math.PI + lb*K) : -lf*K, width: flip < 1 ? Math.max(0.04, Math.abs(Math.cos(flip*Math.PI))) : 1 };
+      };
     }
 
     function initPlayer3D(canvas, gender){
@@ -12417,12 +12397,13 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       shadow.position.set(0, FRAME_FEET_PX + 1, -600); scene.add(shadow);
       const FIG_H = 134;                    // px tall on the map
       let F = null, want = '', stopped = false, gate = {}, walkK = 0, lastT = 0;
+      const turner = artTurner(); let flipping = false;
       function load(g){
         const cfg = playerCfg(g), key = want = artKey(g, cfg);
-        dressedArt(g, cfg).then(art=>{
+        dressedPair(g, cfg).then(([front, back])=>{
           if (stopped || want !== key) return;
           if (F){ scene.remove(F.fig); F.dispose(); }
-          F = makeArtFigure(art, 0.42); F.mesh.scale.setScalar(FIG_H*F.aspect); scene.add(F.fig);
+          F = makeArtFigure(front, back, 0.42, FIG_H); scene.add(F.fig);
           gate = {};
         }).catch(e=> console.warn('player art', e));
       }
@@ -12436,15 +12417,18 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         if (tqMapCovered() || !F) return;
         const walking = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
         // walking or turning: 30 frames a second is plenty at this size; standing still: 15
-        if (!tqGate(gate, (walking || walkK > 0.01 || !tqCameraCalm()) ? 30 : 15)) return;
+        if (!tqGate(gate, (walking || walkK > 0.01 || !tqCameraCalm() || flipping) ? 30 : 15)) return;
         const t = performance.now()/1000, dt = Math.min(0.1, Math.max(0, t - (lastT || t))); lastT = t;
         walkK += ((walking ? 1 : 0) - walkK)*Math.min(1, dt*8);
         // walking: a bouncy little step, rocking side to side; standing: breathing and looking around
         const ph = t*8.5, step = Math.abs(Math.sin(ph));
         F.fig.position.set(0, FRAME_FEET_PX + step*5*walkK, 0);
         F.fig.rotation.z = Math.sin(ph)*0.065*walkK;
-        F.fig.scale.set(1 + (1-step)*0.03*walkK, 1 - (1-step)*0.035*walkK, 1);
-        F.mesh.rotation.y = Math.sin(t*0.55)*0.2*(1 - walkK);
+        // the character faces one way; turning the camera (the map's orbit) walks round her
+        const gs = window.__gameState, orbit = gs && typeof gs.viewOrbit === 'number' ? gs.viewOrbit : 0;
+        const tv = turner(THREE.MathUtils.degToRad(orbit), dt);
+        F.fig.rotation.y = tv.rot; F.setSide(tv.side); flipping = tv.width < 1;
+        F.fig.scale.set((1 + (1-step)*0.03*walkK)*tv.width, 1 - (1-step)*0.035*walkK, 1);
         F.uni.uTime.value = t; F.uni.uSway.value = 0.014*(1 - walkK); F.uni.uLean.value = 0;
         const sw = 30*(1 - step*0.18*walkK);
         shadow.scale.set(sw, sw*0.24, 1);
@@ -12484,20 +12468,21 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       let F = null, want = '', stopped = false;
       function load(g, c){
         const key = want = artKey(g, c);
-        dressedArt(g, c).then(art=>{
+        dressedPair(g, c).then(([front, back])=>{
           if (stopped || want !== key) return;
           if (F){ scene.remove(F.fig); F.dispose(); }
-          F = makeArtFigure(art, 0.42); F.mesh.scale.setScalar(FIG_H*F.aspect); scene.add(F.fig);
+          F = makeArtFigure(front, back, 0.42, FIG_H); scene.add(F.fig);
         }).catch(e=> console.warn('player art', e));
       }
       load(gender, cfg);
 
-      // The picture faces you: it turns a little either way (drag it), sways gently on "Spin",
-      // and the close-ups frame the slot you're dressing (hat, robe, legs, feet).
-      let turn = 0, dragging = false, lastX = 0, autoSpin = true, targetTurn = null, focus = 'full', curH = 3.3, curCy = null, curCx = null;
+      // Drag to turn the character all the way round; Front / Back face her that way; Spin turns her
+      // slowly. The close-ups frame the slot you're dressing (hat, robe, legs, feet).
+      let turn = 0, dragging = false, lastX = 0, autoSpin = true, targetTurn = null, focus = 'full', curH = 3.3, curCy = null, curCx = null, lastT = 0;
+      const turner = artTurner();
       const FOCUS = { full:{ h:3.3, cy:1.13, cx:-0.1 }, head:{ h:1.6, cy:1.86, cx:-0.02 }, torso:{ h:1.5, cy:0.92, cx:-0.02 }, legs:{ h:0.78, cy:0.38, cx:0 }, feet:{ h:0.58, cy:0.17, cx:0 } };
       canvas.addEventListener('pointerdown', e=>{ dragging = true; autoSpin = false; targetTurn = null; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
-      canvas.addEventListener('pointermove', e=>{ if (!dragging) return; turn = Math.max(-0.75, Math.min(0.75, turn + (e.clientX-lastX)*0.01)); lastX = e.clientX; });
+      canvas.addEventListener('pointermove', e=>{ if (!dragging) return; turn += (e.clientX-lastX)*0.012; lastX = e.clientX; });
       window.addEventListener('pointerup', ()=>{ dragging = false; });
       canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
 
@@ -12505,22 +12490,22 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         if (stopped) return;
         requestAnimationFrame(frame);
         if (!canvas.offsetParent) return;
-        const t = performance.now()/1000;
-        if (targetTurn != null){ turn += (targetTurn - turn)*0.14; if (Math.abs(targetTurn - turn) < 0.002) turn = targetTurn; }
-        else if (!dragging && autoSpin) turn = Math.sin(t*0.6)*0.5;
+        const t = performance.now()/1000, dt = Math.min(0.1, t - (lastT || t)); lastT = t;
+        if (targetTurn != null){ const d = Math.atan2(Math.sin(targetTurn - turn), Math.cos(targetTurn - turn)); turn += d*0.14; if (Math.abs(d) < 0.002){ turn = targetTurn; targetTurn = null; } }
+        else if (!dragging && autoSpin) turn += dt*0.55;
         const f = FOCUS[focus] || FOCUS.full;
         curH += (f.h - curH)*0.14; curCy = curCy == null ? f.cy : curCy + (f.cy - curCy)*0.14; curCx = curCx == null ? f.cx : curCx + (f.cx - curCx)*0.14;
         const dist = curH / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2));
         camera.position.set(curCx, curCy + dist*Math.sin(FRAME_ELEV), dist*Math.cos(FRAME_ELEV));
         camera.lookAt(curCx, curCy, 0);
-        if (F){ F.mesh.rotation.y = turn; F.uni.uTime.value = t; }
+        if (F){ const tv = turner(-turn, dt); F.fig.rotation.y = tv.rot; F.setSide(tv.side); F.fig.scale.x = tv.width; F.uni.uTime.value = t; }
         renderer.render(scene, camera);
       }
       requestAnimationFrame(frame);
 
       return {
         rebuild(g, c){ load(g, c); },
-        setView(v){ if (v === 'spin'){ autoSpin = true; targetTurn = null; } else { autoSpin = false; targetTurn = 0; } },
+        setView(v){ if (v === 'spin'){ autoSpin = true; targetTurn = null; } else { autoSpin = false; targetTurn = v === 'back' ? Math.PI : 0; } },
         setFocus(name){ focus = FOCUS[name] ? name : 'full'; },
         getView(){ return { orbitDeg: turn*180/Math.PI, focus }; },
         dispose(){ stopped = true; if (F) F.dispose(); renderer.dispose(); window.removeEventListener('resize', resize); }
@@ -12557,7 +12542,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       if (hit){ if (cb) hit.cbs.push(cb); return null; }
       const entry = { url:null, cbs: cb ? [cb] : [] };
       snapCache.set(key, entry);
-      dressedArt(g, L && L.cfg).then(art=>{
+      dressedArt(g, L && L.cfg, 'front').then(art=>{
         const aw = art.width, ah = art.height;
         const out = document.createElement('canvas');
         if (mode === 'head'){
@@ -12611,10 +12596,10 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         sh.rotation.x = -Math.PI/2; sh.scale.set(1.4, 1, 1); sh.position.y = 0.01; root.add(sh);
         scene.add(root);
         const tr = { root, F:null, cmd:0, pose:null, side, seed:Math.random()*6 };
-        dressedArt(g, L && L.cfg).then(art=>{
+        dressedPair(g, L && L.cfg).then(([front, back])=>{
           if (stopped || T[side] !== tr) return;
-          tr.F = makeArtFigure(art, 0.3); tr.F.mesh.scale.setScalar(2.35*tr.F.aspect);
-          tr.F.mesh.rotation.y = side === 'L' ? 0.45 : -0.45;     // turned in toward the fight
+          tr.F = makeArtFigure(front, back, 0.3, 2.35);
+          tr.F.fig.rotation.y = side === 'L' ? 0.45 : -0.45;      // turned in toward the fight
           if (side === 'L') tr.F.fig.position.x = 0.2;              // the staff and lantern stick out to the left: keep them on screen
           root.add(tr.F.fig);
         }).catch(e=> console.warn('trainer art', e));
@@ -12638,7 +12623,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
           F.uni.uLean.value = lean;
           F.fig.position.y = hop;
           F.fig.rotation.z = tr.pose === 'lose' ? 0.08*dir : 0;
-          F.mat.color.setScalar(tr.pose === 'lose' ? 0.72 : 1);
+          F.tint(tr.pose === 'lose' ? 0.72 : 1);
         });
         renderer.render(scene, cam);
         arenaBusy = updateTotos();
