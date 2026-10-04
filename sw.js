@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v71';
+const CACHE_NAME = 'totoquest-v72';
 const ASSETS = [
 './assets/wardrobe/rank1-legs-thumb.png',
 './assets/wardrobe/rank1-legs.jpg',

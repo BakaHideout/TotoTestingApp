@@ -73,11 +73,17 @@
   /* The game fills exactly the visible screen. --tq-vh is the real visible height, measured by the
      script in the page head (and again after rotations, restarts and coming back to the app). */
   #toto-root { max-width:100vw !important; height:100vh !important; height:var(--tq-vh, 100dvh) !important; border-radius:0 !important; }
+  /* iPhones draw the page under the status bar / Dynamic Island and the home bar: keep the whole game
+     (menus' close buttons included) inside the safe area. Other phones report 0 here. */
+  @supports (padding-top: env(safe-area-inset-top)){
+    #toto-root { margin-top:env(safe-area-inset-top) !important; margin-bottom:env(safe-area-inset-bottom) !important;
+      height:calc(var(--tq-vh, 100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important; }
+  }
   /* Desktop browsers show the game in a phone-sized frame. Phones and tablets never do, even sideways. */
   @media (min-width: 500px) and (hover:hover) and (pointer:fine){ #toto-root { max-width:480px !important; height:min(860px, var(--tq-vh, 100dvh)) !important; border-radius:26px !important; } }
   html.tq-busy-battle #tq-update-banner.show { display:none; }
   #tq-update-banner {
-    position:fixed; left:12px; right:12px; bottom:16px; z-index:99999;
+    position:fixed; left:12px; right:12px; bottom:calc(16px + env(safe-area-inset-bottom)); z-index:99999;
     background:linear-gradient(135deg,#ff8a3d,#ff5f6d); color:#fff; font-family:'Baloo 2','Segoe UI',sans-serif;
     font-weight:800; font-size:14px; padding:13px 16px; border-radius:14px; text-align:center;
     box-shadow:0 10px 28px rgba(0,0,0,0.4); cursor:pointer; display:none;
@@ -189,6 +195,14 @@
   .nearby-empty { padding:14px 16px 18px; text-align:center; color:#bba9d6; font-weight:700; font-size:12.5px; line-height:1.45; }
   .t3-label.tracked { outline:2px solid #7cf29a; border-radius:8px; }
   @media (max-width: 389px){ .nearby-face:nth-child(3) { display:none; } .nearby-widget { padding:0 10px 0 8px; gap:6px; } }
+  /* phones: a compact Nearby button that stays clear of the pumpkin menu in the middle */
+  @media (max-width: 499px){
+    .nearby-widget { height:50px; bottom:18px; gap:6px; padding:0 10px 0 8px; border-radius:17px; max-width:calc(50% - 62px); overflow:hidden; }
+    .nearby-face { width:28px; height:28px; margin-left:-11px; font-size:16px; }
+    .nearby-face:nth-child(3) { display:none; }
+    .nearby-num { min-width:30px; } .nearby-num b { font-size:16px; } .nearby-num small { font-size:7.5px; margin-top:2px; }
+    .nearby-arrow { font-size:17px; }
+  }
   .toto-node.tracked .node-ring { border-color:#7cf29a; box-shadow:0 0 14px #7cf29a; }
 
   /* ---------- PUMPKIN MENU ---------- */
@@ -975,7 +989,7 @@
   @keyframes pvaNum { 0%{ opacity:0; transform:translate(-50%,-30%) scale(0.6); } 15%{ opacity:1; transform:translate(-50%,-60%) scale(1.15); } 100%{ opacity:0; transform:translate(-50%,-190%) scale(1); } }
   .pva-slash { position:absolute; width:34%; max-width:170px; aspect-ratio:1/1; transform:translate(-50%,-50%); pointer-events:none; animation:pvaSlash 0.45s ease-out forwards; }
   @keyframes pvaSlash { 0%{ opacity:0; transform:translate(-50%,-50%) scale(0.5) rotate(-20deg); } 30%{ opacity:1; } 100%{ opacity:0; transform:translate(-50%,-50%) scale(1.25) rotate(10deg); } }
-  .pva-top { position:absolute; left:0; right:0; top:0; z-index:7; padding:calc(8px + env(safe-area-inset-top)) 10px 0; }
+  .pva-top { position:absolute; left:0; right:0; top:0; z-index:7; padding:8px 10px 0; }
   .pva-title { display:inline-flex; align-items:center; gap:8px; padding:5px 12px 5px 8px; border-radius:12px; background:rgba(20,10,40,0.75); border:1px solid rgba(255,255,255,0.14); }
   .pva-title span { font-size:20px; } .pva-title b { display:block; font-size:14px; } .pva-title small { display:block; font-size:10px; font-weight:700; color:#cbb8ec; }
   .pva-cards { display:flex; align-items:center; gap:6px; margin-top:8px; }
@@ -989,12 +1003,12 @@
   .pva-ci .rank-chip { background:rgba(255,255,255,0.12); color:#fff; font-size:9.5px; margin-top:2px; }
   .pva-cs { font-size:10px; font-weight:800; color:#cbb8ec; margin-top:2px; white-space:nowrap; }
   .pva-vs { font-weight:900; font-size:15px; color:#ffc46b; text-shadow:0 2px 6px rgba(0,0,0,0.6); }
-  .pva-turn { position:absolute; left:50%; top:calc(30% + env(safe-area-inset-top)); z-index:7; transform:translateX(-50%); text-align:center; padding:6px 16px; border-radius:14px; background:rgba(20,10,40,0.7); border:1.5px solid rgba(255,196,107,0.55); white-space:nowrap; transition:opacity 0.25s; }
+  .pva-turn { position:absolute; left:50%; top:30%; z-index:7; transform:translateX(-50%); text-align:center; padding:6px 16px; border-radius:14px; background:rgba(20,10,40,0.7); border:1.5px solid rgba(255,196,107,0.55); white-space:nowrap; transition:opacity 0.25s; }
   .pva-turn b { display:block; font-size:16px; letter-spacing:0.06em; color:#ffe2a8; text-transform:uppercase; }
   .pva-turn span { font-size:11px; font-weight:800; color:#d9c8f5; }
   .pva-turn.mine { border-color:#7dff8a; } .pva-turn.mine b { color:#b6ffbe; }
-  .pva-log { position:absolute; left:8%; right:8%; bottom:calc(25% + env(safe-area-inset-bottom)); z-index:7; text-align:center; font-size:12px; font-weight:800; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.8); min-height:16px; }
-  .pva-bottom { position:absolute; left:0; right:0; bottom:0; z-index:8; padding:8px 10px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(180deg, rgba(20,11,38,0), rgba(20,11,38,0.92) 30%); }
+  .pva-log { position:absolute; left:8%; right:8%; bottom:25%; z-index:7; text-align:center; font-size:12px; font-weight:800; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.8); min-height:16px; }
+  .pva-bottom { position:absolute; left:0; right:0; bottom:0; z-index:8; padding:8px 10px 10px; background:linear-gradient(180deg, rgba(20,11,38,0), rgba(20,11,38,0.92) 30%); }
   .pva-skills { display:grid; grid-template-columns:repeat(4, 1fr); gap:7px; }
   .pva-sk { position:relative; border:none; border-radius:14px; padding:7px 4px 6px; font-family:inherit; color:#fff; cursor:pointer; background:linear-gradient(180deg,#3d2370,#26134a); border:1.5px solid rgba(255,255,255,0.18); box-shadow:0 3px 0 rgba(0,0,0,0.45); display:flex; flex-direction:column; align-items:center; gap:3px; }
   .pva-sk .ab-ic { width:34px; height:34px; }
@@ -1082,7 +1096,7 @@
   .chat-msg.me { align-self:flex-end; background:linear-gradient(135deg,#7b4bc4,#5a2d99); color:#fff; border-bottom-right-radius:5px; }
   .chat-msg small { display:block; font-size:10px; font-weight:700; opacity:0.6; margin-top:2px; }
   .chat-day { align-self:center; font-size:10.5px; font-weight:800; color:#a698bf; margin:4px 0; }
-  .chat-input { display:flex; gap:6px; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); background:#fff; box-shadow:0 -3px 10px rgba(0,0,0,0.05); }
+  .chat-input { display:flex; gap:6px; padding:8px 10px 8px; background:#fff; box-shadow:0 -3px 10px rgba(0,0,0,0.05); }
   .chat-input input { flex:1; min-width:0; border:1.5px solid #e6dcf3; border-radius:20px; padding:10px 14px; font-family:inherit; font-size:14px; font-weight:600; }
   .chat-input button { border:none; border-radius:20px; padding:0 16px; font-family:inherit; font-weight:900; background:#6b3fa0; color:#fff; cursor:pointer; }
   .act-card { width:100%; max-width:360px; background:#fff; border-radius:20px; padding:16px; max-height:100%; overflow-y:auto; }
@@ -9380,6 +9394,16 @@
   // fight plays sideways like the reference (and we try a real orientation lock first, which
   // installed web apps on Android allow).
   let bxOrientationLocked = false, bxRotated = false;
+  // the screen edges an iPhone keeps for its notch and home bar (zeros everywhere else)
+  function safeInsets(){
+    try {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+      document.body.appendChild(d); const cs = getComputedStyle(d);
+      const r = { t:parseFloat(cs.paddingTop)||0, r:parseFloat(cs.paddingRight)||0, b:parseFloat(cs.paddingBottom)||0, l:parseFloat(cs.paddingLeft)||0 };
+      d.remove(); return r;
+    } catch(e){ return { t:0, r:0, b:0, l:0 }; }
+  }
   function layoutBattleScreen(){
     const scr = $('#battle-screen'), stage = $('#bx-stage'), host = document.getElementById('toto-root');
     if (!scr || !host) return;
@@ -9396,11 +9420,16 @@
     const W = portrait ? vh : vw, H = portrait ? vw : vh;
     scr.style.width = W+'px'; scr.style.height = H+'px';
     scr.style.transform = portrait ? 'translate('+vw+'px,0) rotate(90deg)' : 'none';
-    const scale = H/540;
-    const dw = Math.max(820, Math.min(1260, W/scale));
-    const fit = Math.min(scale, W/dw);
+    // keep the fight clear of an iPhone's notch / Dynamic Island and home bar (they sit at the ends
+    // of the sideways screen); every other phone reports zero here
+    const si = full ? safeInsets() : { t:0, b:0, l:0, r:0 };
+    const padL = portrait ? si.t : si.l, padR = portrait ? si.b : si.r, padT = portrait ? si.r : si.t, padB = portrait ? si.l : si.b;
+    const Wa = Math.max(200, W - padL - padR), Ha = Math.max(200, H - padT - padB);
+    const scale = Ha/540;
+    const dw = Math.max(820, Math.min(1260, Wa/scale));
+    const fit = Math.min(scale, Wa/dw);
     stage.style.width = dw+'px';
-    stage.style.transform = 'translate('+((W - dw*fit)/2)+'px,'+((H - 540*fit)/2)+'px) scale('+fit+')';
+    stage.style.transform = 'translate('+(padL + (Wa - dw*fit)/2)+'px,'+(padT + (Ha - 540*fit)/2)+'px) scale('+fit+')';
     stage.dataset.dw = dw;
     // horizontal anchors that depend on the design width
     const rosterL = dw - 14 - 212;
@@ -10586,7 +10615,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v71';
+window.TQ_APP_VERSION = 'v72';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
