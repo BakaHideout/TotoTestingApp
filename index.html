@@ -10583,7 +10583,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v69';
+window.TQ_APP_VERSION = 'v70';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
@@ -12420,7 +12420,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       const totos = [];
       const reliefCache = new Map();
       const RELIEF_DEPTH = 0.27;
-      function buildRelief(img){
+      function buildRelief(img, side){
         const iw = img.naturalWidth || img.width || 300, ih = img.naturalHeight || img.height || 360, aspect = iw/ih;
         const S = 160, sw = aspect >= 1 ? S : Math.max(8, Math.round(S*aspect)), sh = aspect >= 1 ? Math.max(8, Math.round(S/aspect)) : S;
         const c = document.createElement('canvas'); c.width = sw; c.height = sh;
@@ -12440,29 +12440,33 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         // a rounded dome over the whole figure, with a touch of the painting's own light and shade
         const R = Math.max(4, Math.max(sw, sh)*0.2);
         let Hh = new Float32Array(N);
-        for (let i=0;i<N;i++){ if (!D[i]) continue; const t = Math.min(D[i], R)/R; Hh[i] = Math.sqrt(1 - (1-t)*(1-t)) + (L[i] - 0.5)*0.1; }
+        for (let i=0;i<N;i++){ if (!D[i]) continue; const t = Math.min(D[i], R)/R; Hh[i] = Math.sqrt(1 - (1-t)*(1-t)) + (L[i] - 0.5)*0.035; }
         for (let pass=0; pass<2; pass++){
           const o = new Float32Array(N);
           for (let y=0;y<sh;y++) for (let x=0;x<sw;x++){ let s = 0, n = 0; for (let dy=-1;dy<=1;dy++) for (let dx=-1;dx<=1;dx++){ const xx = x+dx, yy = y+dy; if (xx < 0 || yy < 0 || xx >= sw || yy >= sh) continue; s += Hh[yy*sw+xx]; n++; } o[y*sw+x] = s/n; }
           Hh = o;
         }
+        // depth follows the figure's narrower side, and side-on (profile) art is kept shallower, so wide
+        // creatures don't bulge and warp
+        const depth = (side ? 0.17 : RELIEF_DEPTH)*Math.min(1, 1/aspect);
         const segX = 64, segY = Math.max(8, Math.round(64/aspect));
         const geo = new THREE.PlaneGeometry(1, 1/aspect, segX, segY);
         const pos = geo.attributes.position, uv = geo.attributes.uv;
         for (let k=0;k<pos.count;k++){
           const fx = uv.getX(k)*(sw-1), fy = (1 - uv.getY(k))*(sh-1), x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(sw-1, x0+1), y1 = Math.min(sh-1, y0+1), ax = fx - x0, ay = fy - y0;
           const h = (Hh[y0*sw+x0]*(1-ax) + Hh[y0*sw+x1]*ax)*(1-ay) + (Hh[y1*sw+x0]*(1-ax) + Hh[y1*sw+x1]*ax)*ay;
-          pos.setZ(k, Math.max(0, h)*RELIEF_DEPTH);
+          pos.setZ(k, Math.max(0, h)*depth);
         }
         geo.translate(0, 0.5/aspect, 0);
         geo.computeVertexNormals();
         const tex = new THREE.Texture(img); if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.needsUpdate = true;
         return { geo, tex, aspect };
       }
-      function reliefFor(src){
-        if (reliefCache.has(src)) return reliefCache.get(src);
-        const pr = new Promise((res, rej)=>{ const img = new Image(); img.onload = ()=>{ try { res(buildRelief(img)); } catch(e){ rej(e); } }; img.onerror = rej; img.src = src; });
-        reliefCache.set(src, pr);
+      function reliefFor(src, side){
+        const key = (side ? 's|' : 'f|') + src;
+        if (reliefCache.has(key)) return reliefCache.get(key);
+        const pr = new Promise((res, rej)=>{ const img = new Image(); img.onload = ()=>{ try { res(buildRelief(img, side)); } catch(e){ rej(e); } }; img.onerror = rej; img.src = src; });
+        reliefCache.set(key, pr);
         if (reliefCache.size > 16) reliefCache.delete(reliefCache.keys().next().value);
         return pr;
       }
@@ -12482,7 +12486,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
           const sh = new THREE.Mesh(new THREE.CircleGeometry(0.5, 28), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.95 }));
           sh.scale.set(0.95, 0.24, 1); sh.position.set(0, 0.01, -0.35); sh.renderOrder = -1; T.group.add(sh); T.shadow = sh;
           tScene.add(T.group); totos.push(T);
-          reliefFor(src).then(R=>{
+          reliefFor(src, T.facing !== 'f').then(R=>{
             if (!totos.includes(T)) return;
             const uni = { uTime:{ value:0 }, uSeed:{ value:T.seed }, uH:{ value:1/R.aspect }, uSway:{ value:0.03 }, uBreath:{ value:0.028 }, uLean:{ value:0 } };
             const mat = new THREE.MeshStandardMaterial({ map:R.tex, emissiveMap:R.tex, emissive:new THREE.Color(0.42, 0.42, 0.42), roughness:0.68, metalness:0, alphaTest:0.4, side:THREE.DoubleSide });
@@ -12504,7 +12508,9 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
             const toRight = T.side === 'me';
             const mirror = (toRight && T.facing === 'l') || (!toRight && T.facing === 'r');
             mesh.scale.x = mirror ? -1 : 1;
-            T.baseRot = (T.facing === 'f' ? 0.62 : 0.24) * (toRight ? 1 : -1);
+            // side-on art is already drawn in profile facing its rival: it isn't turned (that warped it)
+            T.baseRot = T.facing === 'f' ? 0.62 * (toRight ? 1 : -1) : 0;
+            T.look = T.facing === 'f' ? 0.11 : 0.03;
             T.group.add(mesh); T.mesh = mesh; T.mat = mat; T.uni = uni; T.aspect = R.aspect;
             T.el.classList.add('t3on');
           }).catch(()=>{});
@@ -12540,7 +12546,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
           const hop = cl.contains('sel') ? Math.max(0, Math.sin(t*5.5 + T.seed))*0.035 : 0;
           T.mesh.position.y = hop;
           // turned toward the rival, looking around a little
-          T.mesh.rotation.y = T.baseRot + Math.sin(t*0.6 + T.seed)*0.11 + (cl.contains('turn') ? 0.06*dir : 0);
+          T.mesh.rotation.y = T.baseRot + Math.sin(t*0.6 + T.seed)*T.look + (cl.contains('turn') && T.facing === 'f' ? 0.06*dir : 0);
           T.mesh.rotation.z = -dir*T.ko*1.25 + (T.hurt > 0 ? Math.sin(t*40)*0.05*T.hurt : 0);
           T.mesh.position.x = -dir*T.ko*0.18;
           // red flash when hit, green glow when healed, fades out when knocked out
