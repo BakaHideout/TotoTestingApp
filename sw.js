@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v68';
+const CACHE_NAME = 'totoquest-v69';
 const ASSETS = [
 './assets/wardrobe/rank1-legs-thumb.png',
 './assets/wardrobe/rank1-legs.jpg',
@@ -150,8 +150,9 @@ async function fetchPage(v){
     const html = await r.text();
     const resp = new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     if (html.indexOf("TQ_APP_VERSION = '" + v + "'") >= 0){
-      const cache = await caches.open(SHELL);
-      for (const k of await cache.keys()) if (k.url !== pageKey(v)) await cache.delete(k);
+      const cache = await caches.open(SHELL), cur = await getCurrent();
+      // keep just this release and the one the player is on
+      for (const k of await cache.keys()) if (k.url !== pageKey(v) && (!cur || k.url !== pageKey(cur))) await cache.delete(k);
       await cache.put(pageKey(v), resp.clone());
     }
     return resp;
@@ -164,18 +165,35 @@ async function newestCachedPage(){
   for (const k of keys){ const n = parseInt((new URL(k.url).searchParams.get('tqv') || '').replace(/\D+/g, ''), 10) || 0; if (n > bestN){ bestN = n; best = k; } }
   return best ? cache.match(best) : null;
 }
-// Opening the game: always the newest release (when online), straight from the phone once it's saved.
+// Which release the player is on. The game only moves to a newer one when the player taps the
+// "update" banner (a new release is downloaded in the background so the switch is instant).
+const META = 'totoquest-meta';
+const metaKey = () => new URL('./__tq-current', self.registration.scope).href;
+async function getCurrent(){ try { const r = await caches.match(metaKey(), { cacheName: META }); return r ? (await r.text()).trim() : null; } catch (e) { return null; } }
+async function setCurrent(v){ try { const c = await caches.open(META); await c.put(metaKey(), new Response(String(v))); } catch (e) {} }
+// Opening the game: the release the player is on, straight from the phone.
 async function gamePage(req){
-  const v = await latestVersion();
-  if (v){
-    const hit = await caches.match(pageKey(v), { cacheName: SHELL });
+  const cur = await getCurrent();
+  if (cur){
+    const hit = await caches.match(pageKey(cur), { cacheName: SHELL });
     if (hit) return hit;
-    const fresh = await fetchPage(v);
-    if (fresh) return fresh;
+    const again = await fetchPage(cur);
+    if (again) return again;
   }
+  // first time (or that release can't be found): the newest one, which becomes the player's release
+  const v = (await latestVersion()) || VERSION;
+  const page = (await caches.match(pageKey(v), { cacheName: SHELL })) || (await fetchPage(v));
+  if (page){ await setCurrent(v); return page; }
   const saved = await newestCachedPage();
   if (saved) return saved;
   try { return await fetch(req); } catch (e) { return caches.match('./index.html'); }
+}
+// the update banner: move to this release (downloading its page first if needed)
+async function useRelease(v){
+  const page = (await caches.match(pageKey(v), { cacheName: SHELL })) || (await fetchPage(v));
+  if (!page) return new Response('not ready', { status: 503 });
+  await setCurrent(v);
+  return new Response('ok', { status: 200 });
 }
 
 self.addEventListener('install', (event) => {
@@ -190,7 +208,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME && k !== SHELL).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE_NAME && k !== SHELL && k !== META).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -213,6 +231,8 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.endsWith('/version.json')) return;
   // opening (or restarting) the game
   if (req.mode === 'navigate'){ event.respondWith(gamePage(req)); return; }
+  // the player tapped "update"
+  if (url.pathname.endsWith('/__tq-use')){ event.respondWith(useRelease(url.searchParams.get('v') || VERSION)); return; }
   // a specific release's page (the update banner grabs it before restarting)
   if (url.searchParams.has('tqv')){
     const v = url.searchParams.get('tqv');

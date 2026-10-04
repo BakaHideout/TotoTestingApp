@@ -134,3 +134,8 @@ Migration: `supabase/migrations/2026-10-03e_pvp_pass.sql`.
 - **Who moves first.** The team with the fastest Toto now moves first. Turns on the server still alternate (odd = player 1, even = player 2). When player 2's team is faster, player 1's game sends `pass` for turn 1, so `pvp_move` now accepts `pass`. If player 1 never sends it, the usual idle claim (`auto`) also counts as the pass.
 - **Engine 4.** Battle rules changed (first mover, Rank Champions), so every Toto snapshot now carries `ev: 4`. Matchmaking pairs only equal versions, so v66 and v67 players are never matched together.
 - **Rank Champions.** A top-10 season finish (from `season_claim` / heartbeat `awards`) gives the matching "Rank #N Champion" Toto once, saved in the player's game data (`rankChamps`). No server change was needed.
+
+## v69
+
+- **Battle rules, engine 5.** The Rank Champions are now a little stronger than Witch Hana, so every Toto snapshot carries `ev: 5`. Players on older versions are only matched with each other.
+- **Updates are the player's choice.** This is entirely in the game's service worker; there are no server changes. It remembers which release the player is on and opens that one. A new release is downloaded in the background and the "update" banner offers it. Tapping the banner calls `__tq-use?v=<release>`, which the service worker answers itself, and then restarts into the new release.

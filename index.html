@@ -2179,7 +2179,7 @@
           <span>• A Tank's Taunt makes your rival attack it for their next 3 turns, so your Attacker can hit freely. Knock out both rival Totos to win.</span>
           <span>• Win vs a trainer +25 RP, lose −15. Win vs a computer +10, lose −5.</span>
           <span>• Ranks: Bronze 3 → Silver → Gold → Platinum → Diamond 1 → Master (1,500 RP). The top 10 Masters are Grandmasters.</span>
-          <span>• The season resets on the 1st of every month. Finish in the top 10 to earn that place's Rank Champion Toto (an Eternal Attacker with a heal; #1 is the strongest). Finish at #1 to also earn the Rank #1 PvP outfit for good: shirt, hat, tights, shoes and Pumpkin Staff.</span>
+          <span>• The season resets on the 1st of every month. Finish in the top 10 to earn that place's Rank Champion Toto (an Eternal Attacker with a heal, a little stronger than Witch Hana; #1 is the strongest). Finish at #1 to also earn the Rank #1 PvP outfit for good: shirt, hat, tights, shoes and Pumpkin Staff.</span>
         </div>
       </div>
     </div>
@@ -2763,7 +2763,8 @@
   const RANK_CHAMP_MAX = 10;
   const rankChampName = n=> 'Rank #'+n+' Champion';
   function rankChampNum(name){ const m = /^Rank #(\d+) Champion$/.exec(String(name||'')); const n = m ? +m[1] : 0; return n >= 1 && n <= RANK_CHAMP_MAX ? n : 0; }
-  function rankChampMod(name){ const n = rankChampNum(name); if (!n) return null; return n === 1 ? { atk:1.10, def:1.10, hp:1.05, armor:0.10 } : { atk:1.06, def:1.05, hp:1.0, armor:0.05 }; }
+  // on top of Witch Hana's own strength (they share her stat boost): #2–#10 are 4% stronger in every stat, #1 is 8% stronger
+  function rankChampMod(name){ const n = rankChampNum(name); if (!n) return null; return n === 1 ? { atk:1.08, def:1.08, hp:1.08, spd:1.08, armor:0.10 } : { atk:1.04, def:1.04, hp:1.04, spd:1.04, armor:0.05 }; }
   for (let n=1; n<=RANK_CHAMP_MAX; n++){ SPECIES_ROLE[rankChampName(n)] = 'attacker'; TOTO_IMG[rankChampName(n)] = 'eternal/rank_champ_'+n; }
   TOTO_IMG['Witch Hana']='eternal/witch_hana'; TOTO_IMG['Max']='eternal/max'; TOTO_IMG['Toni']='eternal/toni_scarecrow';
   const ROLE_INFO = {
@@ -2877,6 +2878,8 @@
     }
     // a Rank Champion Toto for each top-10 place you've finished a season at (one of each number, for good)
     if (Array.isArray(state.collection)){
+      // Champions given out before v69 were built weaker than Witch Hana: bring them up to strength
+      state.collection.forEach(t=>{ if (t && rankChampNum(t.name) && t.statMult !== 1.3){ t.statMult = 1.3; applyLevelStats(t, t.level || 1); markDirty(); } });
       state.rankChamps = Array.isArray(state.rankChamps) ? state.rankChamps : [];
       const places = [];
       (state.seasonResults||[]).forEach(r=>{ const n = r ? r.rank|0 : 0; if (n >= 1 && n <= RANK_CHAMP_MAX && !places.includes(n)) places.push(n); });
@@ -3143,7 +3146,7 @@
     t.level = level;
     const s = statsForLevel(t.tier, t.role, level, t.statMult);
     const champ = rankChampMod(t.name);
-    if (champ){ s.atk = Math.round(s.atk*champ.atk); s.def = Math.round(s.def*champ.def); s.hp = Math.round(s.hp*champ.hp); }
+    if (champ){ s.atk = Math.round(s.atk*champ.atk); s.def = Math.round(s.def*champ.def); s.hp = Math.round(s.hp*champ.hp); s.spd = Math.round(s.spd*champ.spd); }
     t.maxHp=s.hp; t.hp=Math.round(s.hp*ratio); t.atk=s.atk; t.def=s.def; t.spd=s.spd;
     t.heal = s.heal || 0; t.buff = s.buff || 0;
     t.strength = t.atk; t.maxEnergy = 100; t.energy = 100; // legacy fields some UI/battle code still reads
@@ -3426,7 +3429,7 @@
   // beat right now, so she carries an extra stat multiplier on top of Eternal.
   function makeMax(){ return makeFixedEternal('Max', MAX_IMG, 'attacker', 1.15); }
   function makeWitchHana(){ return makeFixedEternal('Witch Hana', HANA_IMG, 'attacker', 1.3); }
-  function makeRankChampion(n){ const name = rankChampName(n); const t = makeFixedEternal(name, spriteFor(name, 'attacker'), 'attacker', 1); t.nature = 'attacker'; return t; }
+  function makeRankChampion(n){ const name = rankChampName(n); const t = makeFixedEternal(name, spriteFor(name, 'attacker'), 'attacker', 1.3); t.nature = 'attacker'; return t; }
   // Four more Eternal Challengers — a coven of witches/spirits, split across the roles that
   // still needed a dedicated Eternal (Healer, Supporter, Tanker), plus one more Attacker.
   const VESPER_IMG = '<img class="creature-img" src="assets/totos/eternal/vesper_nightshade.png" alt="Vesper Nightshade" draggable="false">';
@@ -4629,7 +4632,7 @@
   // fight after 30 s? A computer rival with a team built to match yours.
   // PVP_ENGINE goes up whenever the battle rules change: trainers are only paired with others on the
   // same rules (both phones must replay a battle exactly the same way).
-  const PVP_ENGINE = 4;
+  const PVP_ENGINE = 5;
   const PVP_TURN_SECS = 25, PVP_SEARCH_SECS = 30;
   const PVP = { timer:null, searching:false, searchStart:0, lobbyKey:'', players:[], inArena:false, polling:false, open:false };
   function pvpSkillIcon(s){ return '<span class="ab-ic" style="--abc-1:'+s.c.c1+';--abc-2:'+s.c.c2+';--abc-b:'+s.c.b+'">'+(ABILITY_GLYPH[s.glyph]||'')+'</span>'; }
@@ -4686,7 +4689,7 @@
     'Blossom Wraith':   { r:'supporter', s:[['hit','Petal Lash'],['weakenAll','Wilting Hex'],['shield','Bloom Ward'],['heal','Spring Dew']] },
     'Harvest Warden':   { r:'healer', s:[['hit','Sickle Tap'],['heal','Harvest Moon'],['healAll','Bountiful Feast'],['shield','Warden’s Ward']] },
     'Shadow Sovereign': { r:'tanker', s:[['hit','Sovereign Strike',{pow:1.05}],['taunt','Taunt'],['fortify','Shadow Bulwark'],['heal','Dark Renewal',{pct:0.14}]] },
-    'Rank Champion':    { r:'attacker', s:[['hit','Champion Strike',{pow:1.08}],['heavy','Scepter Smash',{pow:1.62}],['sweep','Victory Storm',{pow:0.8}],['heal','Champion’s Brew']], ult:['hit','Crowning Blow',{pow:3.0}] },
+    'Rank Champion':    { r:'attacker', s:[['hit','Champion Strike',{pow:1.1}],['heavy','Scepter Smash',{pow:1.7}],['sweep','Victory Storm',{pow:0.82}],['heal','Champion’s Brew']], ult:['hit','Crowning Blow',{pow:3.1}] },
     'Pumpkin Reaper':   { r:'attacker', s:[['hit','Scythe Slash'],['burn','Jack-o’-Blaze'],['mark','Reaper’s Mark'],['multi','Harvest Rush']], ult:['hit','Grim Harvest',{pow:2.8}] },
     'Ember Fox':        { r:'attacker', s:[['hit','Ember Swipe'],['burn','Fox Fire'],['pierce','Blaze Dash'],['multi','Nine-Tail Flurry']], ult:['sweep','Inferno Tails',{pow:1.75}] },
     'Grimlet':          { r:'attacker', s:[['hit','Gnaw'],['heavy','Mischief Strike'],['multi','Gremlin Flurry'],['focus','Sneaky Focus']], ult:['hit','Chaos Pounce',{pow:2.75}] },
@@ -4758,9 +4761,10 @@
     const nm = isToni ? 'Toni' : String(name||'Toto');
     const rcN = rankChampNum(nm);
     const champ = PVP_CHAMPS[nm] === role || (rcN === 1 && role === 'attacker');
-    const grade = (PVP_GRADE[tier]|0) + (champ ? 1 : 0);
+    // the strongest of each class gets a step up; the Rank Champions sit at Witch Hana's step (#1 one above)
+    const grade = (PVP_GRADE[tier]|0) + (PVP_CHAMPS[nm] === role ? 1 : 0) + (rcN && role === 'attacker' ? (rcN === 1 ? 2 : 1) : 0);
     const gp = 1 + 0.045*grade;
-    const jit = k=> 0.96 + (pvpHash(nm+'#'+k) % 1000)/1000*0.08;   // each Toto a little different
+    const jit = k=> rcN ? 1 : 0.96 + (pvpHash(nm+'#'+k) % 1000)/1000*0.08;   // each Toto a little different (the Rank Champions share exact numbers, so #1 is stronger on every move)
     const theme = []; PVP_THEMES.forEach(([re, words])=>{ if (theme.length < 8 && re.test(nm)) theme.push(...words); });
     if (!theme.length) theme.push(nm.split(/\s+/)[0]);
     const nameFor = (type, slot)=> type === 'taunt' ? 'Taunt' : theme[(pvpHash(nm) + slot*3) % theme.length]+' '+pvpPick(PVP_VERB[type] || PVP_VERB.hit, nm, type+slot);
@@ -4792,6 +4796,7 @@
         // Healers heal a lot; a Tank's or Supporter's one heal is small; Witch Hana's is in between
         const dflt = role === 'healer' ? base.pctHealer : role === 'attacker' ? base.pctAttacker : base.pctOther;
         m.pct = +((ex.pct || dflt) * (ex.pct ? 1 : gp) * jit(slot)).toFixed(3);
+        if (rcN) m.pct = rcN === 1 ? 0.195 : 0.185;     // a touch more than Witch Hana's Brew
         if (role !== 'healer' && ex.cd == null) m.cd = 4;
       } else if (base.pct) m.pct = +((ex.pct || base.pct) * gp * jit(slot)).toFixed(3);
       m.desc = pvpMoveDesc(m);
@@ -4834,10 +4839,10 @@
     const base = powerLevelOf(statsForLevel(tier, 'attacker', level, mult)), R = PVP_ROLE[role];
     const maxHp = Math.max(10, Math.round(base*0.5*R.hp));
     const K = pvpKitFor(s.name, role, tier, !!s.isToni);
-    const cm = rankChampMod(s.name) || { atk:1, hp:1, armor:0 };
+    const cm = rankChampMod(s.name) || { atk:1, hp:1, spd:1, armor:0 };
     const hp = Math.max(10, Math.round(maxHp*cm.hp));
     return { idx:idx|0, name:String(s.name||'Toto').slice(0,40), nature: typeof s.nature === 'string' ? s.nature : null, isToni:!!s.isToni, tier, role, level,
-             maxHp:hp, hp, armor:cm.armor, atk:Math.max(1, base*0.1*R.atk*cm.atk), spd:(statsForLevel(tier, role, level, mult).spd||1), cp:base,
+             maxHp:hp, hp, armor:cm.armor, atk:Math.max(1, base*0.1*R.atk*cm.atk), spd:(statsForLevel(tier, role, level, mult).spd||1)*cm.spd, cp:base,
              kit:K.kit, ult:K.ult, charge:0, cd:{ s1:0, s2:0, s3:0, s4:0 },
              shield:0, weak:0, guard:0, mark:0, emp:0, focus:0, burn:null, regen:null };
   }
@@ -10571,14 +10576,14 @@
 })();
 </script>
 
-<div id="tq-update-banner">🔄 A new version of TotoQuest is available — tap to update</div>
+<div id="tq-update-banner">🔄 A new version of TotoQuest is ready — tap to update</div>
 <style>
   #tq-update-banner.updating { background:linear-gradient(135deg,#4d7cff,#7b5cff); cursor:default; }
   #tq-update-banner.updated { background:linear-gradient(135deg,#4dbf4d,#2e9e2e); cursor:default; }
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v68';
+window.TQ_APP_VERSION = 'v69';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
@@ -10649,8 +10654,10 @@ window.TQ_APP_VERSION = 'v68';
       banner.textContent = '✅ Updated! Restarting the app…';
       setTimeout(restart, 600);
     };
-    // Grab the new release's page first so the restart opens straight into it.
-    var warm = latest ? fetch('index.html?tqv=' + encodeURIComponent(latest), { cache:'no-store' }).catch(function(){}) : Promise.resolve();
+    // Download the new release's page and tell the helper to switch to it, so the restart opens
+    // straight into it (older helpers simply open the newest release on restart).
+    var warm = latest ? fetch('index.html?tqv=' + encodeURIComponent(latest), { cache:'no-store' }).catch(function(){})
+      .then(function(){ return fetch('__tq-use?v=' + encodeURIComponent(latest), { cache:'no-store' }).catch(function(){}); }) : Promise.resolve();
     Promise.race([warm, new Promise(function(r){ setTimeout(r, 4000); })]).then(function(){
       if (regRef && regRef.waiting){ regRef.waiting.postMessage('SKIP_WAITING'); setTimeout(done, 1200); }
       else done();
