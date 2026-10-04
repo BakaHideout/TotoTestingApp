@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v67';
+const CACHE_NAME = 'totoquest-v68';
 const ASSETS = [
 './assets/wardrobe/rank1-legs-thumb.png',
 './assets/wardrobe/rank1-legs.jpg',
@@ -225,6 +225,8 @@ self.addEventListener('fetch', (event) => {
   const netReq = shell ? new Request(req, { cache: 'no-cache' }) : req;
   event.respondWith(
     fetch(netReq).then((resp) => {
+      // a missing file (404 and the like) never replaces a good copy the phone already has
+      if (!resp.ok) return caches.match(event.request).then((hit) => hit || resp);
       const copy = resp.clone();
       caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(()=>{});
       return resp;

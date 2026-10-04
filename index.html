@@ -4195,7 +4195,8 @@
     const name = String((spec && spec.name) || ''), tier = spec && spec.tier;
     const lvl = Math.max(1, Math.min(TOTO_MAX_LEVEL, parseInt(spec && spec.level, 10) || 1));
     let t = null;
-    if (tier === 'eternal'){ const mk = eternalMakerByName(name); if (mk) t = mk(); }
+    if (tier === 'eternal' && rankChampNum(name)) t = makeRankChampion(rankChampNum(name));
+    else if (tier === 'eternal'){ const mk = eternalMakerByName(name); if (mk) t = mk(); }
     else if (TIER_ORDER.includes(tier) && SPECIES_ROLE[name] && TOTO_IMG[name] && !/^eternal\//.test(TOTO_IMG[name])){
       t = makeToto(tier); t.name = name; t.role = roleOf(name); t.nature = t.role; t.sprite = spriteFor(name, t.role);
     }
@@ -4563,6 +4564,7 @@
       const opt = (v, t)=> '<option value="'+escapeHtml(v)+'">'+escapeHtml(t)+'</option>';
       const byName = (a, b)=> a.name.localeCompare(b.name);
       const sel = '<select id="gift-sp">'
+        + '<optgroup label="Rank Champions (season rewards)">'+Array.from({ length:RANK_CHAMP_MAX }, (_, i)=> opt('eternal|'+rankChampName(i+1), rankChampName(i+1))).join('')+'</optgroup>'
         + '<optgroup label="Eternal">'+giftEternalNames().slice().sort().map(n=> opt('eternal|'+n, n)).join('')+'</optgroup>'
         + '<optgroup label="Mythical">'+LEGENDARY_SPECIES.slice().sort(byName).map(s=> opt('mythical|'+s.name, s.name+' (Mythical)')).join('')+'</optgroup>'
         + '<optgroup label="Legendary">'+LEGENDARY_SPECIES.slice().sort(byName).map(s=> opt('legendary|'+s.name, s.name)).join('')+'</optgroup>'
@@ -10576,7 +10578,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v67';
+window.TQ_APP_VERSION = 'v68';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
