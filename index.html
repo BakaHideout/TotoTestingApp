@@ -91,6 +91,7 @@
   #tq-update-banner.show { display:block; animation: tqSlideUp 0.35s ease-out; }
   @keyframes tqSlideUp { from{ transform:translateY(30px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap">
 </head>
 <body>
 <style>
@@ -1066,6 +1067,8 @@
   html.tq-admin .admin-only { display:flex !important; }
   .owner-only { display:none !important; }
   html.tq-owner .owner-only { display:block !important; }
+  html.tq-owner .sp-nav button.owner-only, html.tq-owner .sp-icon.owner-only { display:flex !important; align-items:center; justify-content:center; }
+  html.tq-owner .sp-nav button.owner-only { justify-content:flex-start; }
   .fr-search { display:flex; gap:6px; margin-bottom:10px; }
   .fr-search input { flex:1; min-width:0; border:1.5px solid #e6dcf3; border-radius:12px; padding:10px 12px; font-family:inherit; font-weight:700; font-size:14px; background:#fff; }
   .fr-search button { border:none; border-radius:12px; padding:0 14px; font-family:inherit; font-weight:800; background:#6b3fa0; color:#fff; cursor:pointer; }
@@ -1090,6 +1093,125 @@
   .chat-view.show { display:flex; }
   .chat-head { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,0.06); }
   .chat-back, .chat-more { border:none; background:#f1eaf8; color:#6b3fa0; width:36px; height:36px; border-radius:12px; font-size:22px; font-weight:900; cursor:pointer; line-height:1; }
+  .chat-trade { border:none; background:linear-gradient(135deg,#ff9a3d,#ff6a3d); color:#fff; height:36px; border-radius:12px; padding:0 12px; font-family:inherit; font-weight:900; font-size:13px; cursor:pointer; white-space:nowrap; }
+  /* ---------- v76: trading Totos ---------- */
+  .tr-card { background:#fff; border-radius:14px; padding:10px 12px; margin-bottom:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border-left:4px solid #c9b6e6; }
+  .tr-card.act { border-left-color:#ff8a3d; box-shadow:0 2px 12px rgba(255,138,61,0.25); }
+  .tr-card.done { border-left-color:#3fbf6a; opacity:0.85; } .tr-card.off { border-left-color:#bbb; opacity:0.7; }
+  .tr-top { font-size:12.5px; font-weight:800; color:#4a3a66; margin-bottom:6px; }
+  .tr-swap { display:flex; align-items:center; gap:8px; }
+  .tr-toto { flex:1; min-width:0; display:flex; align-items:center; gap:6px; background:#f8f3ff; border-radius:12px; padding:5px 8px; }
+  .tr-toto .tr-sp { width:38px; height:38px; flex:0 0 38px; display:flex; align-items:center; justify-content:center; }
+  .tr-toto .tr-sp img, .tr-toto .tr-sp svg { max-width:38px; max-height:38px; }
+  .tr-toto b { display:block; font-size:12px; color:#2d2440; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tr-toto small { font-size:10.5px; font-weight:800; color:#8a7aa8; }
+  .tr-toto.empty { justify-content:center; color:#a898c4; font-size:11.5px; font-weight:800; min-height:48px; }
+  .tr-arrow { font-size:18px; color:#ff8a3d; font-weight:900; }
+  .tr-btns { display:flex; gap:6px; margin-top:8px; } .tr-btns .fr-btn { flex:1; }
+  .trade-pick { position:absolute; inset:0; z-index:80; background:rgba(20,10,40,0.55); display:none; align-items:flex-end; justify-content:center; }
+  .trade-pick.show { display:flex; }
+  .tp-box { width:100%; max-height:80%; background:#fdf8f1; border-radius:20px 20px 0 0; padding:14px 12px calc(12px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; }
+  .tp-title { font-weight:900; font-size:16px; color:#2d2440; } .tp-sub { font-size:12px; font-weight:700; color:#8a7aa8; margin:2px 0 10px; }
+  .tp-grid { flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .tp-t { border:2px solid transparent; background:#fff; border-radius:14px; padding:6px 4px; text-align:center; font-family:inherit; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.05); position:relative; }
+  .tp-t .tp-sp { height:56px; display:flex; align-items:center; justify-content:center; } .tp-t .tp-sp img, .tp-t .tp-sp svg { max-height:56px; max-width:70px; }
+  .tp-t b { display:block; font-size:11.5px; color:#2d2440; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-t small { display:block; font-size:10px; font-weight:800; color:#8a7aa8; }
+  .tp-t.locked { opacity:0.45; cursor:not-allowed; } .tp-t.locked::after { content:'🔒'; position:absolute; top:4px; right:6px; font-size:13px; }
+  .tp-cancel { margin-top:10px; border:none; border-radius:12px; padding:12px; font-family:inherit; font-weight:900; background:#ece4f6; color:#6b3fa0; cursor:pointer; }
+  /* ---------- v76: role tags in Challenger battles ---------- */
+  .bx-rtag { position:absolute; left:50%; top:-4px; transform:translateX(-50%); z-index:5; display:flex; align-items:center; gap:4px; padding:3px 10px 3px 7px; border-radius:12px; white-space:nowrap;
+    font-size:14px; font-weight:900; letter-spacing:0.03em; color:#fff; background:rgba(20,10,40,0.85); border:2px solid var(--rc,#ff6a3d); box-shadow:0 2px 6px rgba(0,0,0,0.5); pointer-events:none; }
+  .bx-rtag svg { width:15px; height:15px; }
+  .bx-member.down .bx-rtag { opacity:0.35; }
+  .bx-boss .bx-rtag { top:2%; font-size:16px; }
+  .bx-bossbar-role { margin-left:6px; font-size:11px; font-weight:900; padding:1px 7px; border-radius:9px; border:1.5px solid var(--rc,#ff6a3d); color:#fff; background:rgba(0,0,0,0.35); white-space:nowrap; }
+  .role-chip { display:inline-block; font-size:10.5px; font-weight:900; padding:1px 7px; border-radius:9px; border:1.5px solid currentColor; margin-left:4px; white-space:nowrap; }
+  /* ---------- v76: The Spooky Staff Panel ---------- */
+  .panel-screen.staff-panel { background:radial-gradient(ellipse at 50% 0%, #2c2734 0%, #17151d 65%); color:#ece3f6; container-type:inline-size; }
+  .sp-top { display:flex; align-items:center; gap:8px; padding:10px 12px; background:linear-gradient(#26222d,#1b1821); border-bottom:2px solid #3b3343; }
+  .sp-brand { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; }
+  .sp-brand b { font-family:'Cinzel',Georgia,serif; font-weight:900; font-size:19px; line-height:1.1; background:linear-gradient(#ffe6b8,#e8913f 65%,#b0581f); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sp-brand small { font-family:'Cinzel',Georgia,serif; font-weight:700; font-size:10px; letter-spacing:0.08em; color:#e9d8bb; text-transform:uppercase; }
+  .sp-icon { width:38px; height:38px; flex:0 0 38px; border-radius:10px; border:1.5px solid #4c4255; background:linear-gradient(#3b3545,#27232f); color:#f3e7d3; font-size:17px; position:relative; cursor:pointer; }
+  .sp-icon i { position:absolute; top:-5px; right:-5px; min-width:17px; height:17px; border-radius:9px; background:#ff3b5c; color:#fff; font-size:10px; font-style:normal; font-weight:900; line-height:17px; padding:0 4px; }
+  .sp-icon i:empty { display:none; }
+  .staff-panel .close-x { color:#f3e7d3; font-size:20px; padding:4px 2px 4px 6px; cursor:pointer; }
+  .sp-body { flex:1; min-height:0; display:flex; flex-direction:column; }
+  .sp-wood { border:3px solid #6e4627; border-radius:14px; background:linear-gradient(#221e28,#1a1720); box-shadow:inset 0 0 0 1.5px #a5743f, 0 6px 18px rgba(0,0,0,0.45); }
+  .sp-nav { display:flex; gap:8px; overflow-x:auto; padding:10px 12px 6px; scrollbar-width:none; flex:0 0 auto; }
+  .sp-nav::-webkit-scrollbar { display:none; }
+  .sp-nav-h { display:none; font-family:'Cinzel',Georgia,serif; font-weight:700; font-size:13px; letter-spacing:0.06em; color:#e9d8bb; text-align:center; margin:4px 0 6px; text-transform:uppercase; }
+  .sp-nav button { flex:0 0 auto; display:flex; align-items:center; gap:7px; padding:7px 12px; border-radius:12px; border:1.5px solid #4c4255; background:linear-gradient(#35303e,#26222d);
+    color:#f0e5d3; font-family:'Cinzel',Georgia,serif; font-weight:700; font-size:13.5px; box-shadow:0 2px 6px rgba(0,0,0,0.35); position:relative; cursor:pointer; }
+  .sp-nav button i { font-style:normal; font-size:18px; }
+  .sp-nav button.on { background:linear-gradient(#c49cf5,#8d5ed4); border-color:#e2c8ff; color:#fff; box-shadow:0 0 16px rgba(190,145,255,0.55); }
+  .sp-nav button b { position:absolute; top:-6px; right:-6px; min-width:17px; height:17px; border-radius:9px; background:#ff3b5c; color:#fff; font:900 10px/17px sans-serif; padding:0 4px; }
+  .sp-nav button b:empty { display:none; }
+  .sp-main { flex:1; min-height:0; overflow-y:auto; padding:2px 12px 14px; }
+  .sp-sec { display:none; } .sp-sec.on { display:block; }
+  .sp-h2 { font-family:'Cinzel',Georgia,serif; font-weight:900; color:#efe6d6; font-size:21px; margin:8px 2px 10px; display:flex; align-items:center; gap:8px; }
+  .sp-h2 small { font-family:'Baloo 2',sans-serif; font-size:12px; color:#b9a9cf; font-weight:700; }
+  .sp-cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:12px; }
+  .sp-card { background:linear-gradient(#27232f,#1d1a24); border:1.5px solid #3f3749; border-radius:12px; padding:10px 12px; position:relative; overflow:hidden; min-height:96px; }
+  .sp-card h4 { font-family:'Cinzel',Georgia,serif; font-weight:700; font-size:12.5px; color:#f0e7d8; letter-spacing:0.05em; margin:0; text-transform:uppercase; }
+  .sp-card .lbl { font-size:11.5px; color:#c9bcd9; font-weight:700; }
+  .sp-card .big { font-size:27px; font-weight:900; line-height:1.1; margin:2px 0; }
+  .sp-card .note { font-size:11px; font-weight:800; color:#a596bd; }
+  .sp-card svg.spark { position:absolute; left:0; right:0; bottom:0; width:100%; height:38px; }
+  .sp-bar { height:9px; border-radius:6px; background:#2f2a38; overflow:hidden; margin:8px 0 6px; border:1px solid #4a4155; }
+  .sp-bar > div { height:100%; background:linear-gradient(90deg,#ffb35a,#ff7a2e); border-radius:6px; }
+  .sp-chart-card { padding:10px 10px 8px; margin-bottom:12px; }
+  .sp-chart-h { display:flex; align-items:center; gap:8px; margin:2px 4px 6px; }
+  .sp-chart-h h4 { flex:1; font-family:'Cinzel',Georgia,serif; font-weight:700; font-size:13.5px; color:#f0e7d8; letter-spacing:0.04em; margin:0; text-transform:uppercase; }
+  .sp-chart-h select { background:#2a2632; color:#e7dcf3; border:1.5px solid #4c4255; border-radius:8px; padding:4px 6px; font-family:inherit; font-weight:700; font-size:12px; }
+  .sp-chart svg { width:100%; height:auto; display:block; }
+  .sp-legend { display:flex; gap:14px; justify-content:center; font-size:11.5px; font-weight:800; color:#cbbedb; margin-top:2px; }
+  .sp-legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .sp-tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:12px; }
+  .sp-tile { background:#221e29; border:1.5px solid #3f3749; border-radius:12px; padding:9px 10px; }
+  .sp-tile b { display:block; font-size:21px; font-weight:900; color:#fff; } .sp-tile span { font-size:11px; font-weight:800; color:#b3a4c9; text-transform:uppercase; letter-spacing:0.03em; }
+  .staff-panel .fr-search input, .staff-panel .ad-f { background:#2a2632; color:#ece3f6; border-color:#4c4255; }
+  .staff-panel .ad-f.active { background:#8d5ed4; color:#fff; }
+  .staff-panel .fr-search button, .staff-panel .set-wide { background:linear-gradient(#ff9a4a,#e9702a); color:#fff; border:none; }
+  .staff-panel .fr-row, .staff-panel .ad-rep { background:#25212c; border:1.5px solid #3b3445; box-shadow:none; }
+  .staff-panel .fr-name { color:#f2e9fb; } .staff-panel .fr-sub { color:#b3a4c9; } .staff-panel .fr-empty { color:#b3a4c9; }
+  .staff-panel .ad-rep q { color:#e9dcf7; }
+  .sp-list-row { display:flex; align-items:center; gap:10px; background:#25212c; border:1.5px solid #3b3445; border-radius:12px; padding:8px 10px; margin-bottom:6px; }
+  .sp-list-row .n { width:28px; text-align:center; font-weight:900; color:#ffcf8a; font-size:15px; }
+  .sp-list-row .w { flex:1; min-width:0; } .sp-list-row .w b { display:block; color:#f2e9fb; font-size:13.5px; } .sp-list-row .w small { color:#b3a4c9; font-weight:700; font-size:11.5px; }
+  .sp-list-row .rp { font-weight:900; color:#d9b8ff; font-size:13px; }
+  .sp-tool { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:#25212c; border:1.5px solid #3b3445; border-radius:12px; padding:11px 12px; margin-bottom:8px; color:#f2e9fb; font-family:inherit; font-weight:800; font-size:14px; cursor:pointer; }
+  .sp-tool i { font-style:normal; font-size:20px; } .sp-tool small { display:block; color:#b3a4c9; font-weight:700; font-size:11.5px; }
+  .sp-help { background:#221e29; border:1.5px solid #3f3749; border-radius:12px; padding:10px 12px; margin-bottom:8px; font-size:13px; font-weight:600; color:#ddd2ea; line-height:1.45; }
+  .sp-help b { color:#ffcf8a; }
+  .sp-chat { display:none; flex-direction:column; min-height:0; margin:2px 12px 12px; flex:1; }
+  .sp-chat.on { display:flex; }
+  .sp-chat-h { display:flex; align-items:center; justify-content:center; text-align:center; padding:8px 10px; background:linear-gradient(#7a4d2b,#5c3820); border-bottom:2px solid #a5743f; border-radius:10px 10px 0 0;
+    font-family:'Cinzel',Georgia,serif; font-weight:700; font-size:13px; letter-spacing:0.04em; color:#ffe2b0; text-transform:uppercase; line-height:1.25; }
+  .sp-chat-list { flex:1; min-height:180px; overflow-y:auto; padding:10px 8px; display:flex; flex-direction:column; gap:8px; }
+  .sp-msg { display:flex; gap:8px; align-items:flex-start; }
+  .sp-msg .av { width:40px; height:40px; flex:0 0 40px; border-radius:50%; background:#2f2a38; border:2px solid #6e5a86; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .sp-msg .av img { width:120%; margin-top:30%; }
+  .sp-msg .bub { flex:1; min-width:0; background:#2a2632; border:1.5px solid #463d51; border-radius:10px; padding:6px 9px; }
+  .sp-msg.mine .bub { background:#3a2f22; border-color:#8a6a3e; }
+  .sp-msg .who { display:flex; justify-content:space-between; gap:6px; font-family:'Cinzel',Georgia,serif; font-weight:700; font-size:11.5px; color:#efe2c8; text-transform:uppercase; }
+  .sp-msg .who small { font-family:'Baloo 2',sans-serif; color:#a596bd; font-weight:700; text-transform:none; }
+  .sp-msg .txt { font-size:13px; font-weight:600; color:#ece3f6; word-wrap:break-word; white-space:pre-wrap; }
+  .sp-chat-in { display:flex; gap:6px; padding:8px; border-top:1.5px solid #4a3a2a; }
+  .sp-chat-in textarea { flex:1; min-width:0; resize:none; height:44px; background:#211d27; color:#ece3f6; border:1.5px solid #4c4255; border-radius:10px; padding:6px 9px; font-family:inherit; font-size:13px; font-weight:600; }
+  .sp-chat-in button { border:1.5px solid #6a5a78; border-radius:10px; padding:0 14px; background:linear-gradient(#3b3545,#27232f); color:#f6ead6; font-family:'Cinzel',Georgia,serif; font-weight:900; cursor:pointer; }
+  .sp-status { display:flex; gap:12px; align-items:center; padding:6px 12px; background:#111015; border-top:1.5px solid #2e2836; font-size:11px; font-weight:800; color:#c2b5d4; flex:0 0 auto; }
+  .sp-status .ok { color:#5ee08a; } .sp-status .bad { color:#ff6a6a; } .sp-status .sp-gap { flex:1; }
+  @container (min-width: 820px){
+    .sp-body { display:grid; grid-template-columns:210px minmax(0,1fr) 290px; gap:12px; padding:12px; }
+    .sp-nav { flex-direction:column; overflow:visible; padding:10px; }
+    .sp-nav-h { display:block; }
+    .sp-nav button { padding:10px 12px; font-size:15px; }
+    .sp-main { padding:0 4px; }
+    .sp-chat { display:flex !important; margin:0; }
+    .sp-nav .sp-chat-nav { display:none; }
+  }
   .chat-av { width:38px; height:38px; }
   .chat-who { flex:1; min-width:0; display:flex; flex-direction:column; }
   .chat-who b { font-size:15px; color:#2d2440; } .chat-who small { font-size:11px; font-weight:800; color:#8a7aa8; }
@@ -2088,7 +2210,7 @@
         </div>
         <div class="qm-section">Social</div>
         <div class="qm-row">
-          <button class="nav-btn qm-btn" data-tab="friends" id="btn-menu-friends"><span class="nav-icon">👥</span>Friends<b class="qm-badge" id="friends-badge"></b></button>
+          <button class="nav-btn qm-btn" data-tab="friends" id="btn-menu-friends"><span class="nav-icon">💬</span>Chat &amp; Trade<b class="qm-badge" id="friends-badge"></b></button>
           <button class="qm-btn" id="btn-leaderboard"><span class="nav-icon">🏆</span>Ranks</button>
           <button class="nav-btn qm-btn admin-only" data-tab="admin" id="btn-menu-admin"><span class="nav-icon">🛡️</span>Admin</button>
         </div>
@@ -2124,7 +2246,7 @@
         <div class="pd-best" id="pd-best" style="display:none;"></div>
         <button class="pd-action" id="btn-open-wardrobe">👗<span>Wardrobe<small>Dress your trainer</small></span><i>›</i></button>
         <button class="pd-action" id="btn-open-settings">⚙️<span>Settings<small>Sound, display &amp; account</small></span><i>›</i></button>
-        <button class="pd-action" id="btn-open-friends">👥<span>Friends<small id="pd-friends-sub">Find trainers &amp; send messages</small></span><b class="qm-badge" id="pd-friends-badge"></b><i>›</i></button>
+        <button class="pd-action" id="btn-open-friends">👥<span>Friends, Chat &amp; Trades<small id="pd-friends-sub">Find trainers, chat &amp; trade Totos</small></span><b class="qm-badge" id="pd-friends-badge"></b><i>›</i></button>
         <button class="pd-action admin-only" id="btn-open-admin">🛡️<span>Admin<small>Players, bans &amp; reports</small></span><i>›</i></button>
         <button class="pd-action" id="btn-install-drawer" style="display:none;">📲<span>Install the app<small>Play full screen from your home screen</small></span><i>›</i></button>
         <div class="pd-owner" id="pd-owner" style="display:none;">
@@ -2211,33 +2333,92 @@
         <div class="fr-search"><input id="fr-q" type="search" placeholder="Find a trainer by username" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false"><button id="fr-go">Search</button></div>
         <div id="fr-results"></div>
         <div id="fr-requests"></div>
+        <div id="fr-trades"></div>
         <div class="fr-h">Your friends <span id="fr-count"></span></div>
         <div id="fr-list"><div class="fr-empty">Loading…</div></div>
         <div id="fr-outgoing"></div>
-        <div class="fr-safety">Be kind, and never share personal info like where you live, your school, phone number or passwords. Tap ⋯ in a chat to report or block someone.</div>
+        <div class="fr-safety">Tap a friend to chat, or 🔄 Trade to swap Totos. Be kind, and never share personal info like where you live, your school, phone number or passwords. Tap ⋯ in a chat to report or block someone.</div>
       </div>
+      <div class="trade-pick" id="trade-pick"><div class="tp-box"><div class="tp-title" id="tp-title">Pick a Toto</div><div class="tp-sub" id="tp-sub"></div><div class="tp-grid" id="tp-grid"></div><button class="tp-cancel" id="tp-cancel">Cancel</button></div></div>
       <div class="chat-view" id="chat-view">
         <div class="chat-head"><button class="chat-back" id="chat-back" aria-label="Back">‹</button><div class="chat-av" id="chat-av"></div>
-          <div class="chat-who"><b id="chat-name">Friend</b><small id="chat-status"></small></div><button class="chat-more" id="chat-more" aria-label="More">⋯</button></div>
+          <div class="chat-who"><b id="chat-name">Friend</b><small id="chat-status"></small></div><button class="chat-trade" id="chat-trade">🔄 Trade</button><button class="chat-more" id="chat-more" aria-label="More">⋯</button></div>
         <div class="chat-list" id="chat-list"></div>
         <div class="chat-input"><input id="chat-text" maxlength="300" placeholder="Message…" autocomplete="off"><button id="chat-send">Send</button></div>
       </div>
     </div>
 
-    <div class="panel-screen" data-panel="admin">
-      <div class="panel-header">🛡️ Admin <span class="close-x" data-close>✕</span></div>
-      <div class="panel-body">
-        <div class="ad-stats" id="ad-stats"></div>
-        <button class="set-wide owner-only" id="ad-self" style="margin:0 0 10px;">🎁 Gifts &amp; Rank #1 for my account</button>
-        <div class="ad-tabs"><button class="ad-tab active" data-adtab="players">Players</button><button class="ad-tab" data-adtab="reports">Reports <b id="ad-rep-n"></b></button></div>
-        <div id="ad-players-pane">
-          <div class="fr-search"><input id="ad-q" type="search" placeholder="Search players" maxlength="24" autocomplete="off"><button id="ad-go">Search</button></div>
-          <div class="ad-filters"><button class="ad-f active" data-f="all">All</button><button class="ad-f" data-f="online">Online</button><button class="ad-f" data-f="banned">Banned</button><button class="ad-f" data-f="admins">Admins</button></div>
-          <div id="ad-list"></div>
-          <button class="set-wide" id="ad-more" style="display:none;">Load more</button>
-        </div>
-        <div id="ad-reports-pane" style="display:none;"><div id="ad-reports"></div></div>
+    <div class="panel-screen staff-panel" data-panel="admin">
+      <div class="sp-top">
+        <div class="sp-brand"><b>The Spooky Staff Panel</b><span>🎃</span><small>Oversight, not overlooked.</small></div>
+        <button class="sp-icon" id="sp-bell" title="Reports waiting">🔔<i id="sp-bell-n"></i></button>
+        <button class="sp-icon owner-only" id="sp-gear" title="Owner tools">⚙️</button>
+        <span class="close-x" data-close>✕</span>
       </div>
+      <div class="sp-body">
+        <nav class="sp-nav sp-wood" id="sp-nav">
+          <div class="sp-nav-h">Admin Navigation</div>
+          <button data-sp="dash" class="on"><i>👻</i>Dashboard</button>
+          <button data-sp="analytics"><i>🧪</i>Analytics</button>
+          <button data-sp="users"><i>🧟</i>Users</button>
+          <button data-sp="content"><i>📜</i>Content<b id="ad-rep-n"></b></button>
+          <button data-sp="settings" class="owner-only"><i>⚙️</i>Settings</button>
+          <button data-sp="reports"><i>🔮</i>Reports</button>
+          <button data-sp="support"><i>🕷️</i>Support</button>
+          <button data-sp="chat" class="sp-chat-nav"><i>💬</i>Sanctum<b id="sp-chat-n"></b></button>
+        </nav>
+        <div class="sp-main" id="sp-main">
+          <section class="sp-sec on" data-sec="dash">
+            <div class="sp-h2" id="sp-month">This Month’s Oversight</div>
+            <div class="sp-cards" id="sp-cards"></div>
+            <div class="sp-chart-card sp-wood"><div class="sp-chart-h"><h4>Community Vitality Over 30 Days</h4><select id="sp-series"><option value="both">All</option><option value="active">Active players</option><option value="new">New players</option></select></div>
+              <div class="sp-chart" id="sp-chart"></div>
+              <div class="sp-legend"><span><i style="background:#a77bf0"></i>Active players</span><span><i style="background:#ff9a4a"></i>New players</span></div></div>
+          </section>
+          <section class="sp-sec" data-sec="analytics">
+            <div class="sp-h2">Analytics <small>last 24 hours &amp; all time</small></div>
+            <div class="sp-tiles" id="sp-tiles"></div>
+            <div class="sp-chart-card sp-wood"><div class="sp-chart-h"><h4>Daily Active Players</h4></div><div class="sp-chart" id="sp-chart2"></div></div>
+            <div class="sp-chart-card sp-wood"><div class="sp-chart-h"><h4>New Players Per Day</h4></div><div class="sp-chart" id="sp-chart3"></div></div>
+          </section>
+          <section class="sp-sec" data-sec="users">
+            <div class="sp-h2">Users</div>
+            <div class="ad-stats" id="ad-stats" style="display:none"></div>
+            <button class="set-wide owner-only" id="ad-self" style="margin:0 0 10px;">🎁 Gifts, take-backs &amp; rank for my account</button>
+            <div class="fr-search"><input id="ad-q" type="search" placeholder="Search players" maxlength="24" autocomplete="off"><button id="ad-go">Search</button></div>
+            <div class="ad-filters"><button class="ad-f active" data-f="all">All</button><button class="ad-f" data-f="online">Online</button><button class="ad-f" data-f="banned">Banned</button><button class="ad-f" data-f="admins">Admins</button></div>
+            <div id="ad-list"></div>
+            <button class="set-wide" id="ad-more" style="display:none;">Load more</button>
+          </section>
+          <section class="sp-sec" data-sec="content">
+            <div class="sp-h2">Content <small>player reports waiting for review</small></div>
+            <div id="ad-reports"></div>
+          </section>
+          <section class="sp-sec" data-sec="settings">
+            <div class="sp-h2">Settings <small>owner tools</small></div>
+            <div id="sp-settings"></div>
+          </section>
+          <section class="sp-sec" data-sec="reports">
+            <div class="sp-h2">Reports <small>this season’s PvP top 25</small></div>
+            <div id="sp-board"></div>
+          </section>
+          <section class="sp-sec" data-sec="support">
+            <div class="sp-h2">Support</div>
+            <div class="sp-help"><b>Players:</b> tap someone in <b>Users</b> for everything you can do: gifts, take-backs, rank changes, bans and unbans (every one asks you to confirm first).</div>
+            <div class="sp-help"><b>Gifts &amp; take-backs</b> (owner) reach the player the next time their game is open, usually within a minute. A take-back never goes below zero: taking 1,000,000 gems takes all they have.</div>
+            <div class="sp-help"><b>Rank:</b> “Set season Rank Points” lowers or raises a rank (0 = Bronze 3, 1,500+ = Master); “Reset rank” puts them back to Bronze 3.</div>
+            <div class="sp-help"><b>Trades:</b> players can only trade with friends, and Totos earned from achievements (Rank Champions, their partner Toni) can’t be traded.</div>
+            <div class="sp-help"><b>Content:</b> reports come from the ⋯ menu in player chats. Mark a report handled once you’ve dealt with it.</div>
+            <div class="sp-help"><b>Need help?</b> totoquestofficial@yahoo.com</div>
+          </section>
+        </div>
+        <aside class="sp-chat sp-wood" id="sp-chat">
+          <div class="sp-chat-h">The Specter’s Sanctum:<br>Live Admin Chat</div>
+          <div class="sp-chat-list" id="sp-chat-list"><div class="fr-empty">Loading…</div></div>
+          <div class="sp-chat-in"><textarea id="sp-chat-text" maxlength="300" placeholder="Type a message… (Shift+Enter for a new line)"></textarea><button id="sp-chat-send">Send</button></div>
+        </aside>
+      </div>
+      <div class="sp-status"><span id="sp-sys" class="ok">● System OK</span><span class="sp-gap"></span><span id="sp-lat">Latency: –</span><span id="sp-time"></span></div>
     </div>
 
     <div class="panel-screen" data-panel="items">
@@ -2491,6 +2672,7 @@
       <div class="bx-fog"></div>
       <div class="bx-embers" id="bx-embers"></div>
       <div class="bx-boss" id="bx-boss">
+        <div class="bx-rtag" id="bx-boss-rtag"></div>
         <div class="bx-boss-aura"></div>
         <div class="bx-boss-shadow"></div>
         <div class="bx-sprite bx-boss-sprite" id="bf-e-sprite"></div>
@@ -2501,7 +2683,7 @@
       <div class="bx-bossbar">
         <div class="bx-bossbar-portrait bx-portrait" id="bf-e-portrait"></div>
         <div class="bx-bossbar-body">
-          <div class="bx-bossbar-row"><span class="bx-bossbar-name" id="bf-e-name">Enemy</span><span class="bx-bossbar-lv" id="bf-e-level">Lv. 1</span></div>
+          <div class="bx-bossbar-row"><span class="bx-bossbar-name" id="bf-e-name">Enemy</span><span class="bx-bossbar-role" id="bf-e-role"></span><span class="bx-bossbar-lv" id="bf-e-level">Lv. 1</span></div>
           <div class="bx-hp bx-hp-boss"><div class="bx-hp-fill" id="bf-e-hp"></div><div class="bx-hp-text" id="bf-e-hpfrac">0 / 0</div></div>
         </div>
       </div>
@@ -4167,11 +4349,11 @@
   }
   function setAdminUi(){ document.documentElement.classList.toggle('tq-admin', !!(Social.admin || isAdminSession())); document.documentElement.classList.toggle('tq-owner', !!Social.owner); }
   function updateSocialBadges(){
-    const n = (Social.unread|0) + (Social.requests|0);
+    const n = (Social.unread|0) + (Social.requests|0) + (Social.trades|0);
     const txt = n ? (n > 99 ? '99+' : String(n)) : '';
     ['#friends-badge', '#pd-friends-badge'].forEach(sel=>{ const b = $(sel); if (b) b.textContent = txt; });
     const fab = document.querySelector('.pumpkin-fab-wrap'); if (fab) fab.classList.toggle('has-news', n > 0);
-    const sub = $('#pd-friends-sub'); if (sub) sub.textContent = Social.requests ? Social.requests+' friend request'+(Social.requests>1?'s':'') : (Social.unread ? Social.unread+' new message'+(Social.unread>1?'s':'') : 'Find trainers & send messages');
+    const sub = $('#pd-friends-sub'); if (sub) sub.textContent = Social.trades ? Social.trades+' trade'+(Social.trades>1?'s':'')+' waiting for you' : (Social.requests ? Social.requests+' friend request'+(Social.requests>1?'s':'') : (Social.unread ? Social.unread+' new message'+(Social.unread>1?'s':'') : 'Find trainers, chat & trade Totos'));
   }
   let hbBusy = false;
   async function heartbeat(){
@@ -4186,7 +4368,7 @@
       if (r.deleted){ accountRemovedByAdmin(); return r; }
       if (!r.ok) return r;
       const wasAdminBefore = adminWardrobe();
-      Object.assign(Social, { admin:!!r.admin, owner:!!r.owner, unread:r.unread|0, requests:r.requests|0, rp:r.rp|0, wins:r.wins|0, losses:r.losses|0, place:r.place||null, season:r.season||'', ban:r.ban||null, ready:true });
+      Object.assign(Social, { admin:!!r.admin, owner:!!r.owner, unread:r.unread|0, requests:r.requests|0, trades:r.trades|0, rp:r.rp|0, wins:r.wins|0, losses:r.losses|0, place:r.place||null, season:r.season||'', ban:r.ban||null, ready:true });
       setAdminUi(); applyOwnerUi(); updateSocialBadges();
       if (state.wasAdmin !== !!(r.admin || r.owner)){ state.wasAdmin = !!(r.admin || r.owner); markDirty(); }
       if (wasAdminBefore !== adminWardrobe() && window.mountPlayer3D) window.mountPlayer3D(state.avatar);   // admin outfits on/off
@@ -4242,7 +4424,28 @@
       if (!got.length) return null;
       return '🐾 '+(got.length > 1 ? got.length+'× ' : '')+got[0].name+' ('+(got[0].tier.charAt(0).toUpperCase()+got[0].tier.slice(1))+', Lv '+got[0].level+')';
     }
+    if (/^take_/.test(g.kind)) return applyTake(g.kind.slice(5), n, g.toto);
+    if (g.kind === 'trade' || g.kind === 'trade_back'){
+      const s = g.toto || {}, t = giftToto({ name:s.name, tier:s.tier, level:s.level });
+      if (!t) return null;
+      if (s.nature && ROLE_INFO[s.nature]) t.nature = s.nature;
+      return (g.kind === 'trade' ? '🔄 ' : '↩️ ')+t.name+' (Lv '+t.level+')';
+    }
     // ('rank1set' gifts were withdrawn: rank rewards are earned by finishing a season at #1)
+    return null;
+  }
+  // the owner took something back: never below zero
+  function applyTake(kind, n, spec){
+    if (kind === 'gems'){ const had = gemBalance(), k = Math.min(had, n); state.gems = had - k; return k ? '−'+k.toLocaleString()+' 💎 '+GIFT_LABEL.gems[k === 1 ? 0 : 1] : null; }
+    if (kind === 'candy'){ const had = Math.max(0, Math.floor(Number(state.candy) || 0)), k = Math.min(had, n); state.candy = had - k; return k ? '−'+k.toLocaleString()+' 🍬 Candy' : null; }
+    if (kind === 'raidPass' || kind === 'elixir'){ const it = ensureItems(), k = Math.min(it[kind] || 0, n); it[kind] = (it[kind] || 0) - k; return k ? '−'+k+' '+GIFT_LABEL[kind][k === 1 ? 0 : 1] : null; }
+    if (kind === 'toto'){
+      const name = spec && spec.name; let k = 0;
+      // the weakest copies go first
+      const ids = state.collection.filter(t=> t && t.name === name).sort((a, b)=> (a.cp||0) - (b.cp||0)).slice(0, n).map(t=> t.id);
+      if (ids.length){ state.collection = state.collection.filter(t=> !ids.includes(t.id)); k = ids.length; }
+      return k ? '−'+(k > 1 ? k+'× ' : '')+name : null;
+    }
     return null;
   }
   let giftBusy = false;
@@ -4253,13 +4456,17 @@
       const r = await sbRpc('gifts_pending', { p_id:state.playerId, p_secret:state.playerSecret });
       if (!r || !r.ok || !Array.isArray(r.gifts) || !r.gifts.length) return;
       state.giftIds = Array.isArray(state.giftIds) ? state.giftIds : [];
-      const lines = [], notes = [], ids = [];
+      const lines = [], notes = [], ids = [], takes = [], trades = [], backs = [];
       r.gifts.forEach(g=>{
         ids.push(g.id);
         if (state.giftIds.includes(g.id)) return;            // already added on an earlier try
         let line = null; try { line = applyGift(g); } catch(e){ console.warn('gift failed', e); }
         state.giftIds.push(g.id);
-        if (line){ lines.push(line); if (g.note && !notes.includes(g.note)) notes.push(g.note); }
+        if (!line) return;
+        if (/^take_/.test(g.kind)) takes.push(line + (g.note ? ' — “'+g.note+'”' : ''));
+        else if (g.kind === 'trade') trades.push(line + (g.note ? ' · '+g.note : ''));
+        else if (g.kind === 'trade_back') backs.push(line + (g.note ? ' · '+g.note : ''));
+        else { lines.push(line); if (g.note && !notes.includes(g.note)) notes.push(g.note); }
       });
       state.giftIds = state.giftIds.slice(-300);
       refreshHUD(); markDirty();
@@ -4269,8 +4476,12 @@
       sbRpc('gifts_ack', { p_id:state.playerId, p_secret:state.playerSecret, p_ids:ids }).catch(()=>{});
       if (lines.length){
         if (Sound.playCatch) Sound.playCatch();
-        gameDialog({ title:'🎁 A gift from the TotoQuest team!', message: lines.join('  •  ') + (notes.length ? '  —  “'+notes.join(' / ')+'”' : ''), ok:'Awesome!', cancel:null });
+        await gameDialog({ title:'🎁 A gift from the TotoQuest team!', message: lines.join('  •  ') + (notes.length ? '  —  “'+notes.join(' / ')+'”' : ''), ok:'Awesome!', cancel:null });
       }
+      if (trades.length){ if (Sound.playCatch) Sound.playCatch(); await gameDialog({ title:'🔄 Trade complete!', message:'New in your Totos: '+trades.join('  •  '), ok:'Yay!', cancel:null }); }
+      if (backs.length) await gameDialog({ title:'↩️ Back in your Totos', message:backs.join('  •  '), ok:'OK', cancel:null });
+      if (takes.length) await gameDialog({ title:'⚖️ Your account was adjusted', message:'The TotoQuest team removed: '+takes.join('  •  '), ok:'OK', cancel:null });
+      if (trades.length || backs.length) loadTrades();
     } catch(e){ console.warn('gifts', e); }
     finally { giftBusy = false; }
   }
@@ -4402,8 +4613,130 @@
     $('#chat-view').classList.remove('show');
     loadFriends();
     clearInterval(Friends.listTimer);
-    Friends.listTimer = setInterval(()=>{ if (!document.querySelector('.panel-screen[data-panel="friends"].active')){ clearInterval(Friends.listTimer); return; } if (!Friends.chatWith) loadFriends(); }, 20000);
+    loadTrades();
+    Friends.listTimer = setInterval(()=>{ if (!document.querySelector('.panel-screen[data-panel="friends"].active')){ clearInterval(Friends.listTimer); return; } if (!Friends.chatWith){ loadFriends(); loadTrades(); } }, 20000);
   }
+  // ---- trading Totos (v76) ----
+  // Offer one of your Totos to a friend; they pick one of theirs; you accept. A Toto in an open trade
+  // leaves your Totos (it comes back if the trade is declined or cancelled). Totos earned from
+  // achievements — the season's Rank Champions and your partner Toni — can't be traded.
+  const Trades = { list:[], busy:false };
+  function tradeLocked(t){ return !!(t && (t.isToni || rankChampNum(t.name) || t.untradeable)); }
+  function tradeSnap(t){ return { name:t.name, tier:t.tier, level:t.level||1, nature:t.nature||'', cp:t.cp||0, uid:t.id, isToni:!!t.isToni }; }
+  function tradeTotoHtml(s){
+    if (!s) return '<div class="tr-toto empty">❔ not picked yet</div>';
+    const role = roleOf(s.name), ri = ROLE_INFO[role] || ROLE_INFO.attacker;
+    let spr = ''; try { spr = spriteMarkup({ name:s.name, tier:s.tier, role, sprite:spriteFor(s.name, role) }); } catch(e){}
+    return '<div class="tr-toto"><div class="tr-sp">'+spr+'</div><div style="min-width:0"><b>'+escapeHtml(s.name)+'</b><small>'+escapeHtml((s.tier||'').charAt(0).toUpperCase()+(s.tier||'').slice(1))+' · Lv '+(s.level||1)+' · <span style="color:'+ri.color+'">'+ri.icon+' '+ri.label+'</span></small></div></div>';
+  }
+  async function loadTrades(){
+    if (!onlineOn() || !state.loggedIn) return;
+    try { const r = await sbRpc('trades_list', fArgs()); if (r && r.ok){ Trades.list = r.trades || []; holdEscrow(); renderTrades(); } } catch(e){}
+  }
+  // a Toto put up in an open trade must not stay in the save (say the game closed right after offering)
+  function holdEscrow(){
+    const held = new Set();
+    Trades.list.forEach(t=>{ if (!t.open) return;
+      if (t.mine && t.from_toto && t.from_toto.uid) held.add(t.from_toto.uid);
+      if (!t.mine && t.status === 'countered' && t.to_toto && t.to_toto.uid) held.add(t.to_toto.uid); });
+    if (!held.size) return;
+    const n = state.collection.length; state.collection = state.collection.filter(t=> !held.has(t.id));
+    if (state.collection.length !== n){ markDirty(); saveNow(true); try { renderCollection(); } catch(e){} }
+  }
+  function renderTrades(){
+    const el = $('#fr-trades'); if (!el) return;
+    const L = Trades.list;
+    if (!L.length){ el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="fr-h">🔄 Trades</div>' + L.map(t=>{
+      const who = escapeHtml(t.other_name || 'Trainer');
+      const mineT = t.mine ? t.from_toto : t.to_toto, theirT = t.mine ? t.to_toto : t.from_toto;
+      let top = '', btns = '', cls = t.needs_me ? ' act' : (t.status === 'done' ? ' done' : (t.open ? '' : ' off'));
+      if (t.status === 'offered' && !t.mine){ top = who+' wants to trade! Pick one of your Totos to give back.'; btns = '<button class="fr-btn ok" data-tr="respond">Pick my Toto</button><button class="fr-btn ghost" data-tr="decline">Decline</button>'; }
+      else if (t.status === 'offered'){ top = 'Waiting for '+who+' to pick a Toto for yours…'; btns = '<button class="fr-btn ghost" data-tr="cancel">Cancel trade</button>'; }
+      else if (t.status === 'countered' && t.mine){ top = who+' picked a Toto. Accept the trade?'; btns = '<button class="fr-btn ok" data-tr="accept">✅ Accept trade</button><button class="fr-btn ghost" data-tr="reject">Decline</button>'; }
+      else if (t.status === 'countered'){ top = 'Waiting for '+who+' to accept…'; btns = '<button class="fr-btn ghost" data-tr="cancel">Cancel trade</button>'; }
+      else if (t.status === 'done') top = '✅ Traded with '+who;
+      else top = (t.status === 'declined' ? 'Trade with '+who+' was declined' : 'Trade with '+who+' was cancelled')+' — Totos went back home';
+      return '<div class="tr-card'+cls+'" data-id="'+t.id+'"><div class="tr-top">'+top+'</div><div class="tr-swap">'
+        + '<div style="flex:1;min-width:0"><div class="fr-sub" style="margin-bottom:3px">You give</div>'+tradeTotoHtml(mineT)+'</div><div class="tr-arrow">⇄</div>'
+        + '<div style="flex:1;min-width:0"><div class="fr-sub" style="margin-bottom:3px">You get</div>'+tradeTotoHtml(theirT)+'</div></div>'
+        + (btns ? '<div class="tr-btns">'+btns+'</div>' : '') + '</div>';
+    }).join('');
+    $$('#fr-trades .tr-card').forEach(card=>{ const t = L.find(x=> String(x.id) === card.dataset.id);
+      $$('[data-tr]', card).forEach(b=> b.onclick = ()=> tradeAction(t, b.dataset.tr, b)); });
+  }
+  // pick one of your Totos (achievement Totos are shown locked)
+  function pickTradeToto(title, sub){
+    return new Promise(resolve=>{
+      const list = state.collection.slice().sort((a, b)=> (b.cp||0) - (a.cp||0));
+      $('#tp-title').textContent = title; $('#tp-sub').textContent = sub || '';
+      $('#tp-grid').innerHTML = list.map(t=>{ const ri = ROLE_INFO[t.role] || ROLE_INFO.attacker, lock = tradeLocked(t);
+        return '<button class="tp-t'+(lock ? ' locked' : '')+'" data-id="'+escapeHtml(t.id)+'"><div class="tp-sp">'+spriteMarkup(t)+'</div><b>'+escapeHtml(t.name)+'</b><small>Lv '+(t.level||1)+' · PWR '+(t.cp||0).toLocaleString()+'</small><small style="color:'+ri.color+'">'+ri.icon+' '+ri.label+'</small></button>'; }).join('');
+      const box = $('#trade-pick'); box.classList.add('show');
+      const done = v=>{ box.classList.remove('show'); resolve(v); };
+      $$('#tp-grid .tp-t').forEach(b=> b.onclick = ()=>{
+        const t = state.collection.find(x=> x.id === b.dataset.id);
+        if (!t) return;
+        if (tradeLocked(t)){ showToast('🔒 '+t.name+' was earned from an achievement and can’t be traded.'); return; }
+        done(t);
+      });
+      $('#tp-cancel').onclick = ()=> done(null);
+    });
+  }
+  function tradeError(r){
+    const e = r && r.error;
+    showToast(e === 'untradeable' ? 'That Toto can’t be traded.' : e === 'not_friends' ? 'You can only trade with friends.' : e === 'too_many' ? 'You have too many trades open — finish some first.'
+      : e === 'banned' ? 'You can’t trade right now.' : e === 'gone' ? 'That trade has already changed — refreshing.' : 'The trade didn’t go through — try again.');
+  }
+  function removeTraded(t){ state.collection = state.collection.filter(x=> x.id !== t.id); markDirty(); try { renderCollection(); } catch(e){} return saveNow(true); }
+  async function startTrade(f){
+    if (!(await needOnline())) return;
+    if (state.collection.length < 2){ showToast('You need at least 2 Totos to trade one away.'); return; }
+    const t = await pickTradeToto('Trade with '+(f.name || 'your friend'), 'Pick the Toto you’ll offer. '+(f.name || 'They')+' then picks one of theirs, and you decide whether to accept.');
+    if (!t) return;
+    if (!(await gameConfirm('Offer '+t.name+' (Lv '+(t.level||1)+') to '+(f.name || 'your friend')+'? It leaves your Totos while the trade is open, and comes back if the trade is declined or cancelled.', 'Offer a trade?', 'Offer', 'Cancel'))) return;
+    if (Trades.busy) return; Trades.busy = true;
+    try {
+      const r = await sbRpc('trade_offer', fArgs({ p_to:f.id, p_toto:tradeSnap(t) }));
+      if (!r || !r.ok){ tradeError(r); return; }
+      await removeTraded(t);
+      showToast('🔄 Trade offer sent to '+(f.name || 'your friend'));
+    } catch(e){ showToast('Couldn’t reach the online service.'); }
+    finally { Trades.busy = false; loadTrades(); }
+  }
+  async function tradeAction(t, act, btn){
+    if (!t || Trades.busy) return;
+    const who = t.other_name || 'your friend';
+    let r = null;
+    Trades.busy = true; if (btn) btn.disabled = true;
+    try {
+      if (act === 'respond'){
+        if (state.collection.length < 2){ showToast('You need at least 2 Totos to trade one away.'); return; }
+        Trades.busy = false;
+        const mine = await pickTradeToto('Your side of the trade', who+' offers '+t.from_toto.name+' (Lv '+t.from_toto.level+'). Pick one of your Totos to give back.');
+        if (!mine) return;
+        if (!(await gameConfirm('Give '+mine.name+' (Lv '+(mine.level||1)+') for '+who+'’s '+t.from_toto.name+' (Lv '+t.from_toto.level+')? '+who+' gets the final say.', 'Pick this Toto?', 'Send', 'Cancel'))) return;
+        Trades.busy = true;
+        r = await sbRpc('trade_respond', fArgs({ p_trade:t.id, p_toto:tradeSnap(mine) }));
+        if (r && r.ok){ await removeTraded(mine); showToast('Sent! Waiting for '+who+' to accept.'); }
+      } else if (act === 'decline'){
+        r = await sbRpc('trade_respond', fArgs({ p_trade:t.id, p_toto:null }));
+        if (r && r.ok) showToast('Trade declined.');
+      } else if (act === 'accept' || act === 'reject'){
+        if (act === 'accept' && !(await gameConfirm('Trade your '+t.from_toto.name+' for '+who+'’s '+t.to_toto.name+' (Lv '+t.to_toto.level+')?', 'Accept trade?', 'Trade!', 'Not yet'))) return;
+        r = await sbRpc('trade_confirm', fArgs({ p_trade:t.id, p_accept: act === 'accept' }));
+        if (r && r.ok){ showToast(act === 'accept' ? '🔄 Trade done!' : 'Trade declined — your Toto is coming back.'); setTimeout(claimGifts, 400); }
+      } else if (act === 'cancel'){
+        if (!(await gameConfirm('Cancel this trade? Any Totos in it go back to their trainers.', 'Cancel trade?', 'Cancel trade', 'Keep it'))) return;
+        r = await sbRpc('trade_cancel', fArgs({ p_trade:t.id }));
+        if (r && r.ok){ showToast('Trade cancelled.'); setTimeout(claimGifts, 400); }
+      }
+      if (r && !r.ok) tradeError(r);
+    } catch(e){ showToast('Couldn’t reach the online service.'); }
+    finally { Trades.busy = false; if (btn) btn.disabled = false; loadTrades(); heartbeat(); }
+  }
+  $('#chat-trade').onclick = ()=>{ const f = Friends.chatWith; if (f) startTrade(f); };
+
   // ---- chat ----
   function chatHtml(msgs){
     let lastDay = '';
@@ -4460,8 +4793,9 @@
   $('#chat-more').onclick = async ()=>{
     const f = Friends.chatWith; if (!f) return;
     const v = await actionSheet(f.name || 'Trainer', 'What would you like to do?', [
-      { label:'🚩 Report this chat', value:'report', cls:'warn' }, { label:'🚫 Block '+(f.name||'them'), value:'block', cls:'danger' }, { label:'➖ Remove friend', value:'remove' } ]);
+      { label:'🔄 Trade Totos', value:'trade', cls:'good' }, { label:'🚩 Report this chat', value:'report', cls:'warn' }, { label:'🚫 Block '+(f.name||'them'), value:'block', cls:'danger' }, { label:'➖ Remove friend', value:'remove' } ]);
     if (!v) return;
+    if (v === 'trade') return startTrade(f);
     try {
       if (v === 'report'){
         const why = await gameDialog({ title:'Report '+(f.name||'this trainer'), message:'Tell us what happened. Our admins will look at their latest message.', input:'Reason', inputType:'text', ok:'Report', cancel:'Cancel' });
@@ -4494,7 +4828,7 @@
     try { r = await sbRpc('admin_players', fArgs({ p_search:Admin.q, p_filter:Admin.filter, p_limit:50, p_offset:Admin.offset })); } catch(e){ $('#ad-list').innerHTML = '<div class="fr-empty">Couldn’t reach the online service.</div>'; return; }
     if (!r || !r.ok){ $('#ad-list').innerHTML = '<div class="fr-empty">Admin tools are locked on this device. Use Settings → Admin sign-in.</div>'; return; }
     $('#ad-stats').innerHTML = [['Players', r.total], ['Online', r.online], ['Banned', r.banned], ['Reports', r.reports]].map(([k,v])=> '<div class="ad-stat"><b>'+(v||0).toLocaleString()+'</b><span>'+k+'</span></div>').join('');
-    $('#ad-rep-n').textContent = r.reports ? r.reports : '';
+    $('#ad-rep-n').textContent = r.reports ? r.reports : ''; $('#sp-bell-n').textContent = r.reports ? r.reports : '';
     Admin.rows = Admin.rows.concat(r.players || []); Admin.offset = Admin.rows.length;
     $('#ad-more').style.display = (r.players || []).length >= 50 ? '' : 'none';
     renderAdminRows();
@@ -4521,6 +4855,8 @@
     const self = p.id === state.playerId;
     if (Social.owner){
       btns.push({ label:'🎁 Send a gift…', value:'gift', cls:'good' });
+      btns.push({ label:'➖ Take away gems, candy, items or a Toto…', value:'take', cls:'warn' });
+      btns.push({ label:'⬇️ Reset rank to Bronze 3 (0 RP)', value:'rank0', cls:'warn' });
       btns.push({ label: self ? '🏆 Make me Rank #1 this season (testing)' : '🏆 Make Rank #1 this season (testing)', value:'top' });
       btns.push({ label:'🔢 Set season Rank Points…', value:'rp' });
     }
@@ -4535,6 +4871,13 @@
     const v = await actionSheet(p.name || 'Trainer', (p.online ? 'Online now' : 'Last seen '+timeAgo(p.last_seen))+' · IP '+(p.ip || 'unknown'), btns);
     if (!v) return;
     if (v === 'gift') return adminGift(p);
+    if (v === 'take') return adminTake(p);
+    if (v === 'rank0'){
+      if (!(await gameConfirm((self ? 'Your' : (p.name||'Their')+'’s')+' season rank goes back to Bronze 3 (0 Rank Points). Their wins and losses stay.', 'Reset rank?', 'Reset rank', 'Cancel'))) return;
+      const r = await adminCall('admin_set_rp', { p_target:p.id, p_rp:0, p_make_top:false });
+      if (r) showToast('⬇️ '+(self ? 'Your' : (p.name||'Their'))+' rank is now Bronze 3');
+      return loadAdmin(true);
+    }
     if (v === 'top' || v === 'rp'){
       let rp = null;
       if (v === 'rp'){
@@ -4621,6 +4964,47 @@
     if (p.id === state.playerId){ showToast('🎁 Sent '+what+' to yourself'); claimGifts(); }
     else showToast('🎁 Sent '+what+' to '+(p.name||'them')+(r.online ? ' — they’ll get it within a minute' : ' — they’ll get it next time they play'));
   }
+  // the owner takes something back (applied next time their game is open; never below zero)
+  async function adminTake(p){
+    const who = p.id === state.playerId ? 'yourself' : (p.name || 'this trainer');
+    const kind = await actionSheet('Take away from '+who, 'Taken the next time their game is open (within a minute if they’re online). Never goes below zero.', [
+      { label:'💎 Gems', value:'gems' }, { label:'🍬 Candy', value:'candy' }, { label:'🎟️ Raid Passes', value:'raidPass' },
+      { label:'🧪 Healing Elixirs', value:'elixir' }, { label:'🐾 A Toto…', value:'toto' } ]);
+    if (!kind) return;
+    const note = '<label class="act-field">Reason (optional, they’ll see it)<input type="text" id="take-note" maxlength="140" placeholder="e.g. Gift sent by mistake"></label>';
+    let amount = 1, toto = null, what = '';
+    if (kind === 'toto'){
+      const opt = (v, t)=> '<option value="'+escapeHtml(v)+'">'+escapeHtml(t)+'</option>';
+      const names = [];
+      for (let i=1;i<=RANK_CHAMP_MAX;i++) names.push(rankChampName(i));
+      giftEternalNames().slice().sort().forEach(n=> names.push(n));
+      LEGENDARY_SPECIES.map(s=> s.name).sort().forEach(n=> names.push(n));
+      NORMAL_SPECIES.map(s=> s.name).sort().forEach(n=> names.push(n));
+      const go = await actionSheet('Take a Toto from '+who, 'Their weakest copies of it are taken first.', [
+        { html:'<label class="act-field">Toto<select id="take-sp">'+[...new Set(names)].map(n=> opt(n, n)).join('')+'</select></label>'
+          + '<label class="act-field">How many copies (1–50)<input type="number" id="take-n" min="1" max="50" value="1"></label>' + note },
+        { label:'➖ Take', value:'go', cls:'danger' } ]);
+      if (go !== 'go') return;
+      toto = { name: String(($('#take-sp')||{}).value || '') }; if (!toto.name) return;
+      amount = Math.max(1, Math.min(50, parseInt(($('#take-n')||{}).value, 10) || 1));
+      what = (amount > 1 ? amount+'× ' : '')+toto.name;
+    } else {
+      const max = (kind === 'gems' || kind === 'candy') ? 1000000 : 999;
+      const go = await actionSheet('Take '+GIFT_LABEL[kind][1]+' from '+who, '', [
+        { html:'<label class="act-field">How many (1–'+max.toLocaleString()+')<input type="number" id="take-n" min="1" max="'+max+'" value="100"></label>'
+          + '<label class="act-check"><input type="checkbox" id="take-all"> Take all of them</label>' + note },
+        { label:'➖ Take', value:'go', cls:'danger' } ]);
+      if (go !== 'go') return;
+      amount = ($('#take-all') && $('#take-all').checked) ? max : Math.max(1, Math.min(max, parseInt(($('#take-n')||{}).value, 10) || 1));
+      what = (amount >= max ? 'all their ' : amount.toLocaleString()+' ')+GIFT_LABEL[kind][1];
+    }
+    const msg = (($('#take-note')||{}).value || '').trim().slice(0, 140);
+    if (!(await gameConfirm('Take '+what+' from '+who+'?', 'Take away?', 'Take', 'Cancel'))) return;
+    const r = await adminCall('admin_take', { p_target:p.id, p_kind:kind, p_amount:amount, p_toto:toto, p_note:msg || null });
+    if (!r) return;
+    if (p.id === state.playerId){ showToast('➖ Taking '+what+' from yourself'); claimGifts(); }
+    else showToast('➖ '+what+' will be taken from '+(p.name||'them')+(r.online ? ' within a minute' : ' next time they play'));
+  }
   async function loadReports(){
     let r; try { r = await adminCall('admin_reports'); } catch(e){ r = null; }
     if (!r){ $('#ad-reports').innerHTML = '<div class="fr-empty">Couldn’t load reports.</div>'; return; }
@@ -4636,6 +5020,161 @@
         if (row) adminActions(row); else showToast('That account no longer exists.');
       };
     });
+  }
+  // ---------- The Spooky Staff Panel (v76) ----------
+  const Staff = { sec:'dash', stats:null, chatAfter:0, chatTimer:null, statTimer:null, series:'both' };
+  const spEsc = s=> escapeHtml(String(s == null ? '' : s));
+  function spSection(name){
+    Staff.sec = name;
+    $$('#sp-nav [data-sp]').forEach(b=> b.classList.toggle('on', b.dataset.sp === name));
+    $$('#sp-main .sp-sec').forEach(s=> s.classList.toggle('on', s.dataset.sec === name));
+    const chatOnly = name === 'chat';
+    $('#sp-main').style.display = chatOnly ? 'none' : '';
+    $('#sp-chat').classList.toggle('on', chatOnly);
+    if (name === 'users' && !Admin.rows.length) loadAdmin(true);
+    if (name === 'content') loadReports();
+    if (name === 'reports') spBoard();
+    if (name === 'settings') spSettings();
+    if (name === 'chat'){ $('#sp-chat-n').textContent = ''; const l = $('#sp-chat-list'); l.scrollTop = l.scrollHeight; }
+    if (name === 'dash' || name === 'analytics') spDrawStats();
+  }
+  $$('#sp-nav [data-sp]').forEach(b=> b.onclick = ()=> spSection(b.dataset.sp));
+  $('#sp-bell').onclick = ()=> spSection('content');
+  $('#sp-gear').onclick = ()=> spSection('settings');
+  $('#sp-series').onchange = e=>{ Staff.series = e.target.value; spDrawStats(); };
+  // a smooth line chart (SVG) of one or two daily series
+  function spLineChart(series, keys, opts){
+    opts = opts || {};
+    const W = 640, H = 300, L = 62, R = 16, T = 16, B = 40, n = series.length || 1;
+    const colors = { active:'#a77bf0', new:'#ff9a4a' };
+    let max = 1; keys.forEach(k=> series.forEach(d=> { max = Math.max(max, d[k]|0); }));
+    const nice = v=>{ const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v/p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10)*p; };
+    const top = nice(max*1.15), step = top/5;
+    const X = i=> L + (n === 1 ? 0 : i*(W - L - R)/(n - 1)), Y = v=> T + (H - T - B)*(1 - v/top);
+    let g = '';
+    for (let i=0;i<=5;i++){ const v = step*i, y = Y(v); g += '<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#3a3443" stroke-width="1"/><text x="'+(L-8)+'" y="'+(y+6).toFixed(1)+'" fill="#b8aacf" font-size="19" font-weight="700" text-anchor="end">'+Math.round(v).toLocaleString()+'</text>'; }
+    series.forEach((d, i)=>{ if ((n - 1 - i) % (n > 20 ? 5 : 2)) return; const day = new Date(d.day + 'T12:00:00'); g += '<text x="'+X(i).toFixed(1)+'" y="'+(H-10)+'" fill="#b8aacf" font-size="17" font-weight="700" text-anchor="middle">'+(day.getMonth()+1)+'/'+day.getDate()+'</text>'; });
+    const path = k=>{ const pts = series.map((d, i)=> [X(i), Y(d[k]|0)]); if (!pts.length) return '';
+      let d = 'M'+pts[0][0].toFixed(1)+','+pts[0][1].toFixed(1);
+      for (let i=1;i<pts.length;i++){ const [x0, y0] = pts[i-1], [x1, y1] = pts[i], cx = (x0 + x1)/2; d += ' C'+cx.toFixed(1)+','+y0.toFixed(1)+' '+cx.toFixed(1)+','+y1.toFixed(1)+' '+x1.toFixed(1)+','+y1.toFixed(1); }
+      return d; };
+    let s = '<defs>'; keys.forEach(k=> s += '<linearGradient id="spg-'+k+(opts.id||'')+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+colors[k]+'" stop-opacity="0.45"/><stop offset="1" stop-color="'+colors[k]+'" stop-opacity="0.02"/></linearGradient>'); s += '</defs>';
+    keys.forEach(k=>{ const d = path(k); if (!d) return; const last = series[series.length-1];
+      s += '<path d="'+d+' L'+X(n-1).toFixed(1)+','+Y(0).toFixed(1)+' L'+X(0).toFixed(1)+','+Y(0).toFixed(1)+' Z" fill="url(#spg-'+k+(opts.id||'')+')"/>'
+        + '<path d="'+d+'" fill="none" stroke="'+colors[k]+'" stroke-width="4" stroke-linecap="round"/>'
+        + '<circle cx="'+X(n-1).toFixed(1)+'" cy="'+Y(last[k]|0).toFixed(1)+'" r="5" fill="'+colors[k]+'" stroke="#fff" stroke-width="2"/>'; });
+    return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="chart">'+g+s+'</svg>';
+  }
+  function spSpark(vals, color){
+    const n = vals.length; if (n < 2) return ''; const max = Math.max(1, ...vals);
+    const pts = vals.map((v, i)=> (i*100/(n-1)).toFixed(1)+','+(36 - v/max*30).toFixed(1));
+    return '<svg class="spark" viewBox="0 0 100 38" preserveAspectRatio="none"><polyline points="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
+  }
+  function spBars(vals, color){
+    const n = vals.length, max = Math.max(1, ...vals), w = 100/n;
+    return '<svg class="spark" viewBox="0 0 100 38" preserveAspectRatio="none">'+vals.map((v, i)=> '<rect x="'+(i*w + w*0.18).toFixed(2)+'" y="'+(38 - Math.max(1.5, v/max*34)).toFixed(2)+'" width="'+(w*0.64).toFixed(2)+'" height="'+Math.max(1.5, v/max*34).toFixed(2)+'" rx="1" fill="'+color+'" opacity="'+(0.45 + 0.55*(i+1)/n).toFixed(2)+'"/>').join('')+'</svg>';
+  }
+  async function spLoadStats(){
+    const t0 = performance.now();
+    try {
+      const r = await sbRpc('admin_stats', fArgs());
+      const ms = Math.round(performance.now() - t0);
+      $('#sp-lat').textContent = 'Latency: '+ms+'ms';
+      if (!r || !r.ok){
+        // before the server's v76 update: the basic counts from the players list
+        const p = await sbRpc('admin_players', fArgs({ p_search:'', p_filter:'all', p_limit:1, p_offset:0 })).catch(()=> null);
+        if (!p || !p.ok){ $('#sp-sys').textContent = '● Admin tools locked'; $('#sp-sys').className = 'bad'; return; }
+        $('#sp-sys').textContent = '● System OK'; $('#sp-sys').className = 'ok';
+        Staff.stats = { ok:true, partial:true, players:p.total, online:p.online, banned:p.banned, reports:p.reports, series:[] };
+        spDrawStats(); $('#sp-bell-n').textContent = p.reports ? p.reports : ''; return;
+      }
+      $('#sp-sys').textContent = '● System OK'; $('#sp-sys').className = 'ok';
+      Staff.stats = r; spDrawStats();
+      $('#sp-bell-n').textContent = r.reports ? r.reports : ''; $('#ad-rep-n').textContent = r.reports ? r.reports : '';
+    } catch(e){ $('#sp-sys').textContent = '● Offline'; $('#sp-sys').className = 'bad'; }
+  }
+  function spDrawStats(){
+    const r = Staff.stats; if (!r) return;
+    const S = r.series || [], act = S.map(d=> d.active|0), nw = S.map(d=> d.new|0);
+    const growth = r.new_prev7d ? Math.round((r.new_7d - r.new_prev7d)/r.new_prev7d*100) : null;
+    $('#sp-month').textContent = new Date().toLocaleString([], { month:'long' })+'’s Oversight';
+    $('#sp-cards').innerHTML =
+      '<div class="sp-card sp-wood"><h4>Active Haunts</h4><div class="lbl">Online right now</div><div class="big" style="color:#d6b8ff">'+(r.online||0).toLocaleString()+'</div><div class="note">'+(r.active_today||0).toLocaleString()+' played today · '+(r.players||0).toLocaleString()+' trainers</div>'+spSpark(act.slice(-14), '#c79bff')+'</div>'
+      + '<div class="sp-card sp-wood"><h4>Ghoulish Growth</h4><div class="lbl">New trainers · last 7 days</div><div class="big" style="color:#6fe08f">'+(r.new_7d||0).toLocaleString()+(growth != null ? ' <span style="font-size:15px">'+(growth >= 0 ? '↗ +' : '↘ ')+growth+'%</span>' : '')+'</div><div class="note">vs the week before</div>'+spBars(nw.slice(-10), '#4fd17a')+'</div>'
+      + '<div class="sp-card sp-wood"><h4>Creepy Content</h4><div class="lbl">Reports pending review</div><div class="big" style="color:#ffb35a">'+(r.reports||0)+' <span style="font-size:15px">report'+(r.reports === 1 ? '' : 's')+'</span></div><div class="sp-bar"><div style="width:'+Math.min(100, (r.reports||0)*10)+'%"></div></div><div class="note">⛔ '+(r.banned||0)+' banned · 🔄 '+(r.trades_open||0)+' open trades</div></div>';
+    const keys = Staff.series === 'both' ? ['active','new'] : [Staff.series];
+    $('#sp-chart').innerHTML = S.length ? spLineChart(S, keys, { id:'a' }) : '<div class="fr-empty">'+(r.partial ? 'The 30-day chart starts once the server update for the Staff Panel is applied.' : 'No data yet.')+'</div>';
+    $('#sp-tiles').innerHTML = [['Trainers', r.players], ['Online now', r.online], ['Played today', r.active_today], ['New this week', r.new_7d], ['Banned', r.banned],
+      ['PvP matches', r.matches_today], ['Messages', r.messages_today], ['Trades done', r.trades_today], ['Trades open', r.trades_open], ['Reports open', r.reports]]
+      .map(([k, v])=> '<div class="sp-tile"><b>'+(v||0).toLocaleString()+'</b><span>'+k+'</span></div>').join('');
+    $('#sp-chart2').innerHTML = S.length ? spLineChart(S, ['active'], { id:'b' }) : '';
+    $('#sp-chart3').innerHTML = S.length ? spLineChart(S, ['new'], { id:'c' }) : '';
+  }
+  async function spBoard(){
+    const el = $('#sp-board'); el.innerHTML = '<div class="fr-empty">Loading…</div>';
+    try {
+      const rows = await sbRpc('season_board', { p_board:'pvp', p_season:null, p_limit:25 }) || [];
+      el.innerHTML = rows.length ? rows.map((x, i)=> '<div class="sp-list-row"><div class="n">#'+(x.rank || i+1)+'</div><div class="w"><b>'+spEsc(x.name || 'Trainer')+'</b><small>'+(x.wins|0)+' wins · '+(x.losses|0)+' losses · Lv '+(x.level||1)+'</small></div><div class="rp">'+(x.rp|0).toLocaleString()+' RP</div></div>').join('')
+        : '<div class="fr-empty">No ranked battles yet this season.</div>';
+    } catch(e){ el.innerHTML = '<div class="fr-empty">Couldn’t load the board.</div>'; }
+  }
+  function spSettings(){
+    const tools = [];
+    if (Social.owner) tools.push(['🎁', 'Gifts, take-backs & rank for my account', 'Send yourself anything, take it back, or set your season rank', ()=> $('#ad-self').click()]);
+    tools.push(['🔑', 'Admin sign-in on this device', 'Enter the admin key to unlock these tools here', ()=> $('#btn-admin-key').click()]);
+    if (isAdminSession()){
+      [['normal','🐾','+ Normal Toto'], ['legendary','🌟','+ Legendary Toto'], ['mythical','💠','+ Mythical Toto'], ['eternal','👑','+ Eternal Toto']].forEach(([tier, ic, label])=>
+        tools.push([ic, label, 'Added straight to your Totos on this device', ()=>{ const b = document.querySelector('.admin-btn[data-give="'+tier+'"]'); if (b) b.click(); }]));
+      tools.push(['🍬', '+1,000,000 Candy & Gems', 'For your own account on this device', ()=> $('#btn-admin-energy').click()]);
+      tools.push(['⭐', 'Max my player level (100)', 'Unlocks every level reward', ()=> $('#btn-admin-max-player').click()]);
+    }
+    const el = $('#sp-settings');
+    el.innerHTML = tools.map((t, i)=> '<button class="sp-tool" data-i="'+i+'"><i>'+t[0]+'</i><span>'+spEsc(t[1])+'<small>'+spEsc(t[2])+'</small></span></button>').join('')
+      + (isAdminSession() ? '' : '<div class="sp-help">More owner tools (adding Totos and candy to your own account) show here after you sign in with Google on the owner account.</div>');
+    $$('.sp-tool', el).forEach(b=> b.onclick = ()=> tools[+b.dataset.i][3]());
+  }
+  // ---- the Specter's Sanctum: chat between admins ----
+  function spChatRow(m){
+    const t = new Date(m.created_at);
+    return '<div class="sp-msg'+(m.mine ? ' mine' : '')+'"><div class="av">'+frontAvatarMarkup(m.avatar === 'male' ? 'male' : 'female', true)+'</div><div class="bub"><div class="who"><span>'+(m.owner ? '👑 ' : '🛡️ ')+spEsc(m.name)+'</span><small>'+t.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })+'</small></div><div class="txt">'+spEsc(m.body)+'</div></div></div>';
+  }
+  async function spChatPoll(first){
+    try {
+      const r = await sbRpc('admin_chat_poll', fArgs({ p_after: first ? 0 : Staff.chatAfter }));
+      if (!r || !r.ok) return;
+      const list = $('#sp-chat-list');
+      if (first){ list.innerHTML = r.messages.length ? '' : '<div class="fr-empty" id="sp-chat-empty">No messages yet — say hi to the other admins 👻</div>'; }
+      if (r.messages.length){
+        const e = $('#sp-chat-empty'); if (e) e.remove();
+        const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+        list.insertAdjacentHTML('beforeend', r.messages.map(spChatRow).join(''));
+        Staff.chatAfter = r.messages[r.messages.length-1].id;
+        if (first || atBottom) list.scrollTop = list.scrollHeight;
+        if (!first && Staff.sec !== 'chat' && getComputedStyle($('#sp-chat')).display === 'none'){ const b = $('#sp-chat-n'); b.textContent = String((parseInt(b.textContent, 10) || 0) + r.messages.filter(m=> !m.mine).length || ''); }
+      }
+    } catch(e){}
+  }
+  async function spChatSend(){
+    const inp = $('#sp-chat-text'), body = inp.value.trim(); if (!body) return;
+    $('#sp-chat-send').disabled = true;
+    try {
+      const r = await sbRpc('admin_chat_send', fArgs({ p_body:body }));
+      if (r && r.ok){ inp.value = ''; await spChatPoll(false); const l = $('#sp-chat-list'); l.scrollTop = l.scrollHeight; }
+      else showToast(r && r.error === 'slow_down' ? 'Slow down a little!' : 'Message not sent.');
+    } catch(e){ showToast('Message not sent — check your connection.'); }
+    finally { $('#sp-chat-send').disabled = false; }
+  }
+  $('#sp-chat-send').onclick = spChatSend;
+  $('#sp-chat-text').addEventListener('keydown', e=>{ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); spChatSend(); } });
+  function onStaffPanel(){
+    if (!onlineOn()) return;
+    spSection(Staff.sec || 'dash');
+    spLoadStats(); spChatPoll(true); loadAdmin(true);
+    const tick = ()=>{ const t = $('#sp-time'); if (t) t.textContent = 'Local time: '+new Date().toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); };
+    tick();
+    clearInterval(Staff.chatTimer); clearInterval(Staff.statTimer);
+    Staff.chatTimer = setInterval(()=>{ if (!document.querySelector('.panel-screen[data-panel="admin"].active')){ clearInterval(Staff.chatTimer); clearInterval(Staff.statTimer); return; } spChatPoll(false); tick(); }, 4000);
+    Staff.statTimer = setInterval(()=>{ if (document.querySelector('.panel-screen[data-panel="admin"].active')) spLoadStats(); }, 60000);
   }
   $$('.ad-tab').forEach(t=> t.onclick = ()=>{ $$('.ad-tab').forEach(x=> x.classList.toggle('active', x===t)); const rep = t.dataset.adtab === 'reports';
     $('#ad-players-pane').style.display = rep ? 'none' : ''; $('#ad-reports-pane').style.display = rep ? '' : 'none'; if (rep) loadReports(); });
@@ -7762,7 +8301,7 @@
     if (tab==='wardrobe') renderWardrobe();
     if (tab==='settings') renderSettings();
     if (tab==='friends') onFriendsPanel();
-    if (tab==='admin'){ $('#ad-q').value = Admin.q; loadAdmin(true); }
+    if (tab==='admin'){ $('#ad-q').value = Admin.q; onStaffPanel(); }
     if (tab==='pvp' && typeof openPvpLobby === 'function') openPvpLobby();
   }
   $$('.nav-btn').forEach(btn=>{
@@ -8356,14 +8895,16 @@
     const inRange = distM <= GYM_RADIUS_M;
     return '<div class="toto-card shrine-row" data-gym="'+g.id+'">'+
       '<div class="sp'+glowClassFor(g.boss.tier)+'">'+spriteMarkup(g.boss)+'</div>'+
-      '<div class="info"><div class="nm" style="font-size:13px;">'+escapeHtml(g.name)+'</div><div class="cp">'+g.boss.name+' · PWR '+g.boss.cp+' · '+g.boss.tier+'</div></div>'+
+      '<div class="info"><div class="nm" style="font-size:13px;">'+escapeHtml(g.name)+'</div><div class="cp">'+g.boss.name+' · PWR '+g.boss.cp+' · '+g.boss.tier+'</div><div class="cp">'+roleChipHtml(g.boss.role)+'</div></div>'+
       '<div><span class="range-tag '+(inRange?'range-in':'range-out')+'">'+fmtDist(distM)+' '+(inRange?'· In range':'· Too far')+'</span></div>'+
     '</div>';
   }
+  // a Toto's class as a small coloured chip (Attacker / Tanker / Healer / Supporter)
+  function roleChipHtml(role){ const ri = ROLE_INFO[role] || ROLE_INFO.attacker; return '<span class="role-chip" style="color:'+ri.color+'">'+ri.icon+' '+ri.label+'</span>'; }
   function shrineRowHtml(sh){
     return '<div class="toto-card shrine-row" data-shrine="'+sh.id+'">'+
       '<div class="sp'+glowClassFor(sh.guardian.tier)+'">'+spriteMarkup(sh.guardian)+'</div>'+
-      '<div class="info"><div class="nm" style="font-size:13px;">'+sh.name+'</div><div class="cp">Guardian: '+sh.guardian.name+' · PWR '+sh.guardian.cp+'</div></div>'+
+      '<div class="info"><div class="nm" style="font-size:13px;">'+sh.name+'</div><div class="cp">Guardian: '+sh.guardian.name+' · PWR '+sh.guardian.cp+'</div><div class="cp">'+roleChipHtml(sh.guardian.role)+'</div></div>'+
       '<div><span class="range-tag range-in">Always ready</span></div>'+
     '</div>';
   }
@@ -9186,7 +9727,7 @@
   function renderModeSelectStep(target){
     $('#setup-card').innerHTML =
       '<div class="setup-title">'+escapeHtml(target.name)+'</div>'+
-      '<div class="setup-sub">'+target.label+': '+target.boss.name+' · PWR '+target.boss.cp+' · '+target.boss.tier+'</div>'+
+      '<div class="setup-sub">'+target.label+': '+target.boss.name+' · PWR '+target.boss.cp+' · '+target.boss.tier+' '+roleChipHtml(target.boss.role)+'</div>'+
       (target.label==='Champion' ? '<div class="setup-pass"><img src="'+ITEM_INFO.raidPass.img+'" alt="">Uses 1 Raid Pass · you have '+(ensureItems().raidPass||0)+'</div>' : '')+
       '<div class="mode-options">'+
         '<div class="mode-card" id="mode-solo"><div class="mi">🧍</div><div class="mn">Solo Battle</div></div>'+
@@ -9501,7 +10042,7 @@
       el.style.setProperty('--rc', r.c); el.style.setProperty('--rc-a', r.a);
       let sparks = '';
       for (let i=0;i<4;i++) sparks += '<span class="bx-spark" style="left:'+(30+i*26)+'px; animation-delay:'+(i*0.55)+'s"></span>';
-      el.innerHTML = '<div class="bx-fig"><div class="bx-aura"></div><div class="bx-circle"></div>'+sparks
+      el.innerHTML = '<div class="bx-fig"><div class="bx-rtag">'+BX_ICON[m.f.role||'attacker']+r.label+'</div><div class="bx-aura"></div><div class="bx-circle"></div>'+sparks
         + '<div class="bx-sprite">'+bxArt(m.f.sprite)+'</div><div class="bx-shield"></div></div>'
         + '<div class="bx-plate"><div class="bx-plate-ic">'+BX_ICON[m.f.role||'attacker']+'</div>'
         + '<div class="bx-plate-body"><div class="bx-plate-row"><span class="bx-plate-name">'+bxEsc(m.f.name)+'</span><span class="bx-plate-lv">Lv. '+(m.f.level||1)+'</span></div>'
@@ -9530,6 +10071,9 @@
     setSpriteHtml($('#bf-e-sprite'), bxArt(e.sprite));
     setSpriteHtml($('#bf-e-portrait'), bxArt(e.sprite));
     $('#bf-e-name').textContent = e.name; $('#bf-e-level').textContent = 'Lv. '+(e.level||1);
+    { const er = BX_ROLE[e.role] ? e.role : 'attacker', R = BX_ROLE[er];
+      const tag = $('#bx-boss-rtag'); tag.innerHTML = BX_ICON[er] + R.label; tag.style.setProperty('--rc', R.c);
+      const chip = $('#bf-e-role'); chip.textContent = R.label; chip.style.setProperty('--rc', R.c); }
     $('#bx-boss').classList.remove('down','hit','lunge');
     // active hero (you)
     const p = battle.player, pr = BX_ROLE[p.role] || BX_ROLE.attacker;
@@ -10638,7 +11182,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v75';
+window.TQ_APP_VERSION = 'v76';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address

@@ -139,3 +139,6 @@ Migration: `supabase/migrations/2026-10-03e_pvp_pass.sql`.
 
 - **Battle rules, engine 5.** The Rank Champions are now a little stronger than Witch Hana, so every Toto snapshot carries `ev: 5`. Players on older versions are only matched with each other.
 - **Updates are the player's choice.** This is entirely in the game's service worker; there are no server changes. It remembers which release the player is on and opens that one. A new release is downloaded in the background and the "update" banner offers it. Tapping the banner calls `__tq-use?v=<release>`, which the service worker answers itself, and then restarts into the new release.
+
+## v76: trading, take-backs, Staff Panel
+Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supabase tool). It adds Toto trading between friends (achievement Totos are refused), owner take-backs (`admin_take`), the Staff Panel numbers (`admin_stats`, daily activity) and the admin chat (`admin_chat_send` / `admin_chat_poll`), and updates `heartbeat` to count trades waiting on you. The game works without it; those features just stay off until it is applied.
