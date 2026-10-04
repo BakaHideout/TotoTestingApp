@@ -520,6 +520,9 @@
   @keyframes nodeShadowPulse { 0%,100%{ transform:translateX(-50%) scale(1); } 50%{ transform:translateX(-50%) scale(0.82); } }
   .deco-shadow { position:absolute; left:50%; bottom:-1px; border-radius:50%; background:radial-gradient(closest-side, rgba(0,10,0,0.35), rgba(0,10,0,0) 90%); transform:translateX(-50%); z-index:1; }
 
+  /* the Brightness setting turned down: a dark veil over the map (a filter on the whole map made
+     the phone redraw it all through an extra pass every frame) */
+  .map-dim { position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; z-index:16; display:none; }
   .player-pin { position:absolute; left:50%; top:58%; transform: translate(-50%,-100%) scale(var(--pz,1)); transform-origin:50% 100%; z-index:15; text-align:center; }
   .player-ring { position:absolute; left:50%; bottom:6px; width:90px; height:90px; transform:translate(-50%,50%); border-radius:50%; border:2px solid rgba(255,150,60,0.65); background:radial-gradient(circle, rgba(255,150,60,0.22), rgba(255,90,40,0.05) 70%, transparent 75%); pointer-events:none; z-index:-1; }
   .player-shadow { width:26px; height:9px; border-radius:50%; background:rgba(0,0,0,0.28); margin:2px auto 0; transition:transform 0.15s; }
@@ -2035,6 +2038,7 @@
           <div class="player-avatar" id="player-avatar">🧙‍♀️</div>
           <div class="player-shadow"></div>
         </div>
+        <div class="map-dim" id="map-dim"></div>
 
         <div class="map-controls">
           <button class="map-btn" id="btn-zoom-in" title="Zoom in">➕</button>
@@ -2320,7 +2324,7 @@
         <div class="wardrobe-stage">
           <canvas id="wardrobe-preview-canvas" class="wardrobe-preview-canvas"></canvas>
           <div class="wardrobe-view-btns" id="wardrobe-view-btns">
-            <button data-view="front">Front</button><button data-view="back">Back</button><button data-view="spin" class="on">⟳ Spin</button>
+            <button data-view="front">Front</button><button data-view="spin" class="on">⟳ Sway</button>
           </div>
           <button class="wardrobe-zoom" id="wardrobe-zoom">🔍 Close-up</button>
           <div class="wardrobe-tryon" id="wardrobe-tryon" style="display:none;"></div>
@@ -2704,7 +2708,10 @@
   function applySettings(){
     Sound.setVolumes(Settings.get('music')/100, Settings.get('sfx')/100);
     const mv = document.getElementById('map-view'), b = Settings.get('brightness');
-    if (mv) mv.style.filter = b === 100 ? '' : 'brightness('+(b/100).toFixed(2)+')';
+    // darker: a black veil (looks the same as a brightness filter, costs next to nothing); brighter: the filter
+    const dim = document.getElementById('map-dim');
+    if (mv) mv.style.filter = b > 100 ? 'brightness('+(b/100).toFixed(2)+')' : '';
+    if (dim){ dim.style.display = b < 100 ? 'block' : 'none'; dim.style.opacity = b < 100 ? (1 - b/100).toFixed(2) : '0'; }
     root.classList.toggle('no-weatherfx', !Settings.get('weatherFx'));
     root.classList.toggle('gfx-low', Settings.get('graphics') === 'low');
     if (window.__tqApplyGraphics) window.__tqApplyGraphics();
@@ -3919,8 +3926,8 @@
     // always runs right after either of those, so re-pointing the alias here keeps it
     // correct across logins without touching every place state gets reassigned.
     window.__gameState = state;
-    const avFront = frontAvatarMarkup(state.avatar, true), avBack = backAvatarMarkup(state.avatar, true);
-    $('#hud-avatar').innerHTML = avFront; $('#player-avatar').innerHTML = avBack; $('#profile-avatar').innerHTML = avFront;
+    const avFront = frontAvatarMarkup(state.avatar, true);
+    $('#hud-avatar').innerHTML = avFront; $('#player-avatar').innerHTML = avFront; $('#profile-avatar').innerHTML = avFront;
     // Try to upgrade the flat on-map marker to a real rotatable 3D model. This is purely
     // additive: if the 3D module hasn't finished loading yet (slow network) we stash the
     // gender and it mounts itself as soon as it's ready; if WebGL/Three.js is unavailable
@@ -5152,8 +5159,9 @@
     const k = lookHash(look, mode);
     let url = null;
     if (window.__tqLookSnapshot){ try { url = window.__tqLookSnapshot(look, mode, u=> $$('img[data-lk="'+k+'"]').forEach(i=> i.src = u)); } catch(e){} }
-    if (!url) return mode === 'head' ? frontAvatarMarkup(look && look.g === 'male' ? 'male' : 'female', true) : frontAvatarMarkup(look && look.g === 'male' ? 'male' : 'female', false);
-    return '<img data-lk="'+k+'" src="'+url+'" alt="'+escapeHtml(alt||'trainer')+'" draggable="false">';
+    const g = look && look.g === 'male' ? 'male' : 'female';
+    // until the outfit picture is ready (a moment), the plain character stands in
+    return '<img data-lk="'+k+'" class="'+(url ? '' : 'player-avatar-svg')+'" src="'+(url || (mode === 'head' ? AVATAR_IMG[g].frontSm : AVATAR_IMG[g].front))+'" alt="'+escapeHtml(alt||'trainer')+'" draggable="false">';
   }
 
   // ---- lobby ----
@@ -7312,7 +7320,13 @@
   };
 
   function renderTerrainArt(elements, project, regionKeyStr, bounds){
-    const L = { land:[], water:[], marks:[], lots:[], rail:[], roadCase:[], roadTop:[], pathCase:[], pathTop:[], bridge:[] };
+    const L = { land:[], water:[], marks:[], bridge:[] };
+    // same-looking shapes merged: layer -> (look + map square) -> path data
+    const PG = { lots:new Map(), rail:new Map(), pathCase:new Map(), roadCaseA:new Map(), roadCaseB:new Map(), pathTop:new Map(), roadTop:new Map(), roadMark:new Map(),
+      bShadow:new Map(), bDeck:new Map(), bDeck2:new Map(), bPlank:new Map(), bPlank2:new Map(), bRail:new Map(), bRail2:new Map(), bRail3:new Map() };
+    const PG_CELL = 512;
+    const pgAdd = (layer, attrs, d, cx, cy)=>{ const k = attrs + '|' + Math.floor(cx/PG_CELL) + ',' + Math.floor(cy/PG_CELL); const m = PG[layer], a = m.get(k); if (a) a.push(d); else m.set(k, [d]); };
+    const pgOut = layer=>{ let o = ''; PG[layer].forEach((ds, k)=>{ o += '<path d="'+ds.join('')+'" '+k.slice(0, k.lastIndexOf('|'))+'/>'; }); return o; };
     const props = [], parkCentroids = [], clearPolys = [];   // clearPolys: fields/courts trees must not stand on
     const rivers = [];                                         // waterways, for the flowing sparkles
     // gathered for the building and PumpkinStop passes at the end
@@ -7344,6 +7358,10 @@
       const closed = P.length>3 && Math.hypot(P[0].x-P[P.length-1].x, P[0].y-P[P.length-1].y) < 2;
       const poly = (fill, stroke, sw, extra)=> '<polygon points="'+pts+'" fill="'+fill+'"'+(stroke?' stroke="'+stroke+'" stroke-width="'+sw+'"':'')+(extra||'')+'/>';
       const line = (stroke, sw, extra)=> '<polyline points="'+pts+'" fill="none" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"'+(extra||'')+'/>';
+      // merged versions (see PG above), filed under the map square of the shape's middle
+      let mx = 0, my = 0; for (const q of P){ mx += q.x; my += q.y; } mx /= P.length; my /= P.length;
+      const dLine = 'M' + pts.split(' ').join('L');
+      const mline = (layer, stroke, sw, extra)=> pgAdd(layer, 'fill="none" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"'+(extra||''), dLine, mx, my);
 
       if (t.highway){
         if (t.tunnel==='yes' || t.area==='yes') return;
@@ -7352,18 +7370,18 @@
           const w = PATH_W[t.highway]; if (!w) return;
           roads.push({ P, half:w/2+2, path:true, hw:t.highway, name:t.name||'', id:el.id });
           if (isBridge){ woodenBridge(P, Math.max(w+6, 24)); return; }
-          L.pathCase.push(line('#1d1823', w+5)); L.pathTop.push(line('url(#pat-flag)', w));
+          mline('pathCase', '#1d1823', w+5); mline('pathTop', 'url(#pat-flag)', w);
         } else {
           const w = ROAD_W[t.highway] || 48;
           roads.push({ P, half:w/2+6, path:false, hw:t.highway, name:t.name||'', id:el.id, bridge:isBridge });
           if (isBridge){ woodenBridge(P, w); return; }
-          L.roadCase.push(line('#16121c', w+12)); L.roadCase.push(line('#3b3446', w+6));
-          L.roadTop.push(line('url(#pat-cobble)', w));
-          if (w >= 56) L.roadTop.push(line('#ffd9a0', 1.6, ' stroke-opacity="0.18" stroke-dasharray="14 18"'));
+          mline('roadCaseA', '#16121c', w+12); mline('roadCaseB', '#3b3446', w+6);
+          mline('roadTop', 'url(#pat-cobble)', w);
+          if (w >= 56) mline('roadMark', '#ffd9a0', 1.6, ' stroke-opacity="0.18" stroke-dasharray="14 18"');
         }
         return;
       }
-      if (t.railway==='rail'){ L.rail.push(line('#2a2530', 16)); L.rail.push(line('#6f6878', 3.5, ' stroke-dasharray="3 7"')); L.rail.push(line('#9a93a6', 1.6)); return; }
+      if (t.railway==='rail'){ mline('rail', '#2a2530', 16); mline('rail', '#6f6878', 3.5, ' stroke-dasharray="3 7"'); mline('rail', '#9a93a6', 1.6); return; }
       if (t.waterway){
         const w = t.waterway==='river' ? 30 : (t.waterway==='canal' ? 24 : 12);
         L.water.push(line('#22385a', w+6)); L.water.push(line('#35577f', w));
@@ -7378,7 +7396,10 @@
       const poiNm = (t.leisure==='park' || t.leisure==='garden' || t.leisure==='playground') ? null : stopPoiName(t);
       if (poiNm){ const c = polyCentroid(P); poiAreas.push({ x:c.x, y:c.y, r:Math.sqrt(area/Math.PI), name:poiNm, id:el.id }); }
       if (t.building){
-        L.lots.push(poly('#231d2e', '#4a405a', 3));
+        // all wound the same way, so overlapping lots stay filled in one merged path
+        let sa = 0; for (let i=0, j=P.length-1; i<P.length; j=i++) sa += (P[j].x - P[i].x)*(P[j].y + P[i].y);
+        const ring = sa < 0 ? pts.split(' ').reverse() : pts.split(' ');
+        pgAdd('lots', 'fill="#231d2e" stroke="#4a405a" stroke-width="3"', 'M' + ring.join('L') + 'Z', mx, my);
         const c = polyCentroid(P);
         bldgs.push({ x:c.x, y:c.y, r:Math.sqrt(area/Math.PI), area, areaM2, t, seed:Math.floor(rnd()*1e6), P });
         return;
@@ -7439,8 +7460,10 @@
     const inTile = pr=> !bounds || (pr.x >= bounds.x0 && pr.x < bounds.x1 && pr.y >= bounds.y0 && pr.y < bounds.y1);
     const keptProps = props.filter(pr=> inTile(pr) && (!isGreenery(pr.kind) || !clearPolys.some(P=> pointInPoly(pr.x, pr.y, P))));
     props.length = 0; keptProps.forEach(pr=> props.push(pr));
-    const svg = L.land.join('') + L.water.join('') + L.marks.join('') + L.lots.join('') + L.rail.join('')
-      + L.pathCase.join('') + L.roadCase.join('') + L.pathTop.join('') + L.roadTop.join('') + L.bridge.join('');
+    const svg = L.land.join('') + L.water.join('') + L.marks.join('') + pgOut('lots') + pgOut('rail')
+      + pgOut('pathCase') + pgOut('roadCaseA') + pgOut('roadCaseB') + pgOut('pathTop') + pgOut('roadTop') + pgOut('roadMark')
+      + (PG.bShadow.size ? '<g transform="translate(5,9)" opacity="0.45">'+pgOut('bShadow')+'</g>' : '')
+      + pgOut('bDeck') + pgOut('bDeck2') + pgOut('bPlank') + pgOut('bPlank2') + pgOut('bRail') + pgOut('bRail2') + pgOut('bRail3');
     return { svg, props, parkCentroids, rivers };
 
     // ---- wooden bridges ----
@@ -7463,18 +7486,19 @@
       return out;
     }
     function woodenBridge(P, w){
-      const ptsOf = Q=> Q.map(q=> q.x.toFixed(1)+','+q.y.toFixed(1)).join(' ');
-      const pl = (Q, stroke, sw, extra)=> '<polyline points="'+ptsOf(Q)+'" fill="none" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linejoin="round"'+(extra||'')+'/>';
-      L.bridge.push('<g transform="translate(5,9)" opacity="0.45">'+pl(P, '#05040a', w+16)+'</g>');
-      L.bridge.push(pl(P, '#24160b', w+12));
-      L.bridge.push(pl(P, '#8a5a30', w));
-      L.bridge.push(pl(P, '#4f2f16', w, ' stroke-dasharray="1.6 5.2"'));
-      L.bridge.push(pl(P, '#c08a52', w*0.82, ' stroke-dasharray="1 5.8" stroke-dashoffset="3.4" stroke-opacity="0.5"'));
+      const ptsOf = Q=> Q.map(q=> q.x.toFixed(1)+','+q.y.toFixed(1)).join('L');
+      let mx = 0, my = 0; P.forEach(q=>{ mx += q.x; my += q.y; }); mx /= P.length; my /= P.length;
+      const pl = (layer, Q, stroke, sw, extra)=> pgAdd(layer, 'fill="none" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linejoin="round"'+(extra||''), 'M'+ptsOf(Q), mx, my);
+      pl('bShadow', P, '#05040a', w+16);
+      pl('bDeck', P, '#24160b', w+12);
+      pl('bDeck2', P, '#8a5a30', w);
+      pl('bPlank', P, '#4f2f16', w, ' stroke-dasharray="1.6 5.2"');
+      pl('bPlank2', P, '#c08a52', w*0.82, ' stroke-dasharray="1 5.8" stroke-dashoffset="3.4" stroke-opacity="0.5"');
       [-1,1].forEach(side=>{
         const R = offsetLine(P, side*(w/2 + 3));
-        L.bridge.push(pl(R, '#2b1a0c', 6, ' stroke-linecap="round"'));
-        L.bridge.push(pl(R, '#b07a44', 2, ' stroke-opacity="0.75" stroke-linecap="round"'));
-        L.bridge.push(pl(R, '#1e1208', 9, ' stroke-dasharray="4 26"'));
+        pl('bRail', R, '#2b1a0c', 6, ' stroke-linecap="round"');
+        pl('bRail2', R, '#b07a44', 2, ' stroke-opacity="0.75" stroke-linecap="round"');
+        pl('bRail3', R, '#1e1208', 9, ' stroke-dasharray="4 26"');
       });
     }
 
@@ -10615,7 +10639,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v72';
+window.TQ_APP_VERSION = 'v73';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
@@ -12187,56 +12211,250 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       camera.lookAt(0, lookY, 0);
     }
 
+
+    // ================= v73: the player is drawn from the character art itself =================
+    // The two pictures (assets/player/girl|boy.webp) become a lit, puffed-out 3D figure — the same
+    // relief the PvP Totos use — that breathes, looks around and bounces along when walking. Wardrobe
+    // items are laid onto the picture: each item's own embroidery is mapped over the hat, robe, tights
+    // or boots (shaded by the picture's own light and folds), and reward staffs replace the starter one.
+    const PLAYER_ART = { female:{ img:'assets/player/girl.webp', bare:'assets/player/girl-nostaff.webp', reg:'assets/player/girl-reg.png' }, male:{ img:'assets/player/boy.webp', bare:'assets/player/boy-nostaff.webp', reg:'assets/player/boy-reg.png' } };
+    const ART_FEET_U = 0.572;          // the middle of the boots, across the picture (the staff sticks out to the left)
+    // region map values (x30); 8 = where the staff crosses the brim (brim once the staff is swapped)
+    const ART_REG = { cone:1, band:2, brim:3, torso:4, tights:5, boots:6, staff:7 };
+    const WDR = 'assets/wardrobe/';
+    const ART_ITEMS = {
+      level100Hat: { cone:{ tex:WDR+'l100hat-cone.jpg', r:[0.27,0.1,0.73,1] }, band:{ tex:WDR+'l100hat-band.jpg', r:[0.3,0.08,0.75,0.92] }, brim:{ tex:WDR+'l100hat-brim.jpg', r:[0.12,0.72,0.88,0.98] } },
+      rank1Hat:    { cone:{ tex:WDR+'rank1-hat-cone-pvp.jpg', r:[0.26,0.06,0.74,1] }, band:{ color:'#c8743e' }, brim:{ tex:WDR+'rank1-hat-brim.jpg', r:[0.12,0.72,0.88,0.98] } },
+      tee:         { torso:{ tex:WDR+'tee-tex2.jpg', r:[0.26,0.02,0.74,1] } },
+      rank1Shirt:  { torso:{ tex:WDR+'rank1-shirt-pvp.jpg', r:[0.26,0,0.74,1] } },
+      rank1Legs:   { tights:{ tex:WDR+'rank1-legs.jpg', r:[0.3,0.15,0.66,0.85] } },
+      rank1Shoes:  { boots:{ tex:WDR+'rank1-shoe-side.jpg', r:[0.03,0.06,0.97,0.94] } },
+      l100broom:   { staff:{ swap:'assets/player/acc-broom.webp' } },
+      rank1Staff:  { staff:{ swap:'assets/player/acc-r1staff.webp' } }
+    };
+    const artImgs = new Map();
+    function artImg(src){
+      if (!artImgs.has(src)) artImgs.set(src, new Promise((res, rej)=>{ const im = new Image(); im.onload = ()=> res(im); im.onerror = ()=>{ artImgs.delete(src); rej(new Error('image '+src)); }; im.src = src; }));
+      return artImgs.get(src);
+    }
+    function boxBlur(src, W, H, r){
+      const tmp = new Float32Array(W*H), out = new Float32Array(W*H), n = 2*r+1;
+      for (let y=0;y<H;y++){ const o = y*W; let s = 0; for (let x=-r; x<=r; x++) s += src[o + Math.min(W-1, Math.max(0, x))];
+        for (let x=0;x<W;x++){ tmp[o+x] = s/n; s += src[o + Math.min(W-1, x+r+1)] - src[o + Math.max(0, x-r)]; } }
+      for (let x=0;x<W;x++){ let s = 0; for (let y=-r; y<=r; y++) s += tmp[Math.min(H-1, Math.max(0, y))*W + x];
+        for (let y=0;y<H;y++){ out[y*W+x] = s/n; s += tmp[Math.min(H-1, y+r+1)*W + x] - tmp[Math.max(0, y-r)*W + x]; } }
+      return out;
+    }
+    const ART_SLOTS = ['hat','top','legwear','shoes','accessory'];
+    function artKey(g, cfg){ return (g === 'male' ? 'male' : 'female') + '|' + ART_SLOTS.map(s=> (cfg && cfg[s] && ART_ITEMS[cfg[s].kind]) ? cfg[s].kind : '').join(','); }
+    function playerCfg(g){ const c = window.PLAYER_EQUIP_CATALOG && window.PLAYER_EQUIP_CATALOG[g === 'male' ? 'male' : 'female']; return c ? JSON.parse(JSON.stringify(c)) : null; }
+    const dressedCache = new Map();
+    // the character's picture wearing these items (a canvas, cached per outfit)
+    function dressedArt(g, cfg){
+      g = g === 'male' ? 'male' : 'female';
+      const key = artKey(g, cfg);
+      if (dressedCache.has(key)) return dressedCache.get(key);
+      const pr = (async()=>{
+        const looks = ART_SLOTS.map(s=> cfg && cfg[s] && ART_ITEMS[cfg[s].kind]).filter(Boolean);
+        const swapLook = looks.find(l=> l.staff && l.staff.swap), swap = swapLook ? swapLook.staff.swap : null;
+        // a reward staff goes on the picture without its starter staff (the brim behind it filled in)
+        const A = PLAYER_ART[g], base = await artImg(swap ? A.bare : A.img), W = base.naturalWidth, H = base.naturalHeight;
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        const ctx = c.getContext('2d', { willReadFrequently:true }); ctx.drawImage(base, 0, 0);
+        if (!looks.length) return c;
+        const reg = await artImg(A.reg);
+        const rc = document.createElement('canvas'); rc.width = W; rc.height = H;
+        const rx = rc.getContext('2d', { willReadFrequently:true }); rx.drawImage(reg, 0, 0, W, H);
+        const rp = rx.getImageData(0, 0, W, H).data, N = W*H, lab = new Uint8Array(N);
+        for (let i=0;i<N;i++) lab[i] = Math.round(rp[i*4]/30);
+        const im = ctx.getImageData(0, 0, W, H), px = im.data;
+        const L = new Float32Array(N); for (let i=0;i<N;i++) L[i] = 0.3*px[i*4] + 0.59*px[i*4+1] + 0.11*px[i*4+2];
+        // light maps, each worked out only if an item needs it
+        const LM = {}, lmap = k=> LM[k] || (LM[k] = k === 'soft' ? boxBlur(L, W, H, 6) : (k === 'broad' ? boxBlur(boxBlur(L, W, H, 9), W, H, 9) : boxBlur(L, W, H, 1)));
+        if (swap) for (let i=0;i<N;i++) if (lab[i] === 8) lab[i] = 3;
+        let sb = null;
+        if (swap){ sb = { x0:W, y0:H, x1:-1, y1:-1 }; for (let y=0;y<H;y++) for (let x=0;x<W;x++){ const v = Math.round(rp[(y*W+x)*4]/30); if (v !== 7 && v !== 8) continue; if (x < sb.x0) sb.x0 = x; if (x > sb.x1) sb.x1 = x; if (y < sb.y0) sb.y0 = y; if (y > sb.y1) sb.y1 = y; } }
+        for (const look of looks) for (const part of Object.keys(look)){
+          const spec = look[part], id = ART_REG[part];
+          if (spec.swap) continue;
+          // a new shirt shows the robe's folds, not its stripes; a new hat, not the old one's moon and stars
+          const Ls = lmap(part === 'torso' ? 'soft' : (part === 'cone' ? 'broad' : 'fine'));
+          let x0 = W, y0 = H, x1 = -1, y1 = -1, cnt = 0; const hist = new Uint32Array(256);
+          for (let y=0;y<H;y++) for (let x=0;x<W;x++){ const i = y*W+x; if (lab[i] !== id) continue;
+            if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; hist[Math.min(255, Ls[i]|0)]++; cnt++; }
+          if (!cnt) continue;
+          let acc = 0, ref = 128; for (let k=0;k<256;k++){ acc += hist[k]; if (acc >= cnt/2){ ref = Math.max(12, k); break; } }
+          const bw = x1-x0+1, bh = y1-y0+1;
+          let T = null, col = null;
+          if (spec.tex){
+            const ti = await artImg(spec.tex), r = spec.r, tw = ti.naturalWidth, th = ti.naturalHeight;
+            const tc = document.createElement('canvas'); tc.width = bw; tc.height = bh;
+            const tx = tc.getContext('2d', { willReadFrequently:true }); tx.drawImage(ti, r[0]*tw, r[1]*th, (r[2]-r[0])*tw, (r[3]-r[1])*th, 0, 0, bw, bh);
+            T = tx.getImageData(0, 0, bw, bh).data;
+          } else { const h = spec.color.replace('#',''); col = [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
+          // a soft (feathered) edge, so the new item doesn't end in jaggies against hair and hands
+          const M = new Float32Array(N); for (let i=0;i<N;i++) M[i] = lab[i] === id ? 1 : 0;
+          const Ms = boxBlur(M, W, H, 1);
+          for (let y=Math.max(0, y0-2);y<=Math.min(H-1, y1+2);y++) for (let x=Math.max(0, x0-2);x<=Math.min(W-1, x1+2);x++){
+            const i = y*W+x, wgt = lab[i] === id ? Math.max(0.5, Ms[i]) : Ms[i]*0.9;
+            if (wgt <= 0.01 || px[i*4+3] < 8) continue;
+            const sh = Math.min(1.45, Math.max(0.3, Ls[i]/ref));
+            const tx = Math.min(bw-1, Math.max(0, x-x0)), ty = Math.min(bh-1, Math.max(0, y-y0));
+            let r, gg, b; if (T){ const j = (ty*bw + tx)*4; r = T[j]; gg = T[j+1]; b = T[j+2]; } else { r = col[0]; gg = col[1]; b = col[2]; }
+            px[i*4] = px[i*4]*(1-wgt) + Math.min(255, r*sh)*wgt; px[i*4+1] = px[i*4+1]*(1-wgt) + Math.min(255, gg*sh)*wgt; px[i*4+2] = px[i*4+2]*(1-wgt) + Math.min(255, b*sh)*wgt;
+          }
+        }
+        ctx.putImageData(im, 0, 0);
+        if (sb && sb.x1 >= 0){
+          // the reward staff stands where the starter one was, behind the hand that holds it
+          const top = Math.max(sb.y0, H*0.43), si = await artImg(swap), h = (sb.y1 - top)*1.02, w = h*si.naturalWidth/si.naturalHeight;   // its top clears the hat brim
+          const cx = sb.x0 + (sb.x1 - sb.x0)*0.82;        // the shaft (the hook and lantern hung off to its left)
+          ctx.globalCompositeOperation = 'destination-over'; ctx.drawImage(si, cx - w/2, sb.y1 - h, w, h); ctx.globalCompositeOperation = 'source-over';
+        }
+        return c;
+      })();
+      dressedCache.set(key, pr); pr.catch(()=> dressedCache.delete(key));
+      if (dressedCache.size > 12) dressedCache.delete(dressedCache.keys().next().value);
+      return pr;
+    }
+    window.__tqDressedArt = (g, cfg)=> dressedArt(g, cfg || playerCfg(g));
+
+    // ---- a picture as a lit, puffed-out 3D figure (shared by the player and the PvP Totos) ----
+    const RELIEF_DEPTH = 0.27;
+    function buildRelief(img, side){
+      const iw = img.naturalWidth || img.width || 300, ih = img.naturalHeight || img.height || 360, aspect = iw/ih;
+      const S = 160, sw = aspect >= 1 ? S : Math.max(8, Math.round(S*aspect)), sh = aspect >= 1 ? Math.max(8, Math.round(S/aspect)) : S;
+      const c = document.createElement('canvas'); c.width = sw; c.height = sh;
+      const g = c.getContext('2d', { willReadFrequently:true }); g.drawImage(img, 0, 0, sw, sh);
+      const px = g.getImageData(0, 0, sw, sh).data, N = sw*sh;
+      const D = new Float32Array(N), L = new Float32Array(N);
+      for (let i=0;i<N;i++){ D[i] = px[i*4+3] > 100 ? 1e6 : 0; L[i] = (0.3*px[i*4] + 0.59*px[i*4+1] + 0.11*px[i*4+2])/255; }
+      // how far each painted pixel is from the outline (two quick passes)
+      for (let y=0;y<sh;y++) for (let x=0;x<sw;x++){ const i = y*sw+x; if (!D[i]) continue; let v = D[i];
+        v = Math.min(v, x > 0 ? D[i-1] + 1 : 1, y > 0 ? D[i-sw] + 1 : 1);
+        if (x > 0 && y > 0) v = Math.min(v, D[i-sw-1] + 1.414); if (x < sw-1 && y > 0) v = Math.min(v, D[i-sw+1] + 1.414);
+        D[i] = v; }
+      for (let y=sh-1;y>=0;y--) for (let x=sw-1;x>=0;x--){ const i = y*sw+x; if (!D[i]) continue; let v = D[i];
+        v = Math.min(v, x < sw-1 ? D[i+1] + 1 : 1, y < sh-1 ? D[i+sw] + 1 : 1);
+        if (x < sw-1 && y < sh-1) v = Math.min(v, D[i+sw+1] + 1.414); if (x > 0 && y < sh-1) v = Math.min(v, D[i+sw-1] + 1.414);
+        D[i] = v; }
+      // a rounded dome over the whole figure, with a touch of the painting's own light and shade
+      const R = Math.max(4, Math.max(sw, sh)*0.2);
+      let Hh = new Float32Array(N);
+      for (let i=0;i<N;i++){ if (!D[i]) continue; const t = Math.min(D[i], R)/R; Hh[i] = Math.sqrt(1 - (1-t)*(1-t)) + (L[i] - 0.5)*0.035; }
+      for (let pass=0; pass<2; pass++){
+        const o = new Float32Array(N);
+        for (let y=0;y<sh;y++) for (let x=0;x<sw;x++){ let s = 0, n = 0; for (let dy=-1;dy<=1;dy++) for (let dx=-1;dx<=1;dx++){ const xx = x+dx, yy = y+dy; if (xx < 0 || yy < 0 || xx >= sw || yy >= sh) continue; s += Hh[yy*sw+xx]; n++; } o[y*sw+x] = s/n; }
+        Hh = o;
+      }
+      // depth follows the figure's narrower side, and side-on (profile) art is kept shallower, so wide
+      // creatures don't bulge and warp
+      const depth = (side ? 0.17 : RELIEF_DEPTH)*Math.min(1, 1/aspect);
+      const segX = 64, segY = Math.max(8, Math.round(64/aspect));
+      const geo = new THREE.PlaneGeometry(1, 1/aspect, segX, segY);
+      const pos = geo.attributes.position, uv = geo.attributes.uv;
+      for (let k=0;k<pos.count;k++){
+        const fx = uv.getX(k)*(sw-1), fy = (1 - uv.getY(k))*(sh-1), x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(sw-1, x0+1), y1 = Math.min(sh-1, y0+1), ax = fx - x0, ay = fy - y0;
+        const h = (Hh[y0*sw+x0]*(1-ax) + Hh[y0*sw+x1]*ax)*(1-ay) + (Hh[y1*sw+x0]*(1-ax) + Hh[y1*sw+x1]*ax)*ay;
+        pos.setZ(k, Math.max(0, h)*depth);
+      }
+      geo.translate(0, 0.5/aspect, 0);
+      geo.computeVertexNormals();
+      const tex = new THREE.Texture(img); if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.needsUpdate = true;
+      return { geo, tex, aspect };
+    }
+    // the standing-figure material: the art lit softly, breathing and swaying (the feet stay put)
+    function reliefMaterial(tex, uni, glow){
+      const mat = new THREE.MeshStandardMaterial({ map:tex, emissiveMap:tex, emissive:new THREE.Color(glow, glow, glow), roughness:0.68, metalness:0, alphaTest:0.4, side:THREE.DoubleSide });
+      mat.onBeforeCompile = sh=>{
+        Object.assign(sh.uniforms, uni);
+        sh.vertexShader = 'uniform float uTime;\nuniform float uSeed;\nuniform float uH;\nuniform float uSway;\nuniform float uBreath;\nuniform float uLean;\n' + sh.vertexShader.replace('#include <begin_vertex>', [
+          '#include <begin_vertex>',
+          'float hy = clamp(position.y / uH, 0.0, 1.0);',
+          'float br = sin(uTime*2.1 + uSeed);',
+          'transformed.y *= 1.0 + uBreath*br;',                 // breathing: a little taller and slimmer, then back
+          'transformed.x *= 1.0 - uBreath*0.6*br;',
+          'transformed.z *= 1.0 + uBreath*2.5*br;',
+          'transformed.x += (uSway*sin(uTime*1.3 + uSeed*1.7) + uLean) * hy*hy*uH;'   // the top sways and leans, the feet stay put
+        ].join('\n'));
+      };
+      mat.customProgramCacheKey = ()=> 'tq-relief-toto';
+      return mat;
+    }
+    function addArtLights(scene){
+      scene.add(new THREE.HemisphereLight(0xfff4e8, 0x4a3a6a, 1.2));
+      const k = new THREE.DirectionalLight(0xffe6c8, 1.4); k.position.set(-0.45, 0.75, 1); scene.add(k);
+      const r1 = new THREE.DirectionalLight(0xc9a8ff, 1.5); r1.position.set(0.9, 0.35, -0.6); scene.add(r1);
+      const r2 = new THREE.DirectionalLight(0xffb070, 0.7); r2.position.set(-0.9, 0.3, -0.6); scene.add(r2);
+    }
+    // the player's figure: feet at the origin (the middle of the boots), 1 unit wide
+    function makeArtFigure(art, glow){
+      const R = buildRelief(art, false);
+      R.geo.translate(-(ART_FEET_U - 0.5), 0, 0);
+      const uni = { uTime:{ value:0 }, uSeed:{ value:Math.random()*6.28 }, uH:{ value:1/R.aspect }, uSway:{ value:0.012 }, uBreath:{ value:0.014 }, uLean:{ value:0 } };
+      const mat = reliefMaterial(R.tex, uni, glow == null ? 0.42 : glow);
+      const mesh = new THREE.Mesh(R.geo, mat);
+      const fig = new THREE.Group(); fig.add(mesh);
+      return { fig, mesh, mat, uni, aspect:R.aspect, dispose(){ R.geo.dispose(); R.tex.dispose(); mat.dispose(); } };
+    }
+
     function initPlayer3D(canvas, gender){
       const scene = new THREE.Scene();
-      const rig = addPlayerLighting(scene);
+      addArtLights(scene);
 
-      const camera = new THREE.PerspectiveCamera(FRAME_FOV, PLAYER_CANVAS_W/PLAYER_CANVAS_H, 0.1, 30);
+      // screen pixels: the canvas is PLAYER_CANVAS_W x H, feet FRAME_FEET_PX above its bottom
+      const camera = new THREE.OrthographicCamera(-PLAYER_CANVAS_W/2, PLAYER_CANVAS_W/2, PLAYER_CANVAS_H, 0, 1, 2000);
+      camera.position.z = 1000;
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
       renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
-      setupPlayerRenderer(renderer);
+      if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
       // Fixed intended size (matches the .player-avatar-3d CSS) rather than measuring
       // layout — this marker never resizes, and reading clientWidth/Height here would
       // return 0 if mounted before the game screen is the active one on screen.
       renderer.setSize(PLAYER_CANVAS_W, PLAYER_CANVAS_H, false);
+      // soft contact shadow under the boots
+      const shadow = new THREE.Mesh(new THREE.CircleGeometry(1, 28), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.95 }));
+      shadow.position.set(0, FRAME_FEET_PX + 1, -600); scene.add(shadow);
+      const FIG_H = 134;                    // px tall on the map
+      let F = null, want = '', stopped = false, gate = {}, walkK = 0, lastT = 0;
+      function load(g){
+        const cfg = playerCfg(g), key = want = artKey(g, cfg);
+        dressedArt(g, cfg).then(art=>{
+          if (stopped || want !== key) return;
+          if (F){ scene.remove(F.fig); F.dispose(); }
+          F = makeArtFigure(art, 0.42); F.mesh.scale.setScalar(FIG_H*F.aspect); scene.add(F.fig);
+          gate = {};
+        }).catch(e=> console.warn('player art', e));
+      }
+      load(gender);
 
-      // On the map she's only ~110 px tall and already stands on soft contact shadows, so the
-      // real-time shadow pass (which drew every part of her twice) is switched off here.
-      renderer.shadowMap.enabled = false;
-      scene.traverse(o=>{ if (o.material && o.material.isShadowMaterial) o.visible = false; });
-
-      let group = buildPlayerModel(gender);
-      scene.add(group);
-
-      let stopped = false; const gate = {};
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
         // Only spend GPU time while the game/map screen is actually the one showing (not
         // under a battle or a full-screen panel).
-        if (tqMapCovered()) return;
-        const gs = window.__gameState;
-        const orbitDeg = (gs && typeof gs.viewOrbit==='number') ? gs.viewOrbit : 0;
-        const walkingNow = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
-        // walking or turning: 30 frames a second is plenty at this size; standing still: 15
-        if (!tqGate(gate, (walkingNow || !tqCameraCalm()) ? 30 : 15)) return;
-        const rad = THREE.MathUtils.degToRad(orbitDeg);
-        placePlayerCamera(camera, rad, FRAME_VIEW_H, FRAME_FEET_PX, PLAYER_CANVAS_H);
-        rig.rotation.y = rad;   // studio lighting follows the camera around her
+        if (tqMapCovered() || !F) return;
         const walking = canvas.parentElement ? canvas.parentElement.classList.contains('walking') : false;
-        animatePlayerModel(group, performance.now()/1000, walking);
+        // walking or turning: 30 frames a second is plenty at this size; standing still: 15
+        if (!tqGate(gate, (walking || walkK > 0.01 || !tqCameraCalm()) ? 30 : 15)) return;
+        const t = performance.now()/1000, dt = Math.min(0.1, Math.max(0, t - (lastT || t))); lastT = t;
+        walkK += ((walking ? 1 : 0) - walkK)*Math.min(1, dt*8);
+        // walking: a bouncy little step, rocking side to side; standing: breathing and looking around
+        const ph = t*8.5, step = Math.abs(Math.sin(ph));
+        F.fig.position.set(0, FRAME_FEET_PX + step*5*walkK, 0);
+        F.fig.rotation.z = Math.sin(ph)*0.065*walkK;
+        F.fig.scale.set(1 + (1-step)*0.03*walkK, 1 - (1-step)*0.035*walkK, 1);
+        F.mesh.rotation.y = Math.sin(t*0.55)*0.2*(1 - walkK);
+        F.uni.uTime.value = t; F.uni.uSway.value = 0.014*(1 - walkK); F.uni.uLean.value = 0;
+        const sw = 30*(1 - step*0.18*walkK);
+        shadow.scale.set(sw, sw*0.24, 1);
         renderer.render(scene, camera);
       }
       requestAnimationFrame(frame);
 
       return {
-        setGender(g){
-          scene.remove(group);
-          disposePlayerModel(group);
-          group = buildPlayerModel(g);
-          scene.add(group);
-        },
-        dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); }
+        setGender(g){ load(g); },          // also called after an outfit change
+        dispose(){ stopped = true; if (F) F.dispose(); renderer.dispose(); }
       };
     }
 
@@ -12246,80 +12464,74 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
     // animatePlayerModel/getGroundShadowTexture rather than duplicating the model itself,
     // but keeps its own scene/camera/render-loop since it has different sizing and input
     // needs than the tiny fixed HUD marker in initPlayer3D() below.
-    function initWardrobePreview3D(canvas, gender){
+    function initWardrobePreview3D(canvas, gender, cfg){
       const scene = new THREE.Scene();
-      const rig = addPlayerLighting(scene);
-
+      addArtLights(scene);
       const camera = new THREE.PerspectiveCamera(FRAME_FOV, 1, 0.1, 30);
       const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
       renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
-      setupPlayerRenderer(renderer);
-      let ch = 260;
+      if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
       function resize(){
         const w = canvas.clientWidth || 200, h = canvas.clientHeight || 260;
-        ch = h;
         renderer.setSize(w, h, false);
         camera.aspect = w/h; camera.updateProjectionMatrix();
       }
       resize();
       window.addEventListener('resize', resize);
+      const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.42, 32), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.95 }));
+      shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.004; shadow.scale.set(1.5, 0.9, 1); scene.add(shadow);
+      const FIG_H = 2.6;
+      let F = null, want = '', stopped = false;
+      function load(g, c){
+        const key = want = artKey(g, c);
+        dressedArt(g, c).then(art=>{
+          if (stopped || want !== key) return;
+          if (F){ scene.remove(F.fig); F.dispose(); }
+          F = makeArtFigure(art, 0.42); F.mesh.scale.setScalar(FIG_H*F.aspect); scene.add(F.fig);
+        }).catch(e=> console.warn('player art', e));
+      }
+      load(gender, cfg);
 
-      let group = buildPlayerModel(gender);
-      scene.add(group);
-
-      // Starts at a 3/4 angle (not dead-on front) so the silhouette reads as 3D the
-      // instant the panel opens, and auto-spins gently whenever the player isn't actively
-      // dragging — the live-rotating preview the brief asked for, without needing the
-      // player to discover the drag gesture first.
-      let orbitDeg = 20, dragging = false, lastX = 0;   // idle pose faces +Z, so ~0° = front
-      // Front / Back buttons glide the camera round; Spin turns slowly on its own; dragging
-      // takes over. Close-ups frame the slot you're dressing (head, torso, legs, feet).
-      let autoSpin = true, targetOrbit = null, focus = 'full', curH = 2.75, curCy = null;
-      const FOCUS = { full:{ h:2.75, cy:null }, head:{ h:1.55, cy:1.45 }, torso:{ h:1.15, cy:0.76 }, legs:{ h:0.95, cy:0.36 }, feet:{ h:0.7, cy:0.17 } };
-      canvas.addEventListener('pointerdown', e=>{ dragging = true; autoSpin = false; targetOrbit = null; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
-      canvas.addEventListener('pointermove', e=>{ if (!dragging) return; orbitDeg += (e.clientX-lastX)*0.6; lastX = e.clientX; });
+      // The picture faces you: it turns a little either way (drag it), sways gently on "Spin",
+      // and the close-ups frame the slot you're dressing (hat, robe, legs, feet).
+      let turn = 0, dragging = false, lastX = 0, autoSpin = true, targetTurn = null, focus = 'full', curH = 3.3, curCy = null, curCx = null;
+      const FOCUS = { full:{ h:3.3, cy:1.13, cx:-0.1 }, head:{ h:1.6, cy:1.86, cx:-0.02 }, torso:{ h:1.5, cy:0.92, cx:-0.02 }, legs:{ h:0.78, cy:0.38, cx:0 }, feet:{ h:0.58, cy:0.17, cx:0 } };
+      canvas.addEventListener('pointerdown', e=>{ dragging = true; autoSpin = false; targetTurn = null; lastX = e.clientX; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
+      canvas.addEventListener('pointermove', e=>{ if (!dragging) return; turn = Math.max(-0.75, Math.min(0.75, turn + (e.clientX-lastX)*0.01)); lastX = e.clientX; });
       window.addEventListener('pointerup', ()=>{ dragging = false; });
       canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
 
-      let stopped = false;
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
-        if (targetOrbit != null){
-          const d = ((targetOrbit - orbitDeg) % 360 + 540) % 360 - 180;
-          orbitDeg += d*0.14; if (Math.abs(d) < 0.2) orbitDeg = targetOrbit;
-        } else if (!dragging && autoSpin) orbitDeg += 0.3;
-        const rad = THREE.MathUtils.degToRad(orbitDeg);
+        if (!canvas.offsetParent) return;
+        const t = performance.now()/1000;
+        if (targetTurn != null){ turn += (targetTurn - turn)*0.14; if (Math.abs(targetTurn - turn) < 0.002) turn = targetTurn; }
+        else if (!dragging && autoSpin) turn = Math.sin(t*0.6)*0.5;
         const f = FOCUS[focus] || FOCUS.full;
-        const wantCy = f.cy == null ? (3.0/2 - 20*(3.0/ch)) : f.cy;
-        curH += (f.h - curH)*0.14; curCy = curCy == null ? wantCy : curCy + (wantCy - curCy)*0.14;
+        curH += (f.h - curH)*0.14; curCy = curCy == null ? f.cy : curCy + (f.cy - curCy)*0.14; curCx = curCx == null ? f.cx : curCx + (f.cx - curCx)*0.14;
         const dist = curH / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2));
-        camera.position.set(Math.sin(rad)*dist*Math.cos(FRAME_ELEV), curCy + dist*Math.sin(FRAME_ELEV), Math.cos(rad)*dist*Math.cos(FRAME_ELEV));
-        camera.lookAt(0, curCy, 0);
-        rig.rotation.y = rad;
-        animatePlayerModel(group, performance.now()/1000, false);
+        camera.position.set(curCx, curCy + dist*Math.sin(FRAME_ELEV), dist*Math.cos(FRAME_ELEV));
+        camera.lookAt(curCx, curCy, 0);
+        if (F){ F.mesh.rotation.y = turn; F.uni.uTime.value = t; }
         renderer.render(scene, camera);
       }
       requestAnimationFrame(frame);
 
       return {
-        rebuild(g){
-          scene.remove(group);
-          disposePlayerModel(group);
-          group = buildPlayerModel(g);
-          scene.add(group);
-        },
-        setView(v){ if (v === 'spin'){ autoSpin = true; targetOrbit = null; } else { autoSpin = false; targetOrbit = v === 'back' ? 180 : 0; } },
+        rebuild(g, c){ load(g, c); },
+        setView(v){ if (v === 'spin'){ autoSpin = true; targetTurn = null; } else { autoSpin = false; targetTurn = 0; } },
         setFocus(name){ focus = FOCUS[name] ? name : 'full'; },
-        getView(){ return { orbitDeg, focus }; },
-        dispose(){ stopped = true; disposePlayerModel(group); renderer.dispose(); window.removeEventListener('resize', resize); }
+        getView(){ return { orbitDeg: turn*180/Math.PI, focus }; },
+        dispose(){ stopped = true; if (F) F.dispose(); renderer.dispose(); window.removeEventListener('resize', resize); }
       };
     }
     window.mountWardrobePreview3D = function(canvas, gender, overrides){
       if (!canvas) return;
       if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(overrides); } catch(e){} }
       if (canvas.__wardrobe3d) canvas.__wardrobe3d.dispose();
-      canvas.__wardrobe3d = initWardrobePreview3D(canvas, gender==='male' ? 'male' : 'female');
+      const g = gender==='male' ? 'male' : 'female';
+      canvas.__wardrobe3d = initWardrobePreview3D(canvas, g, playerCfg(g));
       if (overrides && window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
     };
     // overrides = items being tried on (preview only — the map avatar keeps what's equipped)
@@ -12327,55 +12539,41 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       if (!canvas) return;
       if (!canvas.__wardrobe3d){ window.mountWardrobePreview3D(canvas, gender, overrides); return; }
       if (window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(overrides); } catch(e){} }
-      canvas.__wardrobe3d.rebuild(gender==='male' ? 'male' : 'female');
+      const g = gender==='male' ? 'male' : 'female';
+      canvas.__wardrobe3d.rebuild(g, playerCfg(g));
       if (overrides && window.applyEquippedCosmetics) { try { window.applyEquippedCosmetics(); } catch(e){} }
     };
 
     // ---- other trainers' outfits as pictures (PvP lobby + arena portraits) ----
-    let snapR = null, snapScene = null, snapCam = null;
+    // Returns the picture's address once it's ready (null the first time: cb gets it a moment later).
     const snapCache = new Map();
     window.__tqLookSnapshot = function(look, mode, cb){
-      mode = mode === 'head' ? 'head' : (mode === 'back' ? 'back' : 'full');
-      const key = mode + '|' + JSON.stringify(look || {});
+      mode = mode === 'head' ? 'head' : 'full';
+      const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
+      const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
+      const key = mode + '|' + artKey(g, L && L.cfg);
       const hit = snapCache.get(key);
-      if (hit && hit.final){ return hit.url; }
-      if (hit && !hit.final && hit.pending){ if (cb) hit.cbs.push(cb); return hit.url; }
-      if (!snapR){
-        const c = document.createElement('canvas');
-        snapR = new THREE.WebGLRenderer({ canvas:c, alpha:true, antialias:true, preserveDrawingBuffer:true });
-        snapR.setPixelRatio(1);
-        if ('outputColorSpace' in snapR) snapR.outputColorSpace = THREE.SRGBColorSpace;
-        snapScene = new THREE.Scene();
-        snapScene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a55, 1.4));
-        const k = new THREE.DirectionalLight(0xffe2b8, 2.1); k.position.set(1.5, 3.8, 2.6); snapScene.add(k);
-        const f = new THREE.DirectionalLight(0xfff5e8, 0.9); f.position.set(-1.4, 1.6, 3); snapScene.add(f);
-        const r = new THREE.DirectionalLight(0xc2adff, 1.8); r.position.set(-2.2, 2.4, -3); snapScene.add(r);
-        snapCam = new THREE.PerspectiveCamera(24, 1, 0.1, 40);
-      }
-      const render = ()=>{
-        const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
-        const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
-        const group = buildPlayerModel(g, L && L.cfg);
-        animatePlayerModel(group, 1.0, false);
-        group.rotation.y = mode === 'head' ? -0.2 : (mode === 'back' ? Math.PI : -0.32);
-        const W = mode === 'head' ? 128 : (mode === 'back' ? 600 : 168), H = mode === 'head' ? 128 : (mode === 'back' ? 800 : 224);
-        snapR.setSize(W, H, false); snapCam.aspect = W/H; snapCam.updateProjectionMatrix();
-        const viewH = mode === 'head' ? 1.15 : 2.7, lookY = mode === 'head' ? 1.6 : 1.17;
-        const d = viewH / (2*Math.tan(THREE.MathUtils.degToRad(snapCam.fov)/2));
-        snapCam.position.set(0, lookY + d*0.14, d); snapCam.lookAt(0, lookY, 0);
-        snapScene.add(group); snapR.render(snapScene, snapCam);
-        const url = snapR.domElement.toDataURL('image/png');
-        snapScene.remove(group); disposePlayerModel(group);
-        return url;
-      };
-      try {
-        const url = render();
-        const entry = { url, final:false, pending:true, cbs: cb ? [cb] : [] };
-        snapCache.set(key, entry);
-        // textures (embroidered hats, printed shirts…) load a moment later: draw once more
-        setTimeout(()=>{ try { entry.url = render(); } catch(e){} entry.final = true; entry.pending = false; entry.cbs.forEach(fn=>{ try { fn(entry.url); } catch(e){} }); entry.cbs = []; }, 1300);
-        return url;
-      } catch(e){ console.warn('look snapshot failed', e); return null; }
+      if (hit && hit.url) return hit.url;
+      if (hit){ if (cb) hit.cbs.push(cb); return null; }
+      const entry = { url:null, cbs: cb ? [cb] : [] };
+      snapCache.set(key, entry);
+      dressedArt(g, L && L.cfg).then(art=>{
+        const aw = art.width, ah = art.height;
+        const out = document.createElement('canvas');
+        if (mode === 'head'){
+          // hat and face
+          out.width = out.height = 176;
+          const s = aw*0.76, sx = aw*0.19, sy = ah*0.115;
+          out.getContext('2d').drawImage(art, sx, sy, s, s, 0, 0, 176, 176);
+        } else {
+          out.width = 216; out.height = 300;
+          const k = Math.min(216/aw, 296/ah), w = aw*k, h = ah*k;
+          out.getContext('2d').drawImage(art, (216 - w)/2, 300 - h - 2, w, h);
+        }
+        entry.url = out.toDataURL('image/png');
+        entry.cbs.forEach(fn=>{ try { fn(entry.url); } catch(e){} }); entry.cbs = [];
+      }).catch(e=>{ snapCache.delete(key); console.warn('look snapshot failed', e); });
+      return null;
     };
 
     // ---- the PvP arena's two trainers, standing behind their Totos ----
@@ -12408,15 +12606,21 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       function makeTrainer(look, side){
         const L = window.tqLookCfg ? window.tqLookCfg(look) : null;
         const g = L ? L.g : (look && look.g === 'male' ? 'male' : 'female');
-        const model = buildPlayerModel(g, L && L.cfg);
-        const root = new THREE.Group(); root.add(model);
-        model.rotation.y = side === 'L' ? 0.55 : -0.55;     // turned in toward the fight
+        const root = new THREE.Group();
         const sh = new THREE.Mesh(new THREE.CircleGeometry(0.42, 28), new THREE.MeshBasicMaterial({ map:getGroundShadowTexture(), transparent:true, depthWrite:false, opacity:0.9 }));
         sh.rotation.x = -Math.PI/2; sh.scale.set(1.4, 1, 1); sh.position.y = 0.01; root.add(sh);
         scene.add(root);
-        return { root, model, cmd:0, pose:null };
+        const tr = { root, F:null, cmd:0, pose:null, side, seed:Math.random()*6 };
+        dressedArt(g, L && L.cfg).then(art=>{
+          if (stopped || T[side] !== tr) return;
+          tr.F = makeArtFigure(art, 0.3); tr.F.mesh.scale.setScalar(2.35*tr.F.aspect);
+          tr.F.mesh.rotation.y = side === 'L' ? 0.45 : -0.45;     // turned in toward the fight
+          if (side === 'L') tr.F.fig.position.x = 0.2;              // the staff and lantern stick out to the left: keep them on screen
+          root.add(tr.F.fig);
+        }).catch(e=> console.warn('trainer art', e));
+        return tr;
       }
-      function clear(side){ const tr = T[side]; if (!tr) return; scene.remove(tr.root); disposePlayerModel(tr.root); T[side] = null; }
+      function clear(side){ const tr = T[side]; if (!tr) return; scene.remove(tr.root); if (tr.F) tr.F.dispose(); tr.root.traverse(o=>{ if (o.geometry) o.geometry.dispose(); }); T[side] = null; }
       function frame(){
         if (stopped) return;
         requestAnimationFrame(frame);
@@ -12424,15 +12628,17 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
         if (!tqGate(gate, arenaBusy ? 60 : 30)) return;   // calm: 30 frames a second; attacks and hits: 60
         const t = performance.now()/1000;
         ['L','R'].forEach(side=>{
-          const tr = T[side]; if (!tr) return;
-          animatePlayerModel(tr.model, t + (side === 'R' ? 0.7 : 0), false);
-          const p = tr.model.userData.parts; if (!p) return;
-          if (tr.cmd > t){
-            const k = Math.sin(Math.min(1, (0.9 - (tr.cmd - t))/0.9) * Math.PI);
-            p.rightArm.rotation.x = -1.5*k; p.rightArm.rotation.z += 0.25*k; p.body.position.y = 0.05*k; p.headGroup.rotation.x = -0.12*k;
-          }
-          if (tr.pose === 'win'){ const k = 0.5 + 0.5*Math.sin(t*6); p.leftArm.rotation.z = -2.4; p.rightArm.rotation.z = 2.4; p.body.position.y = 0.08*k; }
-          else if (tr.pose === 'lose'){ p.headGroup.rotation.x = 0.35; p.leftArm.rotation.z = -0.15; p.rightArm.rotation.z = 0.15; }
+          const tr = T[side]; if (!tr || !tr.F) return;
+          const F = tr.F, dir = side === 'L' ? 1 : -1;
+          F.uni.uTime.value = t + tr.seed;
+          let lean = 0, hop = 0;
+          // giving an order: leans in toward the fight with a little hop
+          if (tr.cmd > t){ const k = Math.sin(Math.min(1, (0.9 - (tr.cmd - t))/0.9) * Math.PI); lean = 0.12*k*dir; hop = 0.08*k; }
+          if (tr.pose === 'win') hop = Math.max(0, Math.sin(t*6))*0.14;
+          F.uni.uLean.value = lean;
+          F.fig.position.y = hop;
+          F.fig.rotation.z = tr.pose === 'lose' ? 0.08*dir : 0;
+          F.mat.color.setScalar(tr.pose === 'lose' ? 0.72 : 1);
         });
         renderer.render(scene, cam);
         arenaBusy = updateTotos();
@@ -12451,49 +12657,6 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       const tCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 9000); tCam.position.z = 4500;
       const totos = [];
       const reliefCache = new Map();
-      const RELIEF_DEPTH = 0.27;
-      function buildRelief(img, side){
-        const iw = img.naturalWidth || img.width || 300, ih = img.naturalHeight || img.height || 360, aspect = iw/ih;
-        const S = 160, sw = aspect >= 1 ? S : Math.max(8, Math.round(S*aspect)), sh = aspect >= 1 ? Math.max(8, Math.round(S/aspect)) : S;
-        const c = document.createElement('canvas'); c.width = sw; c.height = sh;
-        const g = c.getContext('2d'); g.drawImage(img, 0, 0, sw, sh);
-        const px = g.getImageData(0, 0, sw, sh).data, N = sw*sh;
-        const D = new Float32Array(N), L = new Float32Array(N);
-        for (let i=0;i<N;i++){ D[i] = px[i*4+3] > 100 ? 1e6 : 0; L[i] = (0.3*px[i*4] + 0.59*px[i*4+1] + 0.11*px[i*4+2])/255; }
-        // how far each painted pixel is from the outline (two quick passes)
-        for (let y=0;y<sh;y++) for (let x=0;x<sw;x++){ const i = y*sw+x; if (!D[i]) continue; let v = D[i];
-          v = Math.min(v, x > 0 ? D[i-1] + 1 : 1, y > 0 ? D[i-sw] + 1 : 1);
-          if (x > 0 && y > 0) v = Math.min(v, D[i-sw-1] + 1.414); if (x < sw-1 && y > 0) v = Math.min(v, D[i-sw+1] + 1.414);
-          D[i] = v; }
-        for (let y=sh-1;y>=0;y--) for (let x=sw-1;x>=0;x--){ const i = y*sw+x; if (!D[i]) continue; let v = D[i];
-          v = Math.min(v, x < sw-1 ? D[i+1] + 1 : 1, y < sh-1 ? D[i+sw] + 1 : 1);
-          if (x < sw-1 && y < sh-1) v = Math.min(v, D[i+sw+1] + 1.414); if (x > 0 && y < sh-1) v = Math.min(v, D[i+sw-1] + 1.414);
-          D[i] = v; }
-        // a rounded dome over the whole figure, with a touch of the painting's own light and shade
-        const R = Math.max(4, Math.max(sw, sh)*0.2);
-        let Hh = new Float32Array(N);
-        for (let i=0;i<N;i++){ if (!D[i]) continue; const t = Math.min(D[i], R)/R; Hh[i] = Math.sqrt(1 - (1-t)*(1-t)) + (L[i] - 0.5)*0.035; }
-        for (let pass=0; pass<2; pass++){
-          const o = new Float32Array(N);
-          for (let y=0;y<sh;y++) for (let x=0;x<sw;x++){ let s = 0, n = 0; for (let dy=-1;dy<=1;dy++) for (let dx=-1;dx<=1;dx++){ const xx = x+dx, yy = y+dy; if (xx < 0 || yy < 0 || xx >= sw || yy >= sh) continue; s += Hh[yy*sw+xx]; n++; } o[y*sw+x] = s/n; }
-          Hh = o;
-        }
-        // depth follows the figure's narrower side, and side-on (profile) art is kept shallower, so wide
-        // creatures don't bulge and warp
-        const depth = (side ? 0.17 : RELIEF_DEPTH)*Math.min(1, 1/aspect);
-        const segX = 64, segY = Math.max(8, Math.round(64/aspect));
-        const geo = new THREE.PlaneGeometry(1, 1/aspect, segX, segY);
-        const pos = geo.attributes.position, uv = geo.attributes.uv;
-        for (let k=0;k<pos.count;k++){
-          const fx = uv.getX(k)*(sw-1), fy = (1 - uv.getY(k))*(sh-1), x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(sw-1, x0+1), y1 = Math.min(sh-1, y0+1), ax = fx - x0, ay = fy - y0;
-          const h = (Hh[y0*sw+x0]*(1-ax) + Hh[y0*sw+x1]*ax)*(1-ay) + (Hh[y1*sw+x0]*(1-ax) + Hh[y1*sw+x1]*ax)*ay;
-          pos.setZ(k, Math.max(0, h)*depth);
-        }
-        geo.translate(0, 0.5/aspect, 0);
-        geo.computeVertexNormals();
-        const tex = new THREE.Texture(img); if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.needsUpdate = true;
-        return { geo, tex, aspect };
-      }
       function reliefFor(src, side){
         const key = (side ? 's|' : 'f|') + src;
         if (reliefCache.has(key)) return reliefCache.get(key);
@@ -12521,20 +12684,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
           reliefFor(src, T.facing !== 'f').then(R=>{
             if (!totos.includes(T)) return;
             const uni = { uTime:{ value:0 }, uSeed:{ value:T.seed }, uH:{ value:1/R.aspect }, uSway:{ value:0.03 }, uBreath:{ value:0.028 }, uLean:{ value:0 } };
-            const mat = new THREE.MeshStandardMaterial({ map:R.tex, emissiveMap:R.tex, emissive:new THREE.Color(0.42, 0.42, 0.42), roughness:0.68, metalness:0, alphaTest:0.4, side:THREE.DoubleSide });
-            mat.onBeforeCompile = sh=>{
-              Object.assign(sh.uniforms, uni);
-              sh.vertexShader = 'uniform float uTime;\nuniform float uSeed;\nuniform float uH;\nuniform float uSway;\nuniform float uBreath;\nuniform float uLean;\n' + sh.vertexShader.replace('#include <begin_vertex>', [
-                '#include <begin_vertex>',
-                'float hy = clamp(position.y / uH, 0.0, 1.0);',
-                'float br = sin(uTime*2.1 + uSeed);',
-                'transformed.y *= 1.0 + uBreath*br;',                 // breathing: a little taller and slimmer, then back
-                'transformed.x *= 1.0 - uBreath*0.6*br;',
-                'transformed.z *= 1.0 + uBreath*2.5*br;',
-                'transformed.x += (uSway*sin(uTime*1.3 + uSeed*1.7) + uLean) * hy*hy*uH;'   // the top sways and leans, the feet stay put
-              ].join('\n'));
-            };
-            mat.customProgramCacheKey = ()=> 'tq-relief-toto';
+            const mat = reliefMaterial(R.tex, uni, 0.42);
             const mesh = new THREE.Mesh(R.geo, mat);
             // turn toward the opponent: front-on art turns a good way round, side-on art is mirrored to face them
             const toRight = T.side === 'me';
