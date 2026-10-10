@@ -573,7 +573,10 @@
     background: radial-gradient(circle at 50% 58%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 17%, rgba(8,4,16,0.55) 46%, rgba(6,3,13,0.88) 72%); }
   /* Daytime lightens the same night-purple art rather than swapping in a whole separate
      art set — the Halloween mood stays, it's just not pitch dark at noon. */
-  .map-view.is-daytime .world { filter: brightness(1.32) saturate(0.92); }
+  /* v79: the daytime lift is painted into the map once (terrain + decor) instead of being a filter on the
+     whole moving world layer, which had to be redrawn through the filter every single frame */
+  .map-view.is-daytime .world { background: radial-gradient(circle at 50% 50%, #678d8b 0%, #3f5b61 55%, #2e423e 100%); }
+  .map-view.is-daytime #terrain-svg, .map-view.is-daytime #deco-layer { filter: brightness(1.32) saturate(0.92); }
   .map-view.is-daytime .fog-vignette { background: radial-gradient(circle at 50% 58%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 22%, rgba(40,30,55,0.28) 50%, rgba(30,22,45,0.55) 74%); }
   .map-view.is-daytime .haunt-bg { filter: brightness(1.4) saturate(0.8); opacity:0.6; }
 
@@ -2573,7 +2576,7 @@
     </div>
   </div>
 
-  <!-- PUMPKINSTOP (spin for candy + items, one spin every 10 minutes) -->
+  <!-- PUMPKINSTOP (spin for candy + items; each stop rests 10 minutes after a spin) -->
   <div class="modal-back" id="stop-modal">
     <div class="modal-card stop-card">
       <div class="stop-kicker">🎃 PumpkinStop</div>
@@ -2920,6 +2923,9 @@
   // a bit sharper; High is full sharpness (up to 2x on high-density screens).
   window.__tqPixelRatio = ()=>{ const dpr = window.devicePixelRatio || 1, g = Settings.get('graphics'); return g === 'low' ? 1 : g === 'medium' ? Math.min(dpr, 1.5) : Math.min(dpr, 2); };
   window.__tqLowFps = ()=> Settings.get('graphics') === 'low';
+  // v79: the full-screen 3D map layer (painted sprites) gets its own, lower cap — it covers the whole
+  // screen, so it's where pixels cost the most, and painted art looks the same at 1.5x
+  window.__tqMapPixelRatio = ()=>{ const dpr = window.devicePixelRatio || 1, g = Settings.get('graphics'); return g === 'low' ? 1 : g === 'medium' ? Math.min(dpr, 1.25) : Math.min(dpr, 1.5); };
   function applySettings(){
     Sound.setVolumes(Settings.get('music')/100, Settings.get('sfx')/100);
     const mv = document.getElementById('map-view'), b = Settings.get('brightness');
@@ -6736,7 +6742,7 @@
     return new Promise(res=> anchorReadyResolvers.push(res));
   }
   function setAnchorAndBuild(lat, lon){
-    state.geo = {lat, lon}; state.geoAnchor = {lat, lon}; state.worldOffset = {x:0,y:0};
+    state.geo = {lat, lon}; state.lastAppliedGeo = {lat, lon}; state.geoAnchor = {lat, lon}; state.worldOffset = {x:0,y:0};
     state.playerWorldPos = {x:WORLD_CENTER, y:WORLD_CENTER};
     try {
       applyWorldTransform();
@@ -6783,15 +6789,16 @@
   }
   function onPositionUpdate(lat, lon, viaSim){
     if (!state.geoAnchor){ setAnchorAndBuild(lat, lon); updateGpsStatusText(viaSim); return; }
-    const prevGeo = state.geo;
+    const prevGeo = state.lastAppliedGeo || state.geo;
     const step = prevGeo ? metersDelta(prevGeo.lat, prevGeo.lon, lat, lon) : {east:0,north:0};
     const stepDist = Math.hypot(step.east, step.north);
-    state.geo = {lat, lon};
+    const deadBand = viaSim ? 0 : Math.max(1, Math.min(4, (state.lastFixAccuracy || 5)*0.25));
     // The status text always reflects the latest known fix, even if you're standing
     // still — only the expensive camera/world updates below are skipped when you
     // haven't actually moved.
     updateGpsStatusText(viaSim);
-    if (!viaSim && stepDist < 1.0) return;
+    if (!viaSim && stepDist < deadBand) return;
+    state.geo = {lat, lon}; state.lastAppliedGeo = {lat, lon};
     lastMoveTs = Date.now();
     $('#player-avatar').classList.add('walking');
 
@@ -6838,6 +6845,7 @@
     if (heartbeatTimer) clearInterval(heartbeatTimer);
     heartbeatTimer = setInterval(()=>{
       if (!navigator.geolocation || simulateMode) return;
+      if (Date.now() - (state.lastFixTs || 0) < 9000) return;   // live tracking is still delivering
       try {
         navigator.geolocation.getCurrentPosition(
           pos => { gotRealFix = true; handleGpsFix(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, false); },
@@ -9186,11 +9194,20 @@
   // ---------------- PUMPKINSTOPS ----------------
   // Real landmarks, park entrances and one on every street (placed from the map data, see
   // placePumpkinStops). Walk within 40 m and spin one: 5 candy every time, usually a
-  // Healing Elixir, sometimes a Raid Pass (always on your first spin of the day). One spin
-  // every 10 minutes, at any stop.
+  // Healing Elixir, sometimes a Raid Pass (always on your first spin of the day). Each stop
+  // rests for 10 minutes after you spin it — the other stops can still be spun.
   const STOP_RADIUS_M = 40, STOP_COOLDOWN_MS = 10*60*1000;
-  function stopCooldownLeft(){ return Math.max(0, (state.stopCooldownUntil||0) - Date.now()); }
-  function syncStopRest(){ window.__stopRestingUntil = state.stopCooldownUntil || 0; }
+  function stopRestMap(){
+    if (!state.stopRest || typeof state.stopRest !== 'object') state.stopRest = {};
+    return state.stopRest;
+  }
+  function stopCooldownLeft(id){ return id == null ? 0 : Math.max(0, (stopRestMap()[String(id)]||0) - Date.now()); }
+  function syncStopRest(){
+    const m = stopRestMap(), now = Date.now();
+    Object.keys(m).forEach(k=>{ if (!(m[k] > now)) delete m[k]; });   // forget stops that are ready again
+    window.__stopRest = m;
+  }
+  window.__stopResting = id=> stopCooldownLeft(id) > 0;
   function fmtMS(ms){ const s = Math.ceil(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
   function allStops(){ const out = []; window.__mapProps.groups.forEach(list=> list.forEach(pr=>{ if (pr.stop) out.push(pr); })); return out; }
   function nearestStop(){
@@ -9203,12 +9220,12 @@
   let openStop = null, stopTimer = null;
   function renderStopModal(){
     if (!openStop) return;
-    const d = distanceMetersToWorldPoint(openStop.x, openStop.y), left = stopCooldownLeft(), btn = $('#btn-stop-spin');
+    const d = distanceMetersToWorldPoint(openStop.x, openStop.y), left = stopCooldownLeft(openStop.id), btn = $('#btn-stop-spin');
     $('#stop-sub').textContent = fmtDist(d)+' away';
     const src = (left && !openStop.spun) ? 'assets/stops/stop-rest.png' : 'assets/stops/stop.png';
     if ($('#stop-img').getAttribute('src') !== src) $('#stop-img').setAttribute('src', src);
     if (openStop.spun){ btn.disabled = true; btn.textContent = 'Spun!'; }
-    else if (left){ btn.disabled = true; btn.textContent = '⏳ '+fmtMS(left); $('#stop-msg').textContent = 'You can spin 1 PumpkinStop every 10 minutes — next spin in '+fmtMS(left)+'.'; }
+    else if (left){ btn.disabled = true; btn.textContent = '⏳ '+fmtMS(left); $('#stop-msg').textContent = 'You spun this PumpkinStop — it\u2019s ready again in '+fmtMS(left)+'. Other PumpkinStops can still be spun.'; }
     else if (d > STOP_RADIUS_M){ btn.disabled = true; btn.textContent = 'Too far'; $('#stop-msg').textContent = 'Walk within '+fmtDist(STOP_RADIUS_M)+' of it to spin.'; }
     else { btn.disabled = false; btn.textContent = '🎃 Spin'; $('#stop-msg').textContent = 'Spin it for candy and items!'; }
     btn.style.opacity = btn.disabled ? '0.55' : '1';
@@ -9224,14 +9241,14 @@
   $$('[data-close-stop]').forEach(b=> b.onclick = ()=>{ $('#stop-modal').classList.remove('active'); openStop = null; });
   $('#btn-stop-spin').onclick = ()=>{
     if (!openStop || openStop.spun) return;
-    if (stopCooldownLeft() || distanceMetersToWorldPoint(openStop.x, openStop.y) > STOP_RADIUS_M){ renderStopModal(); return; }
+    if (stopCooldownLeft(openStop.id) || distanceMetersToWorldPoint(openStop.x, openStop.y) > STOP_RADIUS_M){ renderStopModal(); return; }
     openStop.spun = true;
     const img = $('#stop-img'); img.classList.remove('spin'); void img.offsetWidth; img.classList.add('spin');
     const got = [{ k:'candy', n:5 }, { k:'elixir', n:1 }];   // every spin: 5 candy + 1 Healing Elixir (Raid Passes come from the Gem Shop)
     const it = ensureItems();
     state.candy += 5;
     got.forEach(g=>{ if (g.k !== 'candy') it[g.k] = (it[g.k]||0) + g.n; });
-    state.stopCooldownUntil = Date.now() + STOP_COOLDOWN_MS; syncStopRest();
+    stopRestMap()[String(openStop.id)] = Date.now() + STOP_COOLDOWN_MS; state.stopCooldownUntil = 0; syncStopRest();
     state.stopSpins = (state.stopSpins||0) + 1;
     refreshHUD(); markDirty(); saveNow(false);
     renderStopModal();
@@ -9240,7 +9257,7 @@
       $('#stop-rewards').innerHTML = got.map((g,i)=> '<div class="stop-reward" style="animation-delay:'+(i*0.14)+'s">'
         + (g.k==='candy' ? '<span class="ic">'+candyIconHtml(40)+'</span>' : '<img src="'+ITEM_INFO[g.k].img+'" alt="">')
         + '<span>+'+g.n+' '+(g.k==='candy' ? 'Candy' : ITEM_INFO[g.k].short)+'</span></div>').join('');
-      $('#stop-msg').textContent = 'Next spin in 10:00 — at any PumpkinStop.';
+      $('#stop-msg').textContent = 'This stop is ready again in 10:00 — the other PumpkinStops can be spun now.';
     }, 950);
   };
 
@@ -10122,6 +10139,20 @@
     return { ref:t, name:t.name, sprite:spriteMarkup(t), level:lvl, tier, role:t.role||'attacker', maxHp, hp:maxHp,
              atk: base.atk*fl.atk, def: base.def*fl.def, unit: hpBase*BOSS_HP_MULT.solo*DMG_P };
   }
+  // v79: a wild Toto on the map takes the same size hits as a raid or Challenger boss. A hit used to
+  // be a share of the wild Toto's own (small) health pool, so even a maxed Toto hit for single digits;
+  // now every hit is sized like it is against a Challenger guardian (your Attack against the wild
+  // Toto's Defense, so never less than in Challenger), and the wild Toto's health is on that same
+  // scale. A Toto that far outclasses the wild one finishes it quicker (up to 3x).
+  const RAID_HIT_UNIT = statsForLevel('eternal', 'attacker', TOTO_MAX_LEVEL).hp * BOSS_HP_MULT.solo * DMG_P;
+  function wildOnRaidScale(enemy, foe, lead){
+    const k = RAID_HIT_UNIT / Math.max(0.01, enemy.unit);
+    const foePower = powerLevelOf(statsForLevel(enemy.tier, ROLE_KITS[foe.role] ? foe.role : 'attacker', enemy.level, foe.statMult || 1));
+    const edge = Math.max(1, Math.min(3, Math.sqrt(Math.max(1, (lead && lead.cp) || 1) / Math.max(1, foePower))));
+    enemy.unit = RAID_HIT_UNIT;
+    enemy.maxHp = enemy.hp = Math.max(1, Math.round(enemy.maxHp * k / edge));
+    return enemy;
+  }
   function strongestToto(){
     const healthy = state.collection.filter(t=> hpOf(t) > 0), pool = healthy.length ? healthy : state.collection;
     return pool.length ? pool.slice().sort((a,b)=>b.cp-a.cp)[0] : null;
@@ -10791,6 +10822,7 @@
     // catching it, not raiding it) — its tier still makes Legendaries the tougher catch.
     const foe = mode==='catch' ? Object.assign({}, opts.opponent, { level: Math.max(1, Math.min(opts.opponent.level||1, (lead.level||1) + 2)) }) : opts.opponent;
     const enemy = bossFighter(foe, mode);
+    if (mode === 'catch') wildOnRaidScale(enemy, foe, lead);
     const player = fighterFromToto(lead); player.isPlayer = true;
     // Teammates fight as Mythicals of their role at your Toto's level (other trainers as
     // max-level attackers), knowing every ability that level allows.
@@ -11118,7 +11150,7 @@
       const h = window.__stopHitBox && window.__stopHitBox(n.pr.stop.id);
       return h ? { left:h.x0, top:h.y0, width:h.x1-h.x0, height:h.y1-h.y0 } : null;
     }
-    const canSpinNow = ()=>{ const n = tutStop || pickStop(); return !!n && n.d <= 40 && !((state.stopCooldownUntil||0) > Date.now()); };
+    const canSpinNow = ()=>{ const n = tutStop || pickStop(); return !!n && n.d <= 40 && !(window.__stopResting && window.__stopResting(n.pr.stop.id)); };
     const stopOpen = ()=> $('#stop-modal').classList.contains('active');
     // a stop right behind your trainer would be hidden by her — let it show through
     const ghostTrainer = on=>{ const pin = q('.player-pin'); if (pin) pin.style.opacity = on ? '0.28' : ''; };
@@ -11140,7 +11172,7 @@
           text:()=> 'You won, so '+((state.collection[state.collection.length-1]||{}).name || 'it')+' joined your team! Every battle also gives the Toto that fought some XP.' },
         { title:'Totos nearby', target:()=> q('#nearby-widget'), text:'The Totos closest to you show down here. Tap it for the list: tap Track and follow the arrow, then Battle when you\'re close. Wild Totos wander off after 3 minutes, and a new one turns up in the same spot a minute later.' },
         { title:'PumpkinStops', enter:()=>{ pickStop(); ghostTrainer(true); }, target:stopBox,
-          text:()=> 'Glowing signposts like this are PumpkinStops — at parks, playgrounds, churches, monuments and on every street. Spin one for 5 candy and a Healing Elixir. You can spin 1 stop every 10 minutes.'
+          text:()=> 'Glowing signposts like this are PumpkinStops — at parks, playgrounds, churches, monuments and on every street. Spin one for 5 candy and a Healing Elixir. Each stop can be spun again 10 minutes after you spin it.'
             + (canSpinNow() ? ' There\'s one right by you — let\'s spin it!' : (stopBox() ? ' Walk within 40 m of one to spin it.' : ' There isn\'t one on screen right now — look out for them as you walk.')) },
         { title:'Spin a PumpkinStop', skipIf:()=> !canSpinNow(), enter:()=> ghostTrainer(true), target:stopBox, tap:true, text:'Tap the PumpkinStop.', until:stopOpen, leave:()=> ghostTrainer(false) },
         { title:'Spin!', skipIf:()=> !stopOpen(), target:()=> q('#btn-stop-spin'), tap:true, cardAt:'top', text:'Tap Spin.', until:()=> !!q('#stop-rewards .stop-reward'),
@@ -11376,7 +11408,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v78';
+window.TQ_APP_VERSION = 'v79';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
@@ -13470,8 +13502,8 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(0, 1, 0, 1, 1, 2000);
     camera.position.z = 1000;
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:TQ_AA });
-    renderer.setPixelRatio(window.__tqPixelRatio ? window.__tqPixelRatio() : Math.min(window.devicePixelRatio||1, 2));
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:TQ_AA, powerPreference:'low-power' });
+    renderer.setPixelRatio(window.__tqMapPixelRatio ? window.__tqMapPixelRatio() : Math.min(window.devicePixelRatio||1, 1.5));
     const gate = {};
 
     // Labels live in a plain DOM layer just above the canvas (crisp text, no texture
@@ -13484,7 +13516,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
     }
 
     let vw = 1, vh = 1, curPR = renderer.getPixelRatio(), lowTick = 0;
-    window.__tqApplyGraphics = ()=>{ const pr = window.__tqPixelRatio(); if (pr !== curPR){ curPR = pr; renderer.setPixelRatio(pr); resize(); } };
+    window.__tqApplyGraphics = ()=>{ const pr = window.__tqMapPixelRatio(); movingCap = 60; if (pr !== curPR){ curPR = pr; renderer.setPixelRatio(pr); resize(); } };
     function resize(){
       const r = mapView.getBoundingClientRect();
       vw = Math.max(1, Math.round(r.width)); vh = Math.max(1, Math.round(r.height));
@@ -13800,7 +13832,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       if (!propShadowMat) propShadowMat = mat({ map:shadowTex, opacity:0.85 });
       want.forEach((pr,k)=>{
         if (propMeshes.has(k)) return;
-        const rec = getPropTex(pr.stop && (window.__stopRestingUntil||0) > Date.now() ? 'pstop_rest' : pr.kind); if (!rec) return;
+        const rec = getPropTex(pr.stop && window.__stopResting && window.__stopResting(pr.stop.id) ? 'pstop_rest' : pr.kind); if (!rec) return;
         const group = new THREE.Group();
         const sprite = new THREE.Mesh(GEO_SPRITE, rec.mat || propShadowMat);
         sprite.visible = !!rec.mat;
@@ -13809,12 +13841,12 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       });
     }
     function updateProps(now){
-      const stopsResting = (window.__stopRestingUntil||0) > Date.now();
+      const restAt = window.__stopRest || {}, nowMs = Date.now();
       const si = ensureShadowInst(); let ns = 0;
       propMeshes.forEach(m=>{
         const pr = m.p;
         if (pr.stop){
-          const want = getPropTex(stopsResting ? 'pstop_rest' : 'pstop');
+          const want = getPropTex((restAt[pr.stop.id]||0) > nowMs ? 'pstop_rest' : 'pstop');
           if (want && want.mat && m.rec !== want){ m.rec = want; m.sprite.material = want.mat; }
         }
         const q = hmap(pr.x, pr.y); const sx = q[0], sy = q[1], w = q[2];
@@ -14180,15 +14212,15 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
     });
 
     // If this phone can't keep up, the 3D layer is drawn a little less sharp (never below 1x).
-    let govT0 = 0, govN = 0, govLast = 0, govDrops = 0, calmTick = 0;
+    let govT0 = 0, govN = 0, govLast = 0, govDrops = 0, calmTick = 0, movingCap = 60;
     function perfGovernor(t){
       if (!govLast || t - govLast > 250 || tqCameraCalm()){ govT0 = t; govN = 0; govLast = t; return; }   // judged only while the camera moves (idle frames are halved on purpose)
       govLast = t; govN++;
       if (t - govT0 < 6000) return;
       const fps = govN*1000/(t - govT0); govT0 = t; govN = 0;
       if (fps < 42 && curPR > 1 && govDrops < 3 && !(window.__tqLowFps && window.__tqLowFps())){
-        govDrops++; curPR = Math.max(1, curPR - 0.5); renderer.setPixelRatio(curPR); resize();
-      }
+        govDrops++; curPR = Math.max(1, curPR - 0.25); renderer.setPixelRatio(curPR); resize();
+      } else if (fps < 42 && movingCap > 30) movingCap = 30;   // already at the fewest pixels: a steady 30 beats a jittery 40
     }
     window.__tq3dStats = ()=>{ let vis = 0; propMeshes.forEach(m=>{ if (m.group.visible) vis++; }); const i = renderer.info.render; return { calls:i.calls, tris:i.triangles, propMeshes:propMeshes.size, visibleProps:vis, shadows:propShadowInst ? propShadowInst.count : 0, sparkles:rvBig.n + rvSmall.n, pr:curPR }; };
 
@@ -14199,7 +14231,7 @@ const TQ_AA = (window.devicePixelRatio || 1) < 1.75;
       // moving: up to 60 frames a second (30 on Battery saver); camera at rest the idle animation
       // (swaying trees, hopping Totos) runs at 30 (20 on Battery saver)
       const low = !!(window.__tqLowFps && window.__tqLowFps());
-      if (!tqGate(gate, tqCameraCalm() ? (low ? 20 : 30) : (low ? 30 : 60))) return;
+      if (!tqGate(gate, tqCameraCalm() ? (low ? 15 : 24) : (low ? 30 : movingCap))) return;
       const gs = window.__gameState;
       const list = gs && Array.isArray(gs.wildTotos) ? gs.wildTotos : [];
 
