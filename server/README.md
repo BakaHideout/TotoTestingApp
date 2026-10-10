@@ -148,3 +148,6 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 
 ## v78: moderation
 `supabase/migrations/2026-10-04c_moderation.sql` (applied live, additive): mute (`admin_mute` / `admin_unmute`, muted players cannot send chat), act on a report (`admin_report_action`: mute / ban for a chosen time, remove the message, or no action; acting removes the reported message), removed messages are hidden by `get_messages`; `admin_players` shows mutes and how often a player was reported.
+
+## v80 (2026-10-09)
+- Migration `2026-10-09_pve_champions.sql` (applied): `private.pve_claims` + `private.pve_settle()`; the heartbeat settles each finished season's PvE (power) place and returns `pve_awards` (top-10 finishes), which grant the PvE Rank #N Champion Totos.

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v79';
+const CACHE_NAME = 'totoquest-v80';
 const ASSETS = [
 './assets/wardrobe/rank1-legs-thumb.png',
 './assets/wardrobe/rank1-legs.jpg',
@@ -119,7 +119,8 @@ const ASSETS = [
   './assets/totos/legendary/void_guardian.png',
   './assets/totos/eternal/blossom_wraith2.png',
   './assets/totos/eternal/harvest_warden2.png',
-  './assets/totos/eternal/max.png',
+  './assets/totos/eternal/max_front.png',
+  './assets/totos/eternal/max_side.png',
   './assets/totos/eternal/shadow_sovereign.png',
   './assets/totos/eternal/toni_scarecrow.png',
   './assets/totos/eternal/vesper_nightshade.png',

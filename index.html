@@ -1566,6 +1566,8 @@
   .bx-sprite { position:relative; display:flex; align-items:flex-end; justify-content:center; transform-origin:50% 100%; }
   .bx-sprite img, .bx-sprite svg { display:block; width:auto; max-width:100%; height:100%; object-fit:contain; object-position:50% 100%; }
   .bx-sprite .bx-emoji { font-size:90px; line-height:1; }
+  /* v80: a Toto drawn facing away from its opponent is mirrored to face it */
+  .bx-member.bx-flip .bx-sprite > img, .bx-member.bx-flip .bx-sprite > svg, .bx-boss.bx-flip .bx-boss-sprite > img, .bx-boss.bx-flip .bx-boss-sprite > svg { transform:scaleX(-1); }
   .bx-member .bx-sprite { width:156px; height:150px; z-index:2; animation: idleBreathe 2.2s ease-in-out infinite;
     filter: drop-shadow(0 0 3px var(--rc)) drop-shadow(0 0 9px var(--rc-a)) drop-shadow(0 8px 6px rgba(0,0,0,0.5)); }
   .bx-member.down .bx-sprite { filter:grayscale(1) brightness(0.55); opacity:0.55; animation:none; transform:rotate(-8deg) translateY(6px); }
@@ -2350,6 +2352,7 @@
           <span>• Win vs a trainer +25 RP, lose −15. Win vs a computer +10, lose −5.</span>
           <span>• Ranks: Bronze 3 → Silver → Gold → Platinum → Diamond 1 → Master (1,500 RP). The top 10 Masters are Grandmasters.</span>
           <span>• The season resets on the 1st of every month. Finish in the top 10 to earn that place's Rank Champion Toto (an Eternal Attacker with a heal, a little stronger than Witch Hana; #1 is the strongest). Finish at #1 to also earn the Rank #1 PvP outfit for good: shirt, hat, tights, shoes and Pumpkin Staff.</span>
+          <span>• The PvE board (power) has its own top 10: finish there for that place's PvE Champion Toto.</span>
         </div>
       </div>
     </div>
@@ -3007,11 +3010,22 @@
   // Attackers (still well short of a Tank). #1 is the strongest of them.
   const RANK_CHAMP_MAX = 10;
   const rankChampName = n=> 'Rank #'+n+' Champion';
-  function rankChampNum(name){ const m = /^Rank #(\d+) Champion$/.exec(String(name||'')); const n = m ? +m[1] : 0; return n >= 1 && n <= RANK_CHAMP_MAX ? n : 0; }
+  // v80: PvE Champions — the PvE (power) season's top 10 earn their own, in purple; same strength and moves
+  const pveChampName = n=> 'PvE Rank #'+n+' Champion';
+  function rankChampNum(name){ const m = /^(?:PvE )?Rank #(\d+) Champion$/.exec(String(name||'')); const n = m ? +m[1] : 0; return n >= 1 && n <= RANK_CHAMP_MAX ? n : 0; }
+  function isPveChamp(name){ return /^PvE Rank #/.test(String(name||'')) && rankChampNum(name) > 0; }
   // on top of Witch Hana's own strength (they share her stat boost): #2–#10 are 4% stronger in every stat, #1 is 8% stronger
-  function rankChampMod(name){ const n = rankChampNum(name); if (!n) return null; return n === 1 ? { atk:1.08, def:1.08, hp:1.08, spd:1.08, armor:0.10 } : { atk:1.04, def:1.04, hp:1.04, spd:1.04, armor:0.05 }; }
-  for (let n=1; n<=RANK_CHAMP_MAX; n++){ SPECIES_ROLE[rankChampName(n)] = 'attacker'; TOTO_IMG[rankChampName(n)] = 'eternal/rank_champ_'+n; }
-  TOTO_IMG['Witch Hana']='eternal/witch_hana'; TOTO_IMG['Max']='eternal/max'; TOTO_IMG['Toni']='eternal/toni_scarecrow';
+  // v80: Max is the game's toughest Tank — the highest Defense of any Toto and more health than any other Tank
+  const MAX_MOD = { atk:1, def:1.12, hp:1.1, spd:1, armor:0.08 };
+  function rankChampMod(name){ if (String(name||'') === 'Max') return MAX_MOD; const n = rankChampNum(name); if (!n) return null; return n === 1 ? { atk:1.08, def:1.08, hp:1.08, spd:1.08, armor:0.10 } : { atk:1.04, def:1.04, hp:1.04, spd:1.04, armor:0.05 }; }
+  for (let n=1; n<=RANK_CHAMP_MAX; n++){
+    SPECIES_ROLE[rankChampName(n)] = 'attacker'; TOTO_IMG[rankChampName(n)] = 'eternal/rank_champ_'+n;
+    SPECIES_ROLE[pveChampName(n)] = 'attacker'; TOTO_IMG[pveChampName(n)] = 'eternal/pve_champ_'+n;
+  }
+  SPECIES_ROLE['Max'] = 'tanker';
+  TOTO_IMG['Witch Hana']='eternal/witch_hana'; TOTO_IMG['Max']='eternal/max_front'; TOTO_IMG['Toni']='eternal/toni_scarecrow';
+  // In a fight a Toto can use a side-on picture drawn facing its rival (the front picture stays in your Totos list)
+  const TOTO_SIDE_IMG = { 'Max':'eternal/max_side' };
   const ROLE_INFO = {
     attacker:{ label:'Attacker', icon:'🔥', color:'#ff6a3d' },
     tanker:{ label:'Tanker', icon:'🛡️', color:'#4d9fff' },
@@ -3135,6 +3149,19 @@
         if (!state.collection.some(t=> t && t.name === rankChampName(n))){ applyLevelStats(finalizeCatch(makeRankChampion(n)), TOTO_MAX_LEVEL); got.push(n); }   // a reward arrives fully grown
       });
       if (got.length){ markDirty(); showToast('🏆 '+got.map(n=> rankChampName(n)).join(' and ')+' joined your Totos!'); }
+      // PvE Champions: one for each top-10 place you've finished a PvE (power) season at
+      state.pveChamps = Array.isArray(state.pveChamps) ? state.pveChamps : [];
+      const pvePlaces = [];
+      (state.pveSeasonResults||[]).forEach(r=>{ const n = r ? r.rank|0 : 0; if (n >= 1 && n <= RANK_CHAMP_MAX && !pvePlaces.includes(n)) pvePlaces.push(n); });
+      const gotPve = [];
+      pvePlaces.sort((a,b)=> a-b).forEach(n=>{
+        if (state.pveChamps.includes(n)) return;
+        state.pveChamps.push(n);
+        if (!state.collection.some(t=> t && t.name === pveChampName(n))){ applyLevelStats(finalizeCatch(makeRankChampion(n, true)), TOTO_MAX_LEVEL); gotPve.push(n); }
+      });
+      if (gotPve.length){ markDirty(); showToast('🏆 '+gotPve.map(n=> pveChampName(n)).join(' and ')+' joined your Totos!'); }
+      // v80: Max is a Tank now (and the toughest one) — any Max you already had changes over, level kept
+      state.collection.forEach(t=>{ if (t && t.name === 'Max' && (t.role !== 'tanker' || t.statMult !== 1.3)){ t.role = 'tanker'; t.nature = 'tanker'; t.statMult = 1.3; applyLevelStats(t, t.level || 1); markDirty(); } });
     }
     if (state.charLevel >= PLAYER_MAX_LEVEL){
       const fresh = ['top_level100_tee','hat_prestige','acc_l100_broom'].filter(id=> !state.unlockedCosmetics.includes(id));
@@ -3667,14 +3694,15 @@
     + '<path d="M11,19 L15,22 L18,18 L21,22 L25,19" stroke="#8a3a10" stroke-width="1.8" fill="none" stroke-linecap="round"/>'
     + '<circle class="cr-eye" cx="15" cy="14" r="1.8" fill="#fff2b0"/><circle class="cr-eye" cx="25" cy="14" r="1.8" fill="#fff2b0"/>'
     + '</svg>';
-  const MAX_IMG = '<img class="creature-img" src="assets/totos/eternal/max.png" alt="Max" draggable="false">';
+  const MAX_IMG = '<img class="creature-img" src="assets/totos/eternal/max_front.png" alt="Max" draggable="false">';
   const HANA_IMG = '<img class="creature-img" src="assets/totos/eternal/witch_hana.png" alt="Witch Hana" draggable="false">';
-  // Max: one of the strongest Attackers in the game, with his own bite moves (see the
-  // Savage Bite / Frenzy Bite buttons in battle). Witch Hana: the strongest Challenger to
+  // Max: the toughest Tank in the game (v80) — Witch Hana's stat boost plus the highest Defense
+  // and more health than any other Tank (MAX_MOD). Witch Hana: the strongest Challenger to
   // beat right now, so she carries an extra stat multiplier on top of Eternal.
-  function makeMax(){ return makeFixedEternal('Max', MAX_IMG, 'attacker', 1.15); }
+  function makeMax(){ const t = makeFixedEternal('Max', MAX_IMG, 'tanker', 1.3); t.nature = 'tanker'; return t; }
   function makeWitchHana(){ return makeFixedEternal('Witch Hana', HANA_IMG, 'attacker', 1.3); }
-  function makeRankChampion(n){ const name = rankChampName(n); const t = makeFixedEternal(name, spriteFor(name, 'attacker'), 'attacker', 1.3); t.nature = 'attacker'; return t; }
+  function makeRankChampion(n, pve){ const name = pve ? pveChampName(n) : rankChampName(n); const t = makeFixedEternal(name, spriteFor(name, 'attacker'), 'attacker', 1.3); t.nature = 'attacker'; return t; }
+  function makeChampionByName(name){ return makeRankChampion(rankChampNum(name), isPveChamp(name)); }
   // Four more Eternal Challengers — a coven of witches/spirits, split across the roles that
   // still needed a dedicated Eternal (Healer, Supporter, Tanker), plus one more Attacker.
   const VESPER_IMG = '<img class="creature-img" src="assets/totos/eternal/vesper_nightshade.png" alt="Vesper Nightshade" draggable="false">';
@@ -4417,6 +4445,14 @@
         const have = state.seasonResults || [], add = r.awards.filter(a=> a && a.season && !have.some(x=> x.season === a.season));
         if (add.length){ state.seasonResults = have.concat(add.map(a=> ({ season:a.season, rank:a.rank|0, rp:a.rp|0 }))).slice(-36); checkCosmeticUnlocks(); markDirty(); }
       }
+      if (Array.isArray(r.pve_awards) && r.pve_awards.length){
+        const have = state.pveSeasonResults || [], add = r.pve_awards.filter(a=> a && a.season && !have.some(x=> x.season === a.season));
+        if (add.length){
+          state.pveSeasonResults = have.concat(add.map(a=> ({ season:a.season, rank:a.rank|0, power:a.power|0 }))).slice(-36); checkCosmeticUnlocks(); markDirty();
+          add.forEach(a=>{ const nm = seasonLabel(a.season).split(' · ')[0].replace(' season','');
+            gameDialog({ title:'🏆 PvE season — #'+(a.rank|0)+'!', message:'You finished the '+nm+' PvE season at #'+(a.rank|0)+' with '+Number(a.power||0).toLocaleString()+' power. The PvE Rank #'+(a.rank|0)+' Champion Toto has joined your team for good!', ok:'Awesome!', cancel:null }); });
+        }
+      }
       if (typeof onHeartbeat === 'function') onHeartbeat(r);
       return r;
     } catch(e){ console.warn('heartbeat failed', e); return null; }
@@ -4443,7 +4479,7 @@
     const name = String((spec && spec.name) || ''), tier = spec && spec.tier;
     const lvl = Math.max(1, Math.min(TOTO_MAX_LEVEL, parseInt(spec && spec.level, 10) || 1));
     let t = null;
-    if (tier === 'eternal' && rankChampNum(name)) t = makeRankChampion(rankChampNum(name));
+    if (tier === 'eternal' && rankChampNum(name)) t = makeChampionByName(name);
     else if (tier === 'eternal'){ const mk = eternalMakerByName(name); if (mk) t = mk(); }
     else if (TIER_ORDER.includes(tier) && SPECIES_ROLE[name] && TOTO_IMG[name] && !/^eternal\//.test(TOTO_IMG[name])){
       t = makeToto(tier); t.name = name; t.role = roleOf(name); t.nature = t.role; t.sprite = spriteFor(name, t.role);
@@ -4658,7 +4694,7 @@
   // ---- trading Totos (v76) ----
   // Offer one of your Totos to a friend; they pick one of theirs; you accept. A Toto in an open trade
   // leaves your Totos (it comes back if the trade is declined or cancelled). Totos earned from
-  // achievements — the season's Rank Champions and your partner Toni — can't be traded.
+  // achievements — the season's Rank Champions, the PvE Champions and your partner Toni — can't be traded.
   const Trades = { list:[], busy:false };
   function tradeLocked(t){ return !!(t && (t.isToni || rankChampNum(t.name) || t.untradeable)); }
   function tradeSnap(t){ return { name:t.name, tier:t.tier, level:t.level||1, nature:t.nature||'', cp:t.cp||0, uid:t.id, isToni:!!t.isToni }; }
@@ -5054,6 +5090,7 @@
       const byName = (a, b)=> a.name.localeCompare(b.name);
       const sel = '<select id="gift-sp">'
         + '<optgroup label="Rank Champions (season rewards)">'+Array.from({ length:RANK_CHAMP_MAX }, (_, i)=> opt('eternal|'+rankChampName(i+1), rankChampName(i+1))).join('')+'</optgroup>'
+        + '<optgroup label="PvE Champions (season rewards)">'+Array.from({ length:RANK_CHAMP_MAX }, (_, i)=> opt('eternal|'+pveChampName(i+1), pveChampName(i+1))).join('')+'</optgroup>'
         + '<optgroup label="Eternal">'+giftEternalNames().slice().sort().map(n=> opt('eternal|'+n, n)).join('')+'</optgroup>'
         + '<optgroup label="Mythical">'+LEGENDARY_SPECIES.slice().sort(byName).map(s=> opt('mythical|'+s.name, s.name+' (Mythical)')).join('')+'</optgroup>'
         + '<optgroup label="Legendary">'+LEGENDARY_SPECIES.slice().sort(byName).map(s=> opt('legendary|'+s.name, s.name)).join('')+'</optgroup>'
@@ -5096,6 +5133,7 @@
       const opt = (v, t)=> '<option value="'+escapeHtml(v)+'">'+escapeHtml(t)+'</option>';
       const names = [];
       for (let i=1;i<=RANK_CHAMP_MAX;i++) names.push(rankChampName(i));
+      for (let i=1;i<=RANK_CHAMP_MAX;i++) names.push(pveChampName(i));
       giftEternalNames().slice().sort().forEach(n=> names.push(n));
       LEGENDARY_SPECIES.map(s=> s.name).sort().forEach(n=> names.push(n));
       NORMAL_SPECIES.map(s=> s.name).sort().forEach(n=> names.push(n));
@@ -5438,12 +5476,12 @@
   const PVP_CHARGE_NEED = 4;                 // an Attacker's charged move is ready after 4 hits
   const PVP_TAUNT_TURNS = 3;                 // PvP taunt lasts for the rival's next 3 turns (story battles: until the tank falls)
   // the strongest Toto of each class
-  const PVP_CHAMPS = { 'Witch Hana':'attacker', 'Shadow Sovereign':'tanker', 'Harvest Warden':'healer', 'Toni':'supporter' };
+  const PVP_CHAMPS = { 'Witch Hana':'attacker', 'Max':'tanker', 'Harvest Warden':'healer', 'Toni':'supporter' };
   const PVP_GRADE = { normal:0, legendary:1, mythical:2, eternal:3 };
   // Hand-made move sets for the Eternal and Legendary Totos: [type, name, extra numbers].
   const PVP_KITS = {
     'Witch Hana':       { r:'attacker', s:[['hit','Hex Slash',{pow:1.05}],['heavy','Pumpkin Bomb',{pow:1.65}],['mark','Cauldron Curse',{pow:1.05}],['heal','Witch’s Brew',{pct:0.18, cd:4}]], ult:['hit','Witching Hour',{pow:3.0}] },
-    'Max':              { r:'attacker', s:[['hit','Savage Bite'],['multi','Frenzy Bite',{n:3, pow:0.56}],['pierce','Pounce',{pow:1.35}],['drain','Feral Feast']], ult:['sweep','Alpha Howl',{pow:1.8}] },
+    'Max':              { r:'tanker', s:[['hit','Savage Bite',{pow:1.05}],['taunt','Taunt'],['fortify','Iron Coat'],['heal','Lick Wounds',{pct:0.15}]] },
     'Vesper Nightshade':{ r:'attacker', s:[['hit','Nightshade Lash'],['burn','Venom Bloom'],['sweep','Shadow Thorns'],['drain','Blood Moon']], ult:['hit','Eclipse',{pow:2.85}] },
     'Grimhollow':       { r:'attacker', s:[['hit','Scythe Swipe'],['heavy','Reap'],['drain','Soul Harvest'],['focus','Grim Focus']], ult:['hit','Final Harvest',{pow:2.85}] },
     'Pumpkin Rider':    { r:'attacker', s:[['hit','Lance Charge'],['sweep','Hoofquake'],['burn','Flaming Jack'],['drain','Harvest Feast']], ult:['sweep','Headless Charge',{pow:1.8}] },
@@ -5867,18 +5905,38 @@
   // Which way each Toto's painting faces. Most look straight out of the picture; these are drawn
   // turned to their right (r) or left (l). In the arena every Toto turns to face its opponent:
   // side-on art is mirrored as needed, and front-on art is turned on the spot toward the other side.
+  // Which way each picture is drawn facing (r = towards the right of the screen, l = left, f = at you)
   const TOTO_FACE_R = ['banshee','black_cat_tot','blaze_hare','coffin_pup','cursed_crow','fang_pup','frost_fang','hex_hound','jackalope','lava_pup','moon_rabbit','mummy_pup',
-    'pumpkin_finch','pumpkin_turtle','ravenette','soul_fox','starling','translucent_tot','bone_steed','ember_fox','frost_howl','shadow_sovereign'];
-  const TOTO_FACE_L = ['ghoul_kitten','max'];
+    'pumpkin_finch','pumpkin_turtle','ravenette','soul_fox','starling','translucent_tot','bone_steed','ember_fox','frost_howl','shadow_sovereign',
+    'cursed_bunny','specter_cat','pumpkin_pup'];
+  const TOTO_FACE_L = ['ghoul_kitten','toni_scarecrow','max_side'];
   const TOTO_FACE_EXTRA = { 'Shadow Sovereign':'shadow_sovereign', 'Harvest Warden':'harvest_warden', 'Blossom Wraith':'blossom_wraith', 'Vesper Nightshade':'vesper_nightshade' };
-  function totoFacing(name){
-    const f = TOTO_IMG[String(name||'')], base = f ? f.split('/').pop() : (TOTO_FACE_EXTRA[String(name||'')] || '');
-    return TOTO_FACE_R.includes(base) ? 'r' : (TOTO_FACE_L.includes(base) ? 'l' : 'f');
+  const TOTO_FACE_NAME = { 'Pumpkin Rider':'r', 'MaxiPadi':'r' };   // drawn in code, no picture file
+  function faceOfFile(base){ return TOTO_FACE_R.includes(base) ? 'r' : (TOTO_FACE_L.includes(base) ? 'l' : 'f'); }
+  // `fight`: the picture used in battle (a side-on one when the Toto has it)
+  function totoFacing(name, fight){
+    const nm = String(name||'');
+    if (fight && TOTO_SIDE_IMG[nm]) return faceOfFile(TOTO_SIDE_IMG[nm].split('/').pop());
+    if (TOTO_FACE_NAME[nm]) return TOTO_FACE_NAME[nm];
+    const f = TOTO_IMG[nm], base = f ? f.split('/').pop() : (TOTO_FACE_EXTRA[nm] || '');
+    return faceOfFile(base);
   }
+  // facing of whatever picture a sprite's markup shows (bots and other trainers' Totos)
+  function facingOfSprite(html){
+    const m = /src="(?:\.\/)?assets\/totos\/(?:[a-z]+\/)?([a-z0-9_]+)\.png"/.exec(String(html||''));
+    return m ? faceOfFile(m[1]) : 'f';
+  }
+  // the picture a Toto fights with: its side-on one if it has one, else its usual picture
+  function battleSpriteFor(name, fallback){
+    const side = TOTO_SIDE_IMG[String(name||'')];
+    return side ? '<img class="creature-img" src="assets/totos/'+side+'.png" alt="'+escapeHtml(String(name))+'" draggable="false">' : fallback;
+  }
+  window.__tqBattleFacing = (name)=> totoFacing(name, true);
   window.__tqTotoFacing = totoFacing;
-  function pvpSpriteHtml(s){
+  function pvpSpriteHtml(s, fight){
     if (!s) return '';
     if (s.isToni) return TONI_SVG;
+    if (fight && TOTO_SIDE_IMG[String(s.name||'')]) return battleSpriteFor(s.name, '');
     const own = spriteFor(String(s.name||''), s.nature);
     if (own) return own;
     if (!PVP_ETERNAL_ART){ PVP_ETERNAL_ART = {}; try { ETERNAL_MAKERS.forEach(fn=>{ const t = fn(); PVP_ETERNAL_ART[t.name] = t.sprite; }); } catch(e){} }
@@ -6346,7 +6404,7 @@
   function arenaTotos3D(snaps){
     if (!Arena.ctl || !Arena.ctl.setTotos) return;
     const list = [];
-    ['p1','p2'].forEach(side=> pvpTeamOf(snaps[side]).forEach((s, i)=>{ const el = arenaTotoEl(side, i); if (el && s) list.push({ el, side: arenaWho(side), facing: s.isToni ? 'f' : totoFacing(s.name) }); }));
+    ['p1','p2'].forEach(side=> pvpTeamOf(snaps[side]).forEach((s, i)=>{ const el = arenaTotoEl(side, i); if (el && s) list.push({ el, side: arenaWho(side), facing: totoFacing(s.isToni ? 'Toni' : s.name, true) }); }));
     Arena.ctl.setTotos(list);
   }
   function arenaSprites(snaps){
@@ -6354,8 +6412,8 @@
       const team = pvpTeamOf(snaps[side]);
       [0,1].forEach(i=>{
         const el = arenaTotoEl(side, i), s = team[i];
-        el.className = 'pva-toto '+arenaWho(side)+' slot'+i+(s ? ' face-'+(s.isToni ? 'f' : totoFacing(s.name)) : '');
-        el.querySelector('.pva-spr').innerHTML = s ? pvpSpriteHtml(s) : '';
+        el.className = 'pva-toto '+arenaWho(side)+' slot'+i+(s ? ' face-'+totoFacing(s.isToni ? 'Toni' : s.name, true) : '');
+        el.querySelector('.pva-spr').innerHTML = s ? pvpSpriteHtml(s, true) : '';
         // the role tag over its head
         let tag = el.querySelector('.pva-rtag');
         if (!tag){ tag = document.createElement('div'); tag.className = 'pva-rtag'; el.appendChild(tag); }
@@ -6589,7 +6647,7 @@
     list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">Loading…</p>';
     $('#lb-note').textContent = lbBoard === 'pvp'
       ? 'Win PvP Arena battles for Rank Points. Everyone starts at Bronze 3 · Master at '+MASTER_RP.toLocaleString()+' RP · the top 10 Masters are Grandmasters. Finish #1 for the Rank #1 rewards!'
-      : 'Ranked by power (your 6 strongest Totos).';
+      : 'Ranked by power (your 6 strongest Totos). Finish the season in the top 10 for that place\u2019s PvE Champion Toto!';
     $('#lb-season').textContent = seasonLabel(Social.season);
     let rows = [];
     if (onlineOn()){
@@ -10122,7 +10180,9 @@
   function fighterFromToto(t, allKnown, spriteHtml){
     const role = ROLE_KITS[t.role] ? t.role : 'attacker';
     const kit = allKnown ? abilityKit(t).filter(a=> (t.level||1) >= a.level) : learnedAbilities(t);
-    return { ref:t, name:t.name, sprite: spriteHtml || spriteMarkup(t), level:t.level||1, cp:t.cp, tier:t.tier||'normal', role,
+    const front = spriteHtml || spriteMarkup(t), fight = spriteHtml ? spriteHtml : battleSpriteFor(t.isToni ? 'Toni' : t.name, front);
+    return { ref:t, name:t.name, sprite: front, fightSprite: fight, face: spriteHtml ? facingOfSprite(spriteHtml) : totoFacing(t.isToni ? 'Toni' : t.name, true),
+             level:t.level||1, cp:t.cp, tier:t.tier||'normal', role,
              maxHp:t.maxHp, hp:(t.hp != null && isFinite(t.hp)) ? Math.max(0, Math.min(t.maxHp, t.hp)) : t.maxHp, atk:Math.max(1,t.atk||1), def:Math.max(1,t.def||1), spd:t.spd||1, isToni:!!t.isToni,
              kit, cds:{}, fx:{}, used:{}, swingAt:0, thinkAt:0 };
   }
@@ -10268,11 +10328,12 @@
       let sparks = '';
       for (let i=0;i<4;i++) sparks += '<span class="bx-spark" style="left:'+(30+i*26)+'px; animation-delay:'+(i*0.55)+'s"></span>';
       el.innerHTML = '<div class="bx-fig"><div class="bx-rtag">'+BX_ICON[m.f.role||'attacker']+r.label+'</div><div class="bx-aura"></div><div class="bx-circle"></div>'+sparks
-        + '<div class="bx-sprite">'+bxArt(m.f.sprite)+'</div><div class="bx-shield"></div></div>'
+        + '<div class="bx-sprite">'+bxArt(m.f.fightSprite || m.f.sprite)+'</div><div class="bx-shield"></div></div>'
         + '<div class="bx-plate"><div class="bx-plate-ic">'+BX_ICON[m.f.role||'attacker']+'</div>'
         + '<div class="bx-plate-body"><div class="bx-plate-row"><span class="bx-plate-name">'+bxEsc(m.f.name)+'</span><span class="bx-plate-lv">Lv. '+(m.f.level||1)+'</span></div>'
         + '<div class="bx-hp"><div class="bx-hp-fill"></div><div class="bx-hp-text"></div></div></div></div>';
       el.onclick = ()=> pickTarget(m.f);
+      el.dataset.face = /^\s*</.test(String(m.f.fightSprite || m.f.sprite || '')) ? (m.f.face || 'f') : 'f';
       fieldEl.appendChild(el);
       m.el = el; m.f._el = el;
     });
@@ -10293,7 +10354,10 @@
     });
     // boss + top bars
     const e = battle.enemy;
-    setSpriteHtml($('#bf-e-sprite'), bxArt(e.sprite));
+    // a wild Toto turns to face your Toto (on its left); raid and Challenger bosses look straight at you
+    const wildFace = battle.mode === 'catch' ? totoFacing(e.ref && e.ref.isToni ? 'Toni' : e.name, true) : 'f';
+    setSpriteHtml($('#bf-e-sprite'), bxArt(battle.mode === 'catch' ? battleSpriteFor(e.name, e.sprite) : e.sprite));
+    $('#bx-boss').classList.toggle('bx-flip', wildFace === 'r');
     setSpriteHtml($('#bf-e-portrait'), bxArt(e.sprite));
     $('#bf-e-name').textContent = e.name; $('#bf-e-level').textContent = 'Lv. '+(e.level||1);
     { const er = BX_ROLE[e.role] ? e.role : 'attacker', R = BX_ROLE[er];
@@ -10364,6 +10428,9 @@
       // member box is 212 tall and scales from its bottom edge, so the nameplates always
       // finish just above the battle log / charge button
       el.style.left = x+'px'; el.style.top = '206px';
+      // turn toward the boss: left of it look right, right of it look left (mirror a picture drawn the other way)
+      const want = i < nL ? 'r' : 'l', face = el.dataset.face || 'f';
+      el.classList.toggle('bx-flip', face !== 'f' && face !== want);
       el.style.setProperty('--ms', ms.toFixed(3));
       el.style.setProperty('--lx', ((bossX - x)*0.12).toFixed(0)+'px');
     });
@@ -11408,7 +11475,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v79';
+window.TQ_APP_VERSION = 'v80';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
