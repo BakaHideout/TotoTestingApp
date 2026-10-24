@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v104';
+const CACHE_NAME = 'totoquest-v105';
 const ASSETS = [
 './assets/stages/arena_dawn.jpg',
 './assets/stages/arena_day.jpg',

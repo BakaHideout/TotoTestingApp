@@ -2459,6 +2459,23 @@
   .btr-prize { display:flex; align-items:center; gap:10px; justify-content:center; margin:8px auto; padding:8px 12px; border-radius:14px; background:rgba(255,211,77,.12); border:2px solid #ffd34d; max-width:340px; text-align:left; }
   .btr-prize-sp { width:64px; height:64px; } .btr-prize-sp img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 10px var(--glow)); }
   .btr-prize small { display:block; font:800 10px/1.3 system-ui; color:#ffe9a8; } .btr-prize b { font:900 15px system-ui; }
+  /* ---- tutorial ---- */
+  .tut { position:absolute; inset:0; z-index:1100; display:none; }
+  .tut.show { display:block; }
+  .tut-hole { position:absolute; box-shadow:0 0 0 4000px rgba(8,4,20,.72), 0 0 0 3px #ffd36b, 0 0 22px 6px rgba(255,211,107,.7); transition:all .35s ease; pointer-events:none; animation:tutGlow 1.4s ease-in-out infinite; }
+  .tut-hole.none { box-shadow:0 0 0 4000px rgba(8,4,20,.72); animation:none; }
+  @keyframes tutGlow { 50%{ box-shadow:0 0 0 4000px rgba(8,4,20,.72), 0 0 0 4px #fff3b0, 0 0 30px 10px rgba(255,211,107,.9); } }
+  .tut-box { position:absolute; display:flex; gap:8px; align-items:flex-end; transition:left .35s ease, top .35s ease; }
+  .tut-guide { width:78px; height:96px; flex:none; animation:tvFloat2 2.6s ease-in-out infinite; }
+  .tut-guide img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 4px 6px rgba(0,0,0,.6)); }
+  @keyframes tvFloat2 { 50%{ transform:translateY(-6px); } }
+  .tut-c { flex:1; min-width:0; background:linear-gradient(#3a1f6e, #1c0f38); border:3px solid #ffcf5a; border-radius:18px; padding:10px 12px 8px; color:#fff; box-shadow:0 10px 26px rgba(0,0,0,.6); }
+  .tut-t { font:900 15px/1.2 system-ui; color:#ffd36b; margin-bottom:4px; }
+  .tut-m { font:600 12.5px/1.4 system-ui; color:#f3e7ff; } .tut-m b { color:#fff; }
+  .tut-b { display:flex; align-items:center; gap:6px; margin-top:8px; }
+  .tut-b span { flex:1; text-align:center; font:800 10px system-ui; color:#b8a6d4; }
+  .tut-b button { border:0; border-radius:10px; padding:7px 10px; font:800 12px system-ui; cursor:pointer; background:rgba(255,255,255,.12); color:#e3d4ff; }
+  .tut-b button.go { background:linear-gradient(#7dff9a, #22b04a); color:#073a14; border:2px solid #fff; padding:7px 14px; }
 </style>
 <div id="toto-root">
 
@@ -2746,7 +2763,7 @@
         <div class="set-group">
           <div class="set-title">❓ Help</div>
           <button class="set-row set-btn" id="btn-install-settings" style="display:none;"><span>📲 Install the app<small>Play full screen from your home screen</small></span><i>›</i></button>
-          <button class="set-row set-btn" id="btn-tutorial" style="display:none"><span>📘 Replay the tutorial</span><i>›</i></button>
+          <button class="set-row set-btn" id="btn-tutorial"><span>📘 Replay the tutorial</span><i>›</i></button>
           <button class="set-row set-btn" id="btn-diagnostics" style="display:none"><span>🛠️ Map status</span><i>›</i></button>
           <button class="set-row set-btn" id="btn-admin-key"><span>🔑 Admin sign-in<small>For the game's owner and admins</small></span><i>›</i></button>
           <a class="set-row set-btn" href="mailto:totoquestofficial@yahoo.com?subject=TotoQuest%20help"><span>✉️ Contact support<small>totoquestofficial@yahoo.com</small></span><i>›</i></a>
@@ -2802,6 +2819,11 @@
   <!-- HATCHING -->
   <div class="hatch" id="hatch"><div class="hatch-in"><div class="hatch-title" id="hatch-title">Hatching…</div><div class="hatch-stage" id="hatch-stage"></div><button class="co-btn" id="hatch-ok">Awesome!</button></div></div>
 
+  <!-- TUTORIAL -->
+  <div class="tut" id="tut"><div class="tut-hole none" id="tut-hole"></div>
+    <div class="tut-box" id="tut-box"><div class="tut-guide"><img src="assets/totos/eternal/toni_scarecrow.png" alt=""></div>
+      <div class="tut-c"><div class="tut-t" id="tut-t"></div><div class="tut-m" id="tut-m"></div>
+        <div class="tut-b"><button id="tut-skip">Skip tour</button><span id="tut-n"></span><button id="tut-back">‹ Back</button><button class="go" id="tut-next">Next ›</button></div></div></div></div>
   <div class="toast" id="toast"></div>
   <div class="gd-back" id="game-dialog"><div class="gd-card">
     <img class="gd-icon" src="assets/brand/icon-192.png" alt="">
@@ -5891,7 +5913,7 @@
     clearInterval(B.poll); if (B.mode === 'pvp') B.poll = setInterval(btPollNow, 1200);
     const op = B.E.other(B.side), firstMe = B.E.first === B.side;
     setTimeout(()=>{ if (!B.finished) btLog(firstMe ? 'Your Totos are faster — you go first!' : (info.names[op] || 'Your rival')+'’s Totos are faster — they go first!'); }, 300);
-    setTimeout(()=>{ if (!B.finished){ B.ready = true; B.turnStart = Date.now(); btNext(); if (B.mode === 'pvp') btPollNow(); } }, info.walkIn ? 2000 : 1400);
+    setTimeout(()=>{ if (!B.finished){ if (maybeBattleTour()) return; B.ready = true; B.turnStart = Date.now(); btNext(); if (B.mode === 'pvp') btPollNow(); } }, info.walkIn ? 2000 : 1400);
   }
   function btClose(){
     clearInterval(B.tick); clearInterval(B.poll); clearTimeout(B.botTimer);
@@ -6792,6 +6814,109 @@
     state.pendingCheckoutAt = Date.now(); markDirty(); await saveNow(true);
     location.assign(u.toString());
   }
+  // ================= THE TUTORIAL =================
+  // A short guided tour with Toni: a spotlight on each part of the island and the buttons, plus a quick
+  // "how to fight" the first time you battle. Skippable; replay it any time from Settings.
+  const Tut = { steps:null, i:0, done:null, busy:false };
+  const TUT_GUIDE = '<img src="assets/totos/eternal/toni_scarecrow.png" alt="">';
+  function tutRect(el){
+    // where an element is inside the game (the game may be turned sideways)
+    const r = el.getBoundingClientRect();
+    if (isRot()) return { x:r.top, y:window.innerWidth - r.right, w:r.height, h:r.width };
+    const o = root.getBoundingClientRect(); return { x:r.left - o.left, y:r.top - o.top, w:r.width, h:r.height };
+  }
+  function tutShow(){
+    const st = Tut.steps[Tut.i], lay = $('#tut'), hole = $('#tut-hole'), box = $('#tut-box');
+    if (st.before) st.before();
+    const el = st.target ? (typeof st.target === 'function' ? st.target() : $(st.target)) : null;
+    const W = root.clientWidth, H = root.clientHeight, pad = st.pad != null ? st.pad : 8;
+    let r = null;
+    if (el && el.offsetParent !== null){ const t = tutRect(el); r = { x:t.x - pad, y:t.y - pad, w:t.w + pad*2, h:t.h + pad*2 }; }
+    if (r){ Object.assign(hole.style, { left:r.x+'px', top:r.y+'px', width:r.w+'px', height:r.h+'px', borderRadius:(st.round ? '50%' : '18px') }); hole.classList.remove('none'); }
+    else { Object.assign(hole.style, { left:(W/2)+'px', top:(H/2)+'px', width:'0px', height:'0px' }); hole.classList.add('none'); }
+    $('#tut-t').innerHTML = st.title; $('#tut-m').innerHTML = st.text;
+    $('#tut-n').textContent = (Tut.i + 1)+' / '+Tut.steps.length;
+    $('#tut-next').textContent = Tut.i === Tut.steps.length - 1 ? (st.last || 'Let’s play!') : 'Next ›';
+    $('#tut-back').style.visibility = Tut.i ? 'visible' : 'hidden';
+    // the speech box goes beside the spotlight, on whichever side has the most room (never on top of it)
+    const GW = 86;     // Toni next to the text
+    let bw = Math.min(380 + GW, W - 24), bx = W/2 - bw/2, by;
+    box.style.width = bw+'px'; let bh = box.offsetHeight || 170; by = H/2 - bh/2;
+    if (r){
+      const right = W - (r.x + r.w) - 12, left = r.x - 12, below = H - (r.y + r.h) - 10, above = r.y - 10;
+      const fitW = sp=> Math.min(380 + GW, sp - 8);
+      if (Math.max(right, left) >= 300){
+        bw = fitW(Math.max(right, left)); box.style.width = bw+'px'; bh = box.offsetHeight || bh;
+        bx = right >= left ? r.x + r.w + 12 : r.x - 12 - bw; by = r.y + r.h/2 - bh/2;
+      } else {
+        bw = Math.min(380 + GW, W - 24); box.style.width = bw+'px'; bh = box.offsetHeight || bh;
+        bx = r.x + r.w/2 - bw/2;
+        by = above >= below ? r.y - 10 - bh : r.y + r.h + 10;
+        // still overlapping? slide sideways away from the spotlight
+        if (by < 6 || by + bh > H - 6){ by = Math.max(6, Math.min(H - bh - 6, by)); bx = (r.x + r.w/2 < W/2) ? Math.max(r.x + r.w + 12, W - bw - 12) : Math.min(r.x - bw - 12, 12); }
+      }
+    }
+    box.style.left = Math.max(8, Math.min(W - bw - 8, bx))+'px';
+    box.style.top = Math.max(6, Math.min(H - bh - 6, by))+'px';
+    lay.classList.add('show');
+  }
+  function tutStart(steps, done){
+    Tut.steps = steps; Tut.i = 0; Tut.done = done || null;
+    $('#tut').classList.add('show');
+    requestAnimationFrame(()=>{ tutShow(); requestAnimationFrame(tutShow); });
+  }
+  function tutEnd(skipped){
+    $('#tut').classList.remove('show');
+    const f = Tut.done; Tut.steps = null; Tut.done = null;
+    if (f) f(skipped);
+  }
+  $('#tut-next').onclick = ()=>{ if (!Tut.steps) return; if (Tut.i >= Tut.steps.length - 1) return tutEnd(false); Tut.i++; tutShow(); };
+  $('#tut-back').onclick = ()=>{ if (!Tut.steps || !Tut.i) return; Tut.i--; tutShow(); };
+  $('#tut-skip').onclick = ()=>{ if (Tut.steps) tutEnd(true); };
+  window.addEventListener('resize', ()=>{ if (Tut.steps) setTimeout(tutShow, 80); });
+
+  // ---- the island tour ----
+  const findB = type=> ()=> { const b = state.island.buildings.find(x=> x.type === type); return b ? $('.isb[data-b="'+b.id+'"] .isb-art') : null; };
+  function islandTourSteps(){
+    return [
+      { title:'🎃 Welcome to your island!', text:'Hi, I’m Toni! This floating island is all yours. Collect Totos, build their homes, level them up and battle 4 vs 4. Let me show you around.',
+        before:()=>{ closeAllPanels(); $('#toto-view').classList.remove('show'); islandCenter(); renderIsland(); } },
+      { title:'🏚️ Toto Dens make Coins', text:'Totos living in a <b>Den</b> earn <b>Coins</b> — the stronger the Toto, the more. Your starting team already lives here. When a coin bubble pops up, tap it to collect. Tap the Den to add Totos or upgrade it.', target:findB('toto_den'), pad:14 },
+      { title:'🔴🟣💗 Special Dens', text:'Later you can build glowing Dens just for your best Totos: the red <b>E Den</b> (1.5× Coins), the purple <b>S Den</b> (2×) and the pink <b>S+ Den</b> (2.5×).', target:findB('toto_den'), pad:14 },
+      { title:'🍖 Food Farm', text:'Food Farms grow <b>Food</b>. Food is what levels your Totos up — every Toto starts at level 1 and can grow all the way to 100.', target:findB('food_farm'), pad:14 },
+      { title:'🔨 Build anywhere', text:'Tap <b>Build</b>, pick a building, then tap anywhere on the grass inside the stone path. Buildings need a little space between them. Coins pay for new buildings and upgrades.', target:'.dc-nav .nav-b[data-go="build"]', round:true },
+      { title:'🐾 Your team', text:'The 4 Totos on your team roam the island. <b>Tap one</b> to see its stats, feed it (4 feeds = 1 level), choose its Den, or swap your team.', target:()=> $('.isl-toto'), pad:10 },
+      { title:'⭐ Classes', text:'Every Toto has a class: <b>D, C, B, A, E, S</b> and the rare <b>S+</b>. Higher classes are much stronger. Your trainer level (top left) decides how high your Totos can grow.', target:'#hud-me', pad:6 },
+      { title:'⚔️ Campaign', text:'20 stories with 5 stages each. Every stage is 4 waves of 4 vs 4 against computer Totos. Beat a whole story to win a reward Toto of that story’s class!', target:'.dc-nav .nav-b[data-go="campaign"]', round:true },
+      { title:'🏟️ PvP Arena', text:'Battle other trainers 4 vs 4 for Rank Points. Finish a monthly season at <b>#1</b> to win the Rank #1 Champion!', target:'.dc-nav .nav-b[data-go="pvp"]', round:true },
+      { title:'📖 Totos', text:'All your Totos, the Toto Dex of every Toto you can find, and your battle team.', target:'.dc-nav .nav-b[data-go="dex"]', round:true },
+      { title:'🛍️ Store', text:'Hatch <b>eggs</b> with Gems for a chance at rare Totos, trade Gems for <b>Coins</b>, and pick up cheap Totos with Coins.', target:'.dc-nav .nav-b[data-go="store"]', round:true },
+      { title:'🔍 Look around', text:'Drag to move around. Pinch, use the mouse wheel or these buttons to zoom — <b>⤢</b> shows your whole island.', target:'.isl-zoom', pad:8 },
+      { title:'🎉 You’re ready!', text:'Start with <b>Campaign → Story 1</b>. If you ever want this tour again, it’s in <b>More → Settings → Replay the tutorial</b>. Have fun!', last:'Let’s play!' }
+    ];
+  }
+  function startIslandTour(){
+    tutStart(islandTourSteps(), skipped=>{ state.tutDone = true; markDirty(); saveNow(false); if (skipped) showToast('You can replay the tutorial from More → Settings.'); });
+  }
+  // ---- the first battle: how a turn works ----
+  function battleTourSteps(){
+    return [
+      { title:'⚔️ Your first battle!', text:'Battles take turns. On your turn, ONE of your Totos makes ONE move, then your rival moves. Knock out all 4 rivals to clear the wave.' },
+      { title:'1️⃣ Pick a Toto', text:'Your team is down here. The glowing one is ready to act — tap another card (or the Toto itself) to switch.', target:'#bt-team', pad:6 },
+      { title:'2️⃣ Attack or use an ability', text:'<b>ATTACK</b> always works. The abilities on the right are stronger but need a few turns to cool down. Tanks Taunt, Healers heal, Supporters boost, Attackers hit hardest.', target:'#bt-attack', pad:6 },
+      { title:'3️⃣ Choose who to hit', text:'After you pick a move, tap the rival to hit (or a teammate to help). Tip: tapping a rival straight away does a normal attack. <b>AUTO</b> plays for you.', target:'#bt-auto', pad:6, last:'Fight!' }
+    ];
+  }
+  // pauses the battle until the tour is over
+  function maybeBattleTour(){
+    if (state.tutBattle || !B.E || B.mode !== 'campaign') return false;
+    state.tutBattle = true; markDirty();
+    B.ready = false;
+    tutStart(battleTourSteps(), ()=>{ if (B.E && !B.finished){ B.ready = true; B.turnStart = Date.now(); btNext(); } });
+    return true;
+  }
+  const btnTut = $('#btn-tutorial');
+  if (btnTut) btnTut.onclick = ()=>{ closeAllPanels(); state.tutBattle = false; markDirty(); setTimeout(startIslandTour, 250); };
   // ================= ENTERING THE GAME =================
   let watchId = null, trackedId = null;          // (older code still clears these on logout)
   function enterGame(isNew){
@@ -6807,13 +6932,14 @@
     checkOwnerEmail().then(applyOwnerUi);
     onlineRegister().then(()=>{ heartbeat(); claimPurchases(); submitScoreOnline(true); });
     if (typeof checkoutRecent === 'function' && checkoutRecent()) watchForPurchase(90);
-    if (state.welcome){ state.welcome = false; markDirty(); setTimeout(()=> welcome(migrated), 600); }
+    if (state.welcome){ state.welcome = false; markDirty(); setTimeout(()=>{ if (migrated) welcome(true).then(()=> startIslandTour()); else startIslandTour(); }, 700); }
+    else if (!state.tutDone && !state.tourOffered){ state.tourOffered = true; markDirty(); setTimeout(async ()=>{ if (await gameConfirm('TotoQuest has changed a lot! Want a quick tour of your island, the Dens, building, feeding and battles?', '🎃 New tutorial', 'Show me', 'No thanks')) startIslandTour(); else { state.tutDone = true; markDirty(); } }, 900); }
     else if (state.news101){ state.news101 = false; markDirty(); setTimeout(()=> gameDialog({ title:'🏝️ Island update!', html:'<p><b>Coins now come only from Toto Dens.</b> Your Coin Mines became Toto Dens and your team moved in. The stronger the Totos living in a Den, the more Coins it makes.</p><p>New: glowing <b>E Dens</b> (red), <b>S Dens</b> (purple) and <b>S+ Dens</b> (pink) for your best Totos — they earn extra. Tap a Toto and use <b>Den</b> to move it in.</p><p>Your team now roams the island, and you can zoom out to see all of it.</p>', ok:'Cool!', cancel:null }), 700); }
   }
   async function welcome(migrated){
     await gameDialog({ title: migrated ? '🎃 Welcome to the new TotoQuest!' : '🎃 Welcome to TotoQuest!', html:
       (migrated ? '<p>TotoQuest has a brand-new look: your own floating island! Everyone starts fresh with new Totos'+(bal('gems') ? ' — your <b>'+bal('gems').toLocaleString()+' gems</b> are safe' : '')+'.</p>' : '')
-      + '<p>🏝️ <b>Your island:</b> Totos living in your <b>Dens</b> earn Coins — the stronger the Toto, the more. Food Farms grow Food. Tap a building to collect or upgrade it, the ＋ spots to build more, and pinch or use ＋/− to zoom.</p>'
+      + '<p>🏝️ <b>Your island:</b> Totos living in your <b>Dens</b> earn Coins — the stronger the Toto, the more. Food Farms grow Food. Tap a building to collect or upgrade it, and use 🔨 Build to place new ones anywhere on the grass.</p>'
       + '<p>🍖 <b>Food levels up your Totos</b> (tap one to see it). Every Toto starts at level 1 and grows to 100. Classes go D, C, B, A, E, S, S+.</p>'
       + '<p>⚔️ <b>Campaign:</b> Story 1 to 20, 5 stages each, 4 waves of 4 vs 4. On your turn pick a Toto, then ATTACK or an ability, then who to hit.</p>'
       + '<p>🛍️ <b>Store:</b> hatch eggs for new Totos with Gems, buy Coins, and pick up cheap Totos with Coins.</p>'
@@ -6844,7 +6970,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v104';
+window.TQ_APP_VERSION = 'v105';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
