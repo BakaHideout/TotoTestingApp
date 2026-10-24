@@ -166,3 +166,6 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 
 ## v104
 - Client only. Build anywhere on the grass inside the path (buildings store `x, y`), cleaner island art, special Dens earn 1.5× / 2× / 2.5×, Toni is Class S+, walking transitions between Campaign waves, a reward Toto for each story's first clear, a bright PvP arena, and computer rivals pick different Totos of your classes.
+
+## v108: Ultimate Colosseum
+- Client only. The PvE board now ranks **Ultimate Colosseum points** for the season (sent as `power` through `submit_score` / `heartbeat`, so `pve_settle` and the PvE Rank #1 Champion keep working unchanged). New S+ Totos: Gravewarden (healer), Pharaoh Mummy (tank), Scythecrow (support).

@@ -1,5 +1,10 @@
-const CACHE_NAME = 'totoquest-v107';
+const CACHE_NAME = 'totoquest-v108';
 const ASSETS = [
+'./assets/totos/eternal/scythecrow.png',
+'./assets/totos/eternal/pharaoh_mummy.png',
+'./assets/totos/eternal/gravewarden.png',
+'./assets/ui/colosseum_map.jpg',
+'./assets/stages/colosseum.jpg',
 './assets/stages/arena_dawn.jpg',
 './assets/stages/arena_day.jpg',
   './index.html',

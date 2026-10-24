@@ -2488,6 +2488,53 @@
   /* the sky island */
   .isl-view { background:linear-gradient(#8fd3ff, #d9f1ff 60%, #ffffff) !important; }
   .isb { transform:translate(-50%, -88%) scale(var(--sc, 1)); transform-origin:50% 88%; }
+  /* ---- Ultimate Colosseum ---- */
+  .dc-nav .nav-b.colo { background:radial-gradient(circle at 40% 30%, #ffd36b, #b8620e 70%); border-color:#fff3b0; }
+  .colo-panel .panel-body { padding:0 !important; display:flex; flex-direction:column; background:#2a1a10; }
+  .colo-map { position:relative; flex:1; min-height:0; aspect-ratio:1408/768; max-width:100%; margin:0 auto; }
+  .colo-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+  .colo-gate { position:absolute; left:52.9%; top:44%; width:19%; height:44%; transform:translate(-50%, -50%); border:0; background:none; cursor:pointer; }
+  .colo-ring { position:absolute; left:50%; top:55%; width:118%; height:70%; transform:translate(-50%, -50%); border-radius:50%; border:4px solid #ffd36b; box-shadow:0 0 22px #ffb627, inset 0 0 22px rgba(255,182,39,.6); animation:coloRing 1.4s ease-in-out infinite; }
+  @keyframes coloRing { 50%{ transform:translate(-50%, -50%) scale(1.07); opacity:.7; } }
+  .colo-champ { position:absolute; left:50%; bottom:78%; width:62%; height:72%; transform:translateX(-50%); animation:tvFloat 2.6s ease-in-out infinite; }
+  .colo-champ img { width:100%; height:100%; object-fit:contain; object-position:50% 100%; filter:drop-shadow(0 0 12px #ff9ad8) drop-shadow(0 6px 6px rgba(0,0,0,.6)); }
+  .colo-tag { position:absolute; left:50%; top:96%; transform:translateX(-50%); white-space:nowrap; padding:6px 12px; border-radius:12px; background:linear-gradient(#ffcf5a, #d7700e); border:3px solid #fff; color:#3a1d00; font:900 clamp(10px, 1.6cqw, 15px)/1.1 system-ui; box-shadow:0 5px 0 #7a3600; }
+  .colo-tag small { display:block; font-size:.75em; font-weight:800; }
+  .colo-hud { display:flex; gap:8px; align-items:center; justify-content:center; padding:6px 10px; background:linear-gradient(#3a220e, #24140a); border-top:2px solid #ffcf5a; color:#fff; flex-wrap:wrap; }
+  .colo-hud > div { text-align:center; padding:0 10px; } .colo-hud b { display:block; font:900 17px system-ui; color:#ffd36b; } .colo-hud small { font:700 10px system-ui; color:#f3e2c4; }
+  .colo-rank { border:2px solid #fff; border-radius:12px; padding:7px 12px; background:linear-gradient(#7a55d8, #3a1a7e); color:#fff; font:900 12px system-ui; cursor:pointer; }
+  .colo-list { display:flex; flex-direction:column; gap:6px; max-height:62cqh; overflow-y:auto; }
+  .colo-st { position:relative; display:flex; align-items:center; gap:8px; width:100%; padding:6px 8px; border-radius:14px; border:2px solid #e8c88a; background:linear-gradient(#fff7e6, #f5e2bd); cursor:pointer; text-align:left; }
+  .colo-st.done { border-color:#4ac46a; } .colo-st.final { border-color:#ff4fd0; background:linear-gradient(#ffe6f6, #f5c8ea); }
+  .colo-st.locked { opacity:.5; cursor:default; }
+  .colo-n { width:34px; height:34px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font:900 16px system-ui; color:#fff; background:radial-gradient(circle at 40% 30%, #ffcf5a, #b8620e); border:2px solid #fff; }
+  .colo-i { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; } .colo-i b { font:900 13.5px system-ui; color:#3a1d00; } .colo-i small { font:700 10.5px system-ui; color:#6a4a2a; display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+  .colo-foes { display:flex; } .colo-foes span { width:34px; height:38px; margin-left:-6px; } .colo-foes img { width:100%; height:100%; object-fit:contain; }
+  .colo-st em { position:absolute; right:8px; top:6px; font-style:normal; }
+  .colo-prep-bg { background-image:linear-gradient(rgba(40,20,0,.35), rgba(40,20,0,.55)), url(assets/stages/colosseum.jpg) !important; }
+  .colo-cd { position:absolute; inset:0; z-index:140; display:none; align-items:center; justify-content:center; background:radial-gradient(circle at 50% 45%, rgba(120,60,10,.75), rgba(10,5,0,.95) 70%), url(assets/stages/colosseum.jpg) center/cover; }
+  .colo-cd.show { display:flex; }
+  .colo-cd-in { text-align:center; color:#fff; width:100%; padding:10px; }
+  .colo-cd-h { font:900 14px system-ui; letter-spacing:.12em; color:#ffd36b; }
+  .colo-cd-t { font:900 22px system-ui; text-shadow:0 3px 6px #000; margin:2px 0 8px; }
+  .colo-cd-vs { display:flex; align-items:center; justify-content:center; gap:18px; }
+  .colo-cd-team { display:flex; } .colo-cd-team span { width:64px; height:72px; margin:0 -6px; } .colo-cd-team img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 4px 6px rgba(0,0,0,.6)); }
+  .colo-cd-team.foe img { transform:scaleX(-1); filter:drop-shadow(0 0 8px #ff4a3a); }
+  .colo-cd-n { width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font:900 56px system-ui; color:#3a1d00; background:radial-gradient(circle at 40% 30%, #fff1b0, #f0961a); border:5px solid #fff; box-shadow:0 0 30px #ffb627; flex:none; }
+  .colo-cd-n.pop { animation:coloPop .5s ease-out; } @keyframes coloPop { 0%{ transform:scale(1.35); } 100%{ transform:scale(1); } }
+  .colo-cd-s { font:700 12px system-ui; color:#f3e2c4; margin:10px 0; }
+  .colo-cd-b { display:flex; gap:10px; justify-content:center; }
+  .colo-cd-b button { border:3px solid #fff; border-radius:14px; padding:11px 18px; font:900 15px system-ui; cursor:pointer; color:#fff; background:linear-gradient(#a99bc4, #5d4f7a); }
+  .colo-cd-b button.go { background:linear-gradient(#7dff9a, #22b04a); color:#073a14; }
+  .dx-done { background:linear-gradient(#7dff9a, #22b04a) !important; color:#073a14 !important; margin-top:6px; }
+  .colo-panel .panel-header { position:absolute; left:0; right:0; top:0; z-index:3; background:linear-gradient(rgba(40,20,5,.85), rgba(40,20,5,0)) !important; box-shadow:none !important; }
+  .colo-panel .panel-body { position:absolute; inset:0; }
+  .colo-map { height:100%; flex:none; }
+  .colo-hud { position:absolute; left:50%; bottom:max(8px, env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); border:2px solid #ffcf5a; border-radius:16px; background:rgba(36,20,10,.88); }
+  .colo-hud { left:auto; right:max(8px, env(safe-area-inset-right, 0px)); transform:none; flex-direction:column; flex-wrap:nowrap; gap:4px; padding:6px 8px; }
+  .colo-hud > div { padding:0; } .colo-hud b { font-size:15px; } .colo-hud small { font-size:9px; }
+  .colo-rank { padding:5px 8px; font-size:11px; }
+  .colo-champ { bottom:58%; height:66%; }
 </style>
 <div id="toto-root">
 
@@ -2585,6 +2632,7 @@
       <button class="nav-b" data-go="build"><span>🔨</span>Build</button>
       <button class="nav-b" data-go="campaign"><span>⚔️</span>Campaign</button>
       <button class="nav-b" data-go="pvp"><span>🏟️</span>PvP</button>
+      <button class="nav-b colo" data-go="colo"><span>🏛️</span>Colosseum</button>
       <button class="nav-b" data-go="dex"><span>📖</span>Totos</button>
       <button class="nav-b big" data-go="store"><span>🛍️</span>Store</button>
       <button class="nav-b" data-go="more"><span>☰</span>More<b class="qm-badge" id="friends-badge"></b></button>
@@ -2595,6 +2643,10 @@
     <div class="panel-screen dark-panel" data-panel="campaign">
       <div class="panel-header">⚔️ Campaign <span class="close-x" data-close>✕</span></div>
       <div class="panel-body" id="camp-body"></div>
+    </div>
+    <div class="panel-screen dark-panel colo-panel" data-panel="colo">
+      <div class="panel-header">🏛️ Ultimate Colosseum <span class="close-x" data-close>✕</span></div>
+      <div class="panel-body" id="colo-body"></div>
     </div>
     <div class="panel-screen dark-panel" data-panel="dex">
       <div class="panel-header">📖 Totos <span class="close-x" data-close>✕</span></div>
@@ -2790,7 +2842,7 @@
     <div class="modal-card" style="max-width:360px; text-align:left;">
       <div class="modal-name" style="text-align:center; margin-bottom:2px;">🏆 Season Rankings</div>
       <div class="modal-sub" style="text-align:center;" id="lb-season">This month's season</div>
-      <div class="store-tabs lb-tabs" style="margin-top:8px;"><button class="store-tab active" data-lb="pve">PvE · Team power</button><button class="store-tab" data-lb="pvp">PvP · Ranked</button></div>
+      <div class="store-tabs lb-tabs" style="margin-top:8px;"><button class="store-tab active" data-lb="pve">PvE · Colosseum</button><button class="store-tab" data-lb="pvp">PvP · Ranked</button></div>
       <div class="lb-note" id="lb-note"></div>
       <div id="leaderboard-list" style="max-height:340px; overflow-y:auto; margin-top:6px;"></div>
       <button class="btn-cancel" style="width:100%; margin-top:10px;" data-close-leaderboard>Close</button>
@@ -2831,6 +2883,13 @@
   <!-- HATCHING -->
   <div class="hatch" id="hatch"><div class="hatch-in"><div class="hatch-title" id="hatch-title">Hatching…</div><div class="hatch-stage" id="hatch-stage"></div><button class="co-btn" id="hatch-ok">Awesome!</button></div></div>
 
+  <!-- COLOSSEUM COUNTDOWN -->
+  <div class="colo-cd" id="colo-cd"><div class="colo-cd-in">
+    <div class="colo-cd-h">⚔️ ULTIMATE COLOSSEUM</div><div class="colo-cd-t" id="colo-cd-t"></div>
+    <div class="colo-cd-vs"><div class="colo-cd-team" id="colo-cd-me"></div><div class="colo-cd-n" id="colo-cd-n">20</div><div class="colo-cd-team foe" id="colo-cd-foes"></div></div>
+    <div class="colo-cd-s">Get ready! The battle starts when the countdown ends.</div>
+    <div class="colo-cd-b"><button id="colo-cd-back">✕ Back out</button><button class="go" id="colo-cd-go">I’m ready!</button></div>
+  </div></div>
   <!-- TUTORIAL -->
   <div class="tut" id="tut"><div class="tut-hole none" id="tut-hole"></div>
     <div class="tut-box" id="tut-box"><div class="tut-guide"><img src="assets/totos/eternal/toni_scarecrow.png" alt=""></div>
@@ -3077,6 +3136,10 @@
   addSpecies('Max', 'tanker', 'S+', 'eternal/max_front', { side:'eternal/max_side', mod:{ hp:1.1, atk:1, armor:0.08 } });
   addSpecies('Pumpkinsnare', 'supporter', 'S', 'eternal/pumpkinsnare');
   addSpecies('Lanternessa', 'attacker', 'S', 'eternal/lanternessa');
+  // the Ultimate Colosseum's final guardians (also found in Blood Moon Eggs)
+  addSpecies('Gravewarden', 'healer', 'S+', 'eternal/gravewarden', { mod:{ hp:1.12, atk:1.0, armor:0.06 } });
+  addSpecies('Pharaoh Mummy', 'tanker', 'S+', 'eternal/pharaoh_mummy', { mod:{ hp:1.05, atk:1.0, armor:0.04 } });
+  addSpecies('Scythecrow', 'supporter', 'S+', 'eternal/scythecrow', { mod:{ hp:1.04, atk:1.04, armor:0.03 } });
   // The season Champions: finish a monthly season at #1 on the PvP board (Rank #1 Champion) or the
   // PvE board (PvE Rank #1 Champion) and that Champion is yours for good.
   const RANK_CHAMP_MAX = 1;
@@ -3657,7 +3720,7 @@
   const lbLast = { at:0, sig:'', timer:null };
   async function submitScoreOnline(force){
     if (!onlineOn() || !state.loggedIn || underAge()) return;
-    state.powerLevel = teamPower(); state.charLevel = playerLevel();
+    state.powerLevel = coloPoints(); state.charLevel = playerLevel();
     const sig = [state.username, state.avatar, state.powerLevel, state.charLevel, state.collection.length].join('|');
     if (!force && sig === lbLast.sig) return;
     if (!force && Date.now() - lbLast.at < 15000){ clearTimeout(lbLast.timer); lbLast.timer = setTimeout(()=> submitScoreOnline(), 15500); return; }
@@ -3728,7 +3791,7 @@
     hbBusy = true;
     try {
       if (!(await onlineRegister())) return null;
-      state.powerLevel = teamPower(); state.charLevel = playerLevel();
+      state.powerLevel = coloPoints(); state.charLevel = playerLevel();
       const r = await sbRpc('heartbeat', { p_id:state.playerId, p_secret:state.playerSecret, p_name:String(state.username||'Trainer').slice(0,24),
         p_avatar: state.avatar==='male' ? 'male' : 'female', p_level: Math.max(1, Math.min(100, state.charLevel||1)), p_power: Math.max(0, Math.round(state.powerLevel||0)),
         p_totos: state.collection.length, p_look: myLook() });
@@ -3749,7 +3812,7 @@
         if (add.length){
           state.pveSeasonResults = have.concat(add.map(a=> ({ season:a.season, rank:a.rank|0, power:a.power|0 }))).slice(-36); checkChampions(); markDirty();
           add.forEach(a=>{ const nm = seasonLabel(a.season).split(' · ')[0].replace(' season','');
-            gameDialog({ title:'🏆 PvE season — #'+(a.rank|0)+'!', message:'You finished the '+nm+' PvE season at #'+(a.rank|0)+' with '+Number(a.power||0).toLocaleString()+' team power.'+((a.rank|0) === 1 ? ' The PvE Rank #1 Champion has joined your Totos for good!' : ' Finish at #1 to win the PvE Rank #1 Champion!')+''+(a.rank|0)+' Champion Toto has joined your team for good!', ok:'Awesome!', cancel:null }); });
+            gameDialog({ title:'🏆 PvE season — #'+(a.rank|0)+'!', message:'You finished the '+nm+' PvE season at #'+(a.rank|0)+' with '+Number(a.power||0).toLocaleString()+' Colosseum points.'+((a.rank|0) === 1 ? ' The PvE Rank #1 Champion has joined your Totos for good!' : ' Finish at #1 to win the PvE Rank #1 Champion!')+''+(a.rank|0)+' Champion Toto has joined your team for good!', ok:'Awesome!', cancel:null }); });
         }
       }
       if (typeof onHeartbeat === 'function') onHeartbeat(r);
@@ -4757,7 +4820,7 @@
   const PVP_CHARGE_NEED = 4;                 // an Attacker's charged move is ready after 4 hits
   const PVP_TAUNT_TURNS = 3;                 // PvP taunt lasts for the rival's next 3 turns (story battles: until the tank falls)
   // the strongest Toto of each class
-  const PVP_CHAMPS = { 'Vesper Nightshade':'attacker', 'Max':'tanker', 'Harvest Warden':'healer', 'Toni':'supporter' };
+  const PVP_CHAMPS = { 'Vesper Nightshade':'attacker', 'Max':'tanker', 'Gravewarden':'healer', 'Scythecrow':'supporter' };
   const PVP_GRADE = { normal:0, legendary:1, mythical:2, eternal:3 };
   // Hand-made move sets for the Eternal and Legendary Totos: [type, name, extra numbers].
   const PVP_KITS = {
@@ -4784,7 +4847,10 @@
     'Bone Steed':       { r:'supporter', s:[['hit','Hoof Kick'],['weaken','Rattle Hex'],['haste','War Gallop'],['heal','Marrow Mend']] },
     'Pumpkinsnare':     { r:'supporter', s:[['hit','Vine Lash'],['weakenAll','Strangling Thorns'],['empower','Harvest Bloom'],['heal','Sap Mend',{pct:0.14}]] },
     'Lanternessa':      { r:'attacker', s:[['hit','Lantern Flare'],['burn','Witchfire'],['sweep','Candle Storm'],['drain','Soul Wick']], ult:['sweep','Hallow Blaze',{pow:1.8}] },
-    'Blaze Hare':       { r:'supporter', s:[['hit','Ember Kick'],['weaken','Smoke Puff'],['haste','Blazing Dash'],['heal','Warm Glow']] }
+    'Blaze Hare':       { r:'supporter', s:[['hit','Ember Kick'],['weaken','Smoke Puff'],['haste','Blazing Dash'],['heal','Warm Glow']] },
+    'Gravewarden':      { r:'healer', s:[['hit','Bone Scepter',{pow:1.05}],['heal','Grave Mend',{pct:0.40}],['healAll','Moonlit Requiem',{pct:0.22}],['shield','Crypt Ward']] },
+    'Pharaoh Mummy':    { r:'tanker', s:[['hit','Sand Scepter',{pow:1.05}],['taunt','Taunt'],['fortify','Ancient Wraps'],['heal','Embalm',{pct:0.16}]] },
+    'Scythecrow':       { r:'supporter', s:[['hit','Reaping Swipe',{pow:1.0}],['weakenAll','Murder of Crows',{pow:0.6}],['empower','Blood Harvest'],['heal','Straw Mend',{pct:0.15}]] }
   };
   // Name parts for everyone else, from what the Toto is.
   const PVP_THEMES = [
@@ -5256,7 +5322,7 @@
     list.innerHTML = '<p style="color:#999; font-weight:700; font-size:12.5px;">Loading…</p>';
     $('#lb-note').textContent = lbBoard === 'pvp'
       ? 'Win PvP Arena battles for Rank Points. Everyone starts at Bronze 3 · Master at '+MASTER_RP.toLocaleString()+' RP · the top 10 Masters are Grandmasters. Finish #1 to win the Rank #1 Champion Toto!'
-      : 'Ranked by team power (your 4 strongest Totos). Finish the season at #1 to win the PvE Rank #1 Champion Toto!';
+      : 'Ranked by Ultimate Colosseum points this season — every win counts, harder stages are worth more. Finish the season at #1 to win the PvE Rank #1 Champion Toto!';
     $('#lb-season').textContent = seasonLabel(Social.season);
     let rows = [];
     if (onlineOn()){
@@ -5918,7 +5984,7 @@
     $('#bt-result').classList.remove('show'); $('#bt-result').innerHTML = ''; $('#bt-fxl').innerHTML = ''; btLog('');
     $('#bt-auto').classList.toggle('on', B.auto); $('#bt-speed').innerHTML = '▶▶<small>x'+B.speed+'</small>';
     $('#battle').classList.add('show'); document.documentElement.classList.add('tq-busy-battle');
-    $('#battle').classList.toggle('bright', B.mode !== 'campaign');
+    $('#battle').classList.toggle('bright', B.mode === 'pvp' || B.mode === 'bot');
     btBuildField(); btLayout(); btSetSprites(); btRefresh();
     // a new stage starts back at the beginning of the scenery straight away (no sliding backwards)
     { const bg = $('#bt-bg'); if (info.bgJump){ bg.style.transition = 'none'; bg.style.setProperty('--bgx', info.bgx || '50%'); void bg.offsetWidth; bg.style.transition = ''; } else bg.style.setProperty('--bgx', info.bgx || '50%'); }
@@ -5958,6 +6024,7 @@
   function btOver(cancelled){
     if (B.finished) return;
     if (B.mode === 'campaign') return campaignWaveOver(cancelled);
+    if (B.mode === 'colo') return coloOver(cancelled);
     return pvpFinish(cancelled);
   }
 
@@ -6252,6 +6319,119 @@
     if ((state.pveSeasonResults||[]).some(r=> r && (r.rank|0) === 1) && !state.pveChamps.includes(1)){ state.pveChamps.push(1); if (!state.collection.some(t=> t.name === pveChampName(1))){ addToto(pveChampName(1), 1); got.push(pveChampName(1)); } }
     if (got.length){ markDirty(); showToast('🏆 '+got.join(' and ')+' joined your Totos!'); }
   }
+  // ================= THE ULTIMATE COLOSSEUM (PvE rankings) =================
+  // Ten boss fights, one 4 vs 4 battle each, every one harder than the last: stages 1-5 are Class S
+  // Totos, 6-10 Class S+, and stage 10 is the four strongest Totos in the game. The computer's Totos
+  // are stronger than their usual forms (the same Totos are normal strength when you own them).
+  // Every win earns Colosseum points (harder stages give more); the season's points are the PvE board.
+  const COLO_STAGES = [
+    { name:'Gate of Lanterns',   lvl:30,  m:1.08, team:['Pumpkinsnare','Lanternessa','Harvest Warden','Vesper Nightshade'] },
+    { name:'Hall of Thorns',     lvl:38,  m:1.10, team:['Vesper Nightshade','Pumpkinsnare','Lanternessa','Harvest Warden'] },
+    { name:'Witchfire Ring',     lvl:46,  m:1.12, team:['Lanternessa','Harvest Warden','Pumpkinsnare','Vesper Nightshade'] },
+    { name:'Moonlit Arena',      lvl:54,  m:1.15, team:['Harvest Warden','Vesper Nightshade','Lanternessa','Pumpkinsnare'] },
+    { name:'Harvest Champions',  lvl:62,  m:1.18, team:['Vesper Nightshade','Lanternessa','Pumpkinsnare','Harvest Warden'] },
+    { name:'Hound of the Crypt', lvl:70,  m:1.20, team:['Max','Toni','Rank #1 Champion','Gravewarden'] },
+    { name:'Sands of the Pharaoh', lvl:78, m:1.22, team:['Pharaoh Mummy','Scythecrow','Rank #1 Champion','Toni'] },
+    { name:'Reaper’s Field',     lvl:86,  m:1.25, team:['Max','Scythecrow','PvE Rank #1 Champion','Gravewarden'] },
+    { name:'Throne of Bones',    lvl:93,  m:1.28, team:['Pharaoh Mummy','Toni','Rank #1 Champion','Gravewarden'] },
+    { name:'The Ultimate Four',  lvl:100, m:1.35, team:['Pharaoh Mummy','Scythecrow','PvE Rank #1 Champion','Gravewarden'], final:true }
+  ];
+  const COLO_COUNTDOWN = 20;
+  const coloPtsFor = n=> n*10 + (n === 10 ? 50 : 0);
+  function coloState(){
+    const c = state.colo = state.colo && typeof state.colo === 'object' ? state.colo : { season:'', pts:0, wins:0, cleared:{} };
+    c.cleared = c.cleared || {};
+    // a new monthly season (as the server counts it) starts everyone's points over
+    const now = Social && Social.season;
+    if (now && c.season !== now){ if (c.season) { c.pts = 0; c.wins = 0; } c.season = now; }
+    return c;
+  }
+  // this season's Colosseum points (what the PvE board ranks)
+  function coloPoints(){ return state.loggedIn ? coloState().pts|0 : 0; }
+  const coloUnlocked = n=> n === 1 || !!coloState().cleared[n-1];
+  function coloTeam(n){ const st = COLO_STAGES[n-1]; return st.team.map((name, i)=> ({ name, level: Math.max(1, st.lvl - (i === 3 ? 1 : 0)), m: st.m, ev: PVP_ENGINE })); }
+
+  function renderColo(){
+    const c = coloState(), box = $('#colo-body'); if (!box) return;
+    const champ = pveChampName(1), done = Object.keys(c.cleared).length;
+    box.innerHTML = '<div class="colo-map"><img class="colo-bg" src="assets/ui/colosseum_map.jpg" alt="">'
+      + '<button class="colo-gate" id="colo-gate" aria-label="Enter the Ultimate Colosseum"><span class="colo-ring"></span><span class="colo-champ">'+spriteFor(champ)+'</span><span class="colo-tag">⚔️ ULTIMATE COLOSSEUM<small>Tap to enter</small></span></button></div>'
+      + '<div class="colo-hud"><div><b>'+c.pts.toLocaleString()+'</b><small>points this season</small></div><div><b>'+(c.wins|0)+'</b><small>wins</small></div><div><b>'+done+'/10</b><small>stages beaten</small></div>'
+      + '<button class="colo-rank" id="colo-rank">🏆 Rankings</button></div>';
+    $('#colo-gate').onclick = ()=> coloStagePick();
+    $('#colo-rank').onclick = ()=>{ lbBoard = 'pve'; $$('[data-lb]').forEach(x=> x.classList.toggle('active', x.dataset.lb === 'pve')); openLeaderboard(); };
+  }
+  async function coloStagePick(){
+    const c = coloState();
+    const rows = COLO_STAGES.map((st, i)=>{
+      const n = i + 1, un = coloUnlocked(n), cls = n <= 5 ? 'S' : 'S+';
+      return '<button class="colo-st'+(un ? '' : ' locked')+(c.cleared[n] ? ' done' : '')+(st.final ? ' final' : '')+'" data-n="'+n+'"'+(un ? '' : ' disabled')+'>'
+        + '<span class="colo-n">'+n+'</span><span class="colo-i"><b>'+escapeHtml(st.name)+'</b><small>'+clsBadge(cls)+' Lv '+st.lvl+' · +'+coloPtsFor(n)+' pts a win'+(c.cleared[n] ? ' · ✔ beaten' : '')+'</small></span>'
+        + '<span class="colo-foes">'+st.team.map(nm=> '<span>'+spriteFor(nm)+'</span>').join('')+'</span>'+(un ? '' : '<em>🔒</em>')+'</button>';
+    }).join('');
+    const p = actionSheet('⚔️ Ultimate Colosseum', 'One battle per stage. Beat a stage to unlock the next. Their Totos are stronger than usual — bring your best!', [{ html:'<div class="colo-list">'+rows+'</div>' }]);
+    setTimeout(()=> $$('#act-body .colo-st').forEach(b=> b.onclick = ()=>{ $('#act-cancel').click(); coloPrep(+b.dataset.n); }), 30);
+    await p;
+  }
+  async function coloPrep(n){
+    const st = COLO_STAGES[n-1], team = myTeam();
+    if (team.length < 4){ showToast('You need 4 Totos on your team.'); return; }
+    const html = '<div class="sp-prep"><div class="spp-bg colo-prep-bg"><b>Stage '+n+' · '+escapeHtml(st.name)+'</b><small>Rival level '+st.lvl+' · stronger than usual · win: +'+coloPtsFor(n)+' points</small></div>'
+      + '<div class="spp-h">Your rivals</div><div class="spp-row">'+st.team.map(nm=> miniToto(nm, st.lvl)).join('')+'</div>'
+      + '<div class="spp-h">Your team</div><div class="spp-row">'+team.map(t=> miniToto(t.name, t.level)).join('')+'</div></div>';
+    const v = await actionSheet('', '', [{ html }, { label:'✔ Keep this team', value:'go', cls:'good' }, { label:'🔁 Change my team', value:'change' }]);
+    if (v === 'change'){ closeAllPanels(); openTeamPicker(()=>{ openPanel('colo'); setTimeout(()=> coloPrep(n), 200); }); return; }
+    if (v === 'go') coloCountdown(n);
+  }
+  // 20 seconds to get ready (or tap "I'm ready!")
+  let coloCd = null;
+  function coloCountdown(n){
+    const st = COLO_STAGES[n-1], ov = $('#colo-cd');
+    let left = COLO_COUNTDOWN;
+    $('#colo-cd-t').textContent = 'Stage '+n+' · '+st.name;
+    $('#colo-cd-foes').innerHTML = st.team.map(nm=> '<span>'+spriteFor(nm)+'</span>').join('');
+    $('#colo-cd-me').innerHTML = myTeam().map(t=> '<span>'+spriteFor(t.name)+'</span>').join('');
+    const tick = ()=>{ $('#colo-cd-n').textContent = left; $('#colo-cd-n').classList.remove('pop'); void $('#colo-cd-n').offsetWidth; $('#colo-cd-n').classList.add('pop'); };
+    const go = ()=>{ clearInterval(coloCd); coloCd = null; ov.classList.remove('show'); coloBattle(n); };
+    tick(); ov.classList.add('show');
+    clearInterval(coloCd);
+    coloCd = setInterval(()=>{ left--; if (left <= 0) return go(); tick(); if (left <= 3) Sound.playAttack(); }, 1000);
+    $('#colo-cd-go').onclick = go;
+    $('#colo-cd-back').onclick = ()=>{ clearInterval(coloCd); coloCd = null; ov.classList.remove('show'); };
+  }
+  const Colo = { n:1 };
+  function coloBattle(n){
+    Colo.n = n; closeAllPanels();
+    const st = COLO_STAGES[n-1];
+    btOpen({ mode:'colo', mySide:'p1', seed: nameHash('colo'+n+'.'+Date.now()),
+      snaps:{ p1: myTeam().map(t=> ({ name:t.name, level:t.level, ev:PVP_ENGINE })), p2: coloTeam(n) }, opts:{ campaign:true },
+      names:{ p1:state.username || 'You', p2:'Colosseum' }, bg:'colosseum', bgx:'50%',
+      title:'ULTIMATE COLOSSEUM · STAGE '+n, sub: st.name+(st.final ? ' · FINAL' : ''), startText:'Stage '+n+(st.final ? ' — the Ultimate Four!' : ''), walkIn:true, bgJump:true });
+  }
+  async function coloOver(cancelled){
+    B.finished = true; clearInterval(B.tick); clearTimeout(B.botTimer);
+    const won = !cancelled && B.E.winner === 'p1', n = Colo.n, c = coloState();
+    let html;
+    if (won){
+      Sound.playVictory();
+      const first = !c.cleared[n], pts = coloPtsFor(n);
+      c.cleared[n] = true; c.pts = (c.pts|0) + pts; c.wins = (c.wins|0) + 1;
+      const rw = { coins: 200*n + (first ? 300*n : 0), food: 300*n, gems: first ? 5 + n*3 : 0, xp: 40*n };
+      give({ coins:rw.coins, food:rw.food, gems:rw.gems }); markDirty(); saveNow(false); setTimeout(()=> addXp(rw.xp), 300);
+      state.powerLevel = coloPoints(); submitScoreOnline(true);
+      html = '<div class="btr win"><div class="btr-t">VICTORY!</div><div class="btr-s">Ultimate Colosseum · Stage '+n+' beaten'+(first && n < 10 ? ' · Stage '+(n+1)+' unlocked!' : '')+'</div>'
+        + '<div class="pva-res-rp up">+'+pts+' points</div><div class="btr-s">'+c.pts.toLocaleString()+' points this season</div>'
+        + '<div class="btr-rw">'+rewardHtml(rw)+'</div>'
+        + '<div class="btr-btns"><button class="again" id="btr-again">'+(n < 10 ? '▶ Stage '+(n+1) : '↻ Fight again')+'</button><button class="back" id="btr-back">Back</button></div></div>';
+    } else {
+      if (!cancelled) Sound.playDefeat();
+      html = '<div class="btr lose"><div class="btr-t">'+(cancelled ? 'RETREATED' : 'DEFEAT')+'</div><div class="btr-s">The Colosseum’s Totos are tougher than usual. Level up your team with Food or bring stronger Totos, then try again.</div>'
+        + '<div class="btr-btns"><button class="again" id="btr-again">↻ Try again</button><button class="back" id="btr-back">Back</button></div></div>';
+    }
+    $('#bt-result').innerHTML = html; $('#bt-result').classList.add('show');
+    $('#btr-back').onclick = ()=>{ btClose(); refreshHUD(); openPanel('colo'); };
+    $('#btr-again').onclick = ()=>{ btClose(); refreshHUD(); openPanel('colo'); const nx = won && n < 10 ? n + 1 : n; setTimeout(()=> coloPrep(nx), 200); };
+  }
   // ================= HUD, NAVIGATION, PANELS =================
   function refreshHUD(){
     if (!state.loggedIn) return;
@@ -6259,7 +6439,7 @@
     const L = playerLevel(), need = xpForLevel(L);
     $('#hud-level').textContent = L; $('#hud-name').textContent = state.username || 'Trainer';
     $('#hud-xp').style.width = (L >= PLAYER_MAX_LEVEL ? 100 : Math.min(100, (state.pxp|0)/need*100)).toFixed(1)+'%';
-    state.powerLevel = teamPower(); state.charLevel = L;
+    state.powerLevel = coloPoints(); state.charLevel = L;
     updateSocialBadges && updateSocialBadges();
     const panel = currentPanel();
     if (panel === 'dex') renderDex(); if (panel === 'campaign') renderCampaign();
@@ -6277,6 +6457,7 @@
     else if (name === 'dex') renderDex();
     else if (name === 'store') openStore();
     else if (name === 'pvp') openPvpLobby();
+    else if (name === 'colo') renderColo();
     else if (name === 'friends' && typeof onFriendsPanel === 'function') onFriendsPanel();
     else if (name === 'admin' && typeof onStaffPanel === 'function') onStaffPanel();
     else if (name === 'settings') renderSettings();
@@ -6580,7 +6761,8 @@
       const team = myTeam();
       html += '<div class="dx-note">Your team fights in the Campaign and the PvP Arena. Tap a slot to swap a Toto in.</div><div class="dx-team">'
         + [0,1,2,3].map(i=>{ const t = team[i]; return '<button class="dx-slot" data-slot="'+i+'">'+(t ? totoCardHtml(t, true) : '<span class="dx-empty">＋</span>')+'</button>'; }).join('')+'</div>'
-        + '<button class="set-wide" id="dx-auto">⚡ Best team automatically</button>';
+        + '<button class="set-wide" id="dx-auto">⚡ Best team automatically</button>'
+        + (Isl.afterTeam ? '<button class="set-wide dx-done" id="dx-done">✔ Done — back</button>' : '');
     } else {
       const owned = {}; state.collection.forEach(t=> owned[t.name] = (owned[t.name]||0) + 1);
       html += '<div class="dx-note">'+Object.keys(owned).length+' of '+DEX_SPECIES.length+' Totos found. Get new ones in the Store!</div>';
@@ -6595,6 +6777,7 @@
     $$('.dx-card[data-id]', box).forEach(b=> b.onclick = ()=> openToto(b.dataset.id));
     $$('.dx-card.dex', box).forEach(b=> b.onclick = ()=> openSpecies(b.dataset.sp));
     $$('.dx-slot', box).forEach(b=> b.onclick = ()=>{ const i = +b.dataset.slot; pickToto('Pick a Toto for slot '+(i+1), t=> true, t=>{ const cur = state.team.indexOf(t.id); if (cur >= 0) state.team[cur] = state.team[i]; state.team[i] = t.id; state.team = state.team.filter(Boolean); markDirty(); renderDex(); }); });
+    const dd = $('#dx-done'); if (dd) dd.onclick = ()=>{ const f = Isl.afterTeam; Isl.afterTeam = null; dexTab = 'mine'; if (f) f(); };
     const au = $('#dx-auto'); if (au) au.onclick = ()=>{ state.team = bestTeam(); markDirty(); renderDex(); showToast('Team set to your strongest Totos'); };
   }
   function bestTeam(){
@@ -6608,7 +6791,7 @@
     return '<div class="dx-card'+(small ? ' sm' : '')+'" data-id="'+t.id+'" style="--cc:'+ci.color+';--glow:'+ci.glow+'">'+(inTeam && !small ? '<span class="dx-tm">TEAM</span>' : '')+clsBadge(t.cls)
       + '<div class="dx-sp">'+spriteFor(t.name)+'</div><b>'+escapeHtml(t.name)+'</b><small><span class="dx-lv">Lv '+t.level+'</span> <span style="color:'+ri.color+'">'+ri.icon+' '+ri.label+'</span></small></div>';
   }
-  function openTeamPicker(after){ dexTab = 'team'; openPanel('dex'); Isl.afterTeam = after || null; }
+  function openTeamPicker(after){ dexTab = 'team'; Isl.afterTeam = after || null; openPanel('dex'); }
   async function pickToto(title, filter, cb, note){
     const list = state.collection.filter(filter).sort((a,b)=> b.cp - a.cp);
     if (!list.length){ showToast('No Totos to pick.'); return; }
@@ -6934,6 +7117,7 @@
         before:()=>{ if ($('#toto-view').classList.contains('show')){ $('#toto-view').classList.remove('show'); renderIsland(); } } },
       { title:'⚔️ Campaign', text:'20 stories with 5 stages each. Every stage is 4 waves of 4 vs 4 against computer Totos. Beat a whole story to win a reward Toto of that story’s class!', target:'.dc-nav .nav-b[data-go="campaign"]', round:true },
       { title:'🏟️ PvP Arena', text:'Battle other trainers 4 vs 4 for Rank Points. Finish a monthly season at <b>#1</b> to win the Rank #1 Champion!', target:'.dc-nav .nav-b[data-go="pvp"]', round:true },
+      { title:'🏛️ Ultimate Colosseum', text:'Ten boss fights against the strongest S and S+ Totos — they’re tougher than usual! Every win earns points, and the season’s points decide the PvE rankings. Finish #1 to win the PvE Rank #1 Champion.', target:'.dc-nav .nav-b[data-go="colo"]', round:true },
       { title:'📖 Totos', text:'All your Totos, the Toto Dex of every Toto you can find, and your battle team.', target:'.dc-nav .nav-b[data-go="dex"]', round:true },
       { title:'🛍️ Store', text:'Hatch <b>eggs</b> with Gems for a chance at rare Totos, trade Gems for <b>Coins</b>, and pick up cheap Totos with Coins.', target:'.dc-nav .nav-b[data-go="store"]', round:true },
       { title:'🔍 Look around', text:'Drag to move around. Pinch, use the mouse wheel or these buttons to zoom — <b>⤢</b> shows your whole island.', target:'.isl-zoom', pad:8 },
@@ -7015,7 +7199,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v107';
+window.TQ_APP_VERSION = 'v108';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
