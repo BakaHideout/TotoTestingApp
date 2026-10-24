@@ -3165,7 +3165,8 @@
   // Which way each picture faces: r = towards the right of the screen, l = left, f = at you.
   const TOTO_FACE_R = ['banshee','black_cat_tot','blaze_hare','coffin_pup','cursed_crow','fang_pup','frost_fang','hex_hound','jackalope','lava_pup','moon_rabbit','mummy_pup',
     'pumpkin_finch','pumpkin_turtle','ravenette','soul_fox','starling','translucent_tot','ember_fox','cursed_bunny','specter_cat','pumpkin_pup'];
-  const TOTO_FACE_L = ['ghoul_kitten','toni_scarecrow','max_side'];
+  const TOTO_FACE_L = ['ghoul_kitten','max_side','harvest_warden','vesper_nightshade','scythecrow'];
+  TOTO_FACE_R.push('toni_scarecrow','gravewarden','pharaoh_mummy','champ_pvp1','champ_pve1','lanternessa');
   function faceOfFile(base){ return TOTO_FACE_R.includes(base) ? 'r' : (TOTO_FACE_L.includes(base) ? 'l' : 'f'); }
   function totoFacing(name, fight){ const s = SP[String(name||'')]; if (!s) return 'f'; return faceOfFile(((fight && s.side) || s.img).split('/').pop()); }
   function battleSpriteFor(name){ const src = totoImgSrc(name, true); return src ? '<img class="creature-img" src="'+src+'" alt="'+escapeHtml(String(name))+'" draggable="false">' : ''; }
@@ -6337,7 +6338,11 @@
     { name:'The Ultimate Four',  lvl:100, m:1.35, team:['Pharaoh Mummy','Scythecrow','PvE Rank #1 Champion','Gravewarden'], final:true }
   ];
   const COLO_COUNTDOWN = 20;
-  const coloPtsFor = n=> n*10 + (n === 10 ? 50 : 0);
+  // PvE points: the further into the Colosseum, the more each win is worth (stage 10 is worth 30x
+  // stage 1), plus a bonus for every one of your Totos still standing at the end.
+  const COLO_BASE = [0, 20, 40, 70, 110, 160, 230, 310, 400, 500, 600];
+  const coloPtsFor = n=> COLO_BASE[n] || 0;
+  const coloBonusFor = (n, alive)=> Math.round(alive * COLO_BASE[n] * 0.1);
   function coloState(){
     const c = state.colo = state.colo && typeof state.colo === 'object' ? state.colo : { season:'', pts:0, wins:0, cleared:{} };
     c.cleared = c.cleared || {};
@@ -6366,7 +6371,7 @@
     const rows = COLO_STAGES.map((st, i)=>{
       const n = i + 1, un = coloUnlocked(n), cls = n <= 5 ? 'S' : 'S+';
       return '<button class="colo-st'+(un ? '' : ' locked')+(c.cleared[n] ? ' done' : '')+(st.final ? ' final' : '')+'" data-n="'+n+'"'+(un ? '' : ' disabled')+'>'
-        + '<span class="colo-n">'+n+'</span><span class="colo-i"><b>'+escapeHtml(st.name)+'</b><small>'+clsBadge(cls)+' Lv '+st.lvl+' · +'+coloPtsFor(n)+' pts a win'+(c.cleared[n] ? ' · ✔ beaten' : '')+'</small></span>'
+        + '<span class="colo-n">'+n+'</span><span class="colo-i"><b>'+escapeHtml(st.name)+'</b><small>'+clsBadge(cls)+' Lv '+st.lvl+' · '+coloPtsFor(n)+'+ PvE pts a win'+(c.cleared[n] ? ' · ✔ beaten' : '')+'</small></span>'
         + '<span class="colo-foes">'+st.team.map(nm=> '<span>'+spriteFor(nm)+'</span>').join('')+'</span>'+(un ? '' : '<em>🔒</em>')+'</button>';
     }).join('');
     const p = actionSheet('⚔️ Ultimate Colosseum', 'One battle per stage. Beat a stage to unlock the next. Their Totos are stronger than usual — bring your best!', [{ html:'<div class="colo-list">'+rows+'</div>' }]);
@@ -6376,7 +6381,7 @@
   async function coloPrep(n){
     const st = COLO_STAGES[n-1], team = myTeam();
     if (team.length < 4){ showToast('You need 4 Totos on your team.'); return; }
-    const html = '<div class="sp-prep"><div class="spp-bg colo-prep-bg"><b>Stage '+n+' · '+escapeHtml(st.name)+'</b><small>Rival level '+st.lvl+' · stronger than usual · win: +'+coloPtsFor(n)+' points</small></div>'
+    const html = '<div class="sp-prep"><div class="spp-bg colo-prep-bg"><b>Stage '+n+' · '+escapeHtml(st.name)+'</b><small>Rival level '+st.lvl+' · stronger than usual · win: '+coloPtsFor(n)+'+ PvE points</small></div>'
       + '<div class="spp-h">Your rivals</div><div class="spp-row">'+st.team.map(nm=> miniToto(nm, st.lvl)).join('')+'</div>'
       + '<div class="spp-h">Your team</div><div class="spp-row">'+team.map(t=> miniToto(t.name, t.level)).join('')+'</div></div>';
     const v = await actionSheet('', '', [{ html }, { label:'✔ Keep this team', value:'go', cls:'good' }, { label:'🔁 Change my team', value:'change' }]);
@@ -6414,13 +6419,13 @@
     let html;
     if (won){
       Sound.playVictory();
-      const first = !c.cleared[n], pts = coloPtsFor(n);
+      const first = !c.cleared[n], alive = B.E.T.p1.filter(f=> f.hp > 0).length, bonus = coloBonusFor(n, alive), pts = coloPtsFor(n) + bonus;
       c.cleared[n] = true; c.pts = (c.pts|0) + pts; c.wins = (c.wins|0) + 1;
       const rw = { coins: 200*n + (first ? 300*n : 0), food: 300*n, gems: first ? 5 + n*3 : 0, xp: 40*n };
       give({ coins:rw.coins, food:rw.food, gems:rw.gems }); markDirty(); saveNow(false); setTimeout(()=> addXp(rw.xp), 300);
       state.powerLevel = coloPoints(); submitScoreOnline(true);
       html = '<div class="btr win"><div class="btr-t">VICTORY!</div><div class="btr-s">Ultimate Colosseum · Stage '+n+' beaten'+(first && n < 10 ? ' · Stage '+(n+1)+' unlocked!' : '')+'</div>'
-        + '<div class="pva-res-rp up">+'+pts+' points</div><div class="btr-s">'+c.pts.toLocaleString()+' points this season</div>'
+        + '<div class="pva-res-rp up">+'+pts+' PvE points</div><div class="btr-s">Stage '+n+': '+coloPtsFor(n)+' · '+alive+' Toto'+(alive === 1 ? '' : 's')+' still standing: +'+bonus+'<br>'+c.pts.toLocaleString()+' points this season — go further for more!</div>'
         + '<div class="btr-rw">'+rewardHtml(rw)+'</div>'
         + '<div class="btr-btns"><button class="again" id="btr-again">'+(n < 10 ? '▶ Stage '+(n+1) : '↻ Fight again')+'</button><button class="back" id="btr-back">Back</button></div></div>';
     } else {
@@ -7187,7 +7192,7 @@
     if (!found) showScreen('auth');
   })();
   if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)){
-    window.__tq = { state:()=> state, give, addToto, openToto, startCampaignBattle, btState:()=> B.E ? { turn:B.E.turn, winner:B.E.winner, mode:B.mode, hp:['p1','p2'].map(s=> B.E.T[s].map(f=> f.hp)) } : null, waveTeam, B, Camp, renderIsland, pvpFighter, Isl, spotProblem };
+    window.__tq = { state:()=> state, give, addToto, openToto, startCampaignBattle, btState:()=> B.E ? { turn:B.E.turn, winner:B.E.winner, mode:B.mode, hp:['p1','p2'].map(s=> B.E.T[s].map(f=> f.hp)) } : null, waveTeam, B, Camp, renderIsland, pvpFighter, Isl, spotProblem, coloBattle, btClose };
   }
 })();
 </script>
@@ -7199,7 +7204,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v108';
+window.TQ_APP_VERSION = 'v109';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
