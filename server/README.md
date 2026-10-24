@@ -153,6 +153,6 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 - Migration `2026-10-09_pve_champions.sql` (applied): `private.pve_claims` + `private.pve_settle()`; the heartbeat settles each finished season's PvE (power) place and returns `pve_awards` (top-10 finishes), which grant the PvE Rank #N Champion Totos.
 
 ## v100: the island redesign
-- Migration `2026-10-24_v100_redesign.sql` (additive, **not applied yet**): `admin_gift` allows up to 1,000,000 of every currency and Toto level 100; `private.trade_toto` keeps levels up to 100 and refuses PvE Champions; `pvp_move` accepts 4 vs 4 moves (`"0-3:skill:0-3"`). Until it is applied, a real-player PvP match can't send moves for the 3rd/4th Toto (those turns fall back to auto); computer matches work fully.
+- Migration `2026-10-24_v100_redesign.sql` (additive, applied live 2026-10-24): `admin_gift` allows up to 1,000,000 of every currency and Toto level 100; `private.trade_toto` keeps levels up to 100 and refuses PvE Champions; `pvp_move` accepts 4 vs 4 moves (`"0-3:skill:0-3"`).
 - Gift kinds keep their stored names and the game reads them as: `candy` = Food, `raidPass` = Coins, `elixir` = Gold. A `candy` purchase is credited as Food.
 - PvP snapshots are `{ name, level, ev:10 }`; only v100 players are matched together.
