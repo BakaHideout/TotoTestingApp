@@ -2572,6 +2572,24 @@
   .co-chat-row { display:flex; gap:4px; padding:6px; border-top:1px solid rgba(255,255,255,.15); }
   .co-chat-row input { flex:1; min-width:0; border:0; border-radius:10px; padding:8px 10px; font:600 13px system-ui; }
   .co-chat-row button { width:40px; border:0; border-radius:10px; background:linear-gradient(#7dff9a, #22b04a); font:900 16px system-ui; cursor:pointer; }
+  /* what a move does */
+  .bt-info { position:absolute; left:50%; bottom:128px; transform:translateX(-50%); z-index:720; display:none; width:560px; }
+  .bt-info.show { display:block; }
+  .bt-info-in { position:relative; display:flex; gap:10px; align-items:flex-start; padding:9px 34px 9px 10px; border-radius:14px; background:rgba(20,10,40,.95); border:2px solid #ffcf5a; color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.55); text-align:left; }
+  .bt-info-in .ab-ic { width:40px; height:40px; flex:none; }
+  .bt-info-in b { display:block; font:900 15px system-ui; color:#ffd36b; } .bt-info-in b small { font-size:10px; color:#ffb627; }
+  .bt-info-in span { display:block; font:700 12.5px/1.35 system-ui; color:#f3e7ff; margin:2px 0; }
+  .bt-info-in small { display:block; font:700 10.5px system-ui; color:#cdb8f5; }
+  .bt-info-in .cdw { display:inline; font-size:10.5px; color:#ff9a8a; }
+  .bt-info-in em { display:block; font-style:normal; font:900 12px system-ui; color:#7dff9a; margin-top:3px; }
+  .bt-info-x { position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; border:0; background:rgba(255,255,255,.15); color:#fff; font:900 12px system-ui; cursor:pointer; }
+  .bt-ab.off, .bt-attack.off { filter:grayscale(.85) brightness(.75); }
+  .bt-ab.peek { outline:3px solid #ffd36b; outline-offset:-3px; }
+  .bt-log { bottom:196px; }
+  #leaderboard-modal { z-index:200 !important; padding:10px !important; }
+  #leaderboard-modal .modal-card { position:relative; max-width:520px !important; max-height:calc(100cqh - 20px) !important; display:flex; flex-direction:column; }
+  #leaderboard-list { max-height:none !important; flex:1; min-height:0; }
+  .lb-x { position:absolute; top:8px; right:8px; width:34px; height:34px; border-radius:50%; border:2px solid #fff; background:linear-gradient(#ff6a5a, #c0201a); color:#fff; font:900 15px system-ui; cursor:pointer; z-index:2; }
 </style>
 <div id="toto-root">
 
@@ -2912,6 +2930,7 @@
     <div class="bt-top"><button class="bt-sq" id="bt-flee" title="Retreat">🏳️</button><div class="bt-title"><b id="bt-title">Battle</b><small id="bt-sub"></small></div><span class="bt-timer" id="bt-timer"></span><button class="bt-sq" id="bt-auto" title="Auto battle">AUTO</button><button class="bt-sq" id="bt-speed" title="Speed">▶▶<small>x1</small></button></div>
     <div class="bt-turn" id="bt-turn"></div>
     <div class="bt-log" id="bt-log"></div>
+    <div class="bt-info" id="bt-info"></div>
     <div class="bt-bar"><div class="bt-team" id="bt-team"></div><button class="bt-attack" id="bt-attack"><i>⚔️</i><b>ATTACK</b><small id="bt-attack-n"></small></button><div class="bt-abil" id="bt-abil"></div></div>
     <div class="bt-flash" id="bt-flash"></div>
     <div class="bt-result" id="bt-result"></div>
@@ -5830,7 +5849,7 @@
     const team = E.T[B.side];
     if (B.mode === 'coop') B.sel = B.seat;
     else if (!team[B.sel] || team[B.sel].hp <= 0){ const j = team.findIndex(f=> f.hp > 0); B.sel = j < 0 ? 0 : j; }
-    const can = btCanAct(); if (!can) B.targeting = null;
+    const can = btCanAct(); if (!can){ B.targeting = null; B.armed = null; }
     ['p1','p2'].forEach(side=> [0,1,2,3].forEach(i=>{
       const f = E.T[side][i], el = btEl(side, i); if (!el || !f) return;
       el.querySelector('.bt-plate').innerHTML = btPlateHtml(side, i);
@@ -5846,21 +5865,25 @@
         + '<div class="bt-cp">'+spriteFor(f.name)+'</div><span class="bt-clv">Lv '+f.level+'</span>'
         + '<div class="bt-chp"><i class="'+(pct < 25 ? 'low' : pct < 55 ? 'mid' : '')+'" style="width:'+pct.toFixed(1)+'%"></i></div><small>'+Math.max(0, f.hp).toLocaleString()+'</small></button>';
     }).join('');
-    $$('#bt-team .bt-card').forEach(b=> b.onclick = ()=>{ const i = +b.dataset.i; if (B.mode === 'coop') return; if (team[i] && team[i].hp > 0 && btCanAct()){ B.sel = i; B.targeting = null; btRefresh(); } });
+    $$('#bt-team .bt-card').forEach(b=> b.onclick = ()=>{ const i = +b.dataset.i; if (B.mode === 'coop') return; if (team[i] && team[i].hp > 0 && btCanAct()){ B.sel = i; B.targeting = null; B.armed = null; B.peek = null; btRefresh(); } });
     // ATTACK + abilities of the selected Toto
     const me = team[B.sel] || team[0];
     const atk = me.kit.find(m=> m.key === 's1');
     const ab = $('#bt-attack');
-    ab.disabled = !can; ab.classList.toggle('on', !!(B.targeting && B.targeting.key === 's1'));
+    ab.disabled = false; ab.classList.toggle('off', !can); ab.classList.toggle('on', !!(B.targeting && B.targeting.key === 's1'));
     ab.title = atk ? atk.name+': '+atk.desc : 'Attack';
     $('#bt-attack-n').textContent = atk ? atk.name : 'Attack';
     const skills = me.kit.filter(m=> m.key !== 's1').concat(me.ult ? [me.ult] : []);
     $('#bt-abil').innerHTML = skills.map((s, k)=>{
       const isUlt = s.key === 'ult', cd = isUlt ? 0 : (me.cd[s.key]|0), ready = isUlt ? me.charge >= s.need : !cd;
-      return '<button class="bt-ab'+(isUlt ? ' ult' : '')+(B.targeting && B.targeting.key === s.key ? ' on' : '')+'" data-k="'+s.key+'"'+(!can || !ready ? ' disabled' : '')+' title="'+escapeHtml(s.desc)+'">'
+      return '<button class="bt-ab'+(isUlt ? ' ult' : '')+((B.targeting && B.targeting.key === s.key) || B.armed === s.key ? ' on' : '')+(!can || !ready ? ' off' : '')+(B.peek === s.key ? ' peek' : '')+'" data-k="'+s.key+'" title="'+escapeHtml(s.desc)+'">'
         + pvpSkillIcon(s)+'<b>'+escapeHtml(s.name)+'</b><small>'+(isUlt ? (ready ? 'READY!' : me.charge+'/'+s.need+' hits') : (cd ? 'Ready in '+cd : 'ABILITY '+(k+1)))+'</small>'+(cd ? '<span class="cdv">'+cd+'</span>' : '')+'</button>';
     }).join('');
     $$('#bt-abil .bt-ab').forEach(b=> b.onclick = ()=> btPickSkill(b.dataset.k));
+    // what the chosen move does
+    const info = $('#bt-info'), pk = B.peek && pvpMoveOf(me, B.peek) ? B.peek : null;
+    info.innerHTML = pk ? btInfoHtml(me, pk) : ''; info.classList.toggle('show', !!pk);
+    const ix = $('#bt-info-x'); if (ix) ix.onclick = ()=>{ B.peek = null; B.armed = null; B.targeting = null; btRefresh(); };
     // whose turn
     const tt = $('#bt-turn');
     if (!E.winner && !B.finished){
@@ -5873,15 +5896,32 @@
     } else tt.innerHTML = '';
     $('#battle').classList.toggle('waiting', !can);
   }
+  // Tapping a move always shows what it does. Moves that need a target then ask for one; moves with
+  // no target to pick (heals on itself, team moves, hitting all rivals) need a 2nd tap to use.
   function btPickSkill(key){
-    const E = B.E, side = B.side; if (!btCanAct()) return;
-    if (B.targeting && B.targeting.key === key){ B.targeting = null; btRefresh(); return; }
-    const i = B.sel; if (!E.can(side, i, key)) return;
-    const f = E.T[side][i], valid = E.targets(side, i, key), mv = pvpMoveOf(f, key);
-    if (valid.length <= 1 || mv.tgt === 'self' || mv.tgt === 'team' || mv.tgt === 'foes'){ btChoose(i+':'+key+':'+(valid[0]|0)); return; }
+    const E = B.E, side = B.side; if (!E) return;
+    const i = B.sel, f = E.T[side][i], mv = pvpMoveOf(f, key); if (!mv) return;
+    B.peek = key;
+    if (!btCanAct() || !E.can(side, i, key)){ B.targeting = null; B.armed = null; btRefresh(); return; }
+    if (B.targeting && B.targeting.key === key){ B.targeting = null; B.peek = null; btRefresh(); return; }
+    const valid = E.targets(side, i, key);
+    if (valid.length <= 1 || mv.tgt === 'self' || mv.tgt === 'team' || mv.tgt === 'foes'){
+      if (B.armed === key){ B.armed = null; B.peek = null; btChoose(i+':'+key+':'+(valid[0]|0)); return; }
+      B.armed = key; B.targeting = null; btRefresh(); return;
+    }
+    B.armed = null;
     B.targeting = { key, valid, side: mv.tgt === 'ally' ? side : E.other(side) };
     btRefresh();
   }
+  function btInfoHtml(f, key){
+    const m = pvpMoveOf(f, key); if (!m) return '';
+    const isUlt = key === 'ult', cd = isUlt ? 0 : (f.cd[key]|0), ready = isUlt ? f.charge >= m.need : !cd;
+    const tg = { foe:'Hits 1 rival', foes:'Hits ALL rivals', ally:'On you or a teammate', self:'On itself', team:'Your whole team' }[m.tgt] || '';
+    const how = !btCanAct() ? '' : !ready ? '' : (B.armed === key ? '<em class="go">Tap it again to use it</em>' : (B.targeting && B.targeting.key === key ? '<em class="go">Now tap '+(B.targeting.side === B.side ? 'a teammate' : 'the rival to hit')+'</em>' : ''));
+    return '<div class="bt-info-in">'+pvpSkillIcon(m)+'<div><b>'+escapeHtml(m.name)+(key === 's1' ? ' <small>(ATTACK)</small>' : '')+'</b><span>'+escapeHtml(m.desc)+'</span>'
+      + '<small>'+tg+(m.cd ? ' · cools down '+m.cd+' turns' : '')+(isUlt ? ' · needs '+m.need+' hits to charge' : '')+(!ready ? ' · <b class="cdw">'+(isUlt ? 'charging '+f.charge+'/'+m.need : 'ready in '+cd+' turn'+(cd === 1 ? '' : 's'))+'</b>' : '')+'</small>'+how+'</div><button class="bt-info-x" id="bt-info-x">✕</button></div>';
+  }
+
   $('#bt-attack').onclick = ()=> btPickSkill('s1');
   function btTap(w, i){
     if (!btCanAct()) return;
@@ -5945,7 +5985,7 @@
     if (B.busy || B.finished || !B.E) return;
     const k = B.E.turn + 1, mv = B.pending[k]; if (!mv) return;
     delete B.pending[k];
-    B.busy = true; B.targeting = null;
+    B.busy = true; B.targeting = null; B.armed = null; B.peek = null;
     try { const ev = pvpStep(B.E, mv); if (B.mode === 'coop' && ev.side === 'p1' && ev.actor != null) B.coLast = ev.actor; B.turnStart = Date.now(); B.claimAt = 0; await btAnimate(ev); }
     finally { B.busy = false; }
     if (B.E.winner) return btOver();
@@ -6032,7 +6072,7 @@
   function btOpen(info){
     B.info = info; B.mode = info.mode; B.side = info.mySide || 'p1'; B.match = info.match || null;
     B.E = pvpEngine(info.seed|0, info.snaps.p1, info.snaps.p2, info.opts || {});
-    B.pending = {}; B.busy = false; B.finished = false; B.sending = false; B.polling = false; B.sel = 0; B.targeting = null; B.ready = false;
+    B.pending = {}; B.busy = false; B.finished = false; B.sending = false; B.polling = false; B.sel = 0; B.targeting = null; B.armed = null; B.peek = null; B.ready = false;
     B.turnStart = Date.now() + 60000; B.claimAt = 0;
     $('#bt-bg').style.backgroundImage = 'url(assets/stages/'+(info.bg || 'moonlit_village')+'.jpg)';
     $('#battle').style.backgroundImage = 'linear-gradient(rgba(5,3,12,.55), rgba(5,3,12,.55)), url(assets/stages/'+(info.bg || 'moonlit_village')+'.jpg)';
@@ -6397,6 +6437,7 @@
     { name:'The Ultimate Four',  lvl:100, m:1.38, team:['Pharaoh Mummy','Scythecrow','PvE Rank #1 Champion','Gravewarden'], final:true }
   ];
   const COLO_COUNTDOWN = 20;
+  const COLO_RESET = '2026-10-24';
   // PvE points: the further into the Colosseum, the more each win is worth (stage 10 is worth 30x
   // stage 1), plus a bonus for every one of your Totos still standing at the end.
   const COLO_BASE = [0, 20, 40, 70, 110, 160, 230, 310, 400, 500, 600];
@@ -6406,6 +6447,8 @@
     const c = state.colo = state.colo && typeof state.colo === 'object' ? state.colo : { season:'', pts:0, wins:0, cleared:{} };
     c.cleared = c.cleared || {};
     // a new monthly season (as the server counts it) starts everyone's points over
+    // the boards were reset on 24 Oct 2026: everyone's Colosseum points start over once
+    if (c.resetTag !== COLO_RESET){ c.resetTag = COLO_RESET; c.pts = 0; c.wins = 0; c.cleared = {}; }
     const now = Social && Social.season;
     if (now && c.season !== now){ if (c.season) { c.pts = 0; c.wins = 0; } c.season = now; }
     return c;
@@ -6733,6 +6776,9 @@
   }
   function openLeaderboard(){ $('#leaderboard-modal').classList.add('active'); loadLeaderboard(); }
   $('[data-close-leaderboard]').onclick = ()=> $('#leaderboard-modal').classList.remove('active');
+  // a ✕ in the corner, and tapping outside the card closes the rankings too
+  (function(){ const card = $('#leaderboard-modal .modal-card'); if (card && !$('#lb-x')){ const x = document.createElement('button'); x.id = 'lb-x'; x.className = 'lb-x'; x.textContent = '✕'; x.setAttribute('aria-label', 'Close'); x.onclick = ()=> $('#leaderboard-modal').classList.remove('active'); card.appendChild(x); }
+    $('#leaderboard-modal').addEventListener('click', e=>{ if (e.target.id === 'leaderboard-modal') $('#leaderboard-modal').classList.remove('active'); }); })();
   $$('[data-lb]').forEach(b=> b.onclick = ()=>{ lbBoard = b.dataset.lb; $$('[data-lb]').forEach(x=> x.classList.toggle('active', x === b)); loadLeaderboard(); });
   $('#hud-cur-gems').onclick = ()=> openPanel('store');
   $('#hud-cur-coins').onclick = ()=>{ openPanel('store'); setStoreTab('coins'); };
@@ -7455,7 +7501,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v110';
+window.TQ_APP_VERSION = 'v111';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
