@@ -2485,6 +2485,9 @@
   .isb-art svg { width:132px; height:122px; }
   .isb-hint { font-size:12px; padding:3px 7px; top:-8px; background:rgba(255,140,40,.9); color:#fff; border:2px solid #fff; }
   .isb-lv { font-size:10px; }
+  /* the sky island */
+  .isl-view { background:linear-gradient(#8fd3ff, #d9f1ff 60%, #ffffff) !important; }
+  .isb { transform:translate(-50%, -88%) scale(var(--sc, 1)); transform-origin:50% 88%; }
 </style>
 <div id="toto-root">
 
@@ -3164,17 +3167,21 @@
   // ---------------- ISLAND BUILDINGS ----------------
   // Slots are spots on the island picture (in its 1408x768 pixels) where a building can stand.
   const ISLAND_W = 1408, ISLAND_H = 768;
-  // The building ground: a grid of tiles on the grass inside the stone path (drawn at the island's
-  // angle). Every building takes 2 x 2 tiles, so they pack neatly side by side.
-  const GRID = { T:[735, 268], NU:10, NV:8, cu:[35, 17.5], cv:[-35, 17.5] };
-  const gridPt = (u, v)=> [GRID.T[0] + u*GRID.cu[0] + v*GRID.cv[0], GRID.T[1] + u*GRID.cu[1] + v*GRID.cv[1]];
+  // The building ground: a grid of tiles on the lawn inside the stone path. The lawn is seen at an
+  // angle (narrower at the back), so the tiles get a little smaller towards the waterfall.
+  // Every building takes 2 x 2 tiles, so they pack neatly side by side.
+  const GRID = { TL:[398, 308], TR:[1022, 308], BL:[240, 603], BR:[1170, 603], NU:12, NV:8 };
+  const lerp2 = (a, b, t)=> [a[0] + (b[0] - a[0])*t, a[1] + (b[1] - a[1])*t];
+  function gridPt(u, v){ const t = v/GRID.NV, l = lerp2(GRID.TL, GRID.BL, t), r = lerp2(GRID.TR, GRID.BR, t); return lerp2(l, r, u/GRID.NU); }
   const ISLAND_LAWN = [gridPt(0, 0), gridPt(GRID.NU, 0), gridPt(GRID.NU, GRID.NV), gridPt(0, GRID.NV)];
-  // where a building on tiles (gi, gj) stands (its feet, near the bottom of its 2 x 2 tiles)
-  function tileSpot(gi, gj){ const c = gridPt(gi + 1, gj + 1); return { x:Math.round(c[0]), y:Math.round(c[1] + 26) }; }
+  // how big a building looks on its row (smaller at the back of the lawn)
+  const rowScale = gj=> 0.78 + 0.34*((gj + 1)/GRID.NV);
+  // where a building on tiles (gi, gj) stands (its feet, near the front of its 2 x 2 tiles)
+  function tileSpot(gi, gj){ const c = gridPt(gi + 1, gj + 1.75); return { x:Math.round(c[0]), y:Math.round(c[1]) }; }
   // the tiles under a point (the point = the middle of the building)
   function tileAt(wx, wy){
-    const a = (wx - GRID.T[0])/GRID.cu[0], b = (wy - GRID.T[1])/GRID.cu[1];
-    const u = (a + b)/2, v = (b - a)/2;
+    const v = (wy - GRID.TL[1])/(GRID.BL[1] - GRID.TL[1])*GRID.NV, t = v/GRID.NV;
+    const l = lerp2(GRID.TL, GRID.BL, t)[0], r = lerp2(GRID.TR, GRID.BR, t)[0], u = (wx - l)/(r - l)*GRID.NU;
     return { gi:Math.max(0, Math.min(GRID.NU - 2, Math.round(u - 1))), gj:Math.max(0, Math.min(GRID.NV - 2, Math.round(v - 1))), inside: u >= -0.3 && v >= -0.3 && u <= GRID.NU + 0.3 && v <= GRID.NV + 0.3 };
   }
   function spotProblem(gi, gj, ignoreId){
@@ -3184,7 +3191,7 @@
   }
   function findFreeSpot(ignoreId, nx, ny){
     let best = null;
-    const tx = nx != null ? nx : 760, ty = ny != null ? ny : 420;
+    const tx = nx != null ? nx : 705, ty = ny != null ? ny : 470;
     for (let gi = 0; gi <= GRID.NU - 2; gi++) for (let gj = 0; gj <= GRID.NV - 2; gj++){
       if (spotProblem(gi, gj, ignoreId)) continue;
       const p = tileSpot(gi, gj), d = Math.hypot(p.x - tx, (p.y - ty)*2);
@@ -3317,7 +3324,7 @@
 
   // ---------------- A SAVE FROM BEFORE v100 -> the island game ----------------
   // Everyone starts fresh with new Totos. Kept: the account, gems, season results and any earned Champions.
-  function freshIsland(){ return { buildings:[ { id:uid(), type:'toto_den', gi:2, gj:3, lvl:1, t:Date.now(), totos:[] }, { id:uid(), type:'food_farm', gi:5, gj:2, lvl:1, t:Date.now() } ] }; }
+  function freshIsland(){ return { buildings:[ { id:uid(), type:'toto_den', gi:3, gj:4, lvl:1, t:Date.now(), totos:[] }, { id:uid(), type:'food_farm', gi:7, gj:4, lvl:1, t:Date.now() } ] }; }
   // your starting team moves into your first Den so it earns Coins straight away
   function starterDen(){ const d = state.island.buildings.find(b=> b.type === 'toto_den'); if (d) d.totos = state.team.slice(0, 4); }
   function migrateSave(){
@@ -5913,7 +5920,8 @@
     $('#battle').classList.add('show'); document.documentElement.classList.add('tq-busy-battle');
     $('#battle').classList.toggle('bright', B.mode !== 'campaign');
     btBuildField(); btLayout(); btSetSprites(); btRefresh();
-    $('#bt-bg').style.setProperty('--bgx', info.bgx || '50%');
+    // a new stage starts back at the beginning of the scenery straight away (no sliding backwards)
+    { const bg = $('#bt-bg'); if (info.bgJump){ bg.style.transition = 'none'; bg.style.setProperty('--bgx', info.bgx || '50%'); void bg.offsetWidth; bg.style.transition = ''; } else bg.style.setProperty('--bgx', info.bgx || '50%'); }
     // the Campaign: your team walks up and the rivals step out to meet them
     if (info.walkIn){
       $$('.bt-f.op').forEach(el=> el.classList.add('enter'));
@@ -5967,7 +5975,7 @@
       snaps:{ p1:team, p2:waveTeam(Camp.s, Camp.st, Camp.wave) }, opts:{ campaign:true, hp1: Camp.hp },
       names:{ p1:state.username || 'You', p2:'Rivals' }, story:Camp.s,
       bg: STAGE_BGS[Camp.s-1], title:'STORY '+Camp.s+' · STAGE '+Camp.st+(Camp.st === STAGE_COUNT ? ' (BOSS)' : ''), sub: STORY_NAMES[Camp.s-1]+' · Wave '+Camp.wave+'/'+WAVE_COUNT,
-      startText: 'Wave '+Camp.wave+' of '+WAVE_COUNT, walkIn:true, bgx: waveBgx(Camp.wave) });
+      startText: 'Wave '+Camp.wave+' of '+WAVE_COUNT, walkIn:true, bgx: waveBgx(Camp.wave), bgJump: Camp.wave === 1 });
   }
   async function campaignWaveOver(cancelled){
     B.finished = true; clearInterval(B.tick); clearTimeout(B.botTimer);
@@ -6350,7 +6358,7 @@
     Isl.s = Math.max(islandFit(), Math.min(islandCover()*2.2, ns));
     Isl.x = wx*Isl.s - px; Isl.y = wy*Isl.s - py; islandApply();
   }
-  function islandCenter(){ Isl.s = islandCover(); Isl.x = 720*Isl.s - islandW()/2; Isl.y = 400*Isl.s - islandH()/2; islandApply(); }
+  function islandCenter(){ Isl.s = islandCover(); Isl.x = 705*Isl.s - islandW()/2; Isl.y = 450*Isl.s - islandH()/2; islandApply(); }
   (function(){
     const v = $('#island-view'); if (!v) return;
     v.addEventListener('pointerdown', e=>{
@@ -6433,7 +6441,7 @@
       if (Isl.place && Isl.place.moveId === b.id) return;
       const p = [b.x, b.y], def = BUILDINGS[b.type], stored = bStored(b, now), full = stored >= bCap(b);
       const den = isDen(b.type), glow = def.glow;
-      html += '<div class="isb'+(den ? ' den' : '')+(glow ? ' glow '+b.type : '')+'" data-b="'+b.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;z-index:'+(10+p[1])+(glow ? ';--dg:'+glow : '')+'">'
+      html += '<div class="isb'+(den ? ' den' : '')+(glow ? ' glow '+b.type : '')+'" data-b="'+b.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;z-index:'+(10+p[1])+';--sc:'+rowScale(b.gj).toFixed(3)+(glow ? ';--dg:'+glow : '')+'">'
         + (glow ? '<div class="isb-aura"></div><div class="isb-sparks"><i></i><i></i><i></i><i></i><i></i></div>' : '')
         + '<div class="isb-art">'+buildingArt(b.type)+'</div>'
         + (den ? '<div class="isb-den">'+(b.totos||[]).map(id=>{ const t = state.collection.find(x=> x.id === id); return t ? '<span>'+spriteFor(t.name)+'</span>' : ''; }).join('')+'</div>' : '')
@@ -6443,10 +6451,10 @@
     });
     if (Isl.place && Isl.place.gi != null){
       const pl = Isl.place, prob = spotProblem(pl.gi, pl.gj, pl.moveId), g = BUILDINGS[pl.type].glow;
-      html += '<div class="isb ghost'+(prob ? ' bad' : '')+(g ? ' glow '+pl.type : '')+'" style="left:'+pl.x+'px;top:'+pl.y+'px;z-index:'+(10+pl.y)+(g ? ';--dg:'+g : '')+'"><div class="isb-ring"></div><div class="isb-art">'+buildingArt(pl.type)+'</div></div>';
+      html += '<div class="isb ghost'+(prob ? ' bad' : '')+(g ? ' glow '+pl.type : '')+'" style="left:'+pl.x+'px;top:'+pl.y+'px;z-index:'+(10+pl.y)+';--sc:'+rowScale(pl.gj).toFixed(3)+(g ? ';--dg:'+g : '')+'"><div class="isb-ring"></div><div class="isb-art">'+buildingArt(pl.type)+'</div></div>';
     }
     // the four Totos on your team roam around the island
-    const spots = [[470,556],[598,612],[852,616],[1000,562]];
+    const spots = [[330,650],[560,652],[860,652],[1090,650]];
     myTeam().forEach((t, i)=>{ const p = spots[i]; html += '<div class="isl-toto" data-t="'+t.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;z-index:'+(10+p[1])+';--wd:'+(5 + i*1.3).toFixed(1)+'s;animation-delay:'+(-i*1.7)+'s"><div class="isl-sp'+(totoFacing(t.name) === 'l' ? ' fl' : '')+'">'+spriteFor(t.name)+'</div><span class="isl-tl">Lv '+t.level+'</span></div>'; });
     world.innerHTML = '<img class="isl-bg" src="assets/ui/island.jpg" alt="">' + html;
     $$('.isb[data-b]', world).forEach(el=> el.onclick = e=>{ if (isDragging() || Isl.place) return; if (e.target.closest('.isb-col')) return; e.stopPropagation(); openBuilding(el.dataset.b); });
@@ -6497,7 +6505,7 @@
     closeAllPanels();
     Isl.place = { type, moveId, gi:spot.gi, gj:spot.gj, x:spot.x, y:spot.y };
     if (Isl.s > islandCover()*1.3 || Isl.s < islandFit()*1.05){ Isl.s = islandCover(); }
-    Isl.x = spot.x*Isl.s - islandW()/2; Isl.y = spot.y*Isl.s - islandH()/2;
+    Isl.x = spot.x*Isl.s - islandW()/2; Isl.y = (spot.y - 40)*Isl.s - islandH()/2;
     renderIsland();
   }
   function placeBar(){
@@ -7007,7 +7015,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v106';
+window.TQ_APP_VERSION = 'v107';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
