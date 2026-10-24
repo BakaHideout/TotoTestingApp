@@ -169,3 +169,7 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 
 ## v108: Ultimate Colosseum
 - Client only. The PvE board now ranks **Ultimate Colosseum points** for the season (sent as `power` through `submit_score` / `heartbeat`, so `pve_settle` and the PvE Rank #1 Champion keep working unchanged). New S+ Totos: Gravewarden (healer), Pharaoh Mummy (tank), Scythecrow (support).
+
+## v110: Colosseum team-ups
+- Migration `2026-10-24c_colo_coop.sql` (additive, **not applied yet**): `private.colo_parties` / `colo_party_moves` / `colo_party_chat` and the `colo_party_*` RPCs (create, list, join, leave, pick, chat, poll, start, move, finish). Until it's applied the "Team up" button can't reach the server; solo Colosseum works without it.
+- Engine: a move of `ai` lets the computer play that turn (Colosseum rivals and timed-out teammates) without counting as idle.
