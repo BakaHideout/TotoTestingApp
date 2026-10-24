@@ -2,11 +2,11 @@
   "id": "./",
   "name": "TotoQuest",
   "short_name": "TotoQuest",
-  "description": "A GPS-powered Halloween monster-collection game.",
+  "description": "Build your haunted island, collect Totos and battle 4 vs 4.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "background_color": "#14101f",
   "theme_color": "#120c1f",
   "icons": [

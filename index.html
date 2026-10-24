@@ -2037,10 +2037,12 @@
   .isb-empty { position:absolute; width:44px; height:26px; transform:translate(-50%, -50%); border-radius:50%; border:2px dashed rgba(255,255,255,.7); background:rgba(255,255,255,.18); color:#fff; font:900 18px/1 system-ui; cursor:pointer; z-index:3; opacity:.75; }
   .isb-empty.pick { animation:isbPick 0.8s ease-in-out infinite; border-color:#ffd36b; opacity:1; }
   @keyframes isbPick { 50%{ transform:translate(-50%,-50%) scale(1.25); } }
-  .isl-toto { position:absolute; width:62px; height:68px; transform:translate(-50%, -100%); z-index:6; cursor:pointer; animation:islWander 6s ease-in-out infinite; }
+  .isl-toto { position:absolute; width:70px; height:76px; transform:translate(-50%, -100%); z-index:6; cursor:pointer; animation:islWander var(--wd, 6s) ease-in-out infinite; }
+  .isl-sp.fl img { transform:scaleX(-1); }
+  .isl-tl { position:absolute; left:50%; bottom:-10px; transform:translateX(-50%); font:900 9px/1 system-ui; color:#fff; background:rgba(20,10,35,.7); padding:2px 5px; border-radius:7px; white-space:nowrap; }
   .isl-sp { width:100%; height:100%; animation:islHop 1.1s ease-in-out infinite; }
   .isl-sp img { width:100%; height:100%; object-fit:contain; object-position:50% 100%; filter:drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
-  @keyframes islWander { 0%,100%{ margin-left:0; } 25%{ margin-left:14px; } 50%{ margin-left:0; } 75%{ margin-left:-14px; } }
+  @keyframes islWander { 0%,100%{ margin-left:0; margin-top:0; } 25%{ margin-left:34px; margin-top:6px; } 50%{ margin-left:8px; margin-top:-4px; } 75%{ margin-left:-30px; margin-top:4px; } }
   @keyframes islHop { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
   .gain-float { position:absolute; z-index:300; transform:translate(-50%, 0); font:900 18px/1 system-ui; color:#fff; text-shadow:0 2px 3px #000; animation:gainUp 1.2s ease-out forwards; pointer-events:none; display:flex; align-items:center; gap:4px; }
   @keyframes gainUp { to { transform:translate(-50%, -70px); opacity:0; } }
@@ -2064,8 +2066,6 @@
   .nav-b span { font-size:22px; line-height:1; filter:grayscale(0.25); transition:transform .15s; }
   .nav-b.on { color:#ffd36b; } .nav-b.on span { transform:translateY(-3px) scale(1.12); filter:none; }
   .nav-b .qm-badge { position:absolute; top:6px; right:calc(50% - 22px); }
-  .panel-screen { bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px)) !important; z-index:30; }
-  .panel-screen.staff-panel { bottom:0 !important; z-index:45; }
   .dark-panel { background:linear-gradient(#24143f, #120a24) !important; color:#fff; }
   .dark-panel .panel-header { background:linear-gradient(#3a1f66, #2a1450); color:#fff; box-shadow:0 3px 10px rgba(0,0,0,.4); }
   .dark-panel .panel-header .close-x { color:#cdb8f5; }
@@ -2176,40 +2176,6 @@
   .hatch-stage.many .hc-n b { font-size:10px; }
   .hc.open .hc-n { opacity:1; }
   @keyframes eggWob { 0%,100%{ transform:rotate(-8deg); } 50%{ transform:rotate(8deg); } }
-  /* ---- the Toto screen ---- */
-  .tv { container-type:size; position:absolute; inset:0; z-index:90; display:none; overflow:hidden; background:#0b1430; color:#fff; }
-  .tv.show { display:block; }
-  .tv-scene { position:absolute; top:0; left:50%; height:min(74cqh, 130cqw); aspect-ratio:1408/768; transform:translateX(-50.6%); background:url(assets/ui/toto_stage.jpg) center/100% 100% no-repeat; }
-  .tv-scene::after { content:''; position:absolute; left:0; right:0; bottom:-2px; height:22%; background:linear-gradient(rgba(11,20,48,0), #0b1430); }
-  .tv-art { position:absolute; left:50.6%; bottom:32.5%; height:50%; width:30%; transform:translateX(-50%); display:flex; align-items:flex-end; justify-content:center; animation:tvFloat 3s ease-in-out infinite; }
-  .tv-art img { max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 0 18px var(--glow, rgba(255,200,120,.6))) drop-shadow(0 10px 8px rgba(0,0,0,.5)); }
-  .tv-art.grow { animation:tvGrow .6s ease-out, tvFloat 3s ease-in-out .6s infinite; }
-  @keyframes tvFloat { 0%,100%{ transform:translate(-50%, 0); } 50%{ transform:translate(-50%, -8px); } }
-  @keyframes tvGrow { 0%{ transform:translate(-50%,0) scale(1); filter:brightness(1); } 40%{ transform:translate(-50%,-10px) scale(1.12); filter:brightness(1.8); } 100%{ transform:translate(-50%,0) scale(1); filter:brightness(1); } }
-  .tv-top { position:absolute; left:0; right:0; top:0; display:flex; align-items:center; gap:8px; padding:calc(10px + env(safe-area-inset-top, 0px)) 12px 0; }
-  .tv-logo { width:54px; height:54px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.6)); }
-  .tv-gap { flex:1; }
-  .tv-ic { min-width:44px; height:44px; padding:0 8px; border-radius:12px; border:3px solid #fff; font:900 20px/1 system-ui; color:#fff; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.35); }
-  .tv-ic.blue { background:linear-gradient(#5ab8ff, #1a6fd0); font-size:14px; } .tv-ic.red { background:linear-gradient(#ff6a5a, #c0201a); } .tv-ic.grey { background:linear-gradient(#a99bc4, #5d4f7a); }
-  .tv-banner { position:absolute; left:50%; top:calc(min(74cqh, 130cqw) * 0.72); transform:translateX(-50%); display:flex; align-items:center; gap:6px; padding:6px 12px 6px 6px; border-radius:16px; background:linear-gradient(#6a3aa8, #3a1a6a); border:3px solid #ffcf5a; box-shadow:0 6px 16px rgba(0,0,0,.55); max-width:96%; white-space:nowrap; }
-  .tv-lv { width:46px; height:46px; flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; font:900 18px/1 system-ui; color:#fff; background:radial-gradient(circle at 40% 30%, #c08bff, #6a2ad0); clip-path:polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-  .tv-lv small { font-size:8px; font-weight:800; }
-  .tv-name { font:900 clamp(12px, 4.3cqw, 24px)/1 system-ui; color:#ffd36b; text-shadow:0 2px 0 #7a3a00, 0 3px 6px rgba(0,0,0,.6); overflow:hidden; text-overflow:ellipsis; letter-spacing:.02em; }
-  .tv-role span { display:inline-flex; width:30px; height:30px; border-radius:50%; align-items:center; justify-content:center; background:#2a1450; border:2px solid var(--rc); font-size:15px; }
-  .tv-info { position:absolute; left:50%; top:calc(min(74cqh, 130cqw) * 0.72 + 66px); transform:translateX(-50%); text-align:center; font:700 12px/1.35 system-ui; color:#f3e7ff; text-shadow:0 1px 3px #000; width:92%; }
-  .tv-info small { color:#cdb8f5; }
-  .tv-low { position:absolute; left:0; right:0; bottom:0; padding:0 12px calc(12px + env(safe-area-inset-bottom, 0px)); background:linear-gradient(rgba(5,8,25,0), rgba(5,8,25,.85) 30%); }
-  .tv-bars { display:flex; flex-direction:column; gap:6px; padding-top:18px; }
-  .tvb { display:flex; align-items:center; gap:6px; } .tvb i { font-style:normal; font-size:18px; width:24px; text-align:center; }
-  .tvb-t { flex:1; position:relative; height:20px; border-radius:10px; background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.75); overflow:hidden; }
-  .tvb-t b { position:absolute; left:0; top:0; bottom:0; border-radius:8px; }
-  .tvb-t span { position:relative; display:block; text-align:center; font:900 11px/16px system-ui; text-shadow:0 1px 2px #000; }
-  .tv-next { text-align:center; font:700 11px system-ui; color:#7dff9a; min-height:14px; margin:6px 0; }
-  .tv-btns { display:flex; gap:8px; }
-  .tv-b { flex:1; padding:12px 4px; border-radius:14px; border:3px solid #fff; font:900 15px/1 system-ui; letter-spacing:.04em; color:#fff; cursor:pointer; text-shadow:0 2px 0 rgba(0,0,0,.35); box-shadow:0 5px 0 rgba(0,0,0,.35); }
-  .tv-b small { display:block; font-size:11px; margin-top:3px; font-weight:800; }
-  .tv-b.green { background:linear-gradient(#6fe06a, #239a2a); } .tv-b.yel { background:linear-gradient(#ffd25a, #e88a12); }
-  .tv-b:disabled { filter:grayscale(.9); opacity:.7; }
   /* ---- battle ---- */
   .bt { position:absolute; inset:0; z-index:100; display:none; background:#05030c; overflow:hidden; }
   .bt.show { display:block; }
@@ -2324,6 +2290,132 @@
   .ab-ic svg { width:80%; height:80%; }
   /* the loading screen without GPS */
   .loading-tip { display:none; }
+
+  /* ===================== v101: sideways (landscape) like Dragon City ===================== */
+  #toto-root { container-type:size; }
+  /* desktop browsers: a sideways game window */
+  @media (hover:hover) and (pointer:fine){ #toto-root { max-width:min(1180px, 100vw) !important; width:min(1180px, 100vw) !important; height:min(664px, var(--tq-vh, 100dvh), calc(min(1180px, 100vw) * 0.5625)) !important; border-radius:22px !important; } }
+  /* a phone held upright: the whole game is turned sideways */
+  html.tq-rot body { display:block; }
+  html.tq-rot #toto-root { position:fixed !important; top:0 !important; left:100vw !important; width:var(--tq-vh, 100dvh) !important; max-width:none !important; height:100vw !important; margin:0 !important; border-radius:0 !important; transform:rotate(90deg); transform-origin:0 0; }
+  /* ---- HUD + Dragon City style round buttons ---- */
+  .hud-top { padding:calc(8px + env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) 0 max(10px, env(safe-area-inset-left, 0px)); }
+  .hud-curs { flex-wrap:nowrap; }
+  .hc-chip { min-width:86px; height:30px; font-size:13.5px; border-width:2px; border-color:#b98cff; background:linear-gradient(rgba(45,22,80,.92), rgba(20,10,38,.92)); }
+  .hc-chip img { width:22px; height:22px; }
+  .dc-nav { position:absolute; right:max(10px, env(safe-area-inset-right, 0px)); bottom:max(10px, env(safe-area-inset-bottom, 0px)); z-index:40; display:flex; align-items:flex-end; gap:8px; }
+  .dc-nav .nav-b { flex:none; width:62px; height:62px; border-radius:50%; border:3px solid #ffd36b; background:radial-gradient(circle at 40% 30%, #8a55d8, #3a1a6e 70%); box-shadow:0 5px 0 #1a0a30, 0 8px 16px rgba(0,0,0,.5); color:#fff; font:900 9.5px/1 system-ui; text-shadow:0 1px 2px #000; padding-top:3px; }
+  .dc-nav .nav-b span { font-size:25px; filter:none; }
+  .dc-nav .nav-b.big { width:76px; height:76px; background:radial-gradient(circle at 40% 30%, #ffcf5a, #e0730e 70%); border-color:#fff; box-shadow:0 5px 0 #7a3600, 0 8px 18px rgba(0,0,0,.5); }
+  .dc-nav .nav-b.big span { font-size:32px; }
+  .dc-nav .nav-b:active { transform:translateY(3px); box-shadow:0 2px 0 #1a0a30; }
+  .dc-nav .qm-badge { top:-4px; right:-4px; }
+  .isl-zoom { position:absolute; left:max(10px, env(safe-area-inset-left, 0px)); bottom:max(10px, env(safe-area-inset-bottom, 0px)); z-index:40; display:flex; flex-direction:column; gap:6px; }
+  .isl-zoom button { width:42px; height:42px; border-radius:12px; border:2px solid #fff; background:linear-gradient(#5ab8ff, #1a6fd0); color:#fff; font:900 22px/1 system-ui; box-shadow:0 3px 0 #0c3a78; cursor:pointer; }
+  .isl-zoom button:disabled { filter:grayscale(.8); opacity:.6; }
+  .isl-view { background:radial-gradient(ellipse at 50% 40%, #4a3a8a, #1a1236 75%); }
+  /* panels cover the whole screen, Dragon City style */
+  .panel-screen { bottom:0 !important; z-index:50; }
+  .panel-screen.staff-panel { z-index:55; }
+  .panel-header { padding:10px 16px !important; }
+  .panel-body { padding:12px max(14px, env(safe-area-inset-right, 0px)) 14px max(14px, env(safe-area-inset-left, 0px)) !important; }
+  .act-card { max-width:600px; }
+  .modal-card { max-height:94cqh !important; }
+  .dx-grid.pick { max-height:58cqh; }
+  .dx-grid { grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); }
+  .dx-team { max-width:640px; }
+  #store-body2 { display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; }
+  #store-body2 > * { flex:1 1 100%; }
+  #store-body2 > .st-item { flex:1 1 calc(50% - 8px); margin-bottom:0; min-width:260px; }
+  .cp-stories { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:0 10px; align-items:start; }
+  .cp-story.open { grid-column:1 / -1; }
+  .toast { bottom:84px; }
+  /* ---- glowing Dens ---- */
+  .isb-hint { position:absolute; left:50%; top:-14px; transform:translateX(-50%); white-space:nowrap; font:800 9px/1 system-ui; color:#ffe9a8; background:rgba(20,10,35,.75); padding:3px 6px; border-radius:8px; }
+  .isb.glow .isb-art svg { filter:drop-shadow(0 0 6px var(--dg)) drop-shadow(0 0 14px var(--dg)); animation:denPulse 2.2s ease-in-out infinite; }
+  .isb-aura { position:absolute; left:50%; bottom:2px; width:150px; height:52px; transform:translateX(-50%); border-radius:50%; background:radial-gradient(closest-side, var(--dg), transparent); opacity:.7; animation:denAura 2.2s ease-in-out infinite; pointer-events:none; }
+  .isb-sparks { position:absolute; inset:-20px 0 10px; pointer-events:none; }
+  .isb-sparks i { position:absolute; bottom:10px; width:6px; height:6px; border-radius:50%; background:#fff; box-shadow:0 0 6px 2px var(--dg); animation:denSpark 2.6s linear infinite; opacity:0; }
+  .isb-sparks i:nth-child(1){ left:18%; animation-delay:0s; } .isb-sparks i:nth-child(2){ left:38%; animation-delay:.6s; } .isb-sparks i:nth-child(3){ left:60%; animation-delay:1.2s; } .isb-sparks i:nth-child(4){ left:78%; animation-delay:1.8s; } .isb-sparks i:nth-child(5){ left:50%; animation-delay:.3s; width:4px; height:4px; }
+  .isb.den_sp .isb-sparks i { background:#fff6fd; }
+  .isb.den_sp .isb-art svg { animation:denPulse 1.6s ease-in-out infinite; }
+  .isb.den_sp .isb-aura { width:170px; height:60px; }
+  @keyframes denPulse { 0%,100%{ filter:drop-shadow(0 0 5px var(--dg)) drop-shadow(0 0 10px var(--dg)); } 50%{ filter:drop-shadow(0 0 10px var(--dg)) drop-shadow(0 0 26px var(--dg)) brightness(1.15); } }
+  @keyframes denAura { 0%,100%{ opacity:.45; transform:translateX(-50%) scale(.92); } 50%{ opacity:.9; transform:translateX(-50%) scale(1.08); } }
+  @keyframes denSpark { 0%{ transform:translateY(0) scale(.6); opacity:0; } 15%{ opacity:1; } 100%{ transform:translateY(-90px) scale(1.1); opacity:0; } }
+  .bm-row.glow .bm-art svg, .bd.glow .bd-art svg { filter:drop-shadow(0 0 6px var(--dg)) drop-shadow(0 0 12px var(--dg)); }
+  .bm-row.glow { border-color:var(--dg); }
+  .den-row { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; }
+  .den-t { position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .den-t small { font:800 11px/1 system-ui; color:#3a1f66; display:flex; align-items:center; gap:2px; }
+  .den-x { position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%; border:2px solid #fff; background:#e0303a; color:#fff; font:900 11px/1 system-ui; cursor:pointer; }
+  .den-add { display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; }
+  .den-add small { font-size:10px; font-weight:800; }
+  .dx-n2 { font-style:normal; font:800 10px/1 system-ui; color:#ffd36b; display:flex; align-items:center; gap:2px; }
+  /* ---- the Toto screen (sideways): stage on the left, its card on the right ---- */
+  .tv { container-type:size; position:absolute; inset:0; z-index:90; display:none; overflow:hidden; background:#0b1430; color:#fff; }
+  .tv.show { display:block; }
+  .tv-scene { position:absolute; top:0; height:100%; aspect-ratio:1408/768; left:calc(31cqw - 0.506 * 100cqh * 1408 / 768); background:url(assets/ui/toto_stage.jpg) center/100% 100% no-repeat; }
+  .tv-scene::after { content:''; position:absolute; top:0; bottom:0; right:0; width:16%; background:linear-gradient(90deg, rgba(11,20,48,0), #0b1430); }
+  .tv-art { position:absolute; left:50.6%; bottom:31%; height:56%; width:34%; transform:translateX(-50%); display:flex; align-items:flex-end; justify-content:center; animation:tvFloat 3s ease-in-out infinite; }
+  .tv-art img { max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 0 18px var(--glow, rgba(255,200,120,.6))) drop-shadow(0 10px 8px rgba(0,0,0,.5)); }
+  .tv-art.grow { animation:tvGrow .7s ease-out, tvFloat 3s ease-in-out .7s infinite; }
+  .tv-art.munch { animation:tvMunch .35s ease-out, tvFloat 3s ease-in-out .35s infinite; }
+  @keyframes tvFloat { 0%,100%{ transform:translate(-50%, 0); } 50%{ transform:translate(-50%, -8px); } }
+  @keyframes tvGrow { 0%{ transform:translate(-50%,0) scale(1); filter:brightness(1); } 40%{ transform:translate(-50%,-12px) scale(1.16); filter:brightness(1.9); } 100%{ transform:translate(-50%,0) scale(1); filter:brightness(1); } }
+  @keyframes tvMunch { 0%{ transform:translate(-50%,0) scale(1); } 40%{ transform:translate(-50%,0) scale(1.06, .94); } 100%{ transform:translate(-50%,0) scale(1); } }
+  .tv-top { position:absolute; left:0; right:0; top:0; display:flex; align-items:center; gap:8px; padding:calc(8px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); pointer-events:none; z-index:3; }
+  .tv-top > * { pointer-events:auto; }
+  .tv-logo { width:48px; height:48px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.6)); }
+  .tv-gap { flex:1; }
+  .tv-ic { min-width:44px; height:44px; border-radius:12px; border:3px solid #fff; font:900 20px/1 system-ui; color:#fff; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.35); }
+  .tv-ic.red { background:linear-gradient(#ff6a5a, #c0201a); }
+  .tv-panel { position:absolute; top:calc(60px + env(safe-area-inset-top, 0px)); bottom:max(10px, env(safe-area-inset-bottom, 0px)); right:max(12px, env(safe-area-inset-right, 0px)); width:min(44cqw, 430px); display:flex; flex-direction:column; gap:7px; padding:10px 12px; border-radius:20px; background:linear-gradient(rgba(58,30,110,.94), rgba(26,12,52,.95)); border:3px solid #ffcf5a; box-shadow:0 10px 30px rgba(0,0,0,.6), inset 0 0 20px rgba(0,0,0,.35); overflow-y:auto; z-index:2; }
+  .tv-banner { display:flex; align-items:center; gap:8px; }
+  .tv-lv { width:50px; height:50px; flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; font:900 18px/1 system-ui; color:#fff; background:radial-gradient(circle at 40% 30%, #c08bff, #6a2ad0); clip-path:polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .tv-lv small { font-size:8px; font-weight:900; }
+  .tv-nm { flex:1; min-width:0; }
+  .tv-name { font:900 clamp(15px, 2.6cqw, 23px)/1.05 system-ui; color:#ffd36b; text-shadow:0 2px 0 #7a3a00, 0 3px 6px rgba(0,0,0,.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tv-sub { font:700 10.5px/1.3 system-ui; color:#e3d4ff; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tv-bars { display:flex; flex-direction:column; gap:5px; }
+  .tvb { display:flex; align-items:center; gap:6px; } .tvb i { font-style:normal; font-size:15px; width:20px; text-align:center; }
+  .tvb-t { flex:1; position:relative; height:18px; border-radius:9px; background:rgba(0,0,0,.4); border:2px solid rgba(255,255,255,.7); overflow:hidden; }
+  .tvb-t b { position:absolute; left:0; top:0; bottom:0; border-radius:7px; }
+  .tvb-t span { position:relative; display:block; text-align:center; font:900 10.5px/14px system-ui; text-shadow:0 1px 2px #000; }
+  .tvb em { width:44px; font:900 10.5px/1 system-ui; font-style:normal; color:#7dff9a; text-align:right; }
+  .tv-earn { display:flex; align-items:center; justify-content:space-between; gap:6px; padding:6px 9px; border-radius:12px; background:rgba(0,0,0,.3); font:700 11px/1.3 system-ui; color:#e3d4ff; }
+  .tv-earn b { color:#fff; }
+  .tv-rate { display:flex; align-items:center; gap:3px; white-space:nowrap; font:900 13px/1 system-ui; color:#ffd36b; } .tv-rate b { color:#ffd36b; } .tv-rate.off { opacity:.75; }
+  .tv-prog { text-align:center; }
+  .tvp-l { font:800 10.5px/1.2 system-ui; color:#cdb8f5; margin-bottom:4px; }
+  .tvp { display:flex; gap:5px; justify-content:center; }
+  .tvp i { flex:1; max-width:60px; height:12px; border-radius:6px; background:rgba(255,255,255,.15); border:2px solid rgba(255,255,255,.5); }
+  .tvp i.on { background:linear-gradient(#a8ff7a, #2fae2a); border-color:#fff; box-shadow:0 0 8px #6aff5a; }
+  .tv-btns { display:flex; gap:8px; }
+  .tv-b { flex:1; padding:10px 4px; border-radius:14px; border:3px solid #fff; font:900 15px/1 system-ui; letter-spacing:.04em; color:#fff; cursor:pointer; text-shadow:0 2px 0 rgba(0,0,0,.35); box-shadow:0 5px 0 rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; }
+  .tv-b small { display:inline-flex; align-items:center; gap:2px; font-size:12px; font-weight:900; background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px; }
+  .tv-b.green { background:linear-gradient(#6fe06a, #239a2a); flex:1.3; font-size:17px; } .tv-b.yel { background:linear-gradient(#ffd25a, #e88a12); font-size:12.5px; }
+  .tv-b:active { transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.35); }
+  .tv-b:disabled { filter:grayscale(.9); opacity:.7; }
+  .tv-acts { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:auto; }
+  .tv-acts button { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 2px; border-radius:12px; border:2px solid #9a6ad8; background:linear-gradient(#5a3496, #2e1658); color:#fff; font-size:19px; cursor:pointer; }
+  .tv-acts button span { font:800 9.5px/1 system-ui; }
+  .tv-acts button.on { border-color:#7dff9a; background:linear-gradient(#2f9a4a, #14582a); }
+  .tv-acts button:disabled { opacity:.45; }
+  /* the sign-in screen, sideways: logo on the left, the form on the right */
+  .auth-wrap { flex-direction:row !important; align-items:center !important; justify-content:center !important; gap:4cqw !important; padding:12px max(18px, env(safe-area-inset-right, 0px)) 12px max(18px, env(safe-area-inset-left, 0px)) !important; }
+  .logo-wrap { width:34cqw; flex:none; }
+  .logo-img { width:min(30cqh, 150px) !important; height:min(30cqh, 150px) !important; }
+  .auth-card { width:min(440px, 56cqw) !important; max-height:calc(100cqh - 24px); overflow-y:auto; padding:14px 16px !important; gap:7px !important; }
+  .auth-card .field-label { margin-top:0; }
+  .install-pill.show { position:absolute; left:max(14px, env(safe-area-inset-left, 0px)); bottom:12px; }
+  #act-sheet { z-index:150 !important; }
+  .isb { width:150px; height:138px; }
+  .isb-art svg { width:150px; height:138px; }
+  .isb-den span { width:36px; height:40px; }
+  .isb-lv { font-size:11px; bottom:-12px; }
+  .isl-toto { width:82px; height:88px; }
+  #battle { background-size:cover; background-position:center; }
 </style>
 <div id="toto-root">
 
@@ -2417,14 +2509,14 @@
         <button class="hc-chip" id="hud-cur-gems" title="Gems"><img src="assets/items/gem-sm.png" alt=""><b id="hud-gems">0</b><i>+</i></button>
       </div>
     </div>
-    <nav class="nav-bar">
-      <button class="nav-b on" data-go="island"><span>🏝️</span>Island</button>
+    <nav class="dc-nav">
       <button class="nav-b" data-go="campaign"><span>⚔️</span>Campaign</button>
       <button class="nav-b" data-go="pvp"><span>🏟️</span>PvP</button>
       <button class="nav-b" data-go="dex"><span>📖</span>Totos</button>
-      <button class="nav-b" data-go="store"><span>🛍️</span>Store</button>
+      <button class="nav-b big" data-go="store"><span>🛍️</span>Store</button>
       <button class="nav-b" data-go="more"><span>☰</span>More<b class="qm-badge" id="friends-badge"></b></button>
     </nav>
+    <div class="isl-zoom"><button id="isl-zin" aria-label="Zoom in">＋</button><button id="isl-zout" aria-label="Zoom out">－</button><button id="isl-fit" aria-label="Whole island">⤢</button></div>
 
     <div class="panel-screen dark-panel" data-panel="campaign">
       <div class="panel-header">⚔️ Campaign <span class="close-x" data-close>✕</span></div>
@@ -2638,13 +2730,14 @@
   <!-- THE TOTO SCREEN -->
   <div class="tv" id="toto-view">
     <div class="tv-scene"><div class="tv-art" id="tv-art"></div></div>
-    <div class="tv-top"><img class="tv-logo" src="assets/brand/icon-192.png" alt=""><span class="tv-gap"></span><button class="tv-ic blue" id="tv-battle" title="Moves">📜</button><button class="tv-ic grey" id="tv-more" title="More">⋯</button><button class="tv-ic red" id="tv-close" title="Close">✕</button></div>
-    <div class="tv-banner"><div class="tv-lv" id="tv-lv"></div><div class="tv-name" id="tv-name"></div><span id="tv-cls"></span><span class="tv-role" id="tv-role"></span></div>
-    <div class="tv-info" id="tv-info"></div>
-    <div class="tv-low">
+    <div class="tv-top"><img class="tv-logo" src="assets/brand/icon-192.png" alt=""><span class="tv-gap"></span><button class="tv-ic red" id="tv-close" title="Close">✕</button></div>
+    <div class="tv-panel">
+      <div class="tv-banner"><div class="tv-lv" id="tv-lv"></div><div class="tv-nm"><div class="tv-name" id="tv-name"></div><div class="tv-sub" id="tv-sub"></div></div><span id="tv-cls"></span></div>
       <div class="tv-bars" id="tv-bars"></div>
-      <div class="tv-next" id="tv-next"></div>
-      <div class="tv-btns"><button class="tv-b green" id="tv-feed">FEED</button><button class="tv-b yel" id="tv-feed10">FEED ×10</button><button class="tv-b yel" id="tv-team">TEAM</button></div>
+      <div class="tv-earn" id="tv-earn"></div>
+      <div class="tv-prog" id="tv-prog"></div>
+      <div class="tv-btns"><button class="tv-b green" id="tv-feed">FEED</button><button class="tv-b yel" id="tv-feed10">LEVEL UP</button></div>
+      <div class="tv-acts"><button id="tv-battle">📜<span>Moves</span></button><button id="tv-team">⚔️<span>Team</span></button><button id="tv-den">🏚️<span>Den</span></button><button id="tv-more">💰<span>Release</span></button></div>
     </div>
   </div>
 
@@ -2995,26 +3088,47 @@
   // ---------------- ISLAND BUILDINGS ----------------
   // Slots are spots on the island picture (in its 1408x768 pixels) where a building can stand.
   const ISLAND_W = 1408, ISLAND_H = 768;
-  const ISLAND_SLOTS = [ [700,282], [790,322], [880,366], [610,322], [700,362], [790,404], [520,366], [610,404], [700,446], [880,446], [520,446], [790,486] ];
+  const ISLAND_SLOTS = [ [640,292], [790,288], [540,348], [690,350], [860,352], [600,412], [760,414], [920,414], [505,472], [870,478], [1012,452], [1150,522] ];
+  // Coins come only from Toto Dens: every Toto living in one earns Coins, the stronger the Toto
+  // (class and level = its power) the more. The E, S and S+ Dens only take Totos of that class and
+  // pay a bonus on top. Food Farms grow Food for leveling Totos up.
+  const DEN_TYPES = ['toto_den','den_e','den_s','den_sp'];
+  const isDen = type=> DEN_TYPES.includes(type);
+  const denRateOf = (L, den, mult)=> Math.round(denPower(den)/100*mult*(1 + (L-1)*0.2));
   const BUILDINGS = {
-    gold_mine: { name:'Coin Mine', icon:'⛏️', makes:'coins', desc:'Digs up Coins over time. Coins build and upgrade buildings and buy Totos.',
-                 build:{ coins:150 }, rate:L=> Math.round(50*L*Math.pow(1.22, L-1)), cap:L=> Math.round(50*L*Math.pow(1.22, L-1)*6) },
-    food_farm: { name:'Food Farm', icon:'🎃', makes:'food', desc:'Grows Food over time. Feed it to your Totos to level them up.',
-                 build:{ coins:120 }, rate:L=> Math.round(90*L*Math.pow(1.22, L-1)), cap:L=> Math.round(90*L*Math.pow(1.22, L-1)*6) },
-    toto_den:  { name:'Toto Den', icon:'🏚️', makes:'coins', desc:'Home for 4 of your Totos. They earn Coins: the higher their levels, the more.',
-                 build:{ coins:400 }, rate:(L, den)=> Math.round(denLevels(den)*1.5*(1 + (L-1)*0.25)), cap:(L, den)=> Math.round(Math.max(60, denLevels(den)*1.5*(1 + (L-1)*0.25))*8) }
+    toto_den:  { name:'Toto Den', icon:'🏚️', makes:'coins', cls:null, mult:1, unlock:1, desc:'Home for 4 of your Totos of any class. They earn Coins — the stronger they are, the more.',
+                 build:{ coins:300 }, rate:(L, d)=> denRateOf(L, d, 1), cap:(L, d)=> Math.max(60, denRateOf(L, d, 1)*8) },
+    den_e:     { name:'E Den', icon:'🔴', makes:'coins', cls:'E', mult:1.25, unlock:8, glow:'#ff2a2a', desc:'A glowing red Den for Class E Totos only. Earns 25% more Coins.',
+                 build:{ coins:2500 }, rate:(L, d)=> denRateOf(L, d, 1.25), cap:(L, d)=> Math.max(120, denRateOf(L, d, 1.25)*8) },
+    den_s:     { name:'S Den', icon:'🟣', makes:'coins', cls:'S', mult:1.5, unlock:14, glow:'#b44aff', desc:'A glowing purple Den for Class S Totos only. Earns 50% more Coins.',
+                 build:{ coins:6000 }, rate:(L, d)=> denRateOf(L, d, 1.5), cap:(L, d)=> Math.max(200, denRateOf(L, d, 1.5)*8) },
+    den_sp:    { name:'S+ Den', icon:'💗', makes:'coins', cls:'S+', mult:1.8, unlock:20, glow:'#ff4fd0', desc:'A dazzling pink Den for Class S+ Totos only. Earns 80% more Coins.',
+                 build:{ coins:15000 }, rate:(L, d)=> denRateOf(L, d, 1.8), cap:(L, d)=> Math.max(300, denRateOf(L, d, 1.8)*8) },
+    food_farm: { name:'Food Farm', icon:'🎃', makes:'food', unlock:1, desc:'Grows Food over time. Feed it to your Totos to level them up.',
+                 build:{ coins:120 }, rate:L=> Math.round(90*L*Math.pow(1.22, L-1)), cap:L=> Math.round(90*L*Math.pow(1.22, L-1)*6) }
   };
   const BUILDING_MAX_LEVEL = 10;
-  const upgradeCost = (type, L)=> ({ coins: Math.round((type === 'toto_den' ? 60 : 40) * Math.pow(L, 1.6)) });
+  const upgradeCost = (type, L)=> ({ coins: Math.round((isDen(type) ? 60*({ toto_den:1, den_e:3, den_s:5, den_sp:8 }[type]) : 40) * Math.pow(L, 1.6)) });
   // how many of each building your trainer level allows
-  function buildingLimit(type){ const L = playerLevel(); if (type === 'toto_den') return Math.min(4, 1 + Math.floor(L/12)); return Math.min(4, 1 + Math.floor(L/10)); }
-  function denLevels(den){ return (den && Array.isArray(den.totos) ? den.totos : []).reduce((s, id)=>{ const t = state.collection.find(x=> x.id === id); return s + (t ? t.level : 0); }, 0); }
+  function buildingLimit(type){
+    const L = playerLevel(), def = BUILDINGS[type];
+    if (L < (def.unlock || 1)) return 0;
+    if (type === 'toto_den') return Math.min(6, 1 + Math.floor(L/6));
+    if (isDen(type)) return L >= def.unlock + 15 ? 2 : 1;
+    return Math.min(4, 1 + Math.floor(L/10));
+  }
+  const denOf = id=> state.island.buildings.find(b=> isDen(b.type) && (b.totos||[]).includes(id)) || null;
+  // can this Toto live in this kind of Den?
+  const denFits = (type, t)=> !BUILDINGS[type].cls || BUILDINGS[type].cls === t.cls;
+  function denPower(den){ return (den && Array.isArray(den.totos) ? den.totos : []).reduce((s, id)=>{ const t = state.collection.find(x=> x.id === id); return s + (t ? t.cp : 0); }, 0); }
+  // what one Toto adds to a Den's Coins an hour
+  function totoCoinRate(t, den){ const d = den || { type:'toto_den', lvl:1 }; const def = BUILDINGS[d.type]; return Math.round(t.cp/100*(def.mult||1)*(1 + ((d.lvl||1)-1)*0.2)); }
   function bRate(b){ return BUILDINGS[b.type].rate(b.lvl, b); }          // per hour
   function bCap(b){ return BUILDINGS[b.type].cap(b.lvl, b); }
   function bStored(b, now){ const hrs = Math.max(0, ((now||Date.now()) - (b.t||Date.now()))/3600000); return Math.min(bCap(b), Math.floor(bRate(b)*hrs)); }
   // ---------------- STATE + SAVING ----------------
   // Saves live on this device (one save per email), written as JSON. v:100 = the island game.
-  const SAVE_V = 100;
+  const SAVE_V = 101;
   let state = { loggedIn:false, username:'', email:'', age:'', gems:0, coins:0, food:0, collection:[], team:[], island:null, campaign:null, plevel:1, pxp:0, avatar:'female' };
   const hasCloudStorage = (typeof window.storage !== 'undefined');
   async function rawGet(key){
@@ -3098,9 +3212,11 @@
 
   // ---------------- A SAVE FROM BEFORE v100 -> the island game ----------------
   // Everyone starts fresh with new Totos. Kept: the account, gems, season results and any earned Champions.
-  function freshIsland(){ return { buildings:[ { id:uid(), type:'gold_mine', slot:0, lvl:1, t:Date.now() }, { id:uid(), type:'food_farm', slot:3, lvl:1, t:Date.now() } ] }; }
+  function freshIsland(){ return { buildings:[ { id:uid(), type:'toto_den', slot:0, lvl:1, t:Date.now(), totos:[] }, { id:uid(), type:'food_farm', slot:3, lvl:1, t:Date.now() } ] }; }
+  // your starting team moves into your first Den so it earns Coins straight away
+  function starterDen(){ const d = state.island.buildings.find(b=> b.type === 'toto_den'); if (d) d.totos = state.team.slice(0, 4); }
   function migrateSave(){
-    if ((state.v|0) >= SAVE_V) return false;
+    if ((state.v|0) >= 100) return upgradeSave101();
     const keepChamps = [];
     (state.collection || []).forEach(t=>{ if (t && rankChampNum(t.name)) keepChamps.push(t.name); });
     const old = { gems: bal('gems') };
@@ -3109,7 +3225,7 @@
     STARTER_TEAM.forEach(n=> addToto(n, 1));
     state.team = state.collection.filter(t=> STARTER_TEAM.includes(t.name)).map(t=> t.id).slice(0, 4);
     state.gems = old.gems; state.coins = 600; state.food = 400;
-    state.island = freshIsland(); state.campaign = { cleared:{} }; state.plevel = 1; state.pxp = 0;
+    state.island = freshIsland(); starterDen(); state.campaign = { cleared:{} }; state.plevel = 1; state.pxp = 0;
     ['candy','items','unlockedCosmetics','equippedCosmetics','geo','geoAnchor','worldOffset','playerWorldPos','wildTotos','gyms','shrines','loadedChunks','chunkEls','regionEls','regionPromises',
      'stopRest','stopCooldownUntil','pvpTeamIds','pvpTotoId','cosmeticGrants','tutorialDone','cameraTilt','cameraZoom','viewOrbit','cameraRotate','lastPassDay'].forEach(k=> delete state[k]);
     state.v = SAVE_V; state.welcome = true;
@@ -3121,12 +3237,33 @@
     state.collection = []; STARTER_TEAM.forEach(n=> addToto(n, 1));
     state.team = state.collection.map(t=> t.id);
     Object.assign(state, { v:SAVE_V, gems:20, coins:600, food:400, island:freshIsland(), campaign:{ cleared:{} }, plevel:1, pxp:0, welcome:true });
+    starterDen();
+  }
+  // v101: Coin Mines are gone (Coins come only from Dens). Each Coin Mine becomes a Toto Den on the same
+  // spot (anything it had dug up is paid out first) and your team moves in if they have no Den yet.
+  function upgradeSave101(){
+    if ((state.v|0) >= 101) return false;
+    const bs = (state.island && state.island.buildings) || [];
+    let paid = 0;
+    bs.forEach(b=>{
+      if (b.type !== 'gold_mine') return;
+      const L = Math.max(1, b.lvl|0), rate = Math.round(50*L*Math.pow(1.22, L-1)), hrs = Math.max(0, (Date.now() - (b.t||Date.now()))/3600000);
+      paid += Math.min(rate*6, Math.floor(rate*hrs));
+      b.type = 'toto_den'; b.totos = []; b.t = Date.now();
+    });
+    if (paid) state.coins = bal('coins') + paid;
+    const inDen = id=> bs.some(b=> isDen(b.type) && (b.totos||[]).includes(id));
+    const den = bs.find(b=> b.type === 'toto_den' && (b.totos||[]).length === 0);
+    if (den) den.totos = (state.team||[]).filter(id=> !inDen(id)).slice(0, 4);
+    state.v = 101; state.news101 = true; markDirty();
+    return false;
   }
   // every load: fix up anything missing and work out the Totos' stats
   function normalizeState(){
     state.collection = (Array.isArray(state.collection) ? state.collection : []).map(hydrateToto).filter(Boolean);
     if (!state.island || !Array.isArray(state.island.buildings)) state.island = freshIsland();
-    state.island.buildings.forEach(b=>{ b.lvl = Math.max(1, Math.min(BUILDING_MAX_LEVEL, b.lvl|0 || 1)); if (!b.t) b.t = Date.now(); if (b.type === 'toto_den' && !Array.isArray(b.totos)) b.totos = []; if (b.type === 'toto_den') b.totos = b.totos.filter(id=> state.collection.some(t=> t.id === id)); });
+    const seen = new Set();
+    state.island.buildings.forEach(b=>{ b.lvl = Math.max(1, Math.min(BUILDING_MAX_LEVEL, b.lvl|0 || 1)); if (!b.t) b.t = Date.now(); if (!BUILDINGS[b.type]) b.type = 'toto_den'; if (isDen(b.type) && !Array.isArray(b.totos)) b.totos = []; if (isDen(b.type)){ b.totos = b.totos.filter(id=>{ const t = state.collection.find(x=> x.id === id); if (!t || seen.has(id) || !denFits(b.type, t)) return false; seen.add(id); return true; }).slice(0, 4); } });
     if (!state.campaign || typeof state.campaign.cleared !== 'object') state.campaign = { cleared:{} };
     state.team = (Array.isArray(state.team) ? state.team : []).filter(id=> state.collection.some(t=> t.id === id)).slice(0, 4);
     if (state.team.length < 4) state.collection.slice().sort((a,b)=> b.cp - a.cp).forEach(t=>{ if (state.team.length < 4 && !state.team.includes(t.id)) state.team.push(t.id); });
@@ -5649,6 +5786,7 @@
     B.pending = {}; B.busy = false; B.finished = false; B.sending = false; B.polling = false; B.sel = 0; B.targeting = null; B.ready = false;
     B.turnStart = Date.now() + 60000; B.claimAt = 0;
     $('#bt-bg').style.backgroundImage = 'url(assets/stages/'+(info.bg || 'moonlit_village')+'.jpg)';
+    $('#battle').style.backgroundImage = 'linear-gradient(rgba(5,3,12,.55), rgba(5,3,12,.55)), url(assets/stages/'+(info.bg || 'moonlit_village')+'.jpg)';
     $('#bt-title').textContent = info.title || 'Battle'; $('#bt-sub').textContent = info.sub || '';
     $('#bt-result').classList.remove('show'); $('#bt-result').innerHTML = ''; $('#bt-fxl').innerHTML = ''; btLog('');
     $('#bt-auto').classList.toggle('on', B.auto); $('#bt-speed').innerHTML = '▶▶<small>x'+B.speed+'</small>';
@@ -6015,119 +6153,221 @@
     if (v === 'settings') openPanel('settings'); else if (v === 'ranks') openLeaderboard();
   }
 
+  // ================= SIDEWAYS SCREEN =================
+  // TotoQuest is played sideways, like Dragon City. The installed app locks the phone sideways; in a
+  // browser held upright the whole game is turned on its side so it still shows sideways.
+  const isRot = ()=> document.documentElement.classList.contains('tq-rot');
+  function tqOrient(){
+    const desk = matchMedia('(hover:hover) and (pointer:fine)').matches;
+    const rot = !desk && window.innerHeight > window.innerWidth;
+    if (rot !== isRot()){
+      document.documentElement.classList.toggle('tq-rot', rot);
+      setTimeout(()=>{ if (typeof islandApply === 'function' && state.loggedIn) islandApply(true); if ($('#battle').classList.contains('show')) btLayout(); }, 60);
+    }
+  }
+  tqOrient();
+  window.addEventListener('resize', tqOrient);
+  window.addEventListener('orientationchange', ()=> setTimeout(tqOrient, 200));
+  document.addEventListener('pointerdown', function lockSideways(){
+    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); } catch(e){}
+  }, { once:true });
+  // a pointer's position inside the game (the game may be turned on its side)
+  function rootXY(e){
+    if (isRot()) return { x:e.clientY, y:window.innerWidth - e.clientX };
+    const r = root.getBoundingClientRect(); return { x:e.clientX - r.left, y:e.clientY - r.top };
+  }
+
   // ================= THE ISLAND =================
-  const Isl = { x:0, drag:null, lastRender:0 };
-  function islandW(){ const v = $('#island-view'); return v ? v.clientWidth : 400; }
-  function islandH(){ const v = $('#island-view'); return v ? v.clientHeight : 700; }
-  function islandScale(){ return Math.max(islandH()/ISLAND_H, islandW()/ISLAND_W); }
-  function islandClamp(){ const s = islandScale(), maxX = Math.max(0, ISLAND_W*s - islandW()); Isl.x = Math.max(0, Math.min(maxX, Isl.x)); }
-  function islandApply(){ islandClamp(); const s = islandScale(); $('#island-world').style.transform = 'translate('+(-Isl.x)+'px,0) scale('+s.toFixed(4)+')'; }
-  function islandCenter(){ const s = islandScale(); Isl.x = 730*s - islandW()/2; islandApply(); }
+  // Drag to look around, pinch / mouse wheel / the ＋ − buttons to zoom (all the way out shows the whole island).
+  const Isl = { x:0, y:0, s:0, drag:null, pts:new Map(), pinch:null, lastRender:0 };
+  function islandW(){ const v = $('#island-view'); return v ? v.clientWidth : 800; }
+  function islandH(){ const v = $('#island-view'); return v ? v.clientHeight : 400; }
+  const islandFit = ()=> Math.min(islandW()/ISLAND_W, islandH()/ISLAND_H);
+  const islandCover = ()=> Math.max(islandW()/ISLAND_W, islandH()/ISLAND_H);
+  function islandClamp(){
+    const lo = islandFit(), hi = islandCover()*2.2;
+    Isl.s = Math.max(lo, Math.min(hi, Isl.s || islandCover()));
+    const W = islandW(), H = islandH(), ww = ISLAND_W*Isl.s, wh = ISLAND_H*Isl.s;
+    Isl.x = ww <= W ? (ww - W)/2 : Math.max(0, Math.min(ww - W, Isl.x));
+    Isl.y = wh <= H ? (wh - H)/2 : Math.max(0, Math.min(wh - H, Isl.y));
+  }
+  function islandApply(refit){
+    if (refit) Isl.s = Math.max(islandFit(), Math.min(islandCover()*2.2, Isl.s || islandCover()));
+    islandClamp();
+    const w = $('#island-world'); if (w) w.style.transform = 'translate('+(-Isl.x).toFixed(1)+'px,'+(-Isl.y).toFixed(1)+'px) scale('+Isl.s.toFixed(4)+')';
+    const z = $('#isl-zout'); if (z) z.disabled = Isl.s <= islandFit() + 0.001;
+  }
+  function islandZoomAt(ns, px, py){
+    const wx = (px + Isl.x)/Isl.s, wy = (py + Isl.y)/Isl.s;
+    Isl.s = Math.max(islandFit(), Math.min(islandCover()*2.2, ns));
+    Isl.x = wx*Isl.s - px; Isl.y = wy*Isl.s - py; islandApply();
+  }
+  function islandCenter(){ Isl.s = islandCover(); Isl.x = 720*Isl.s - islandW()/2; Isl.y = 400*Isl.s - islandH()/2; islandApply(); }
   (function(){
     const v = $('#island-view'); if (!v) return;
-    v.addEventListener('pointerdown', e=>{ Isl.drag = { x:e.clientX, ox:Isl.x, moved:false }; });
-    window.addEventListener('pointermove', e=>{ if (!Isl.drag) return; const dx = e.clientX - Isl.drag.x; if (Math.abs(dx) > 6) Isl.drag.moved = true; Isl.x = Isl.drag.ox - dx; islandApply(); });
-    window.addEventListener('pointerup', ()=>{ setTimeout(()=>{ Isl.drag = null; }, 0); });
-    window.addEventListener('resize', ()=>{ if ($('#island-view').offsetParent) islandApply(); });
+    v.addEventListener('pointerdown', e=>{
+      const p = rootXY(e); Isl.pts.set(e.pointerId, p);
+      if (Isl.pts.size === 1) Isl.drag = { x:p.x, y:p.y, ox:Isl.x, oy:Isl.y, moved:false };
+      else if (Isl.pts.size === 2){
+        const [a, b] = [...Isl.pts.values()];
+        Isl.pinch = { d:Math.hypot(a.x-b.x, a.y-b.y) || 1, s:Isl.s, mx:(a.x+b.x)/2, my:(a.y+b.y)/2 };
+        if (Isl.drag) Isl.drag.moved = true;
+      }
+    });
+    window.addEventListener('pointermove', e=>{
+      if (!Isl.pts.has(e.pointerId)) return;
+      const p = rootXY(e); Isl.pts.set(e.pointerId, p);
+      if (Isl.pinch && Isl.pts.size >= 2){
+        const [a, b] = [...Isl.pts.values()], d = Math.hypot(a.x-b.x, a.y-b.y) || 1;
+        islandZoomAt(Isl.pinch.s * d / Isl.pinch.d, Isl.pinch.mx, Isl.pinch.my); return;
+      }
+      if (!Isl.drag) return;
+      const dx = p.x - Isl.drag.x, dy = p.y - Isl.drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 7) Isl.drag.moved = true;
+      Isl.x = Isl.drag.ox - dx; Isl.y = Isl.drag.oy - dy; islandApply();
+    });
+    const up = e=>{ Isl.pts.delete(e.pointerId); if (Isl.pts.size < 2) Isl.pinch = null; if (!Isl.pts.size) setTimeout(()=>{ if (!Isl.pts.size) Isl.drag = null; }, 0); };
+    window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    v.addEventListener('wheel', e=>{ e.preventDefault(); const p = rootXY(e); islandZoomAt(Isl.s * (e.deltaY < 0 ? 1.12 : 1/1.12), p.x, p.y); }, { passive:false });
+    window.addEventListener('resize', ()=>{ if ($('#island-view').offsetParent) islandApply(true); });
+    const zb = (id, f)=>{ const b = $('#'+id); if (b) b.onclick = f; };
+    zb('isl-zin', ()=> islandZoomAt(Isl.s*1.3, islandW()/2, islandH()/2));
+    zb('isl-zout', ()=> islandZoomAt(Isl.s/1.3, islandW()/2, islandH()/2));
+    zb('isl-fit', ()=>{ if (Isl.s > islandFit() + 0.001){ Isl.s = islandFit(); islandApply(); } else islandCenter(); });
   })();
   const isDragging = ()=> !!(Isl.drag && Isl.drag.moved);
+
+  // ---- building pictures ----
+  const DEN_GLOW = { den_e:['#ff2a2a','#ff8a6a','#5a0606'], den_s:['#b44aff','#e2a8ff','#2a0a50'], den_sp:['#ff4fd0','#ffc2f0','#5a0640'] };
+  function crystalDen(type){
+    const [c, l, d] = DEN_GLOW[type], id = type;
+    const spires = type === 'den_sp'
+      ? '<path d="M22 70 L28 30 L34 70Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="1.5"/><path d="M86 70 L92 30 L98 70Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="1.5"/><path d="M50 40 L60 2 L70 40Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="2"/><path d="M54 6 l6-6 6 6 -6 5z" fill="#fff6a8" stroke="#b8860b" stroke-width="1"/>'
+      : type === 'den_s'
+        ? '<path d="M26 72 L32 36 L38 72Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="1.5"/><path d="M82 72 L88 36 L94 72Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="1.5"/><path d="M50 42 L60 8 L70 42Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="2"/><circle cx="60" cy="16" r="4" fill="#fff" opacity=".9"/>'
+        : '<path d="M30 74 L36 44 L42 74Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="1.5"/><path d="M78 74 L84 44 L90 74Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="1.5"/><path d="M50 46 L60 14 L70 46Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="2"/>';
+    return '<svg viewBox="0 0 120 110"><defs><linearGradient id="'+id+'c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+l+'"/><stop offset=".55" stop-color="'+c+'"/><stop offset="1" stop-color="'+d+'"/></linearGradient>'
+      + '<linearGradient id="'+id+'w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a4a"/><stop offset="1" stop-color="#1a1024"/></linearGradient><radialGradient id="'+id+'g"><stop offset="0" stop-color="'+l+'"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient></defs>'
+      + '<ellipse cx="60" cy="100" rx="54" ry="10" fill="url(#'+id+'g)" opacity=".85"/>'
+      + '<path d="M16 100 L22 66 H98 L104 100Z" fill="url(#'+id+'w)" stroke="'+d+'" stroke-width="3"/>'
+      + '<path d="M18 68 L30 50 H90 L102 68Z" fill="url(#'+id+'c)" stroke="'+d+'" stroke-width="2.5"/>'
+      + spires
+      + '<path d="M48 100 V80 Q60 68 72 80 V100Z" fill="'+c+'" stroke="'+d+'" stroke-width="2"/><path d="M52 100 V82 Q60 74 68 82 V100Z" fill="'+l+'" opacity=".8"/>'
+      + '<g fill="'+l+'"><circle cx="32" cy="84" r="5"/><circle cx="88" cy="84" r="5"/></g><g fill="#fff" opacity=".9"><circle cx="31" cy="83" r="1.6"/><circle cx="87" cy="83" r="1.6"/></g>'
+      + '<path d="M24 90 h6 M90 90 h6 M60 56 v6" stroke="'+l+'" stroke-width="2" stroke-linecap="round"/></svg>';
+  }
   const BUILDING_ART = {
-    gold_mine: L=> '<svg viewBox="0 0 120 110"><ellipse cx="60" cy="100" rx="52" ry="9" fill="rgba(0,0,0,.35)"/><path d="M14 98 L30 40 Q60 18 90 40 L106 98Z" fill="#6b5a4a" stroke="#2e241b" stroke-width="3"/><path d="M38 98 V62 Q60 44 82 62 V98Z" fill="#1d140e" stroke="#2e241b" stroke-width="3"/><path d="M34 62 Q60 38 86 62" fill="none" stroke="#9b6b3a" stroke-width="7"/><rect x="36" y="58" width="6" height="40" fill="#9b6b3a"/><rect x="78" y="58" width="6" height="40" fill="#9b6b3a"/><g fill="#ffd34d" stroke="#a86b00" stroke-width="1.5"><circle cx="22" cy="92" r="6"/><circle cx="31" cy="95" r="5"/><circle cx="96" cy="93" r="6"/><circle cx="88" cy="96" r="4"/></g><path d="M48 92 h26 l-4 8 h-18z" fill="#7a5a3a" stroke="#2e241b" stroke-width="2"/><g fill="#ffe27a"><circle cx="54" cy="89" r="4"/><circle cx="62" cy="88" r="4.5"/><circle cx="69" cy="90" r="3.5"/></g><path d="M58 22 l4-10 4 10z" fill="#ff8a3d"/></svg>',
-    food_farm: L=> '<svg viewBox="0 0 120 110"><ellipse cx="60" cy="100" rx="54" ry="10" fill="rgba(0,0,0,.35)"/><path d="M8 80 L60 56 L112 80 L60 104Z" fill="#7a4a24" stroke="#3b220e" stroke-width="3"/><g stroke="#5b3417" stroke-width="2"><path d="M22 74 L74 98"/><path d="M36 68 L88 92"/><path d="M50 61 L102 86"/></g><g stroke="#3b220e" stroke-width="2"><path d="M8 80 V70 M34 68 V58 M60 56 V46 M86 68 V58 M112 80 V70"/><path d="M8 72 L60 48 L112 72" fill="none"/></g><g><circle cx="34" cy="78" r="8" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/><circle cx="58" cy="88" r="9" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/><circle cx="80" cy="76" r="8" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/><circle cx="60" cy="68" r="7" fill="#ff9a2e" stroke="#9a3d00" stroke-width="2"/><path d="M34 70 v-4 M58 79 v-5 M80 68 v-4 M60 61 v-4" stroke="#2f7a1e" stroke-width="3"/></g><path d="M92 50 q8-14 0-28 q-10 12 0 28z" fill="#3fae4a" stroke="#1f5a1e" stroke-width="2"/></svg>',
-    toto_den: L=> '<svg viewBox="0 0 120 110"><ellipse cx="60" cy="102" rx="52" ry="8" fill="rgba(0,0,0,.35)"/><path d="M20 100 V52 H100 V100Z" fill="#5a4a7a" stroke="#22183a" stroke-width="3"/><path d="M10 56 L60 14 L110 56Z" fill="#3a2a5a" stroke="#22183a" stroke-width="3"/><path d="M48 100 V72 Q60 62 72 72 V100Z" fill="#1a1028" stroke="#22183a" stroke-width="2"/><circle cx="34" cy="70" r="7" fill="#ffd36b" stroke="#22183a" stroke-width="2"/><circle cx="86" cy="70" r="7" fill="#ffd36b" stroke="#22183a" stroke-width="2"/><path d="M60 14 l-6-10 h12z" fill="#ff8a3d"/><path d="M28 40 q32 -26 64 0" fill="none" stroke="#c07dff" stroke-width="2" stroke-dasharray="3 4"/></svg>'
+    food_farm: ()=> '<svg viewBox="0 0 120 110"><ellipse cx="60" cy="100" rx="54" ry="10" fill="rgba(0,0,0,.35)"/><path d="M8 80 L60 56 L112 80 L60 104Z" fill="#7a4a24" stroke="#3b220e" stroke-width="3"/><g stroke="#5b3417" stroke-width="2"><path d="M22 74 L74 98"/><path d="M36 68 L88 92"/><path d="M50 61 L102 86"/></g><g stroke="#3b220e" stroke-width="2"><path d="M8 80 V70 M34 68 V58 M60 56 V46 M86 68 V58 M112 80 V70"/><path d="M8 72 L60 48 L112 72" fill="none"/></g><g><circle cx="34" cy="78" r="8" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/><circle cx="58" cy="88" r="9" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/><circle cx="80" cy="76" r="8" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/><circle cx="60" cy="68" r="7" fill="#ff9a2e" stroke="#9a3d00" stroke-width="2"/><path d="M34 70 v-4 M58 79 v-5 M80 68 v-4 M60 61 v-4" stroke="#2f7a1e" stroke-width="3"/></g><path d="M92 50 q8-14 0-28 q-10 12 0 28z" fill="#3fae4a" stroke="#1f5a1e" stroke-width="2"/></svg>',
+    toto_den: ()=> '<svg viewBox="0 0 120 110"><defs><linearGradient id="tdw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a64a8"/><stop offset="1" stop-color="#4a3a72"/></linearGradient><linearGradient id="tdr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3470"/><stop offset="1" stop-color="#2a1a48"/></linearGradient></defs><ellipse cx="60" cy="102" rx="52" ry="8" fill="rgba(0,0,0,.35)"/><path d="M20 100 V54 H100 V100Z" fill="url(#tdw)" stroke="#22183a" stroke-width="3"/><path d="M8 58 L60 14 L112 58Z" fill="url(#tdr)" stroke="#22183a" stroke-width="3"/><path d="M84 36 V18 H94 V44" fill="#5a4a7a" stroke="#22183a" stroke-width="2.5"/><path d="M48 100 V74 Q60 62 72 74 V100Z" fill="#1a1028" stroke="#22183a" stroke-width="2"/><circle cx="34" cy="72" r="7" fill="#ffd36b" stroke="#22183a" stroke-width="2"/><circle cx="86" cy="72" r="7" fill="#ffd36b" stroke="#22183a" stroke-width="2"/><circle cx="60" cy="40" r="6" fill="#ffb627" stroke="#22183a" stroke-width="2"/><g><circle cx="16" cy="96" r="7" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/><path d="M13 95 l2-2 2 2 M18 95 l2-2 1 2" stroke="#3a1400" stroke-width="1.2" fill="none"/><circle cx="104" cy="96" r="6" fill="#ff8a1e" stroke="#9a3d00" stroke-width="2"/></g><path d="M28 44 q32 -28 64 0" fill="none" stroke="#c07dff" stroke-width="2" stroke-dasharray="3 4"/></svg>',
+    den_e: ()=> crystalDen('den_e'), den_s: ()=> crystalDen('den_s'), den_sp: ()=> crystalDen('den_sp')
   };
+  function buildingArt(type){ return (BUILDING_ART[type] || BUILDING_ART.toto_den)(); }
+
   function renderIsland(soft){
     const world = $('#island-world'); if (!world || !state.loggedIn) return;
     const now = Date.now();
     if (soft && now - Isl.lastRender < 900) return;
     Isl.lastRender = now;
+    if (!Isl.s) islandCenter();
     const used = new Set(state.island.buildings.map(b=> b.slot));
     let html = '';
     state.island.buildings.forEach(b=>{
       const p = ISLAND_SLOTS[b.slot] || ISLAND_SLOTS[0], def = BUILDINGS[b.type], stored = bStored(b, now), full = stored >= bCap(b);
-      html += '<div class="isb" data-b="'+b.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px">'
-        + '<div class="isb-art">'+BUILDING_ART[b.type](b.lvl)+'</div>'
-        + (b.type === 'toto_den' ? '<div class="isb-den">'+(b.totos||[]).map(id=>{ const t = state.collection.find(x=> x.id === id); return t ? '<span>'+spriteFor(t.name)+'</span>' : ''; }).join('')+'</div>' : '')
+      const den = isDen(b.type), glow = def.glow;
+      html += '<div class="isb'+(den ? ' den' : '')+(glow ? ' glow '+b.type : '')+'" data-b="'+b.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;z-index:'+(10+p[1])+(glow ? ';--dg:'+glow : '')+'">'
+        + (glow ? '<div class="isb-aura"></div><div class="isb-sparks"><i></i><i></i><i></i><i></i><i></i></div>' : '')
+        + '<div class="isb-art">'+buildingArt(b.type)+'</div>'
+        + (den ? '<div class="isb-den">'+(b.totos||[]).map(id=>{ const t = state.collection.find(x=> x.id === id); return t ? '<span>'+spriteFor(t.name)+'</span>' : ''; }).join('')+'</div>' : '')
         + '<div class="isb-lv">'+def.name+' <b>Lv '+b.lvl+'</b></div>'
-        + (stored >= Math.max(1, bRate(b)*0.05) ? '<button class="isb-col'+(full ? ' full' : '')+'" data-col="'+b.id+'">'+CUR[def.makes].icon(20)+'<b>'+fmtNum(stored)+'</b></button>' : '')
+        + (stored >= Math.max(1, bRate(b)*0.05) ? '<button class="isb-col'+(full ? ' full' : '')+'" data-col="'+b.id+'">'+CUR[def.makes].icon(20)+'<b>'+fmtNum(stored)+'</b></button>' : (den && !(b.totos||[]).length ? '<span class="isb-hint">Empty — tap to add Totos</span>' : ''))
         + '</div>';
     });
     ISLAND_SLOTS.forEach((p, i)=>{ if (!used.has(i)) html += '<button class="isb-empty" data-slot="'+i+'" style="left:'+p[0]+'px;top:'+p[1]+'px" aria-label="Build here">+</button>'; });
-    // a few of your Totos wander around the island
-    const wanderers = state.collection.filter(t=> !state.island.buildings.some(b=> b.type === 'toto_den' && (b.totos||[]).includes(t.id))).sort((a,b)=> b.cp - a.cp).slice(0, 6);
-    const spots = [[560,470],[650,505],[760,520],[860,500],[960,470],[470,440]];
-    wanderers.forEach((t, i)=>{ const p = spots[i]; html += '<div class="isl-toto" data-t="'+t.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;animation-delay:'+(i*0.4)+'s"><div class="isl-sp">'+spriteFor(t.name)+'</div></div>'; });
+    // the four Totos on your team roam around the island
+    const spots = [[470,556],[598,612],[852,616],[1000,562]];
+    myTeam().forEach((t, i)=>{ const p = spots[i]; html += '<div class="isl-toto" data-t="'+t.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;z-index:'+(10+p[1])+';--wd:'+(5 + i*1.3).toFixed(1)+'s;animation-delay:'+(-i*1.7)+'s"><div class="isl-sp'+(totoFacing(t.name) === 'l' ? ' fl' : '')+'">'+spriteFor(t.name)+'</div><span class="isl-tl">Lv '+t.level+'</span></div>'; });
     world.innerHTML = '<img class="isl-bg" src="assets/ui/island.jpg" alt="">' + html;
     $$('.isb', world).forEach(el=> el.onclick = e=>{ if (isDragging()) return; if (e.target.closest('.isb-col')) return; openBuilding(el.dataset.b); });
-    $$('.isb-col', world).forEach(el=> el.onclick = e=>{ e.stopPropagation(); if (isDragging()) return; collectBuilding(el.dataset.col, el); });
-    $$('.isb-empty', world).forEach(el=> el.onclick = ()=>{ if (isDragging()) return; openBuildMenu(+el.dataset.slot); });
+    $$('.isb-col', world).forEach(el=> el.onclick = e=>{ e.stopPropagation(); if (isDragging()) return; collectBuilding(el.dataset.col); });
+    $$('.isb-empty', world).forEach(el=> el.onclick = ()=>{ if (isDragging()) return; if (Isl.moving) return; openBuildMenu(+el.dataset.slot); });
     $$('.isl-toto', world).forEach(el=> el.onclick = ()=>{ if (isDragging()) return; openToto(el.dataset.t); });
+    if (Isl.moving){ const b = state.island.buildings.find(x=> x.id === Isl.moving); $$('.isb-empty', world).forEach(el=>{ el.classList.add('pick'); el.onclick = ()=>{ if (b) b.slot = +el.dataset.slot; Isl.moving = null; markDirty(); renderIsland(); }; }); }
     islandApply();
   }
-  setInterval(()=>{ if (state.loggedIn && !currentPanel() && $('[data-screen="game"]').classList.contains('active') && !$('#battle').classList.contains('show')) renderIsland(); }, 5000);
-  function collectBuilding(id, el){
+  setInterval(()=>{ if (state.loggedIn && !currentPanel() && $('[data-screen="game"]').classList.contains('active') && !$('#battle').classList.contains('show') && !Isl.pts.size) renderIsland(); }, 5000);
+  function collectBuilding(id){
     const b = state.island.buildings.find(x=> x.id === id); if (!b) return;
     const n = bStored(b), def = BUILDINGS[b.type]; if (!n) return;
     give({ [def.makes]: n }); b.t = Date.now(); markDirty(); saveNow(false);
     Sound.playCatch();
-    floatGain(el, '+'+fmtNum(n), def.makes);
+    floatGain(b, '+'+fmtNum(n), def.makes);
     refreshHUD(); renderIsland();
   }
-  function floatGain(el, text, cur){
-    const r = el.getBoundingClientRect(), o = root.getBoundingClientRect();
-    const d = document.createElement('div'); d.className = 'gain-float'; d.innerHTML = CUR[cur].icon(18)+text;
-    d.style.left = (r.left - o.left + r.width/2)+'px'; d.style.top = (r.top - o.top)+'px'; root.appendChild(d); setTimeout(()=> d.remove(), 1200);
+  // "+120" rising from a building (worked out in island coordinates, so it also works with the game turned sideways)
+  function floatGain(b, text, cur){
+    const p = ISLAND_SLOTS[b.slot] || ISLAND_SLOTS[0];
+    const d = document.createElement('div'); d.className = 'gain-float'; d.innerHTML = CUR[cur].icon(20)+text;
+    d.style.left = (p[0]*Isl.s - Isl.x)+'px'; d.style.top = (p[1]*Isl.s - Isl.y - 100*Isl.s)+'px'; root.appendChild(d); setTimeout(()=> d.remove(), 1200);
   }
   async function openBuildMenu(slot){
     const btns = Object.keys(BUILDINGS).map(type=>{
       const def = BUILDINGS[type], have = state.island.buildings.filter(b=> b.type === type).length, lim = buildingLimit(type);
-      const free = type === 'gold_mine' && have === 0;
-      const cost = free ? {} : def.build;
-      return { html:'<button class="bm-row'+(have >= lim ? ' off' : '')+'" data-type="'+type+'"><div class="bm-art">'+BUILDING_ART[type](1)+'</div><div class="bm-i"><b>'+def.name+'</b><small>'+def.desc+'</small><small>'+have+'/'+lim+' built'+(have >= lim ? ' · more at a higher trainer level' : '')+'</small></div><div class="bm-c">'+(free ? 'FREE' : costHtml(cost))+'</div></button>' };
+      const free = type === 'toto_den' && have === 0, locked = playerLevel() < (def.unlock||1);
+      return { html:'<button class="bm-row'+(have >= lim ? ' off' : '')+(def.glow ? ' glow' : '')+'" data-type="'+type+'" style="'+(def.glow ? '--dg:'+def.glow : '')+'"><div class="bm-art">'+buildingArt(type)+'</div><div class="bm-i"><b>'+def.name+'</b><small>'+def.desc+'</small><small>'
+        + (locked ? '🔒 Unlocks at trainer level '+def.unlock : have+'/'+lim+' built'+(have >= lim ? ' · more at a higher trainer level' : ''))+'</small></div><div class="bm-c">'+(free ? 'FREE' : costHtml(def.build))+'</div></button>' };
     });
-    const p = actionSheet('Build', 'Pick a building for this spot.', btns);
+    const p = actionSheet('Build', 'Pick a building for this spot. Coins come from Totos living in Dens.', btns);
     setTimeout(()=> $$('#act-body .bm-row').forEach(el=> el.onclick = ()=>{
       const type = el.dataset.type, def = BUILDINGS[type], have = state.island.buildings.filter(b=> b.type === type).length;
+      if (playerLevel() < (def.unlock||1)){ showToast('The '+def.name+' unlocks at trainer level '+def.unlock+'.'); return; }
       if (have >= buildingLimit(type)){ showToast('Reach a higher trainer level to build more '+def.name+'s.'); return; }
-      const cost = (type === 'gold_mine' && have === 0) ? {} : def.build;
-      if (!pay(cost)){ showToast('Not enough Coins — collect from your Coin Mines and win battles.'); return; }
-      state.island.buildings.push({ id:uid(), type, slot, lvl:1, t:Date.now(), totos: type === 'toto_den' ? [] : undefined });
+      const cost = (type === 'toto_den' && have === 0) ? {} : def.build;
+      if (!pay(cost)){ showToast('Not enough Coins — put strong Totos in your Dens and win battles.'); return; }
+      const nb = { id:uid(), type, slot, lvl:1, t:Date.now() }; if (isDen(type)) nb.totos = [];
+      state.island.buildings.push(nb);
       markDirty(); saveNow(false); Sound.playAbility(); $('#act-cancel').click(); refreshHUD(); renderIsland();
       showToast('🔨 '+def.name+' built!');
-      if (type === 'toto_den') setTimeout(()=> openBuilding(state.island.buildings[state.island.buildings.length-1].id), 300);
+      if (isDen(type)) setTimeout(()=> openBuilding(nb.id), 300);
     }), 30);
     await p;
   }
+  // put a Toto in a Den (out of any other Den first)
+  function moveIntoDen(t, b){
+    if (!denFits(b.type, t)){ showToast('Only Class '+BUILDINGS[b.type].cls+' Totos can live in the '+BUILDINGS[b.type].name+'.'); return false; }
+    if ((b.totos||[]).length >= 4){ showToast('That Den is full (4 Totos).'); return false; }
+    const old = denOf(t.id); if (old){ collectQuiet(old); old.totos = old.totos.filter(x=> x !== t.id); }
+    collectQuiet(b); b.totos.push(t.id); markDirty(); saveNow(false); renderIsland(); return true;
+  }
   async function openBuilding(id){
     const b = state.island.buildings.find(x=> x.id === id); if (!b) return;
-    const def = BUILDINGS[b.type], stored = bStored(b), max = b.lvl >= BUILDING_MAX_LEVEL, uc = upgradeCost(b.type, b.lvl);
+    const def = BUILDINGS[b.type], stored = bStored(b), max = b.lvl >= BUILDING_MAX_LEVEL, uc = upgradeCost(b.type, b.lvl), den = isDen(b.type);
     const nextRate = !max ? BUILDINGS[b.type].rate(b.lvl+1, b) : 0;
-    let html = '<div class="bd"><div class="bd-art">'+BUILDING_ART[b.type](b.lvl)+'</div><div class="bd-i"><b>'+def.name+' · Lv '+b.lvl+'</b><small>'+def.desc+'</small>'
+    let html = '<div class="bd'+(def.glow ? ' glow' : '')+'" style="'+(def.glow ? '--dg:'+def.glow : '')+'"><div class="bd-art">'+buildingArt(b.type)+'</div><div class="bd-i"><b>'+def.name+' · Lv '+b.lvl+'</b><small>'+def.desc+'</small>'
       + '<small>Makes '+CUR[def.makes].icon(14)+' <b>'+fmtNum(bRate(b))+'</b> an hour · holds '+fmtNum(bCap(b))+'</small>'
       + (max ? '<small>Max level</small>' : '<small>Next level: '+fmtNum(nextRate)+' an hour</small>')+'</div></div>';
-    if (b.type === 'toto_den'){
-      html += '<div class="bd-h">Living here ('+(b.totos||[]).length+'/4)</div><div class="spp-row">'+(b.totos||[]).map(tid=>{ const t = state.collection.find(x=> x.id === tid); return t ? miniToto(t.name, t.level) : ''; }).join('')
-        + ((b.totos||[]).length < 4 ? '<button class="den-add" id="den-add">＋</button>' : '')+'</div>';
+    if (den){
+      html += '<div class="bd-h">Living here ('+(b.totos||[]).length+'/4)'+(def.cls ? ' · Class '+def.cls+' only' : '')+'</div><div class="den-row">'+(b.totos||[]).map(tid=>{ const t = state.collection.find(x=> x.id === tid); return t ? '<div class="den-t">'+miniToto(t.name, t.level)+'<small>'+CUR.coins.icon(12)+totoCoinRate(t, b)+'/h</small><button class="den-x" data-out="'+t.id+'" title="Move out">✕</button></div>' : ''; }).join('')
+        + ((b.totos||[]).length < 4 ? '<button class="den-add" id="den-add">＋<small>Add</small></button>' : '')+'</div>';
     }
     const btns = [{ html }];
     if (stored) btns.push({ label:'Collect '+fmtNum(stored)+' '+CUR[def.makes].label, value:'collect', cls:'good' });
     if (!max) btns.push({ label:'⬆️ Upgrade to Lv '+(b.lvl+1)+' — '+uc.coins.toLocaleString()+' Coins', value:'up' });
-    if (b.type === 'toto_den' && (b.totos||[]).length) btns.push({ label:'Move a Toto out', value:'out' });
     btns.push({ label:'Move to a different spot', value:'move' });
     const p = actionSheet('', '', btns);
-    setTimeout(()=>{ const a = $('#den-add'); if (a) a.onclick = ()=>{ $('#act-cancel').click(); pickToto('Who moves into the Den?', t=> !state.island.buildings.some(x=> x.type === 'toto_den' && (x.totos||[]).includes(t.id)), t=>{ collectQuiet(b); b.totos.push(t.id); markDirty(); renderIsland(); openBuilding(b.id); }); }; }, 30);
+    setTimeout(()=>{
+      const a = $('#den-add'); if (a) a.onclick = ()=>{ $('#act-cancel').click(); pickToto('Who moves into the '+def.name+'?', t=> denFits(b.type, t) && !(b.totos||[]).includes(t.id), t=>{ if (moveIntoDen(t, b)) openBuilding(b.id); }, t=>{ const o = denOf(t.id); return o ? 'in '+BUILDINGS[o.type].name : CUR.coins.icon(12)+totoCoinRate(t, b)+'/h'; }); };
+      $$('#act-body .den-x').forEach(x=> x.onclick = ()=>{ collectQuiet(b); b.totos = b.totos.filter(y=> y !== x.dataset.out); markDirty(); renderIsland(); $('#act-cancel').click(); setTimeout(()=> openBuilding(b.id), 50); });
+    }, 30);
     const v = await p;
-    if (v === 'collect') collectBuilding(b.id, $('.isb[data-b="'+b.id+'"]') || $('#island-view'));
+    if (v === 'collect') collectBuilding(b.id);
     else if (v === 'up'){
       if (!pay(uc)){ const go = await gameConfirm('You need '+uc.coins.toLocaleString()+' Coins. Get Coins with Gems in the Store?', 'Not enough Coins', 'Get Coins', 'Not now'); if (go){ openPanel('store'); setStoreTab('coins'); } return; }
       collectQuiet(b); b.lvl++; markDirty(); saveNow(false); Sound.playVictory(); showToast('⬆️ '+def.name+' is now Lv '+b.lvl+'!'); refreshHUD(); renderIsland();
     }
-    else if (v === 'out'){ pickToto('Who moves out?', t=> (b.totos||[]).includes(t.id), t=>{ collectQuiet(b); b.totos = b.totos.filter(x=> x !== t.id); markDirty(); renderIsland(); }); }
     else if (v === 'move'){
       const free = ISLAND_SLOTS.map((_, i)=> i).filter(i=> !state.island.buildings.some(x=> x.slot === i));
       if (!free.length){ showToast('No free spots right now.'); return; }
-      showToast('Tap a free spot (＋) to move it there'); Isl.moving = b.id;
-      $$('.isb-empty').forEach(el=>{ el.classList.add('pick'); el.onclick = ()=>{ b.slot = +el.dataset.slot; Isl.moving = null; markDirty(); renderIsland(); }; });
+      showToast('Tap a free spot (＋) to move it there'); Isl.moving = b.id; renderIsland();
     }
   }
   // collect into the wallet before something changes the building's rate (nothing lost)
@@ -6175,15 +6415,18 @@
       + '<div class="dx-sp">'+spriteFor(t.name)+'</div><b>'+escapeHtml(t.name)+'</b><small><span class="dx-lv">Lv '+t.level+'</span> <span style="color:'+ri.color+'">'+ri.icon+' '+ri.label+'</span></small></div>';
   }
   function openTeamPicker(after){ dexTab = 'team'; openPanel('dex'); Isl.afterTeam = after || null; }
-  async function pickToto(title, filter, cb){
+  async function pickToto(title, filter, cb, note){
     const list = state.collection.filter(filter).sort((a,b)=> b.cp - a.cp);
     if (!list.length){ showToast('No Totos to pick.'); return; }
-    const p = actionSheet(title, '', [{ html:'<div class="dx-grid pick">'+list.map(t=> totoCardHtml(t)).join('')+'</div>' }]);
+    const p = actionSheet(title, '', [{ html:'<div class="dx-grid pick">'+list.map(t=>{ const h = totoCardHtml(t); return note ? h.replace(/<\/div>$/, '<i class="dx-n2">'+note(t)+'</i></div>') : h; }).join('')+'</div>' }]);
     setTimeout(()=> $$('#act-body .dx-card').forEach(el=> el.onclick = ()=>{ const t = state.collection.find(x=> x.id === el.dataset.id); $('#act-cancel').click(); if (t) cb(t); }), 30);
     await p;
   }
   function statsOf(name, level){ const f = pvpFighter({ name, level, ev:PVP_ENGINE }, 0); return { hp:f.maxHp, atk:Math.round(f.atk*10), spd:Math.round(f.spd), kit:f.kit, ult:f.ult }; }
-  // ---- the Toto screen: the Toto on its glowing stage in the haunted graveyard ----
+  // ---- the Toto screen (like a dragon's screen in Dragon City): the Toto on its glowing stage on the
+  // left, its card on the right. Feeding: 4 feeds fill the bar and the Toto grows a level.
+  const FEEDS_PER_LEVEL = 4;
+  const feedCost = L=> Math.max(1, Math.ceil(foodToLevel(L)/FEEDS_PER_LEVEL));
   let tvId = null;
   function openToto(id){ const t = state.collection.find(x=> x.id === id); if (!t) return; tvId = id; renderTotoView(); $('#toto-view').classList.add('show'); }
   function openSpecies(name){ tvId = null; renderTotoView(name); $('#toto-view').classList.add('show'); }
@@ -6191,42 +6434,53 @@
     const t = tvId ? state.collection.find(x=> x.id === tvId) : null;
     const name = t ? t.name : speciesOnly, s = SP[name]; if (!s) return;
     const level = t ? t.level : 1, ci = CLASS_INFO[s.cls], ri = ROLE_INFO[s.role], st = statsOf(name, level);
-    const maxL = maxTotoLevel(), cost = t ? foodToLevel(level) : 0;
-    const nextSt = t && level < TOTO_MAX_LEVEL ? statsOf(name, level+1) : null;
-    const top = statsOf(name, TOTO_MAX_LEVEL);
+    const maxL = maxTotoLevel(), fed = t ? Math.min(FEEDS_PER_LEVEL-1, t.fed|0) : 0;
+    const nextSt = level < TOTO_MAX_LEVEL ? statsOf(name, level+1) : null, top = statsOf(name, TOTO_MAX_LEVEL);
     $('#tv-art').innerHTML = '<img src="'+totoImgSrc(name)+'" alt="'+escapeHtml(name)+'">';
-    $('#tv-art').style.setProperty('--glow', ci.glow);
-    $('#tv-lv').innerHTML = '<small>Level</small>'+level;
+    $('#toto-view').style.setProperty('--glow', ci.glow); $('#toto-view').style.setProperty('--cc', ci.color);
+    $('#tv-lv').innerHTML = '<small>LV</small>'+level;
     $('#tv-name').textContent = s.title ? s.title+' Champion' : name;
+    $('#tv-sub').innerHTML = '<span style="color:'+ri.color+'">'+ri.icon+' '+ri.label+'</span> · '+escapeHtml(PVP_ROLE[s.role].label);
     $('#tv-cls').innerHTML = clsBadge(s.cls, true);
-    $('#tv-role').innerHTML = '<span title="'+ri.label+'" style="--rc:'+ri.color+'">'+ri.icon+'</span>';
-    $('#tv-bars').innerHTML = '<div class="tvb"><i>❤️</i><div class="tvb-t"><b style="width:'+(st.hp/top.hp*100).toFixed(1)+'%;background:linear-gradient(#ff5a5a,#c01a1a)"></b><span>HP '+st.hp.toLocaleString()+'</span></div></div>'
-      + '<div class="tvb"><i>⚔️</i><div class="tvb-t"><b style="width:'+(st.atk/top.atk*100).toFixed(1)+'%;background:linear-gradient(#ffb44a,#d2671a)"></b><span>Attack '+st.atk.toLocaleString()+'</span></div></div>'
-      + '<div class="tvb"><i>💨</i><div class="tvb-t"><b style="width:'+(st.spd/top.spd*100).toFixed(1)+'%;background:linear-gradient(#5ab8ff,#1a6fd0)"></b><span>Speed '+st.spd.toLocaleString()+'</span></div></div>';
-    $('#tv-info').innerHTML = '<b>'+ri.icon+' '+ri.label+'</b> · Class '+s.cls+(t && tradeLocked(t) ? ' · can’t be traded' : '')+'<br><small>'+escapeHtml(PVP_ROLE[s.role].label)+'</small>';
-    $('#tv-feed').innerHTML = t ? (level >= TOTO_MAX_LEVEL ? 'MAX LEVEL' : (level >= maxL ? 'Trainer Lv '+Math.ceil((level+1-10)/2)+' needed' : 'FEED <small>'+CUR.food.icon(14)+cost.toLocaleString()+'</small>')) : 'NOT OWNED';
-    $('#tv-feed').disabled = !t || level >= maxL;
-    $('#tv-team').textContent = t ? (state.team.includes(t.id) ? 'IN TEAM ✓' : 'ADD TO TEAM') : 'GET IT';
-    $('#tv-battle').textContent = 'MOVES';
-    $('#tv-more').style.display = t ? '' : 'none';
-    $('#tv-next').innerHTML = nextSt && level < maxL ? 'Next level: ❤️ +'+(nextSt.hp - st.hp).toLocaleString()+' ⚔️ +'+(nextSt.atk - st.atk).toLocaleString() : '';
+    const bar = (ic, label, v, mx, nx, grad)=> '<div class="tvb"><i>'+ic+'</i><div class="tvb-t"><b style="width:'+Math.max(3, v/mx*100).toFixed(1)+'%;background:'+grad+'"></b><span>'+label+' '+v.toLocaleString()+'</span></div>'+(nx != null && t && level < maxL ? '<em>+'+nx.toLocaleString()+'</em>' : '<em></em>')+'</div>';
+    $('#tv-bars').innerHTML = bar('❤️', 'HP', st.hp, top.hp, nextSt && nextSt.hp - st.hp, 'linear-gradient(#ff6a6a,#c01a1a)')
+      + bar('⚔️', 'Attack', st.atk, top.atk, nextSt && nextSt.atk - st.atk, 'linear-gradient(#ffc04a,#d2671a)')
+      + bar('💨', 'Speed', st.spd, top.spd, nextSt && nextSt.spd - st.spd, 'linear-gradient(#6ac4ff,#1a6fd0)');
+    // where it lives and what it earns
+    const den = t ? denOf(t.id) : null, rate = t ? totoCoinRate(t, den || { type: s.cls === 'S+' ? 'den_sp' : s.cls === 'S' ? 'den_s' : s.cls === 'E' ? 'den_e' : 'toto_den', lvl:1 }) : 0;
+    $('#tv-earn').innerHTML = !t ? '<span>Not on your island yet — hatch it from an egg in the Store!</span>'
+      : den ? '<span>🏚️ Lives in your <b>'+BUILDINGS[den.type].name+' (Lv '+den.lvl+')</b></span><span class="tv-rate">'+CUR.coins.icon(16)+'<b>'+totoCoinRate(t, den).toLocaleString()+'</b>/hour</span>'
+      : '<span>🏚️ Not in a Den — move it into one to earn</span><span class="tv-rate off">'+CUR.coins.icon(16)+'<b>'+rate.toLocaleString()+'</b>/hour</span>';
+    // feeding
+    const can = t && level < maxL, cost = t ? feedCost(level) : 0;
+    $('#tv-prog').innerHTML = !t ? '' : level >= TOTO_MAX_LEVEL ? '<div class="tvp-l">Fully grown!</div>'
+      : '<div class="tvp-l">'+(level >= maxL ? 'Raise your trainer level to Lv '+Math.ceil((level+1-10)/2)+' to keep growing' : 'Feed '+FEEDS_PER_LEVEL+' times to reach level '+(level+1))+'</div><div class="tvp">'+Array.from({ length:FEEDS_PER_LEVEL }, (_, k)=> '<i class="'+(k < fed ? 'on' : '')+'"></i>').join('')+'</div>';
+    $('#tv-feed').innerHTML = !t ? 'NOT OWNED' : level >= TOTO_MAX_LEVEL ? 'MAX LEVEL' : 'FEED <small>'+CUR.food.icon(16)+cost.toLocaleString()+'</small>';
+    $('#tv-feed').disabled = !can;
+    const toUp = (FEEDS_PER_LEVEL - fed)*cost;
+    $('#tv-feed10').innerHTML = 'LEVEL UP <small>'+CUR.food.icon(14)+toUp.toLocaleString()+'</small>';
+    $('#tv-feed10').disabled = !can;
+    $('#tv-team').classList.toggle('on', !!(t && state.team.includes(t.id)));
+    $('#tv-team').querySelector('span').textContent = t ? (state.team.includes(t.id) ? 'In team' : 'Add to team') : 'Get it';
+    $('#tv-den').querySelector('span').textContent = den ? 'Den ✓' : 'Den';
+    $('#tv-den').disabled = !t; $('#tv-more').disabled = !t;
   }
   $('#tv-close').onclick = ()=>{ $('#toto-view').classList.remove('show'); if (currentPanel() === 'dex') renderDex(); else renderIsland(); };
   $('#tv-feed').onclick = ()=> feedToto(1);
-  $('#tv-feed').addEventListener('contextmenu', e=>{ e.preventDefault(); feedToto(10); });
-  $('#tv-feed10').onclick = ()=> feedToto(10);
+  $('#tv-feed10').onclick = ()=>{ const t = state.collection.find(x=> x.id === tvId); if (t) feedToto(FEEDS_PER_LEVEL - Math.min(FEEDS_PER_LEVEL-1, t.fed|0)); };
   function feedToto(times){
     const t = state.collection.find(x=> x.id === tvId); if (!t) return;
-    let ups = 0;
+    let feeds = 0, ups = 0;
     for (let k = 0; k < times; k++){
       if (t.level >= maxTotoLevel()) break;
-      const c = foodToLevel(t.level); if (!pay({ food:c })) break;
-      t.level++; ups++;
+      if (!pay({ food:feedCost(t.level) })) break;
+      feeds++; t.fed = (t.fed|0) + 1;
+      if (t.fed >= FEEDS_PER_LEVEL){ t.fed = 0; t.level++; ups++; }
     }
-    if (!ups){ if (t.level >= maxTotoLevel()) showToast(t.level >= TOTO_MAX_LEVEL ? 'This Toto is fully grown!' : 'Raise your trainer level to grow it further.'); else { showToast('Not enough Food — collect it from your Food Farms.'); } return; }
-    hydrateToto(t); markDirty(); saveNow(false); Sound.playCatch();
-    const art = $('#tv-art'); art.classList.remove('grow'); void art.offsetWidth; art.classList.add('grow');
-    showToast('🍖 '+t.name+' is now level '+t.level+'!');
+    if (!feeds){ if (t.level >= maxTotoLevel()) showToast(t.level >= TOTO_MAX_LEVEL ? 'This Toto is fully grown!' : 'Raise your trainer level to grow it further.'); else showToast('Not enough Food — collect it from your Food Farms.'); return; }
+    hydrateToto(t); markDirty(); saveNow(false);
+    const art = $('#tv-art'); art.classList.remove('munch', 'grow'); void art.offsetWidth; art.classList.add(ups ? 'grow' : 'munch');
+    if (ups){ Sound.playVictory(); showToast('⭐ '+t.name+' grew to level '+t.level+'!'); } else Sound.playCatch();
     renderTotoView(); refreshHUD();
   }
   $('#tv-team').onclick = ()=>{
@@ -6235,6 +6489,20 @@
     if (state.team.includes(t.id)){ if (state.team.length <= 1) return; state.team = state.team.filter(x=> x !== t.id); showToast(t.name+' left your team'); }
     else { if (state.team.length >= 4){ pickToto('Swap out which team member?', x=> state.team.includes(x.id), old=>{ state.team[state.team.indexOf(old.id)] = t.id; markDirty(); renderTotoView(); showToast(t.name+' joined your team'); }); return; } state.team.push(t.id); showToast(t.name+' joined your team'); }
     markDirty(); renderTotoView();
+  };
+  // choose which Den it lives in
+  $('#tv-den').onclick = async ()=>{
+    const t = state.collection.find(x=> x.id === tvId); if (!t) return;
+    const cur = denOf(t.id);
+    const dens = state.island.buildings.filter(b=> isDen(b.type) && denFits(b.type, t) && b !== cur);
+    const btns = dens.map(b=> ({ label:(BUILDINGS[b.type].glow ? BUILDINGS[b.type].icon+' ' : '🏚️ ')+BUILDINGS[b.type].name+' Lv '+b.lvl+' · '+(b.totos||[]).length+'/4'+((b.totos||[]).length >= 4 ? ' (full)' : ' · earns '+totoCoinRate(t, b)+'/h'), value:b.id, cls:(b.totos||[]).length >= 4 ? '' : 'good' }));
+    if (cur) btns.push({ label:'Move out of the '+BUILDINGS[cur.type].name, value:'out', cls:'warn' });
+    const special = t.cls === 'S+' ? 'den_sp' : t.cls === 'S' ? 'den_s' : t.cls === 'E' ? 'den_e' : null;
+    if (!btns.length){ showToast('No Den has room for it — build '+(special ? 'an '+BUILDINGS[special].name+' or ' : '')+'a Toto Den on your island.'); return; }
+    const v = await actionSheet('Where should '+t.name+' live?', (cur ? 'Now in your '+BUILDINGS[cur.type].name+'. ' : '')+(special ? 'Class '+t.cls+' Totos earn the most in an '+BUILDINGS[special].name+'.' : 'Totos in a Den earn Coins.'), btns);
+    if (!v) return;
+    if (v === 'out'){ collectQuiet(cur); cur.totos = cur.totos.filter(x=> x !== t.id); markDirty(); saveNow(false); renderIsland(); renderTotoView(); return; }
+    const b = state.island.buildings.find(x=> x.id === v); if (b && moveIntoDen(t, b)){ showToast(t.name+' moved into the '+BUILDINGS[b.type].name); renderTotoView(); }
   };
   $('#tv-battle').onclick = ()=>{ const t = state.collection.find(x=> x.id === tvId); movesSheet([{ name: t ? t.name : (tvSpecies() || 'Wispkin'), level: t ? t.level : 1, ev:PVP_ENGINE }]); };
   function tvSpecies(){ const img = $('#tv-art img'); return img ? img.getAttribute('alt') : null; }
@@ -6399,11 +6667,12 @@
     onlineRegister().then(()=>{ heartbeat(); claimPurchases(); submitScoreOnline(true); });
     if (typeof checkoutRecent === 'function' && checkoutRecent()) watchForPurchase(90);
     if (state.welcome){ state.welcome = false; markDirty(); setTimeout(()=> welcome(migrated), 600); }
+    else if (state.news101){ state.news101 = false; markDirty(); setTimeout(()=> gameDialog({ title:'🏝️ Island update!', html:'<p><b>Coins now come only from Toto Dens.</b> Your Coin Mines became Toto Dens and your team moved in. The stronger the Totos living in a Den, the more Coins it makes.</p><p>New: glowing <b>E Dens</b> (red), <b>S Dens</b> (purple) and <b>S+ Dens</b> (pink) for your best Totos — they earn extra. Tap a Toto and use <b>Den</b> to move it in.</p><p>Your team now roams the island, and you can zoom out to see all of it.</p>', ok:'Cool!', cancel:null }), 700); }
   }
   async function welcome(migrated){
     await gameDialog({ title: migrated ? '🎃 Welcome to the new TotoQuest!' : '🎃 Welcome to TotoQuest!', html:
       (migrated ? '<p>TotoQuest has a brand-new look: your own floating island! Everyone starts fresh with new Totos'+(bal('gems') ? ' — your <b>'+bal('gems').toLocaleString()+' gems</b> are safe' : '')+'.</p>' : '')
-      + '<p>🏝️ <b>Your island:</b> Coin Mines dig up Coins, Food Farms grow Food. Tap a building to collect or upgrade it, and the ＋ spots to build more.</p>'
+      + '<p>🏝️ <b>Your island:</b> Totos living in your <b>Dens</b> earn Coins — the stronger the Toto, the more. Food Farms grow Food. Tap a building to collect or upgrade it, the ＋ spots to build more, and pinch or use ＋/− to zoom.</p>'
       + '<p>🍖 <b>Food levels up your Totos</b> (tap one to see it). Every Toto starts at level 1 and grows to 100. Classes go D, C, B, A, E, S, S+.</p>'
       + '<p>⚔️ <b>Campaign:</b> Story 1 to 20, 5 stages each, 4 waves of 4 vs 4. On your turn pick a Toto, then ATTACK or an ability, then who to hit.</p>'
       + '<p>🛍️ <b>Store:</b> hatch eggs for new Totos with Gems, buy Coins, and pick up cheap Totos with Coins.</p>'
@@ -6434,7 +6703,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v101';
+window.TQ_APP_VERSION = 'v102';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
