@@ -163,3 +163,6 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 
 ## v102: sideways, Dens make the Coins
 - Client only (no server changes). The game is landscape (manifest + TWA `orientation: landscape`; an upright phone browser turns the whole game sideways). Coin Mines are gone: Toto / E / S / S+ Dens are the only Coin source (rate from the residents' power).
+
+## v104
+- Client only. Build anywhere on the grass inside the path (buildings store `x, y`), cleaner island art, special Dens earn 1.5× / 2× / 2.5×, Toni is Class S+, walking transitions between Campaign waves, a reward Toto for each story's first clear, a bright PvP arena, and computer rivals pick different Totos of your classes.

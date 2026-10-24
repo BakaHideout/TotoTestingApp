@@ -2416,6 +2416,49 @@
   .isb-lv { font-size:11px; bottom:-12px; }
   .isl-toto { width:82px; height:88px; }
   #battle { background-size:cover; background-position:center; }
+  /* ---- building anywhere on the grass ---- */
+  .isl-lawn { position:absolute; left:0; top:0; pointer-events:none; z-index:2; }
+  .isl-lawn polygon { fill:rgba(255,255,255,.12); stroke:#fff; stroke-width:3; stroke-dasharray:12 9; animation:lawnDash 1.2s linear infinite; }
+  @keyframes lawnDash { to { stroke-dashoffset:-42; } }
+  .isb.ghost { opacity:.82; pointer-events:none; }
+  .isb.ghost .isb-ring { position:absolute; left:50%; bottom:-6px; width:170px; height:62px; transform:translateX(-50%); border-radius:50%; border:4px solid #5aff7a; background:rgba(90,255,122,.25); box-shadow:0 0 18px #5aff7a; animation:ghostRing .9s ease-in-out infinite; }
+  .isb.ghost.bad .isb-ring { border-color:#ff4a3a; background:rgba(255,74,58,.28); box-shadow:0 0 18px #ff4a3a; }
+  .isb.ghost.bad .isb-art { filter:sepia(1) saturate(4) hue-rotate(-40deg) brightness(.8); }
+  @keyframes ghostRing { 50%{ transform:translateX(-50%) scale(1.08); } }
+  .isl-place { position:absolute; left:50%; top:calc(52px + env(safe-area-inset-top, 0px)); transform:translateX(-50%); z-index:45; display:none; align-items:center; gap:8px; padding:7px 8px 7px 14px; border-radius:18px; background:linear-gradient(rgba(58,30,110,.95), rgba(26,12,52,.95)); border:3px solid #ffcf5a; box-shadow:0 8px 20px rgba(0,0,0,.5); color:#fff; max-width:94%; }
+  .isl-place.show { display:flex; }
+  .isl-place-t { font:800 13px/1.2 system-ui; } .isl-place-t small { display:block; font:700 10.5px/1.3 system-ui; color:#e3d4ff; }
+  .isl-place-t .cost { color:#ffd36b; }
+  .isl-place button { width:44px; height:44px; flex:none; border-radius:12px; border:3px solid #fff; font:900 20px/1 system-ui; color:#fff; cursor:pointer; }
+  #isl-place-no { background:linear-gradient(#ff6a5a, #c0201a); } #isl-place-ok { background:linear-gradient(#6fe06a, #239a2a); }
+  #isl-place-ok:disabled { filter:grayscale(1); opacity:.55; }
+  .dc-nav .nav-b[data-go="build"] { background:radial-gradient(circle at 40% 30%, #6fd06a, #1f7a2a 70%); }
+  /* level badge: a gold-ringed medal with a star on top, so "LV" and the number always show */
+  .tv-lv { position:relative; width:56px !important; height:56px !important; clip-path:none !important; border-radius:50%; background:radial-gradient(circle at 40% 30%, #b98bff, #5a1ec0 75%) !important; border:3px solid #ffd36b; box-shadow:0 0 12px rgba(255,211,107,.6), inset 0 -4px 0 rgba(0,0,0,.25); font:900 21px/1 system-ui !important; text-shadow:0 2px 2px rgba(0,0,0,.55); padding-top:4px; }
+  .tv-lv small { font:900 9px/1 system-ui !important; letter-spacing:.08em; color:#ffe9a8; margin-bottom:1px; }
+  .tv-lv::before { content:'★'; position:absolute; top:-13px; left:50%; transform:translateX(-50%); font-size:18px; line-height:1; color:#ffd34d; text-shadow:0 0 6px #ffb627, 0 1px 1px #7a3a00; }
+  .tv-banner { margin-top:8px; }
+  /* PvP: a bright, sunny arena */
+  .bt.bright .bt-vig { background:radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 60%, rgba(40,10,60,.25) 100%), linear-gradient(rgba(20,10,40,.28), rgba(0,0,0,0) 16%, rgba(0,0,0,0) 74%, rgba(20,10,40,.3)); }
+  .bt.bright .bt-bg { filter:saturate(1.1); }
+  .bt.bright { background-image:none !important; background:linear-gradient(#ffd9f0, #b9a2ff) !important; }
+  .bt.bright .bt-top { background:linear-gradient(rgba(90,40,150,.75), rgba(90,40,150,0)); }
+  .bt.bright .bt-bar { background:linear-gradient(#6a3ab8, #3a1a78); border-top-color:#ffd36b; }
+  .pvp-panel .panel-body { background:linear-gradient(rgba(120,70,200,.78), rgba(60,90,190,.82)), url(assets/stages/arena_day.jpg) center/cover !important; }
+  .pvp-panel .pv-rank, .pvp-panel .pv-pick, .pvp-panel .pv-rules, .pvp-panel .pv-lob { background:rgba(30,15,60,.55) !important; }
+  /* walking on to the next wave */
+  .bt-bg { background-size:auto 114% !important; background-position:var(--bgx, 50%) 50% !important; transition:background-position 2.6s ease-in-out; }
+  .bt-f.op { transition:transform 1.6s cubic-bezier(.2,.7,.3,1), opacity .5s; }
+  .bt-f.op.enter { transform:translate(calc(-50% + 420px), -100%); opacity:0; }
+  .bt-f.gone { opacity:0 !important; transition:opacity .5s; }
+  .bt-stage.walking .bt-f:not(.ko) .bt-spr { animation:btWalk .3s ease-in-out infinite !important; }
+  .bt-stage.walking .bt-f.me:nth-child(2n) .bt-spr { animation-delay:-.15s !important; }
+  @keyframes btWalk { 0%,100%{ transform:translateY(0) rotate(-2deg); } 50%{ transform:translateY(-10px) rotate(2deg); } }
+  .bt-stage.walking .bt-f.me .bt-shadow { animation:btStepShadow .3s ease-in-out infinite; }
+  @keyframes btStepShadow { 50%{ transform:translateX(-50%) scale(.8); opacity:.6; } }
+  .btr-prize { display:flex; align-items:center; gap:10px; justify-content:center; margin:8px auto; padding:8px 12px; border-radius:14px; background:rgba(255,211,77,.12); border:2px solid #ffd34d; max-width:340px; text-align:left; }
+  .btr-prize-sp { width:64px; height:64px; } .btr-prize-sp img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 10px var(--glow)); }
+  .btr-prize small { display:block; font:800 10px/1.3 system-ui; color:#ffe9a8; } .btr-prize b { font:900 15px system-ui; }
 </style>
 <div id="toto-root">
 
@@ -2510,12 +2553,14 @@
       </div>
     </div>
     <nav class="dc-nav">
+      <button class="nav-b" data-go="build"><span>🔨</span>Build</button>
       <button class="nav-b" data-go="campaign"><span>⚔️</span>Campaign</button>
       <button class="nav-b" data-go="pvp"><span>🏟️</span>PvP</button>
       <button class="nav-b" data-go="dex"><span>📖</span>Totos</button>
       <button class="nav-b big" data-go="store"><span>🛍️</span>Store</button>
       <button class="nav-b" data-go="more"><span>☰</span>More<b class="qm-badge" id="friends-badge"></b></button>
     </nav>
+    <div class="isl-place" id="isl-place"><div class="isl-place-t" id="isl-place-t"></div><button id="isl-place-no" aria-label="Cancel">✕</button><button id="isl-place-ok" aria-label="Confirm">✔</button></div>
     <div class="isl-zoom"><button id="isl-zin" aria-label="Zoom in">＋</button><button id="isl-zout" aria-label="Zoom out">－</button><button id="isl-fit" aria-label="Whole island">⤢</button></div>
 
     <div class="panel-screen dark-panel" data-panel="campaign">
@@ -2992,7 +3037,7 @@
   addSpecies('Pumpkin Golem', 'tanker', 'A', 'legendary/pumpkin_golem');
   addSpecies('Ember Fox', 'attacker', 'A', 'legendary/ember_fox');
   addSpecies('Void Guardian', 'tanker', 'E', 'legendary/void_guardian');
-  addSpecies('Toni', 'supporter', 'E', 'eternal/toni_scarecrow');
+  addSpecies('Toni', 'supporter', 'S+', 'eternal/toni_scarecrow');
   addSpecies('Harvest Warden', 'healer', 'S', 'eternal/harvest_warden');
   addSpecies('Vesper Nightshade', 'attacker', 'S', 'eternal/vesper_nightshade');
   addSpecies('Max', 'tanker', 'S+', 'eternal/max_front', { side:'eternal/max_side', mod:{ hp:1.1, atk:1, armor:0.08 } });
@@ -3088,6 +3133,29 @@
   // ---------------- ISLAND BUILDINGS ----------------
   // Slots are spots on the island picture (in its 1408x768 pixels) where a building can stand.
   const ISLAND_W = 1408, ISLAND_H = 768;
+  // You can build anywhere on the grass inside the stone path (this outline, in island pixels), as long
+  // as buildings keep a little distance from each other.
+  const ISLAND_LAWN = [[430,450],[560,335],[660,268],[760,262],[860,300],[900,362],[1060,372],[1105,430],[1060,480],[920,575],[700,588],[560,555],[430,480]];
+  const BUILD_GAP = 140, LAWN_MARGIN = 32;
+  function lawnInside(x, y){ let c = false; for (let i = 0, j = ISLAND_LAWN.length-1; i < ISLAND_LAWN.length; j = i++){ const [x1, y1] = ISLAND_LAWN[i], [x2, y2] = ISLAND_LAWN[j]; if ((y1 > y) !== (y2 > y) && x < (x2-x1)*(y-y1)/(y2-y1) + x1) c = !c; } return c; }
+  function lawnEdgeDist(x, y){ let m = 1e9; for (let i = 0; i < ISLAND_LAWN.length; i++){ const [x1, y1] = ISLAND_LAWN[i], [x2, y2] = ISLAND_LAWN[(i+1) % ISLAND_LAWN.length]; const dx = x2-x1, dy = y2-y1, t = Math.max(0, Math.min(1, ((x-x1)*dx + (y-y1)*dy)/(dx*dx + dy*dy))); m = Math.min(m, Math.hypot(x - (x1 + t*dx), y - (y1 + t*dy))); } return m; }
+  // distance on the ground (the island is drawn at an angle, so up/down counts double)
+  const groundDist = (ax, ay, bx, by)=> Math.hypot(ax - bx, (ay - by)*2);
+  function spotProblem(x, y, ignoreId){
+    if (!lawnInside(x, y) || lawnEdgeDist(x, y) < LAWN_MARGIN) return 'Build on the grass inside the stone path.';
+    const near = (state.island.buildings || []).find(b=> b.id !== ignoreId && b.x != null && groundDist(x, y, b.x, b.y) < BUILD_GAP);
+    return near ? 'Too close to your '+BUILDINGS[near.type].name+'.' : '';
+  }
+  function findFreeSpot(ignoreId){
+    let best = null;
+    for (let y = 270; y < 600; y += 10) for (let x = 430; x < 1110; x += 10){
+      if (spotProblem(x, y, ignoreId)) continue;
+      const d = Math.hypot(x - 760, (y - 430)*1.6);
+      if (!best || d < best.d) best = { x, y, d };
+    }
+    return best;
+  }
+  // spots from before free building (old saves): used once to give each building a place
   const ISLAND_SLOTS = [ [640,292], [790,288], [540,348], [690,350], [860,352], [600,412], [760,414], [920,414], [505,472], [870,478], [1012,452], [1150,522] ];
   // Coins come only from Toto Dens: every Toto living in one earns Coins, the stronger the Toto
   // (class and level = its power) the more. The E, S and S+ Dens only take Totos of that class and
@@ -3098,12 +3166,12 @@
   const BUILDINGS = {
     toto_den:  { name:'Toto Den', icon:'🏚️', makes:'coins', cls:null, mult:1, unlock:1, desc:'Home for 4 of your Totos of any class. They earn Coins — the stronger they are, the more.',
                  build:{ coins:300 }, rate:(L, d)=> denRateOf(L, d, 1), cap:(L, d)=> Math.max(60, denRateOf(L, d, 1)*8) },
-    den_e:     { name:'E Den', icon:'🔴', makes:'coins', cls:'E', mult:1.25, unlock:8, glow:'#ff2a2a', desc:'A glowing red Den for Class E Totos only. Earns 25% more Coins.',
-                 build:{ coins:2500 }, rate:(L, d)=> denRateOf(L, d, 1.25), cap:(L, d)=> Math.max(120, denRateOf(L, d, 1.25)*8) },
-    den_s:     { name:'S Den', icon:'🟣', makes:'coins', cls:'S', mult:1.5, unlock:14, glow:'#b44aff', desc:'A glowing purple Den for Class S Totos only. Earns 50% more Coins.',
-                 build:{ coins:6000 }, rate:(L, d)=> denRateOf(L, d, 1.5), cap:(L, d)=> Math.max(200, denRateOf(L, d, 1.5)*8) },
-    den_sp:    { name:'S+ Den', icon:'💗', makes:'coins', cls:'S+', mult:1.8, unlock:20, glow:'#ff4fd0', desc:'A dazzling pink Den for Class S+ Totos only. Earns 80% more Coins.',
-                 build:{ coins:15000 }, rate:(L, d)=> denRateOf(L, d, 1.8), cap:(L, d)=> Math.max(300, denRateOf(L, d, 1.8)*8) },
+    den_e:     { name:'E Den', icon:'🔴', makes:'coins', cls:'E', mult:1.5, unlock:8, glow:'#ff2a2a', desc:'A glowing red Den for Class E Totos only. Coins come in 1.5× faster than in a Toto Den.',
+                 build:{ coins:2500 }, rate:(L, d)=> denRateOf(L, d, 1.5), cap:(L, d)=> Math.max(120, denRateOf(L, d, 1.5)*8) },
+    den_s:     { name:'S Den', icon:'🟣', makes:'coins', cls:'S', mult:2, unlock:14, glow:'#b44aff', desc:'A glowing purple Den for Class S Totos only. Coins come in 2× faster than in a Toto Den.',
+                 build:{ coins:6000 }, rate:(L, d)=> denRateOf(L, d, 2), cap:(L, d)=> Math.max(200, denRateOf(L, d, 2)*8) },
+    den_sp:    { name:'S+ Den', icon:'💗', makes:'coins', cls:'S+', mult:2.5, unlock:20, glow:'#ff4fd0', desc:'A dazzling pink Den for Class S+ Totos only. Coins come in 2.5× faster than in a Toto Den.',
+                 build:{ coins:15000 }, rate:(L, d)=> denRateOf(L, d, 2.5), cap:(L, d)=> Math.max(300, denRateOf(L, d, 2.5)*8) },
     food_farm: { name:'Food Farm', icon:'🎃', makes:'food', unlock:1, desc:'Grows Food over time. Feed it to your Totos to level them up.',
                  build:{ coins:120 }, rate:L=> Math.round(90*L*Math.pow(1.22, L-1)), cap:L=> Math.round(90*L*Math.pow(1.22, L-1)*6) }
   };
@@ -3113,9 +3181,9 @@
   function buildingLimit(type){
     const L = playerLevel(), def = BUILDINGS[type];
     if (L < (def.unlock || 1)) return 0;
-    if (type === 'toto_den') return Math.min(6, 1 + Math.floor(L/6));
-    if (isDen(type)) return L >= def.unlock + 15 ? 2 : 1;
-    return Math.min(4, 1 + Math.floor(L/10));
+    if (type === 'toto_den') return Math.min(4, 1 + Math.floor(L/8));
+    if (isDen(type)) return 1;
+    return Math.min(3, 1 + Math.floor(L/12));
   }
   const denOf = id=> state.island.buildings.find(b=> isDen(b.type) && (b.totos||[]).includes(id)) || null;
   // can this Toto live in this kind of Den?
@@ -3212,7 +3280,7 @@
 
   // ---------------- A SAVE FROM BEFORE v100 -> the island game ----------------
   // Everyone starts fresh with new Totos. Kept: the account, gems, season results and any earned Champions.
-  function freshIsland(){ return { buildings:[ { id:uid(), type:'toto_den', slot:0, lvl:1, t:Date.now(), totos:[] }, { id:uid(), type:'food_farm', slot:3, lvl:1, t:Date.now() } ] }; }
+  function freshIsland(){ return { buildings:[ { id:uid(), type:'toto_den', x:660, y:420, lvl:1, t:Date.now(), totos:[] }, { id:uid(), type:'food_farm', x:860, y:420, lvl:1, t:Date.now() } ] }; }
   // your starting team moves into your first Den so it earns Coins straight away
   function starterDen(){ const d = state.island.buildings.find(b=> b.type === 'toto_den'); if (d) d.totos = state.team.slice(0, 4); }
   function migrateSave(){
@@ -3264,6 +3332,17 @@
     if (!state.island || !Array.isArray(state.island.buildings)) state.island = freshIsland();
     const seen = new Set();
     state.island.buildings.forEach(b=>{ b.lvl = Math.max(1, Math.min(BUILDING_MAX_LEVEL, b.lvl|0 || 1)); if (!b.t) b.t = Date.now(); if (!BUILDINGS[b.type]) b.type = 'toto_den'; if (isDen(b.type) && !Array.isArray(b.totos)) b.totos = []; if (isDen(b.type)){ b.totos = b.totos.filter(id=>{ const t = state.collection.find(x=> x.id === id); if (!t || seen.has(id) || !denFits(b.type, t)) return false; seen.add(id); return true; }).slice(0, 4); } });
+    // v104: buildings stand anywhere on the grass (x, y) instead of on fixed spots
+    state.island.buildings.forEach(b=>{ if (!(Number.isFinite(b.x) && Number.isFinite(b.y))){ b.x = null; b.y = null; } });
+    state.island.buildings.forEach(b=>{
+      if (b.x != null) return;
+      const old = ISLAND_SLOTS[b.slot];
+      const near = old ? [[old[0], old[1]], [old[0]*0.9 + 76, old[1]]] : [];
+      const ok = near.find(p=> !spotProblem(p[0], p[1], b.id));
+      const spot = ok ? { x:ok[0], y:ok[1] } : findFreeSpot(b.id);
+      if (spot){ b.x = spot.x; b.y = spot.y; } else { b.x = 760; b.y = 430; }
+      delete b.slot;
+    });
     if (!state.campaign || typeof state.campaign.cleared !== 'object') state.campaign = { cleared:{} };
     state.team = (Array.isArray(state.team) ? state.team : []).filter(id=> state.collection.some(t=> t.id === id)).slice(0, 4);
     if (state.team.length < 4) state.collection.slice().sort((a,b)=> b.cp - a.cp).forEach(t=>{ if (state.team.length < 4 && !state.team.includes(t.id)) state.team.push(t.id); });
@@ -5473,6 +5552,8 @@
       return { name: sp.name, level: Math.max(1, lvl - (i === 3 ? 1 : 0)), m, ev: PVP_ENGINE };
     });
   }
+  // the reward Toto for finishing a story: the best class that story's rivals come from
+  function storyPrizeClass(s){ const c = STORY_CLASSES[s-1]; return c[c.length-1]; }
   function stageReward(s, st, first){
     const r = { coins: Math.round(70*Math.pow(s, 1.35) + 25*st), food: Math.round(120*Math.pow(s, 1.4) + 40*st), xp: Math.round(45*Math.pow(s, 1.25) + 12*st) };
     if (!first){ r.coins = Math.round(r.coins*0.4); r.food = Math.round(r.food*0.4); r.xp = Math.round(r.xp*0.5); }
@@ -5483,7 +5564,7 @@
   function renderCampaign(){
     const box = $('#camp-body'); if (!box) return;
     const open = Math.max(1, Math.min(STORY_COUNT, state.campaignStory || firstOpenStory()));
-    let html = '<div class="cp-head"><b>Campaign</b><small>Beat all 5 stages of a story to unlock the next. Each stage is 4 waves of 4 vs 4 — your Totos keep their health between waves.</small></div><div class="cp-stories">';
+    let html = '<div class="cp-head"><b>Campaign</b><small>Beat all 5 stages of a story to unlock the next and win a reward Toto of that story’s class. Each stage is 4 waves of 4 vs 4 — your Totos keep their health between waves.</small></div><div class="cp-stories">';
     for (let s = 1; s <= STORY_COUNT; s++){
       const un = storyUnlocked(s), stars = storyStars(s), cls = STORY_CLASSES[s-1];
       html += '<div class="cp-story'+(un ? '' : ' locked')+(s === open ? ' open' : '')+'" data-s="'+s+'" style="--bg:url(assets/stages/'+STAGE_BGS[s-1]+'.jpg)">'
@@ -5516,7 +5597,7 @@
     const html = '<div class="sp-prep"><div class="spp-bg" style="background-image:url(assets/stages/'+STAGE_BGS[s-1]+'.jpg)"><b>Story '+s+' · Stage '+st+'</b><small>'+STORY_NAMES[s-1]+' · 4 waves · Rival level '+enemyLevel(s, st, 1)+'–'+enemyLevel(s, st, WAVE_COUNT)+'</small></div>'
       + '<div class="spp-h">First wave</div><div class="spp-row">'+foes.map(f=> miniToto(f.name, f.level)).join('')+'</div>'
       + '<div class="spp-h">Your team <button class="spp-edit" id="spp-edit">Change</button></div><div class="spp-row">'+team.map(t=> miniToto(t.name, t.level)).join('')+'</div>'
-      + '<div class="spp-h">'+(first ? 'First-clear rewards' : 'Rewards')+'</div><div class="spp-rw">'+rewardHtml(rw)+'</div></div>';
+      + '<div class="spp-h">'+(first ? 'First-clear rewards' : 'Rewards')+'</div><div class="spp-rw">'+rewardHtml(rw)+(first && st === STAGE_COUNT ? '<span class="rw">🎁 A Class '+storyPrizeClass(s)+' Toto</span>' : '')+'</div></div>';
     const p = actionSheet('', '', [{ html }, { label:'⚔️ Battle!', value:'go', cls:'good' }]);
     setTimeout(()=>{ const e = $('#spp-edit'); if (e) e.onclick = ()=>{ $('#act-cancel').click(); openTeamPicker(()=> openStagePrep(s, st)); }; }, 30);
     const v = await p;
@@ -5794,14 +5875,23 @@
     $('#bt-result').classList.remove('show'); $('#bt-result').innerHTML = ''; $('#bt-fxl').innerHTML = ''; btLog('');
     $('#bt-auto').classList.toggle('on', B.auto); $('#bt-speed').innerHTML = '▶▶<small>x'+B.speed+'</small>';
     $('#battle').classList.add('show'); document.documentElement.classList.add('tq-busy-battle');
+    $('#battle').classList.toggle('bright', B.mode !== 'campaign');
     btBuildField(); btLayout(); btSetSprites(); btRefresh();
+    $('#bt-bg').style.setProperty('--bgx', info.bgx || '50%');
+    // the Campaign: your team walks up and the rivals step out to meet them
+    if (info.walkIn){
+      $$('.bt-f.op').forEach(el=> el.classList.add('enter'));
+      $('#bt-stage').classList.add('walking');
+      setTimeout(()=> $$('.bt-f.op').forEach(el=> el.classList.remove('enter')), 60);
+      setTimeout(()=> $('#bt-stage').classList.remove('walking'), 1700);
+    }
     $('#bt-turn').innerHTML = '<b>'+(info.startText || 'Battle start!')+'</b>';
     $('#battle').classList.add('waiting');
     clearInterval(B.tick); B.tick = setInterval(btTick, 500);
     clearInterval(B.poll); if (B.mode === 'pvp') B.poll = setInterval(btPollNow, 1200);
     const op = B.E.other(B.side), firstMe = B.E.first === B.side;
     setTimeout(()=>{ if (!B.finished) btLog(firstMe ? 'Your Totos are faster — you go first!' : (info.names[op] || 'Your rival')+'’s Totos are faster — they go first!'); }, 300);
-    setTimeout(()=>{ if (!B.finished){ B.ready = true; B.turnStart = Date.now(); btNext(); if (B.mode === 'pvp') btPollNow(); } }, 1400);
+    setTimeout(()=>{ if (!B.finished){ B.ready = true; B.turnStart = Date.now(); btNext(); if (B.mode === 'pvp') btPollNow(); } }, info.walkIn ? 2000 : 1400);
   }
   function btClose(){
     clearInterval(B.tick); clearInterval(B.poll); clearTimeout(B.botTimer);
@@ -5834,13 +5924,14 @@
     closeAllPanels();
     campaignWave();
   }
+  const waveBgx = w=> Math.round((w - 1)/(WAVE_COUNT - 1)*100)+'%';
   function campaignWave(){
     const team = myTeam().map(t=> ({ name:t.name, level:t.level, ev:PVP_ENGINE }));
     btOpen({ mode:'campaign', mySide:'p1', seed: nameHash('c'+Camp.s+'.'+Camp.st+'.'+Camp.wave+'.'+Date.now()),
       snaps:{ p1:team, p2:waveTeam(Camp.s, Camp.st, Camp.wave) }, opts:{ campaign:true, hp1: Camp.hp },
       names:{ p1:state.username || 'You', p2:'Rivals' }, story:Camp.s,
       bg: STAGE_BGS[Camp.s-1], title:'STORY '+Camp.s+' · STAGE '+Camp.st+(Camp.st === STAGE_COUNT ? ' (BOSS)' : ''), sub: STORY_NAMES[Camp.s-1]+' · Wave '+Camp.wave+'/'+WAVE_COUNT,
-      startText: 'Wave '+Camp.wave+' of '+WAVE_COUNT });
+      startText: 'Wave '+Camp.wave+' of '+WAVE_COUNT, walkIn:true, bgx: waveBgx(Camp.wave) });
   }
   async function campaignWaveOver(cancelled){
     B.finished = true; clearInterval(B.tick); clearTimeout(B.botTimer);
@@ -5851,9 +5942,16 @@
       // between waves your Totos catch their breath: 15% of their health back (knocked-out ones stay down)
       Camp.hp = mine.map(f=> f.hp <= 0 ? 0 : Math.min(f.maxHp, Math.round(f.hp + f.maxHp*0.15)));
       Sound.playCatch();
-      $('#bt-turn').innerHTML = '<b>Wave '+Camp.wave+' cleared!</b><small>Next wave coming…</small>';
-      await new Promise(r=> setTimeout(r, 1300 / B.speed));
+      $('#bt-turn').innerHTML = '<b>Wave '+Camp.wave+' cleared!</b><small>Your team moves on…</small>';
+      await new Promise(r=> setTimeout(r, 900 / B.speed));
+      // about ten steps further into the stage: the defeated rivals fade away and the scenery slides past
+      $$('.bt-f.op').forEach(el=> el.classList.add('gone'));
+      $('#bt-stage').classList.add('walking');
       Camp.wave++;
+      $('#bt-bg').style.setProperty('--bgx', waveBgx(Camp.wave));
+      btLog(''); $('#bt-turn').innerHTML = '<b>Onward!</b><small>Wave '+Camp.wave+' of '+WAVE_COUNT+' is up ahead…</small>';
+      await new Promise(r=> setTimeout(r, 2600));
+      if (!$('#battle').classList.contains('show')) return;
       campaignWave();
       return;
     }
@@ -5867,10 +5965,14 @@
       state.campaign.cleared[key] = Math.max(stars, state.campaign.cleared[key]|0);
       give({ food:rw.food||0, coins:rw.coins||0, gems:rw.gems||0 });
       const storyDone = first && Camp.st === STAGE_COUNT;
+      // finishing a story for the first time: a reward Toto of that story's class
+      let prize = null;
+      if (storyDone){ const pc = storyPrizeClass(Camp.s), pool = POOLS[pc]; const sp = pool[Math.floor(Math.random()*pool.length)]; if (sp) prize = addToto(sp.name, enemyLevel(Camp.s, 1, 1)); }
       markDirty(); saveNow(false);
       html = '<div class="btr win"><div class="btr-t">VICTORY!</div><div class="btr-stars">'+[1,2,3].map(k=> '<i class="'+(k <= stars ? 'on' : '')+'" style="animation-delay:'+(k*0.18)+'s">★</i>').join('')+'</div>'
         + '<div class="btr-s">Story '+Camp.s+' · Stage '+Camp.st+' cleared'+(stars < 3 ? ' · finish without a knock-out for 3 stars' : '')+'</div>'
         + '<div class="btr-rw">'+rewardHtml(rw)+'</div>'
+        + (prize ? '<div class="btr-prize"><div class="btr-prize-sp" style="--glow:'+CLASS_INFO[prize.cls].glow+'">'+spriteFor(prize.name)+'</div><div><small>STORY REWARD</small><b>'+escapeHtml(prize.name)+'</b> '+clsBadge(prize.cls)+'<small>Lv '+prize.level+' · joined your Totos!</small></div></div>' : '')
         + (storyDone && Camp.s < STORY_COUNT ? '<div class="btr-new">🔓 Story '+(Camp.s+1)+': '+STORY_NAMES[Camp.s]+' unlocked!</div>' : '')
         + '<div class="btr-btns"><button class="again" id="btr-next">'+(Camp.st < STAGE_COUNT ? '▶ Next stage' : (Camp.s < STORY_COUNT ? '▶ Next story' : '🏆 All done!'))+'</button><button class="back" id="btr-back">Back</button></div></div>';
       setTimeout(()=> addXp(rw.xp), 300);
@@ -5994,15 +6096,22 @@
   $('#pv-cancel').onclick = ()=>{ PVP.searching = false; $('#pv-search').classList.remove('show'); $('#pv-find').style.display = ''; PVP.lobbyKey = ''; pvpPoll(); };
   // ---- computer rivals: a team of the same classes and roles, levelled to about the same power ----
   const BOT_NAMES = ['Luna','Aria','Rowan','Ezra','Willow','Jasper','Ivy','Felix','Hazel','Milo','Nova','Remy','Sage','Thorne','Wren','Ember','Corvin','Maeve','Silas','Juniper','Poppy','Grimm','Velvet','Onyx'];
+  // A computer rival's team: for each of your Totos, a different Toto of the same class (same role when
+  // possible), levelled so its power matches yours. No repeats; if a class has too few Totos the rival
+  // borrows from the class just below and levels it up to the same power.
   function pvpMakeBot(mySnaps){
-    const R = Math.random;
-    const team = pvpTeamOf(mySnaps).map(s=>{
-      const cls = clsOf(s.name), role = roleOf(s.name);
-      let pool = POOLS[cls].filter(sp=> sp.role === role); if (!pool.length) pool = POOLS[cls].length ? POOLS[cls] : POOLS.D;
-      const sp = pool[Math.floor(R()*pool.length)];
-      const target = totoPower(s.name, s.level) * (0.97 + R()*0.08);
+    const R = Math.random, used = new Set(), team = [];
+    pvpTeamOf(mySnaps).forEach(s=>{
+      const cls = clsOf(s.name), role = roleOf(s.name), ci = CLASS_IDX[cls];
+      const fresh = list=> list.filter(sp=> !used.has(sp.name));
+      let cands = fresh(POOLS[cls].filter(sp=> sp.role === role));
+      if (!cands.length) cands = fresh(POOLS[cls]);
+      for (let k = ci - 1; !cands.length && k >= 0; k--){ const c2 = CLASSES[k]; cands = fresh(POOLS[c2].filter(sp=> sp.role === role)); if (!cands.length) cands = fresh(POOLS[c2]); }
+      if (!cands.length) cands = POOLS[cls].length ? POOLS[cls] : POOLS.D;
+      const sp = cands[Math.floor(R()*cands.length)]; used.add(sp.name);
+      const target = totoPower(s.name, s.level) * (0.96 + R()*0.08);
       let level = TOTO_MAX_LEVEL; for (let L = 1; L <= TOTO_MAX_LEVEL; L++){ if (totoPower(sp.name, L) >= target){ level = L; break; } }
-      return { name:sp.name, level, ev:PVP_ENGINE };
+      team.push({ name:sp.name, level, ev:PVP_ENGINE });
     });
     const rp = Math.max(0, (Social.rp|0) + Math.round((R()-0.5)*120));
     return { name: BOT_NAMES[Math.floor(R()*BOT_NAMES.length)], toto:team, rp };
@@ -6023,7 +6132,7 @@
   }
   function pvpStart(info){
     PVP.inArena = true;
-    const bgs = ['moonlit_village','blood_moon','amethyst_night','shadow_realm','ember_fields','frost_hollow'];
+    const bgs = ['arena_day','arena_dawn'];
     info.bg = bgs[(info.seed>>>0) % bgs.length];
     info.title = 'PVP ARENA · RANKED 4v4'; info.sub = (info.mode === 'bot' ? 'vs computer · ' : '') + seasonLabel(Social.season).split(' · ')[0];
     btOpen(info);
@@ -6130,7 +6239,7 @@
   }
   // older code opens panels by this name ('map' = back to the island)
   function openGamePanel(name){ if (!name || name === 'map' || name === 'island') closeAllPanels(); else openPanel(name); }
-  $$('.nav-b').forEach(b=> b.onclick = ()=>{ const g = b.dataset.go; if (g === 'island') { closeAllPanels(); renderIsland(); } else if (g === 'more') openMore(); else openPanel(g); });
+  $$('.nav-b').forEach(b=> b.onclick = ()=>{ const g = b.dataset.go; if (g === 'island') { closeAllPanels(); renderIsland(); } else if (g === 'more') openMore(); else if (g === 'build') openBuildMenu(); else { if (Isl.place){ Isl.place = null; renderIsland(); } openPanel(g); } });
   $$('[data-close]').forEach(x=> x.onclick = ()=>{ closeAllPanels(); renderIsland(); });
   async function openMore(){
     const v = await actionSheet('More', '', [
@@ -6231,6 +6340,7 @@
     });
     const up = e=>{ Isl.pts.delete(e.pointerId); if (Isl.pts.size < 2) Isl.pinch = null; if (!Isl.pts.size) setTimeout(()=>{ if (!Isl.pts.size) Isl.drag = null; }, 0); };
     window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    v.addEventListener('click', e=>{ if (!Isl.place || isDragging()) return; const p = rootXY(e); placeAt((p.x + Isl.x)/Isl.s, (p.y + Isl.y)/Isl.s); });
     v.addEventListener('wheel', e=>{ e.preventDefault(); const p = rootXY(e); islandZoomAt(Isl.s * (e.deltaY < 0 ? 1.12 : 1/1.12), p.x, p.y); }, { passive:false });
     window.addEventListener('resize', ()=>{ if ($('#island-view').offsetParent) islandApply(true); });
     const zb = (id, f)=>{ const b = $('#'+id); if (b) b.onclick = f; };
@@ -6272,10 +6382,11 @@
     if (soft && now - Isl.lastRender < 900) return;
     Isl.lastRender = now;
     if (!Isl.s) islandCenter();
-    const used = new Set(state.island.buildings.map(b=> b.slot));
     let html = '';
+    if (Isl.place) html += '<svg class="isl-lawn" viewBox="0 0 '+ISLAND_W+' '+ISLAND_H+'" width="'+ISLAND_W+'" height="'+ISLAND_H+'"><polygon points="'+ISLAND_LAWN.map(p=> p.join(',')).join(' ')+'"/></svg>';
     state.island.buildings.forEach(b=>{
-      const p = ISLAND_SLOTS[b.slot] || ISLAND_SLOTS[0], def = BUILDINGS[b.type], stored = bStored(b, now), full = stored >= bCap(b);
+      if (Isl.place && Isl.place.moveId === b.id) return;
+      const p = [b.x, b.y], def = BUILDINGS[b.type], stored = bStored(b, now), full = stored >= bCap(b);
       const den = isDen(b.type), glow = def.glow;
       html += '<div class="isb'+(den ? ' den' : '')+(glow ? ' glow '+b.type : '')+'" data-b="'+b.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;z-index:'+(10+p[1])+(glow ? ';--dg:'+glow : '')+'">'
         + (glow ? '<div class="isb-aura"></div><div class="isb-sparks"><i></i><i></i><i></i><i></i><i></i></div>' : '')
@@ -6285,16 +6396,19 @@
         + (stored >= Math.max(1, bRate(b)*0.05) ? '<button class="isb-col'+(full ? ' full' : '')+'" data-col="'+b.id+'">'+CUR[def.makes].icon(20)+'<b>'+fmtNum(stored)+'</b></button>' : (den && !(b.totos||[]).length ? '<span class="isb-hint">Empty — tap to add Totos</span>' : ''))
         + '</div>';
     });
-    ISLAND_SLOTS.forEach((p, i)=>{ if (!used.has(i)) html += '<button class="isb-empty" data-slot="'+i+'" style="left:'+p[0]+'px;top:'+p[1]+'px" aria-label="Build here">+</button>'; });
+    if (Isl.place && Isl.place.x != null){
+      const pl = Isl.place, prob = spotProblem(pl.x, pl.y, pl.moveId), g = BUILDINGS[pl.type].glow;
+      html += '<div class="isb ghost'+(prob ? ' bad' : '')+(g ? ' glow '+pl.type : '')+'" style="left:'+pl.x+'px;top:'+pl.y+'px;z-index:'+(10+pl.y)+(g ? ';--dg:'+g : '')+'"><div class="isb-ring"></div><div class="isb-art">'+buildingArt(pl.type)+'</div></div>';
+    }
     // the four Totos on your team roam around the island
     const spots = [[470,556],[598,612],[852,616],[1000,562]];
     myTeam().forEach((t, i)=>{ const p = spots[i]; html += '<div class="isl-toto" data-t="'+t.id+'" style="left:'+p[0]+'px;top:'+p[1]+'px;z-index:'+(10+p[1])+';--wd:'+(5 + i*1.3).toFixed(1)+'s;animation-delay:'+(-i*1.7)+'s"><div class="isl-sp'+(totoFacing(t.name) === 'l' ? ' fl' : '')+'">'+spriteFor(t.name)+'</div><span class="isl-tl">Lv '+t.level+'</span></div>'; });
     world.innerHTML = '<img class="isl-bg" src="assets/ui/island.jpg" alt="">' + html;
-    $$('.isb', world).forEach(el=> el.onclick = e=>{ if (isDragging()) return; if (e.target.closest('.isb-col')) return; openBuilding(el.dataset.b); });
+    $$('.isb[data-b]', world).forEach(el=> el.onclick = e=>{ if (isDragging() || Isl.place) return; if (e.target.closest('.isb-col')) return; e.stopPropagation(); openBuilding(el.dataset.b); });
     $$('.isb-col', world).forEach(el=> el.onclick = e=>{ e.stopPropagation(); if (isDragging()) return; collectBuilding(el.dataset.col); });
-    $$('.isb-empty', world).forEach(el=> el.onclick = ()=>{ if (isDragging()) return; if (Isl.moving) return; openBuildMenu(+el.dataset.slot); });
-    $$('.isl-toto', world).forEach(el=> el.onclick = ()=>{ if (isDragging()) return; openToto(el.dataset.t); });
-    if (Isl.moving){ const b = state.island.buildings.find(x=> x.id === Isl.moving); $$('.isb-empty', world).forEach(el=>{ el.classList.add('pick'); el.onclick = ()=>{ if (b) b.slot = +el.dataset.slot; Isl.moving = null; markDirty(); renderIsland(); }; }); }
+    $$('.isl-toto', world).forEach(el=> el.onclick = e=>{ if (isDragging() || Isl.place) return; e.stopPropagation(); openToto(el.dataset.t); });
+    $('#isl-place').classList.toggle('show', !!Isl.place);
+    if (Isl.place) placeBar();
     islandApply();
   }
   setInterval(()=>{ if (state.loggedIn && !currentPanel() && $('[data-screen="game"]').classList.contains('active') && !$('#battle').classList.contains('show') && !Isl.pts.size) renderIsland(); }, 5000);
@@ -6308,32 +6422,60 @@
   }
   // "+120" rising from a building (worked out in island coordinates, so it also works with the game turned sideways)
   function floatGain(b, text, cur){
-    const p = ISLAND_SLOTS[b.slot] || ISLAND_SLOTS[0];
+    const p = [b.x, b.y];
     const d = document.createElement('div'); d.className = 'gain-float'; d.innerHTML = CUR[cur].icon(20)+text;
     d.style.left = (p[0]*Isl.s - Isl.x)+'px'; d.style.top = (p[1]*Isl.s - Isl.y - 100*Isl.s)+'px'; root.appendChild(d); setTimeout(()=> d.remove(), 1200);
   }
-  async function openBuildMenu(slot){
+  async function openBuildMenu(){
     const btns = Object.keys(BUILDINGS).map(type=>{
       const def = BUILDINGS[type], have = state.island.buildings.filter(b=> b.type === type).length, lim = buildingLimit(type);
       const free = type === 'toto_den' && have === 0, locked = playerLevel() < (def.unlock||1);
       return { html:'<button class="bm-row'+(have >= lim ? ' off' : '')+(def.glow ? ' glow' : '')+'" data-type="'+type+'" style="'+(def.glow ? '--dg:'+def.glow : '')+'"><div class="bm-art">'+buildingArt(type)+'</div><div class="bm-i"><b>'+def.name+'</b><small>'+def.desc+'</small><small>'
         + (locked ? '🔒 Unlocks at trainer level '+def.unlock : have+'/'+lim+' built'+(have >= lim ? ' · more at a higher trainer level' : ''))+'</small></div><div class="bm-c">'+(free ? 'FREE' : costHtml(def.build))+'</div></button>' };
     });
-    const p = actionSheet('Build', 'Pick a building for this spot. Coins come from Totos living in Dens.', btns);
+    const p = actionSheet('Build', 'Pick a building, then tap where it goes on the grass. Coins come from Totos living in Dens.', btns);
     setTimeout(()=> $$('#act-body .bm-row').forEach(el=> el.onclick = ()=>{
       const type = el.dataset.type, def = BUILDINGS[type], have = state.island.buildings.filter(b=> b.type === type).length;
       if (playerLevel() < (def.unlock||1)){ showToast('The '+def.name+' unlocks at trainer level '+def.unlock+'.'); return; }
       if (have >= buildingLimit(type)){ showToast('Reach a higher trainer level to build more '+def.name+'s.'); return; }
       const cost = (type === 'toto_den' && have === 0) ? {} : def.build;
-      if (!pay(cost)){ showToast('Not enough Coins — put strong Totos in your Dens and win battles.'); return; }
-      const nb = { id:uid(), type, slot, lvl:1, t:Date.now() }; if (isDen(type)) nb.totos = [];
-      state.island.buildings.push(nb);
-      markDirty(); saveNow(false); Sound.playAbility(); $('#act-cancel').click(); refreshHUD(); renderIsland();
-      showToast('🔨 '+def.name+' built!');
-      if (isDen(type)) setTimeout(()=> openBuilding(nb.id), 300);
+      if (!canPay(cost)){ showToast('Not enough Coins — put strong Totos in your Dens and win battles.'); return; }
+      $('#act-cancel').click(); startPlacing(type, null);
     }), 30);
     await p;
   }
+  // ---- choosing where a building goes (a new one, or moving one) ----
+  function startPlacing(type, moveId){
+    const b = moveId ? state.island.buildings.find(x=> x.id === moveId) : null;
+    const spot = b ? { x:b.x, y:b.y } : findFreeSpot(null);
+    if (!spot){ showToast('Your island is full — move or upgrade buildings instead.'); return; }
+    closeAllPanels();
+    Isl.place = { type, moveId, x:spot.x, y:spot.y };
+    if (Isl.s > islandCover()*1.3 || Isl.s < islandFit()*1.05){ Isl.s = islandCover(); }
+    Isl.x = spot.x*Isl.s - islandW()/2; Isl.y = spot.y*Isl.s - islandH()/2;
+    renderIsland();
+  }
+  function placeBar(){
+    const pl = Isl.place, def = BUILDINGS[pl.type], prob = pl.x != null ? spotProblem(pl.x, pl.y, pl.moveId) : 'Tap the grass';
+    const have = state.island.buildings.filter(b=> b.type === pl.type).length, cost = pl.moveId || (pl.type === 'toto_den' && have === 0) ? {} : def.build;
+    $('#isl-place-t').innerHTML = (pl.moveId ? 'Move your <b>'+def.name+'</b>' : 'Build a <b>'+def.name+'</b>'+(Object.keys(cost).length ? ' · '+costHtml(cost) : ' · FREE'))+'<small>'+(prob || 'Tap anywhere on the grass inside the path to move it · ✔ to confirm')+'</small>';
+    $('#isl-place-ok').disabled = !!prob;
+  }
+  function placeAt(wx, wy){ if (!Isl.place) return; Isl.place.x = Math.round(wx); Isl.place.y = Math.round(wy); renderIsland(); }
+  $('#isl-place-no').onclick = ()=>{ Isl.place = null; renderIsland(); };
+  $('#isl-place-ok').onclick = ()=>{
+    const pl = Isl.place; if (!pl || spotProblem(pl.x, pl.y, pl.moveId)) return;
+    const def = BUILDINGS[pl.type];
+    if (pl.moveId){ const b = state.island.buildings.find(x=> x.id === pl.moveId); if (b){ b.x = pl.x; b.y = pl.y; } Isl.place = null; markDirty(); saveNow(false); renderIsland(); showToast(def.name+' moved'); return; }
+    const have = state.island.buildings.filter(b=> b.type === pl.type).length;
+    const cost = (pl.type === 'toto_den' && have === 0) ? {} : def.build;
+    if (!pay(cost)){ showToast('Not enough Coins.'); return; }
+    const nb = { id:uid(), type:pl.type, x:pl.x, y:pl.y, lvl:1, t:Date.now() }; if (isDen(pl.type)) nb.totos = [];
+    state.island.buildings.push(nb); Isl.place = null;
+    markDirty(); saveNow(false); Sound.playAbility(); refreshHUD(); renderIsland();
+    showToast('🔨 '+def.name+' built!');
+    if (isDen(pl.type)) setTimeout(()=> openBuilding(nb.id), 350);
+  };
   // put a Toto in a Den (out of any other Den first)
   function moveIntoDen(t, b){
     if (!denFits(b.type, t)){ showToast('Only Class '+BUILDINGS[b.type].cls+' Totos can live in the '+BUILDINGS[b.type].name+'.'); return false; }
@@ -6367,11 +6509,7 @@
       if (!pay(uc)){ const go = await gameConfirm('You need '+uc.coins.toLocaleString()+' Coins. Get Coins with Gems in the Store?', 'Not enough Coins', 'Get Coins', 'Not now'); if (go){ openPanel('store'); setStoreTab('coins'); } return; }
       collectQuiet(b); b.lvl++; markDirty(); saveNow(false); Sound.playVictory(); showToast('⬆️ '+def.name+' is now Lv '+b.lvl+'!'); refreshHUD(); renderIsland();
     }
-    else if (v === 'move'){
-      const free = ISLAND_SLOTS.map((_, i)=> i).filter(i=> !state.island.buildings.some(x=> x.slot === i));
-      if (!free.length){ showToast('No free spots right now.'); return; }
-      showToast('Tap a free spot (＋) to move it there'); Isl.moving = b.id; renderIsland();
-    }
+    else if (v === 'move') startPlacing(b.type, b.id);
   }
   // collect into the wallet before something changes the building's rate (nothing lost)
   function collectQuiet(b){ const n = bStored(b); if (n) give({ [BUILDINGS[b.type].makes]: n }); b.t = Date.now(); }
@@ -6694,7 +6832,7 @@
     if (!found) showScreen('auth');
   })();
   if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)){
-    window.__tq = { state:()=> state, give, addToto, openToto, startCampaignBattle, btState:()=> B.E ? { turn:B.E.turn, winner:B.E.winner, mode:B.mode, hp:['p1','p2'].map(s=> B.E.T[s].map(f=> f.hp)) } : null, waveTeam, B, Camp, renderIsland, pvpFighter };
+    window.__tq = { state:()=> state, give, addToto, openToto, startCampaignBattle, btState:()=> B.E ? { turn:B.E.turn, winner:B.E.winner, mode:B.mode, hp:['p1','p2'].map(s=> B.E.T[s].map(f=> f.hp)) } : null, waveTeam, B, Camp, renderIsland, pvpFighter, Isl, spotProblem };
   }
 })();
 </script>
@@ -6706,7 +6844,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v103';
+window.TQ_APP_VERSION = 'v104';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
