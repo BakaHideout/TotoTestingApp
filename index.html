@@ -2418,10 +2418,14 @@
   #battle { background-size:cover; background-position:center; }
   /* ---- building anywhere on the grass ---- */
   .isl-lawn { position:absolute; left:0; top:0; pointer-events:none; z-index:2; }
-  .isl-lawn polygon { fill:rgba(255,255,255,.12); stroke:#fff; stroke-width:3; stroke-dasharray:12 9; animation:lawnDash 1.2s linear infinite; }
+  .isl-lawn polygon.lawn { fill:rgba(255,255,255,.10); stroke:#fff; stroke-width:3; stroke-dasharray:12 9; animation:lawnDash 1.2s linear infinite; }
+  .isl-lawn line { stroke:rgba(255,255,255,.45); stroke-width:1.5; }
+  .isl-lawn polygon.taken { fill:rgba(0,0,0,.18); stroke:rgba(255,255,255,.35); stroke-width:1.5; }
+  .isl-lawn polygon.foot { fill:rgba(90,255,122,.38); stroke:#5aff7a; stroke-width:3; }
+  .isl-lawn polygon.foot.bad { fill:rgba(255,74,58,.4); stroke:#ff4a3a; }
   @keyframes lawnDash { to { stroke-dashoffset:-42; } }
   .isb.ghost { opacity:.82; pointer-events:none; }
-  .isb.ghost .isb-ring { position:absolute; left:50%; bottom:-6px; width:170px; height:62px; transform:translateX(-50%); border-radius:50%; border:4px solid #5aff7a; background:rgba(90,255,122,.25); box-shadow:0 0 18px #5aff7a; animation:ghostRing .9s ease-in-out infinite; }
+  .isb.ghost .isb-ring { display:none; position:absolute; left:50%; bottom:-6px; width:170px; height:62px; transform:translateX(-50%); border-radius:50%; border:4px solid #5aff7a; background:rgba(90,255,122,.25); box-shadow:0 0 18px #5aff7a; animation:ghostRing .9s ease-in-out infinite; }
   .isb.ghost.bad .isb-ring { border-color:#ff4a3a; background:rgba(255,74,58,.28); box-shadow:0 0 18px #ff4a3a; }
   .isb.ghost.bad .isb-art { filter:sepia(1) saturate(4) hue-rotate(-40deg) brightness(.8); }
   @keyframes ghostRing { 50%{ transform:translateX(-50%) scale(1.08); } }
@@ -2476,6 +2480,11 @@
   .tut-b span { flex:1; text-align:center; font:800 10px system-ui; color:#b8a6d4; }
   .tut-b button { border:0; border-radius:10px; padding:7px 10px; font:800 12px system-ui; cursor:pointer; background:rgba(255,255,255,.12); color:#e3d4ff; }
   .tut-b button.go { background:linear-gradient(#7dff9a, #22b04a); color:#073a14; border:2px solid #fff; padding:7px 14px; }
+  .tut.passthru { pointer-events:none; } .tut.passthru .tut-box { pointer-events:auto; }
+  .isb { width:132px; height:122px; }
+  .isb-art svg { width:132px; height:122px; }
+  .isb-hint { font-size:12px; padding:3px 7px; top:-8px; background:rgba(255,140,40,.9); color:#fff; border:2px solid #fff; }
+  .isb-lv { font-size:10px; }
 </style>
 <div id="toto-root">
 
@@ -3155,25 +3164,31 @@
   // ---------------- ISLAND BUILDINGS ----------------
   // Slots are spots on the island picture (in its 1408x768 pixels) where a building can stand.
   const ISLAND_W = 1408, ISLAND_H = 768;
-  // You can build anywhere on the grass inside the stone path (this outline, in island pixels), as long
-  // as buildings keep a little distance from each other.
-  const ISLAND_LAWN = [[430,450],[560,335],[660,268],[760,262],[860,300],[900,362],[1060,372],[1105,430],[1060,480],[920,575],[700,588],[560,555],[430,480]];
-  const BUILD_GAP = 140, LAWN_MARGIN = 32;
-  function lawnInside(x, y){ let c = false; for (let i = 0, j = ISLAND_LAWN.length-1; i < ISLAND_LAWN.length; j = i++){ const [x1, y1] = ISLAND_LAWN[i], [x2, y2] = ISLAND_LAWN[j]; if ((y1 > y) !== (y2 > y) && x < (x2-x1)*(y-y1)/(y2-y1) + x1) c = !c; } return c; }
-  function lawnEdgeDist(x, y){ let m = 1e9; for (let i = 0; i < ISLAND_LAWN.length; i++){ const [x1, y1] = ISLAND_LAWN[i], [x2, y2] = ISLAND_LAWN[(i+1) % ISLAND_LAWN.length]; const dx = x2-x1, dy = y2-y1, t = Math.max(0, Math.min(1, ((x-x1)*dx + (y-y1)*dy)/(dx*dx + dy*dy))); m = Math.min(m, Math.hypot(x - (x1 + t*dx), y - (y1 + t*dy))); } return m; }
-  // distance on the ground (the island is drawn at an angle, so up/down counts double)
-  const groundDist = (ax, ay, bx, by)=> Math.hypot(ax - bx, (ay - by)*2);
-  function spotProblem(x, y, ignoreId){
-    if (!lawnInside(x, y) || lawnEdgeDist(x, y) < LAWN_MARGIN) return 'Build on the grass inside the stone path.';
-    const near = (state.island.buildings || []).find(b=> b.id !== ignoreId && b.x != null && groundDist(x, y, b.x, b.y) < BUILD_GAP);
-    return near ? 'Too close to your '+BUILDINGS[near.type].name+'.' : '';
+  // The building ground: a grid of tiles on the grass inside the stone path (drawn at the island's
+  // angle). Every building takes 2 x 2 tiles, so they pack neatly side by side.
+  const GRID = { T:[735, 268], NU:10, NV:8, cu:[35, 17.5], cv:[-35, 17.5] };
+  const gridPt = (u, v)=> [GRID.T[0] + u*GRID.cu[0] + v*GRID.cv[0], GRID.T[1] + u*GRID.cu[1] + v*GRID.cv[1]];
+  const ISLAND_LAWN = [gridPt(0, 0), gridPt(GRID.NU, 0), gridPt(GRID.NU, GRID.NV), gridPt(0, GRID.NV)];
+  // where a building on tiles (gi, gj) stands (its feet, near the bottom of its 2 x 2 tiles)
+  function tileSpot(gi, gj){ const c = gridPt(gi + 1, gj + 1); return { x:Math.round(c[0]), y:Math.round(c[1] + 26) }; }
+  // the tiles under a point (the point = the middle of the building)
+  function tileAt(wx, wy){
+    const a = (wx - GRID.T[0])/GRID.cu[0], b = (wy - GRID.T[1])/GRID.cu[1];
+    const u = (a + b)/2, v = (b - a)/2;
+    return { gi:Math.max(0, Math.min(GRID.NU - 2, Math.round(u - 1))), gj:Math.max(0, Math.min(GRID.NV - 2, Math.round(v - 1))), inside: u >= -0.3 && v >= -0.3 && u <= GRID.NU + 0.3 && v <= GRID.NV + 0.3 };
   }
-  function findFreeSpot(ignoreId){
+  function spotProblem(gi, gj, ignoreId){
+    if (gi < 0 || gj < 0 || gi > GRID.NU - 2 || gj > GRID.NV - 2) return 'Build on the tiles inside the stone path.';
+    const near = (state.island.buildings || []).find(b=> b.id !== ignoreId && b.gi != null && Math.abs(b.gi - gi) < 2 && Math.abs(b.gj - gj) < 2);
+    return near ? 'That spot is taken by your '+BUILDINGS[near.type].name+'.' : '';
+  }
+  function findFreeSpot(ignoreId, nx, ny){
     let best = null;
-    for (let y = 270; y < 600; y += 10) for (let x = 430; x < 1110; x += 10){
-      if (spotProblem(x, y, ignoreId)) continue;
-      const d = Math.hypot(x - 760, (y - 430)*1.6);
-      if (!best || d < best.d) best = { x, y, d };
+    const tx = nx != null ? nx : 760, ty = ny != null ? ny : 420;
+    for (let gi = 0; gi <= GRID.NU - 2; gi++) for (let gj = 0; gj <= GRID.NV - 2; gj++){
+      if (spotProblem(gi, gj, ignoreId)) continue;
+      const p = tileSpot(gi, gj), d = Math.hypot(p.x - tx, (p.y - ty)*2);
+      if (!best || d < best.d) best = { gi, gj, x:p.x, y:p.y, d };
     }
     return best;
   }
@@ -3203,9 +3218,9 @@
   function buildingLimit(type){
     const L = playerLevel(), def = BUILDINGS[type];
     if (L < (def.unlock || 1)) return 0;
-    if (type === 'toto_den') return Math.min(4, 1 + Math.floor(L/8));
+    if (type === 'toto_den') return Math.min(6, 1 + Math.floor(L/6));
     if (isDen(type)) return 1;
-    return Math.min(3, 1 + Math.floor(L/12));
+    return Math.min(4, 1 + Math.floor(L/10));
   }
   const denOf = id=> state.island.buildings.find(b=> isDen(b.type) && (b.totos||[]).includes(id)) || null;
   // can this Toto live in this kind of Den?
@@ -3302,7 +3317,7 @@
 
   // ---------------- A SAVE FROM BEFORE v100 -> the island game ----------------
   // Everyone starts fresh with new Totos. Kept: the account, gems, season results and any earned Champions.
-  function freshIsland(){ return { buildings:[ { id:uid(), type:'toto_den', x:660, y:420, lvl:1, t:Date.now(), totos:[] }, { id:uid(), type:'food_farm', x:860, y:420, lvl:1, t:Date.now() } ] }; }
+  function freshIsland(){ return { buildings:[ { id:uid(), type:'toto_den', gi:2, gj:3, lvl:1, t:Date.now(), totos:[] }, { id:uid(), type:'food_farm', gi:5, gj:2, lvl:1, t:Date.now() } ] }; }
   // your starting team moves into your first Den so it earns Coins straight away
   function starterDen(){ const d = state.island.buildings.find(b=> b.type === 'toto_den'); if (d) d.totos = state.team.slice(0, 4); }
   function migrateSave(){
@@ -3354,17 +3369,16 @@
     if (!state.island || !Array.isArray(state.island.buildings)) state.island = freshIsland();
     const seen = new Set();
     state.island.buildings.forEach(b=>{ b.lvl = Math.max(1, Math.min(BUILDING_MAX_LEVEL, b.lvl|0 || 1)); if (!b.t) b.t = Date.now(); if (!BUILDINGS[b.type]) b.type = 'toto_den'; if (isDen(b.type) && !Array.isArray(b.totos)) b.totos = []; if (isDen(b.type)){ b.totos = b.totos.filter(id=>{ const t = state.collection.find(x=> x.id === id); if (!t || seen.has(id) || !denFits(b.type, t)) return false; seen.add(id); return true; }).slice(0, 4); } });
-    // v104: buildings stand anywhere on the grass (x, y) instead of on fixed spots
-    state.island.buildings.forEach(b=>{ if (!(Number.isFinite(b.x) && Number.isFinite(b.y))){ b.x = null; b.y = null; } });
+    // buildings stand on the tile grid (gi, gj); older saves get the free tiles nearest to where they were
+    state.island.buildings.forEach(b=>{ if (!(Number.isInteger(b.gi) && Number.isInteger(b.gj)) || spotProblem(b.gi, b.gj, b.id)){ b.gi0 = b.gi; b.gi = null; b.gj = null; } });
     state.island.buildings.forEach(b=>{
-      if (b.x != null) return;
-      const old = ISLAND_SLOTS[b.slot];
-      const near = old ? [[old[0], old[1]], [old[0]*0.9 + 76, old[1]]] : [];
-      const ok = near.find(p=> !spotProblem(p[0], p[1], b.id));
-      const spot = ok ? { x:ok[0], y:ok[1] } : findFreeSpot(b.id);
-      if (spot){ b.x = spot.x; b.y = spot.y; } else { b.x = 760; b.y = 430; }
-      delete b.slot;
+      if (b.gi != null) return;
+      const old = Number.isFinite(b.x) ? [b.x, b.y] : (ISLAND_SLOTS[b.slot] || [760, 420]);
+      const spot = findFreeSpot(b.id, old[0], old[1]);
+      if (spot){ b.gi = spot.gi; b.gj = spot.gj; } else { b.gi = 0; b.gj = 0; }
+      delete b.slot; delete b.gi0;
     });
+    state.island.buildings.forEach(b=>{ const p = tileSpot(b.gi, b.gj); b.x = p.x; b.y = p.y; });
     if (!state.campaign || typeof state.campaign.cleared !== 'object') state.campaign = { cleared:{} };
     state.team = (Array.isArray(state.team) ? state.team : []).filter(id=> state.collection.some(t=> t.id === id)).slice(0, 4);
     if (state.team.length < 4) state.collection.slice().sort((a,b)=> b.cp - a.cp).forEach(t=>{ if (state.team.length < 4 && !state.team.includes(t.id)) state.team.push(t.id); });
@@ -6405,7 +6419,16 @@
     Isl.lastRender = now;
     if (!Isl.s) islandCenter();
     let html = '';
-    if (Isl.place) html += '<svg class="isl-lawn" viewBox="0 0 '+ISLAND_W+' '+ISLAND_H+'" width="'+ISLAND_W+'" height="'+ISLAND_H+'"><polygon points="'+ISLAND_LAWN.map(p=> p.join(',')).join(' ')+'"/></svg>';
+    if (Isl.place){
+      // the tile grid, the tiles already taken, and the 2 x 2 tiles under the building you're placing
+      let g = '<polygon class="lawn" points="'+ISLAND_LAWN.map(p=> p.join(',')).join(' ')+'"/>';
+      for (let k = 1; k < GRID.NU; k++){ const a = gridPt(k, 0), b = gridPt(k, GRID.NV); g += '<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>'; }
+      for (let k = 1; k < GRID.NV; k++){ const a = gridPt(0, k), b = gridPt(GRID.NU, k); g += '<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>'; }
+      const quad = (gi, gj)=> [gridPt(gi, gj), gridPt(gi+2, gj), gridPt(gi+2, gj+2), gridPt(gi, gj+2)].map(p=> p.join(',')).join(' ');
+      state.island.buildings.forEach(b=>{ if (b.id !== Isl.place.moveId) g += '<polygon class="taken" points="'+quad(b.gi, b.gj)+'"/>'; });
+      if (Isl.place.gi != null) g += '<polygon class="foot'+(spotProblem(Isl.place.gi, Isl.place.gj, Isl.place.moveId) ? ' bad' : '')+'" points="'+quad(Isl.place.gi, Isl.place.gj)+'"/>';
+      html += '<svg class="isl-lawn" viewBox="0 0 '+ISLAND_W+' '+ISLAND_H+'" width="'+ISLAND_W+'" height="'+ISLAND_H+'">'+g+'</svg>';
+    }
     state.island.buildings.forEach(b=>{
       if (Isl.place && Isl.place.moveId === b.id) return;
       const p = [b.x, b.y], def = BUILDINGS[b.type], stored = bStored(b, now), full = stored >= bCap(b);
@@ -6415,11 +6438,11 @@
         + '<div class="isb-art">'+buildingArt(b.type)+'</div>'
         + (den ? '<div class="isb-den">'+(b.totos||[]).map(id=>{ const t = state.collection.find(x=> x.id === id); return t ? '<span>'+spriteFor(t.name)+'</span>' : ''; }).join('')+'</div>' : '')
         + '<div class="isb-lv">'+def.name+' <b>Lv '+b.lvl+'</b></div>'
-        + (stored >= Math.max(1, bRate(b)*0.05) ? '<button class="isb-col'+(full ? ' full' : '')+'" data-col="'+b.id+'">'+CUR[def.makes].icon(20)+'<b>'+fmtNum(stored)+'</b></button>' : (den && !(b.totos||[]).length ? '<span class="isb-hint">Empty — tap to add Totos</span>' : ''))
+        + (stored >= Math.max(1, bRate(b)*0.05) ? '<button class="isb-col'+(full ? ' full' : '')+'" data-col="'+b.id+'">'+CUR[def.makes].icon(20)+'<b>'+fmtNum(stored)+'</b></button>' : (den && !(b.totos||[]).length ? '<span class="isb-hint" title="Empty — tap to add Totos">＋🐾</span>' : ''))
         + '</div>';
     });
-    if (Isl.place && Isl.place.x != null){
-      const pl = Isl.place, prob = spotProblem(pl.x, pl.y, pl.moveId), g = BUILDINGS[pl.type].glow;
+    if (Isl.place && Isl.place.gi != null){
+      const pl = Isl.place, prob = spotProblem(pl.gi, pl.gj, pl.moveId), g = BUILDINGS[pl.type].glow;
       html += '<div class="isb ghost'+(prob ? ' bad' : '')+(g ? ' glow '+pl.type : '')+'" style="left:'+pl.x+'px;top:'+pl.y+'px;z-index:'+(10+pl.y)+(g ? ';--dg:'+g : '')+'"><div class="isb-ring"></div><div class="isb-art">'+buildingArt(pl.type)+'</div></div>';
     }
     // the four Totos on your team roam around the island
@@ -6455,7 +6478,7 @@
       return { html:'<button class="bm-row'+(have >= lim ? ' off' : '')+(def.glow ? ' glow' : '')+'" data-type="'+type+'" style="'+(def.glow ? '--dg:'+def.glow : '')+'"><div class="bm-art">'+buildingArt(type)+'</div><div class="bm-i"><b>'+def.name+'</b><small>'+def.desc+'</small><small>'
         + (locked ? '🔒 Unlocks at trainer level '+def.unlock : have+'/'+lim+' built'+(have >= lim ? ' · more at a higher trainer level' : ''))+'</small></div><div class="bm-c">'+(free ? 'FREE' : costHtml(def.build))+'</div></button>' };
     });
-    const p = actionSheet('Build', 'Pick a building, then tap where it goes on the grass. Coins come from Totos living in Dens.', btns);
+    const p = actionSheet('Build', 'Pick a building, then tap the tiles where it goes. Coins come from Totos living in Dens.', btns);
     setTimeout(()=> $$('#act-body .bm-row').forEach(el=> el.onclick = ()=>{
       const type = el.dataset.type, def = BUILDINGS[type], have = state.island.buildings.filter(b=> b.type === type).length;
       if (playerLevel() < (def.unlock||1)){ showToast('The '+def.name+' unlocks at trainer level '+def.unlock+'.'); return; }
@@ -6469,30 +6492,30 @@
   // ---- choosing where a building goes (a new one, or moving one) ----
   function startPlacing(type, moveId){
     const b = moveId ? state.island.buildings.find(x=> x.id === moveId) : null;
-    const spot = b ? { x:b.x, y:b.y } : findFreeSpot(null);
+    const spot = b ? { gi:b.gi, gj:b.gj, x:b.x, y:b.y } : findFreeSpot(null);
     if (!spot){ showToast('Your island is full — move or upgrade buildings instead.'); return; }
     closeAllPanels();
-    Isl.place = { type, moveId, x:spot.x, y:spot.y };
+    Isl.place = { type, moveId, gi:spot.gi, gj:spot.gj, x:spot.x, y:spot.y };
     if (Isl.s > islandCover()*1.3 || Isl.s < islandFit()*1.05){ Isl.s = islandCover(); }
     Isl.x = spot.x*Isl.s - islandW()/2; Isl.y = spot.y*Isl.s - islandH()/2;
     renderIsland();
   }
   function placeBar(){
-    const pl = Isl.place, def = BUILDINGS[pl.type], prob = pl.x != null ? spotProblem(pl.x, pl.y, pl.moveId) : 'Tap the grass';
+    const pl = Isl.place, def = BUILDINGS[pl.type], prob = pl.gi != null ? spotProblem(pl.gi, pl.gj, pl.moveId) : 'Tap the tiles';
     const have = state.island.buildings.filter(b=> b.type === pl.type).length, cost = pl.moveId || (pl.type === 'toto_den' && have === 0) ? {} : def.build;
-    $('#isl-place-t').innerHTML = (pl.moveId ? 'Move your <b>'+def.name+'</b>' : 'Build a <b>'+def.name+'</b>'+(Object.keys(cost).length ? ' · '+costHtml(cost) : ' · FREE'))+'<small>'+(prob || 'Tap anywhere on the grass inside the path to move it · ✔ to confirm')+'</small>';
+    $('#isl-place-t').innerHTML = (pl.moveId ? 'Move your <b>'+def.name+'</b>' : 'Build a <b>'+def.name+'</b>'+(Object.keys(cost).length ? ' · '+costHtml(cost) : ' · FREE'))+'<small>'+(prob || 'Tap any free tiles inside the path to move it · ✔ to confirm')+'</small>';
     $('#isl-place-ok').disabled = !!prob;
   }
-  function placeAt(wx, wy){ if (!Isl.place) return; Isl.place.x = Math.round(wx); Isl.place.y = Math.round(wy); renderIsland(); }
+  function placeAt(wx, wy){ if (!Isl.place) return; const t = tileAt(wx, wy); if (!t.inside){ showToast('Build on the tiles inside the stone path.'); return; } const p = tileSpot(t.gi, t.gj); Object.assign(Isl.place, { gi:t.gi, gj:t.gj, x:p.x, y:p.y }); renderIsland(); }
   $('#isl-place-no').onclick = ()=>{ Isl.place = null; renderIsland(); };
   $('#isl-place-ok').onclick = ()=>{
-    const pl = Isl.place; if (!pl || spotProblem(pl.x, pl.y, pl.moveId)) return;
+    const pl = Isl.place; if (!pl || spotProblem(pl.gi, pl.gj, pl.moveId)) return;
     const def = BUILDINGS[pl.type];
-    if (pl.moveId){ const b = state.island.buildings.find(x=> x.id === pl.moveId); if (b){ b.x = pl.x; b.y = pl.y; } Isl.place = null; markDirty(); saveNow(false); renderIsland(); showToast(def.name+' moved'); return; }
+    if (pl.moveId){ const b = state.island.buildings.find(x=> x.id === pl.moveId); if (b){ b.gi = pl.gi; b.gj = pl.gj; b.x = pl.x; b.y = pl.y; } Isl.place = null; markDirty(); saveNow(false); renderIsland(); showToast(def.name+' moved'); return; }
     const have = state.island.buildings.filter(b=> b.type === pl.type).length;
     const cost = (pl.type === 'toto_den' && have === 0) ? {} : def.build;
     if (!pay(cost)){ showToast('Not enough Coins.'); return; }
-    const nb = { id:uid(), type:pl.type, x:pl.x, y:pl.y, lvl:1, t:Date.now() }; if (isDen(pl.type)) nb.totos = [];
+    const nb = { id:uid(), type:pl.type, gi:pl.gi, gj:pl.gj, x:pl.x, y:pl.y, lvl:1, t:Date.now() }; if (isDen(pl.type)) nb.totos = [];
     state.island.buildings.push(nb); Isl.place = null;
     markDirty(); saveNow(false); Sound.playAbility(); refreshHUD(); renderIsland();
     showToast('🔨 '+def.name+' built!');
@@ -6837,6 +6860,11 @@
     $('#tut-t').innerHTML = st.title; $('#tut-m').innerHTML = st.text;
     $('#tut-n').textContent = (Tut.i + 1)+' / '+Tut.steps.length;
     $('#tut-next').textContent = Tut.i === Tut.steps.length - 1 ? (st.last || 'Let’s play!') : 'Next ›';
+    // "do it yourself" steps: the spotlighted button really works, and the tour moves on when you tap it
+    $('#tut-next').style.display = st.action ? 'none' : '';
+    lay.classList.toggle('passthru', !!st.action);
+    if (Tut.wait){ Tut.wait.el.removeEventListener('click', Tut.wait.f, true); Tut.wait = null; }
+    if (st.action && el){ const at = Tut.i, f = ()=>{ setTimeout(()=>{ if (Tut.steps && Tut.i === at){ Tut.i++; tutShow(); } }, 900); }; el.addEventListener('click', f, true); Tut.wait = { el, f }; }
     $('#tut-back').style.visibility = Tut.i ? 'visible' : 'hidden';
     // the speech box goes beside the spotlight, on whichever side has the most room (never on top of it)
     const GW = 86;     // Toni next to the text
@@ -6866,7 +6894,8 @@
     requestAnimationFrame(()=>{ tutShow(); requestAnimationFrame(tutShow); });
   }
   function tutEnd(skipped){
-    $('#tut').classList.remove('show');
+    $('#tut').classList.remove('show', 'passthru');
+    if (Tut.wait){ Tut.wait.el.removeEventListener('click', Tut.wait.f, true); Tut.wait = null; }
     const f = Tut.done; Tut.steps = null; Tut.done = null;
     if (f) f(skipped);
   }
@@ -6884,9 +6913,17 @@
       { title:'🏚️ Toto Dens make Coins', text:'Totos living in a <b>Den</b> earn <b>Coins</b> — the stronger the Toto, the more. Your starting team already lives here. When a coin bubble pops up, tap it to collect. Tap the Den to add Totos or upgrade it.', target:findB('toto_den'), pad:14 },
       { title:'🔴🟣💗 Special Dens', text:'Later you can build glowing Dens just for your best Totos: the red <b>E Den</b> (1.5× Coins), the purple <b>S Den</b> (2×) and the pink <b>S+ Den</b> (2.5×).', target:findB('toto_den'), pad:14 },
       { title:'🍖 Food Farm', text:'Food Farms grow <b>Food</b>. Food is what levels your Totos up — every Toto starts at level 1 and can grow all the way to 100.', target:findB('food_farm'), pad:14 },
-      { title:'🔨 Build anywhere', text:'Tap <b>Build</b>, pick a building, then tap anywhere on the grass inside the stone path. Buildings need a little space between them. Coins pay for new buildings and upgrades.', target:'.dc-nav .nav-b[data-go="build"]', round:true },
-      { title:'🐾 Your team', text:'The 4 Totos on your team roam the island. <b>Tap one</b> to see its stats, feed it (4 feeds = 1 level), choose its Den, or swap your team.', target:()=> $('.isl-toto'), pad:10 },
-      { title:'⭐ Classes', text:'Every Toto has a class: <b>D, C, B, A, E, S</b> and the rare <b>S+</b>. Higher classes are much stronger. Your trainer level (top left) decides how high your Totos can grow.', target:'#hud-me', pad:6 },
+      { title:'🔨 Build anywhere', text:'Tap <b>Build</b>, pick a building, then tap the tiles inside the stone path where it should go — each building takes 2 × 2 tiles. Coins pay for new buildings and upgrades.', target:'.dc-nav .nav-b[data-go="build"]', round:true },
+      { title:'🐾 Your team', text:'The 4 Totos on your team roam the island. Tap one any time to see it, feed it, choose its Den or swap your team.', target:()=> $('.isl-toto'), pad:10,
+        before:()=>{ if ($('#toto-view').classList.contains('show')){ $('#toto-view').classList.remove('show'); renderIsland(); } } },
+      { title:'🍖 Let’s feed a Toto!', text:'This is a Toto’s card: its level, class and stats. Food makes Totos grow — let’s try it.', target:'#tv-bars', pad:6,
+        before:()=>{ const t = myTeam()[0]; if (t && !$('#toto-view').classList.contains('show')) openToto(t.id); if (bal('food') < 200) give({ food:200 }); } },
+      { title:'👆 Tap FEED', text:'Tap the green <b>FEED</b> button now. Each feed costs a little <b>Food</b> 🍖.', target:'#tv-feed', pad:6, action:true },
+      { title:'📈 4 feeds = 1 level', text:'Each feed fills one notch of this bar. Fill all <b>4</b> and your Toto grows a level — more HP and Attack (the green numbers show how much).', target:'#tv-prog', pad:6 },
+      { title:'⭐ Level up!', text:'<b>LEVEL UP</b> does the rest of the feeds in one go. Tap it now!', target:'#tv-feed10', pad:6, action:true },
+      { title:'🏚️ Den, Team & more', text:'<b>Den</b>: pick where it lives to earn Coins. <b>Team</b>: put it on your battle team. <b>Moves</b>: see its abilities. <b>Release</b>: trade it for Coins.', target:'.tv-acts', pad:6 },
+      { title:'⭐ Classes', text:'Every Toto has a class: <b>D, C, B, A, E, S</b> and the rare <b>S+</b>. Higher classes are much stronger. Your trainer level (top left) decides how high your Totos can grow.', target:'#hud-me', pad:6,
+        before:()=>{ if ($('#toto-view').classList.contains('show')){ $('#toto-view').classList.remove('show'); renderIsland(); } } },
       { title:'⚔️ Campaign', text:'20 stories with 5 stages each. Every stage is 4 waves of 4 vs 4 against computer Totos. Beat a whole story to win a reward Toto of that story’s class!', target:'.dc-nav .nav-b[data-go="campaign"]', round:true },
       { title:'🏟️ PvP Arena', text:'Battle other trainers 4 vs 4 for Rank Points. Finish a monthly season at <b>#1</b> to win the Rank #1 Champion!', target:'.dc-nav .nav-b[data-go="pvp"]', round:true },
       { title:'📖 Totos', text:'All your Totos, the Toto Dex of every Toto you can find, and your battle team.', target:'.dc-nav .nav-b[data-go="dex"]', round:true },
@@ -6970,7 +7007,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v105';
+window.TQ_APP_VERSION = 'v106';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
