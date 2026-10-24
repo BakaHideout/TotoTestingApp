@@ -4276,8 +4276,11 @@
     if (go !== 'go') return;
     const lvl = Math.max(1, Math.min(PLAYER_MAX_LEVEL, parseInt(($('#ad-lv')||{}).value, 10) || 1));
     const msg = (($('#ad-lv-note')||{}).value || '').trim().slice(0, 140);
-    const r = await adminCall('admin_set_level', { p_target:p.id, p_level:lvl, p_note:msg || null });
-    if (!r) return;
+    if (p.id === state.playerId){ state.plevel = lvl; state.pxp = 0; markDirty(); await saveNow(true); refreshHUD(); }   // your own level changes right away
+    let r = null;
+    try { r = await adminCall('admin_set_level', { p_target:p.id, p_level:lvl, p_note:msg || null }); }
+    catch(e){ showToast(p.id === state.playerId ? '⭐ Your trainer level is now '+lvl+' (the online service didn’t answer, so other players may see the old level for a bit)' : 'Couldn’t reach the online service — try again.'); return; }
+    if (!r || r.ok === false) return;
     if (p.id === state.playerId){ showToast('⭐ Your trainer level is now '+lvl); claimGifts(); }
     else showToast('⭐ '+(p.name||'Their')+' trainer level will be '+lvl+(r.online ? ' within a minute' : ' next time they play'));
     loadAdmin(true);
@@ -6703,7 +6706,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v102';
+window.TQ_APP_VERSION = 'v103';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address

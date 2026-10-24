@@ -159,7 +159,7 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 
 ## v101: one coin, set trainer level
 - Gold is gone: Coin Mines and Dens make Coins, buildings cost Coins, and any Gold in a save is added to Coins. `elixir` gifts now arrive as Coins.
-- Migration `2026-10-24b_set_level.sql` (additive, **not applied yet**): `admin_set_level` (owner only) sets a trainer's level 1-50; it's delivered through the gift pickup (stored as kind `gems`, op `level`; `gifts_pending` reports it as `set_level`) and also updates `players.level`.
+- Migration `2026-10-24b_set_level.sql` (additive, applied live 2026-10-24): `admin_set_level` (owner only) sets a trainer's level 1-50; it's delivered through the gift pickup (stored as kind `gems`, op `level`; `gifts_pending` reports it as `set_level`) and also updates `players.level`.
 
 ## v102: sideways, Dens make the Coins
-- Client only (no server changes). The game is landscape (manifest + TWA `orientation: landscape`; an upright phone browser turns the whole game sideways). Coin Mines are gone: Toto / E / S / S+ Dens are the only Coin source (rate from the residents' power). Still waiting: `2026-10-24b_set_level.sql` for the Staff Panel's Set trainer level.
+- Client only (no server changes). The game is landscape (manifest + TWA `orientation: landscape`; an upright phone browser turns the whole game sideways). Coin Mines are gone: Toto / E / S / S+ Dens are the only Coin source (rate from the residents' power).
