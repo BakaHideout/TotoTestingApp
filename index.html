@@ -2194,7 +2194,7 @@
   .tv-banner { position:absolute; left:50%; top:calc(min(74cqh, 130cqw) * 0.72); transform:translateX(-50%); display:flex; align-items:center; gap:6px; padding:6px 12px 6px 6px; border-radius:16px; background:linear-gradient(#6a3aa8, #3a1a6a); border:3px solid #ffcf5a; box-shadow:0 6px 16px rgba(0,0,0,.55); max-width:96%; white-space:nowrap; }
   .tv-lv { width:46px; height:46px; flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; font:900 18px/1 system-ui; color:#fff; background:radial-gradient(circle at 40% 30%, #c08bff, #6a2ad0); clip-path:polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
   .tv-lv small { font-size:8px; font-weight:800; }
-  .tv-name { font:900 clamp(14px, 4.8cqw, 24px)/1 system-ui; color:#ffd36b; text-shadow:0 2px 0 #7a3a00, 0 3px 6px rgba(0,0,0,.6); overflow:hidden; text-overflow:ellipsis; letter-spacing:.02em; }
+  .tv-name { font:900 clamp(12px, 4.3cqw, 24px)/1 system-ui; color:#ffd36b; text-shadow:0 2px 0 #7a3a00, 0 3px 6px rgba(0,0,0,.6); overflow:hidden; text-overflow:ellipsis; letter-spacing:.02em; }
   .tv-role span { display:inline-flex; width:30px; height:30px; border-radius:50%; align-items:center; justify-content:center; background:#2a1450; border:2px solid var(--rc); font-size:15px; }
   .tv-info { position:absolute; left:50%; top:calc(min(74cqh, 130cqw) * 0.72 + 66px); transform:translateX(-50%); text-align:center; font:700 12px/1.35 system-ui; color:#f3e7ff; text-shadow:0 1px 3px #000; width:92%; }
   .tv-info small { color:#cdb8f5; }
@@ -2412,7 +2412,6 @@
     <div class="hud-top">
       <button class="hud-me" id="hud-me" aria-label="Your profile"><span class="hud-lvl" id="hud-level">1</span><span class="hud-nm"><b id="hud-name">Trainer</b><i><b id="hud-xp"></b></i></span></button>
       <div class="hud-curs">
-        <div class="hc-chip" id="hud-cur-gold" title="Gold"><span class="em">💰</span><b id="hud-gold">0</b></div>
         <div class="hc-chip" id="hud-cur-food" title="Food"><span class="em">🍖</span><b id="hud-food">0</b></div>
         <button class="hc-chip" id="hud-cur-coins" title="Coins"><img src="assets/ui/coin-sm.png" alt=""><b id="hud-coins">0</b><i>+</i></button>
         <button class="hc-chip" id="hud-cur-gems" title="Gems"><img src="assets/items/gem-sm.png" alt=""><b id="hud-gems">0</b><i>+</i></button>
@@ -2846,7 +2845,7 @@
   // with Food, and battle 4 vs 4 in the Campaign (Story 1-20) and the PvP Arena.
   //
   // Currencies: Gems (premium: bought in the Store), Coins (bought with Gems; buy low-class Totos
-  // and upgrade buildings), Gold (from Gold Mines and Dens; builds new buildings) and Food (from
+  // and build/upgrade buildings; also dug up by Coin Mines and Dens) and Food (from
   // Food Farms; levels Totos up).
 
   // ---------------- CLASSES (worst -> best) ----------------
@@ -2983,7 +2982,6 @@
   const CUR = {
     gems:{ label:'Gems', icon: s=> '<img class="cur-ic" src="assets/items/gem-sm.png" style="width:'+(s||18)+'px;height:'+(s||18)+'px" alt="">' },
     coins:{ label:'Coins', icon: s=> '<img class="cur-ic" src="assets/ui/coin-sm.png" style="width:'+(s||18)+'px;height:'+(s||18)+'px" alt="">' },
-    gold:{ label:'Gold', icon: s=> '<span class="cur-ic em" style="font-size:'+Math.round((s||18)*0.9)+'px">💰</span>' },
     food:{ label:'Food', icon: s=> '<span class="cur-ic em" style="font-size:'+Math.round((s||18)*0.9)+'px">🍖</span>' }
   };
   function bal(k){ const v = Number(state[k]); return Number.isFinite(v) && v > 0 ? Math.floor(v) : 0; }
@@ -2999,12 +2997,12 @@
   const ISLAND_W = 1408, ISLAND_H = 768;
   const ISLAND_SLOTS = [ [700,282], [790,322], [880,366], [610,322], [700,362], [790,404], [520,366], [610,404], [700,446], [880,446], [520,446], [790,486] ];
   const BUILDINGS = {
-    gold_mine: { name:'Gold Mine', icon:'⛏️', makes:'gold', desc:'Digs up Gold over time. Gold builds new buildings.',
-                 build:{ gold:150 }, rate:L=> Math.round(50*L*Math.pow(1.22, L-1)), cap:L=> Math.round(50*L*Math.pow(1.22, L-1)*6) },
+    gold_mine: { name:'Coin Mine', icon:'⛏️', makes:'coins', desc:'Digs up Coins over time. Coins build and upgrade buildings and buy Totos.',
+                 build:{ coins:150 }, rate:L=> Math.round(50*L*Math.pow(1.22, L-1)), cap:L=> Math.round(50*L*Math.pow(1.22, L-1)*6) },
     food_farm: { name:'Food Farm', icon:'🎃', makes:'food', desc:'Grows Food over time. Feed it to your Totos to level them up.',
-                 build:{ gold:120 }, rate:L=> Math.round(90*L*Math.pow(1.22, L-1)), cap:L=> Math.round(90*L*Math.pow(1.22, L-1)*6) },
-    toto_den:  { name:'Toto Den', icon:'🏚️', makes:'gold', desc:'Home for 4 of your Totos. They earn Gold: the higher their levels, the more.',
-                 build:{ gold:400 }, rate:(L, den)=> Math.round(denLevels(den)*1.5*(1 + (L-1)*0.25)), cap:(L, den)=> Math.round(Math.max(60, denLevels(den)*1.5*(1 + (L-1)*0.25))*8) }
+                 build:{ coins:120 }, rate:L=> Math.round(90*L*Math.pow(1.22, L-1)), cap:L=> Math.round(90*L*Math.pow(1.22, L-1)*6) },
+    toto_den:  { name:'Toto Den', icon:'🏚️', makes:'coins', desc:'Home for 4 of your Totos. They earn Coins: the higher their levels, the more.',
+                 build:{ coins:400 }, rate:(L, den)=> Math.round(denLevels(den)*1.5*(1 + (L-1)*0.25)), cap:(L, den)=> Math.round(Math.max(60, denLevels(den)*1.5*(1 + (L-1)*0.25))*8) }
   };
   const BUILDING_MAX_LEVEL = 10;
   const upgradeCost = (type, L)=> ({ coins: Math.round((type === 'toto_den' ? 60 : 40) * Math.pow(L, 1.6)) });
@@ -3017,7 +3015,7 @@
   // ---------------- STATE + SAVING ----------------
   // Saves live on this device (one save per email), written as JSON. v:100 = the island game.
   const SAVE_V = 100;
-  let state = { loggedIn:false, username:'', email:'', age:'', gems:0, coins:0, gold:0, food:0, collection:[], team:[], island:null, campaign:null, plevel:1, pxp:0, avatar:'female' };
+  let state = { loggedIn:false, username:'', email:'', age:'', gems:0, coins:0, food:0, collection:[], team:[], island:null, campaign:null, plevel:1, pxp:0, avatar:'female' };
   const hasCloudStorage = (typeof window.storage !== 'undefined');
   async function rawGet(key){
     if (hasCloudStorage){ try { const res = await window.storage.get(key, false); return (res && res.value) ? res.value : null; } catch(e){ return null; } }
@@ -3110,7 +3108,7 @@
     keepChamps.filter((n, i, a)=> a.indexOf(n) === i).forEach(n=> addToto(n, 1));
     STARTER_TEAM.forEach(n=> addToto(n, 1));
     state.team = state.collection.filter(t=> STARTER_TEAM.includes(t.name)).map(t=> t.id).slice(0, 4);
-    state.gems = old.gems; state.coins = 100; state.gold = 500; state.food = 400;
+    state.gems = old.gems; state.coins = 600; state.food = 400;
     state.island = freshIsland(); state.campaign = { cleared:{} }; state.plevel = 1; state.pxp = 0;
     ['candy','items','unlockedCosmetics','equippedCosmetics','geo','geoAnchor','worldOffset','playerWorldPos','wildTotos','gyms','shrines','loadedChunks','chunkEls','regionEls','regionPromises',
      'stopRest','stopCooldownUntil','pvpTeamIds','pvpTotoId','cosmeticGrants','tutorialDone','cameraTilt','cameraZoom','viewOrbit','cameraRotate','lastPassDay'].forEach(k=> delete state[k]);
@@ -3122,7 +3120,7 @@
   function newGameState(){
     state.collection = []; STARTER_TEAM.forEach(n=> addToto(n, 1));
     state.team = state.collection.map(t=> t.id);
-    Object.assign(state, { v:SAVE_V, gems:20, coins:100, gold:500, food:400, island:freshIsland(), campaign:{ cleared:{} }, plevel:1, pxp:0, welcome:true });
+    Object.assign(state, { v:SAVE_V, gems:20, coins:600, food:400, island:freshIsland(), campaign:{ cleared:{} }, plevel:1, pxp:0, welcome:true });
   }
   // every load: fix up anything missing and work out the Totos' stats
   function normalizeState(){
@@ -3132,7 +3130,10 @@
     if (!state.campaign || typeof state.campaign.cleared !== 'object') state.campaign = { cleared:{} };
     state.team = (Array.isArray(state.team) ? state.team : []).filter(id=> state.collection.some(t=> t.id === id)).slice(0, 4);
     if (state.team.length < 4) state.collection.slice().sort((a,b)=> b.cp - a.cp).forEach(t=>{ if (state.team.length < 4 && !state.team.includes(t.id)) state.team.push(t.id); });
-    ['gems','coins','gold','food'].forEach(k=> state[k] = bal(k));
+    // v101: Gold and Coins are one currency now — the TQ Coin
+    if (bal('gold')){ state.coins = bal('coins') + bal('gold'); }
+    delete state.gold;
+    ['gems','coins','food'].forEach(k=> state[k] = bal(k));
     state.plevel = playerLevel(); state.pxp = Math.max(0, state.pxp|0);
     state.avatar = 'female';
   }
@@ -3500,9 +3501,9 @@
   window.__tqHeartbeat = heartbeat;
 
   // ================= GIFTS from the TotoQuest team =================
-  // The gift kinds the server stores are read as: candy -> Food, raidPass -> Coins, elixir -> Gold.
-  const GIFT_CUR = { gems:'gems', candy:'food', raidPass:'coins', elixir:'gold' };
-  const GIFT_LABEL = { gems:['Gem','Gems'], candy:['Food','Food'], raidPass:['Coin','Coins'], elixir:['Gold','Gold'] };
+  // The gift kinds the server stores are read as: candy -> Food, raidPass and elixir -> Coins (Gold became Coins).
+  const GIFT_CUR = { gems:'gems', candy:'food', raidPass:'coins', elixir:'coins' };
+  const GIFT_LABEL = { gems:['Gem','Gems'], candy:['Food','Food'], raidPass:['Coin','Coins'], elixir:['Coin','Coins'] };
   function giftEternalNames(){ return SPECIES.filter(s=> CLASS_IDX[s.cls] >= 3).map(s=> s.name); }
   function giftToto(spec){
     const name = String((spec && spec.name) || ''); if (!SP[name]) return null;
@@ -3517,6 +3518,7 @@
       if (!got.length) return null;
       return '🐾 '+(got.length > 1 ? got.length+'× ' : '')+got[0].name+' (Class '+got[0].cls+', Lv '+got[0].level+')';
     }
+    if (g.kind === 'set_level'){ state.plevel = Math.max(1, Math.min(PLAYER_MAX_LEVEL, n)); state.pxp = 0; markDirty(); return '⭐ Trainer level set to '+state.plevel; }
     if (/^take_/.test(g.kind)) return applyTake(g.kind.slice(5), n, g.toto);
     if (g.kind === 'trade' || g.kind === 'trade_back'){
       const s = g.toto || {}, t = giftToto({ name:s.name, level:s.level });
@@ -4006,7 +4008,8 @@
     }
     if (Social.owner){
       btns.push({ label:'🎁 Send a gift…', value:'gift', cls:'good' });
-      btns.push({ label:'➖ Take away gems, candy, items or a Toto…', value:'take', cls:'warn' });
+      btns.push({ label:'⭐ Set trainer level…', value:'level', cls:'good' });
+      btns.push({ label:'➖ Take away Gems, Coins, Food or a Toto…', value:'take', cls:'warn' });
       btns.push({ label:'⬇️ Reset rank to Bronze 3 (0 RP)', value:'rank0', cls:'warn' });
       btns.push({ label: self ? '🏆 Make me Rank #1 this season (testing)' : '🏆 Make Rank #1 this season (testing)', value:'top' });
       btns.push({ label:'🔢 Set season Rank Points…', value:'rp' });
@@ -4037,6 +4040,7 @@
     }
     if (v === 'gift') return adminGift(p);
     if (v === 'take') return adminTake(p);
+    if (v === 'level') return adminSetLevel(p);
     if (v === 'rank0'){
       if (!(await gameConfirm((self ? 'Your' : (p.name||'Their')+'’s')+' season rank goes back to Bronze 3 (0 Rank Points). Their wins and losses stay.', 'Reset rank?', 'Reset rank', 'Cancel'))) return;
       const r = await adminCall('admin_set_rp', { p_target:p.id, p_rp:0, p_make_top:false });
@@ -4090,8 +4094,8 @@
   async function adminGift(p){
     const who = p.id === state.playerId ? 'yourself' : (p.name || 'this trainer');
     const kind = await actionSheet('Send a gift to '+who, 'It arrives the next time they have the game open (within a minute if they’re online).', [
-      { label:'💎 Gems', value:'gems' }, { label:'🪙 Coins', value:'raidPass' }, { label:'💰 Gold', value:'elixir' },
-      { label:'🍖 Food', value:'candy' }, { label:'🐾 A Toto…', value:'toto' } ]);
+      { label:'💎 Gems', value:'gems' }, { label:'🪙 Coins', value:'raidPass' }, { label:'🍖 Food', value:'candy' },
+      { label:'🐾 A Toto…', value:'toto' } ]);
     if (!kind) return;
     const note = '<label class="act-field">Message (optional, they’ll see it)<input type="text" id="gift-note" maxlength="140" placeholder="e.g. Thanks for testing!"></label>';
     let amount = 1, toto = null;
@@ -4125,12 +4129,28 @@
     if (p.id === state.playerId){ showToast('🎁 Sent '+what+' to yourself'); claimGifts(); }
     else showToast('🎁 Sent '+what+' to '+(p.name||'them')+(r.online ? ' — they’ll get it within a minute' : ' — they’ll get it next time they play'));
   }
+  // the owner sets a trainer's level (1-50): applied the next time their game is open, like a gift
+  async function adminSetLevel(p){
+    const who = p.id === state.playerId ? 'yourself' : (p.name || 'this trainer');
+    const go = await actionSheet('Set trainer level: '+(p.name || 'Trainer'), 'Now level '+(p.level||1)+'. Their Totos can grow to level 10 + 2× their trainer level (max '+TOTO_MAX_LEVEL+'). Their XP toward the next level starts over.', [
+      { html:'<label class="act-field">Trainer level (1–'+PLAYER_MAX_LEVEL+')<input type="number" id="ad-lv" min="1" max="'+PLAYER_MAX_LEVEL+'" value="'+Math.max(1, Math.min(PLAYER_MAX_LEVEL, p.level||1))+'"></label>'
+        + '<label class="act-field">Message (optional, they’ll see it)<input type="text" id="ad-lv-note" maxlength="140" placeholder="e.g. Level fix"></label>' },
+      { label:'⭐ Set level', value:'go', cls:'good' } ]);
+    if (go !== 'go') return;
+    const lvl = Math.max(1, Math.min(PLAYER_MAX_LEVEL, parseInt(($('#ad-lv')||{}).value, 10) || 1));
+    const msg = (($('#ad-lv-note')||{}).value || '').trim().slice(0, 140);
+    const r = await adminCall('admin_set_level', { p_target:p.id, p_level:lvl, p_note:msg || null });
+    if (!r) return;
+    if (p.id === state.playerId){ showToast('⭐ Your trainer level is now '+lvl); claimGifts(); }
+    else showToast('⭐ '+(p.name||'Their')+' trainer level will be '+lvl+(r.online ? ' within a minute' : ' next time they play'));
+    loadAdmin(true);
+  }
   // the owner takes something back (applied next time their game is open; never below zero)
   async function adminTake(p){
     const who = p.id === state.playerId ? 'yourself' : (p.name || 'this trainer');
     const kind = await actionSheet('Take away from '+who, 'Taken the next time their game is open (within a minute if they’re online). Never goes below zero.', [
-      { label:'💎 Gems', value:'gems' }, { label:'🪙 Coins', value:'raidPass' }, { label:'💰 Gold', value:'elixir' },
-      { label:'🍖 Food', value:'candy' }, { label:'🐾 A Toto…', value:'toto' } ]);
+      { label:'💎 Gems', value:'gems' }, { label:'🪙 Coins', value:'raidPass' }, { label:'🍖 Food', value:'candy' },
+      { label:'🐾 A Toto…', value:'toto' } ]);
     if (!kind) return;
     const note = '<label class="act-field">Reason (optional, they’ll see it)<input type="text" id="take-note" maxlength="140" placeholder="e.g. Gift sent by mistake"></label>';
     let amount = 1, toto = null, what = '';
@@ -4364,7 +4384,7 @@
     if (isAdminSession()){
       ['S+','S','E','A','B'].forEach(c=> tools.push(['🐾', '+ Class '+c+' Toto', 'A random Class '+c+' Toto, added straight to your Totos on this device', ()=>{
         const pool = POOLS[c]; const sp = pool[Math.floor(Math.random()*pool.length)]; const t = addToto(sp.name, 1); saveNow(true); refreshHUD(); showToast('Added '+t.name+' (Class '+c+')'); }]));
-      tools.push(['💰', '+1,000,000 Gold, Food, Coins & Gems', 'For your own account on this device', ()=>{ give({ gold:1e6, food:1e6, coins:1e6, gems:1e6 }); saveNow(true); refreshHUD(); showToast('Added 1,000,000 of everything'); }]);
+      tools.push(['🪙', '+1,000,000 Coins, Food & Gems', 'For your own account on this device', ()=>{ give({ food:1e6, coins:1e6, gems:1e6 }); saveNow(true); refreshHUD(); showToast('Added 1,000,000 of everything'); }]);
       tools.push(['⭐', 'Max my trainer level ('+PLAYER_MAX_LEVEL+')', 'Your Totos can then grow to level '+TOTO_MAX_LEVEL, ()=>{ state.plevel = PLAYER_MAX_LEVEL; state.pxp = 0; markDirty(); saveNow(true); refreshHUD(); showToast('Trainer level '+PLAYER_MAX_LEVEL+'!'); }]);
     }
     const el = $('#sp-settings');
@@ -5314,9 +5334,9 @@
     });
   }
   function stageReward(s, st, first){
-    const r = { gold: Math.round(70*Math.pow(s, 1.35) + 25*st), food: Math.round(120*Math.pow(s, 1.4) + 40*st), xp: Math.round(45*Math.pow(s, 1.25) + 12*st) };
-    if (!first){ r.gold = Math.round(r.gold*0.4); r.food = Math.round(r.food*0.4); r.xp = Math.round(r.xp*0.5); }
-    else if (st === STAGE_COUNT){ r.coins = 30*s; r.gems = 5 + s; }
+    const r = { coins: Math.round(70*Math.pow(s, 1.35) + 25*st), food: Math.round(120*Math.pow(s, 1.4) + 40*st), xp: Math.round(45*Math.pow(s, 1.25) + 12*st) };
+    if (!first){ r.coins = Math.round(r.coins*0.4); r.food = Math.round(r.food*0.4); r.xp = Math.round(r.xp*0.5); }
+    else if (st === STAGE_COUNT){ r.coins += 30*s; r.gems = 5 + s; }
     return r;
   }
 
@@ -5364,7 +5384,7 @@
   }
   function rewardHtml(rw){
     const parts = [];
-    ['gold','food','coins','gems'].forEach(k=>{ if (rw[k]) parts.push('<span class="rw">'+CUR[k].icon(18)+'+'+rw[k].toLocaleString()+'</span>'); });
+    ['coins','food','gems'].forEach(k=>{ if (rw[k]) parts.push('<span class="rw">'+CUR[k].icon(18)+'+'+rw[k].toLocaleString()+'</span>'); });
     if (rw.xp) parts.push('<span class="rw">⭐ +'+rw.xp.toLocaleString()+' XP</span>');
     return parts.join('');
   }
@@ -5704,7 +5724,7 @@
       const key = stageKey(Camp.s, Camp.st), first = !state.campaign.cleared[key];
       const rw = stageReward(Camp.s, Camp.st, first);
       state.campaign.cleared[key] = Math.max(stars, state.campaign.cleared[key]|0);
-      give({ gold:rw.gold||0, food:rw.food||0, coins:rw.coins||0, gems:rw.gems||0 });
+      give({ food:rw.food||0, coins:rw.coins||0, gems:rw.gems||0 });
       const storyDone = first && Camp.st === STAGE_COUNT;
       markDirty(); saveNow(false);
       html = '<div class="btr win"><div class="btr-t">VICTORY!</div><div class="btr-stars">'+[1,2,3].map(k=> '<i class="'+(k <= stars ? 'on' : '')+'" style="animation-delay:'+(k*0.18)+'s">★</i>').join('')+'</div>'
@@ -5883,9 +5903,9 @@
       try { const r = await sbRpc('pvp_finish', fArgs({ p_match:B.match.id, p_result: won ? 'win' : 'loss' })); if (r && r.ok) res = r; } catch(e){ await new Promise(r=> setTimeout(r, 900)); }
     }
     if (res){ Social.rp = res.rp|0; Social.wins = res.wins|0; Social.losses = res.losses|0; }
-    // a little gold and food for every PvP battle, more for a win
-    const rw = won ? { gold:120 + playerLevel()*12, food:150 + playerLevel()*15, xp:40 + playerLevel()*3 } : { gold:30 + playerLevel()*3, food:40 + playerLevel()*4, xp:12 };
-    give({ gold:rw.gold, food:rw.food }); markDirty(); saveNow(false); setTimeout(()=> addXp(rw.xp), 400);
+    // a few coins and some food for every PvP battle, more for a win
+    const rw = won ? { coins:120 + playerLevel()*12, food:150 + playerLevel()*15, xp:40 + playerLevel()*3 } : { coins:30 + playerLevel()*3, food:40 + playerLevel()*4, xp:12 };
+    give({ coins:rw.coins, food:rw.food }); markDirty(); saveNow(false); setTimeout(()=> addXp(rw.xp), 400);
     const after = rankInfo(Social.rp|0, Social.place), delta = res && res.delta != null ? res.delta : null;
     const promo = after.label !== before.label ? ((Social.rp|0) > rpBefore ? '⬆️ Promoted to '+after.label+'!' : 'Dropped to '+after.label) : '';
     const pending = res && res.status === 'active';
@@ -5941,7 +5961,7 @@
   // ================= HUD, NAVIGATION, PANELS =================
   function refreshHUD(){
     if (!state.loggedIn) return;
-    ['gems','coins','gold','food'].forEach(k=>{ const el = $('#hud-'+k); if (el) el.textContent = fmtNum(bal(k)); });
+    ['gems','coins','food'].forEach(k=>{ const el = $('#hud-'+k); if (el) el.textContent = fmtNum(bal(k)); });
     const L = playerLevel(), need = xpForLevel(L);
     $('#hud-level').textContent = L; $('#hud-name').textContent = state.username || 'Trainer';
     $('#hud-xp').style.width = (L >= PLAYER_MAX_LEVEL ? 100 : Math.min(100, (state.pxp|0)/need*100)).toFixed(1)+'%';
@@ -6070,7 +6090,7 @@
       const type = el.dataset.type, def = BUILDINGS[type], have = state.island.buildings.filter(b=> b.type === type).length;
       if (have >= buildingLimit(type)){ showToast('Reach a higher trainer level to build more '+def.name+'s.'); return; }
       const cost = (type === 'gold_mine' && have === 0) ? {} : def.build;
-      if (!pay(cost)){ showToast('Not enough Gold — collect from your Gold Mines and win battles.'); return; }
+      if (!pay(cost)){ showToast('Not enough Coins — collect from your Coin Mines and win battles.'); return; }
       state.island.buildings.push({ id:uid(), type, slot, lvl:1, t:Date.now(), totos: type === 'toto_den' ? [] : undefined });
       markDirty(); saveNow(false); Sound.playAbility(); $('#act-cancel').click(); refreshHUD(); renderIsland();
       showToast('🔨 '+def.name+' built!');
@@ -6110,7 +6130,7 @@
       $$('.isb-empty').forEach(el=>{ el.classList.add('pick'); el.onclick = ()=>{ b.slot = +el.dataset.slot; Isl.moving = null; markDirty(); renderIsland(); }; });
     }
   }
-  // collect into the wallet before something changes the building's rate (no Gold lost)
+  // collect into the wallet before something changes the building's rate (nothing lost)
   function collectQuiet(b){ const n = bStored(b); if (n) give({ [BUILDINGS[b.type].makes]: n }); b.t = Date.now(); }
 
   // ================= YOUR TOTOS: Dex, team, Toto screen =================
@@ -6220,15 +6240,15 @@
   function tvSpecies(){ const img = $('#tv-art img'); return img ? img.getAttribute('alt') : null; }
   $('#tv-more').onclick = async ()=>{
     const t = state.collection.find(x=> x.id === tvId); if (!t) return;
-    const ci = CLASS_INFO[t.cls], gold = Math.round(ci.sell * (1 + t.level*0.15));
-    const v = await actionSheet(t.name, 'Lv '+t.level+' · Class '+t.cls, [{ label:'Release for '+gold.toLocaleString()+' Gold', value:'sell', cls:'warn' }]);
+    const ci = CLASS_INFO[t.cls], coins = Math.round(ci.sell * (1 + t.level*0.15));
+    const v = await actionSheet(t.name, 'Lv '+t.level+' · Class '+t.cls, [{ label:'Release for '+coins.toLocaleString()+' Coins', value:'sell', cls:'warn' }]);
     if (v !== 'sell') return;
     if (tradeLocked(t)){ showToast('Champions stay with you for good.'); return; }
     if (state.collection.length <= 4){ showToast('You need at least 4 Totos.'); return; }
     if (!(await gameConfirm('Release '+t.name+' (Lv '+t.level+')? This can’t be undone.', 'Release this Toto?', 'Release', 'Keep it'))) return;
     state.collection = state.collection.filter(x=> x.id !== t.id); state.team = state.team.filter(x=> x !== t.id);
     state.island.buildings.forEach(b=>{ if (b.totos) b.totos = b.totos.filter(x=> x !== t.id); });
-    normalizeState(); give({ gold }); saveNow(false); $('#toto-view').classList.remove('show'); refreshHUD(); showToast('+'+gold.toLocaleString()+' Gold');
+    normalizeState(); give({ coins }); saveNow(false); $('#toto-view').classList.remove('show'); refreshHUD(); showToast('+'+coins.toLocaleString()+' Coins');
   };
   // ================= STORE =================
   // Gems: bought with real money (Stripe). Coins: bought with Gems. Eggs: a chance at any Toto, for Gems.
@@ -6268,7 +6288,7 @@
   function renderStoreBody(msg){
     const box = $('#store-body2'); if (!box) return;
     const tabs = [['eggs','🥚 Eggs'],['totos','🐾 Coin Totos'],['coins','🪙 Coins'],['gems','💎 Gems']];
-    let html = '<div class="st-wallet">'+['gems','coins','gold','food'].map(k=> '<span>'+CUR[k].icon(18)+'<b>'+fmtNum(bal(k))+'</b></span>').join('')+'</div>'
+    let html = '<div class="st-wallet">'+['gems','coins','food'].map(k=> '<span>'+CUR[k].icon(18)+'<b>'+fmtNum(bal(k))+'</b></span>').join('')+'</div>'
       + '<div class="st-tabs">'+tabs.map(([k, l])=> '<button data-st="'+k+'" class="'+(storeTab === k ? 'on' : '')+'">'+l+'</button>').join('')+'</div>'
       + '<div class="st-msg">'+(msg||'')+'</div>';
     if (storeTab === 'eggs'){
@@ -6283,7 +6303,7 @@
           + '<button class="st-buy sm" data-ct="'+i+'"'+(done ? ' disabled' : '')+'>'+(done ? 'Bought' : CUR.coins.icon(14)+price.toLocaleString())+'</button></div>'; });
       html += '</div>';
     } else if (storeTab === 'coins'){
-      html += '<div class="st-note">Coins upgrade your Gold Mines, Food Farms and Dens, and buy Coin Totos.</div>';
+      html += '<div class="st-note">Coins build and upgrade your Coin Mines, Food Farms and Dens, and buy Coin Totos. Coin Mines dig up more for free.</div>';
       COIN_PACKS.forEach(p=>{ html += '<div class="st-item"><div class="st-art coin"><img src="assets/ui/coin.png" alt=""></div><div class="st-i"><b>'+p.coins.toLocaleString()+' Coins</b><small>'+(p.coins/p.gems).toFixed(0)+' coins per gem</small></div><div class="st-btns"><button class="st-buy" data-coins="'+p.id+'">'+CUR.gems.icon(15)+p.gems+'</button></div></div>'; });
     } else {
       const warn = !paymentsOn() ? (window.__tqAppAndroid ? 'Gems can’t be bought in this version of the app.' : 'The store is opening soon.') : underAge() ? 'Purchases are for players 13 and older.' : '🔒 Secure checkout by Stripe. Gems are added automatically once your payment goes through. Under 18? Ask a parent before buying.';
@@ -6383,7 +6403,7 @@
   async function welcome(migrated){
     await gameDialog({ title: migrated ? '🎃 Welcome to the new TotoQuest!' : '🎃 Welcome to TotoQuest!', html:
       (migrated ? '<p>TotoQuest has a brand-new look: your own floating island! Everyone starts fresh with new Totos'+(bal('gems') ? ' — your <b>'+bal('gems').toLocaleString()+' gems</b> are safe' : '')+'.</p>' : '')
-      + '<p>🏝️ <b>Your island:</b> Gold Mines dig Gold, Food Farms grow Food. Tap a building to collect or upgrade it, and the ＋ spots to build more.</p>'
+      + '<p>🏝️ <b>Your island:</b> Coin Mines dig up Coins, Food Farms grow Food. Tap a building to collect or upgrade it, and the ＋ spots to build more.</p>'
       + '<p>🍖 <b>Food levels up your Totos</b> (tap one to see it). Every Toto starts at level 1 and grows to 100. Classes go D, C, B, A, E, S, S+.</p>'
       + '<p>⚔️ <b>Campaign:</b> Story 1 to 20, 5 stages each, 4 waves of 4 vs 4. On your turn pick a Toto, then ATTACK or an ability, then who to hit.</p>'
       + '<p>🛍️ <b>Store:</b> hatch eggs for new Totos with Gems, buy Coins, and pick up cheap Totos with Coins.</p>'
@@ -6414,7 +6434,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v100';
+window.TQ_APP_VERSION = 'v101';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address

@@ -156,3 +156,7 @@ Apply `supabase/migrations/2026-10-04_trades_admin.sql` (SQL editor, or the Supa
 - Migration `2026-10-24_v100_redesign.sql` (additive, applied live 2026-10-24): `admin_gift` allows up to 1,000,000 of every currency and Toto level 100; `private.trade_toto` keeps levels up to 100 and refuses PvE Champions; `pvp_move` accepts 4 vs 4 moves (`"0-3:skill:0-3"`).
 - Gift kinds keep their stored names and the game reads them as: `candy` = Food, `raidPass` = Coins, `elixir` = Gold. A `candy` purchase is credited as Food.
 - PvP snapshots are `{ name, level, ev:10 }`; only v100 players are matched together.
+
+## v101: one coin, set trainer level
+- Gold is gone: Coin Mines and Dens make Coins, buildings cost Coins, and any Gold in a save is added to Coins. `elixir` gifts now arrive as Coins.
+- Migration `2026-10-24b_set_level.sql` (additive, **not applied yet**): `admin_set_level` (owner only) sets a trainer's level 1-50; it's delivered through the gift pickup (stored as kind `gems`, op `level`; `gifts_pending` reports it as `set_level`) and also updates `players.level`.
