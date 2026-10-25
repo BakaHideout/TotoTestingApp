@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totoquest-v111';
+const CACHE_NAME = 'totoquest-v112';
 const ASSETS = [
 './assets/totos/eternal/scythecrow.png',
 './assets/totos/eternal/pharaoh_mummy.png',

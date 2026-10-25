@@ -4841,7 +4841,7 @@
   // fight after 30 s? A computer rival with a team built to match yours.
   // PVP_ENGINE goes up whenever the battle rules change: trainers are only paired with others on the
   // same rules (both phones must replay a battle exactly the same way).
-  const PVP_ENGINE = 10;      // v100: 4 vs 4, classes D-S+, levels 1-100
+  const PVP_ENGINE = 11;      // v112: a taunting Tank takes hits that would hit everyone
   function pvpSkillIcon(s){ return '<span class="ab-ic" style="--abc-1:'+s.c.c1+';--abc-2:'+s.c.c2+';--abc-b:'+s.c.b+'">'+(ABILITY_GLYPH[s.glyph]||'')+'</span>'; }
 
   // ---- every Toto's own moves ----
@@ -4944,7 +4944,7 @@
       case 'burn': return 'Hit (power '+P+') and burn: they lose HP on their next 3 turns';
       case 'mark': return 'Hit (power '+P+') and mark: the next 2 hits on them do '+Math.round((PVP_FX.mark-1)*100)+'% more';
       case 'pierce': return 'Power '+P+' hit that goes straight through shields and guards';
-      case 'sweep': return 'Hits ALL rivals · power '+P+' each';
+      case 'sweep': return 'Hits ALL rivals · power '+P+' each (only the Tank, if one is taunting)';
       case 'drain': return 'Hit (power '+P+') and heal itself '+Math.round(m.frac*100)+'% of the damage';
       case 'weaken': return 'Hit (power '+P+') · that rival’s next 2 attacks are '+Math.round((1-PVP_FX.weak)*100)+'% weaker';
       case 'weakenAll': return 'Hits all rivals (power '+P+') · their next 2 attacks are '+Math.round((1-PVP_FX.weak)*100)+'% weaker';
@@ -4956,7 +4956,7 @@
       case 'shield': return 'Shield itself or a teammate: blocks half the damage of the next 2 hits';
       case 'empower': return 'Itself or a teammate: the next 2 attacks hit '+Math.round((PVP_FX.emp-1)*100)+'% harder';
       case 'haste': return 'Itself or a teammate: every move cools down 2 turns sooner';
-      case 'taunt': return 'Your rival must attack this Toto for their next '+PVP_TAUNT_TURNS+' turns';
+      case 'taunt': return 'Your rival must attack this Toto for their next '+PVP_TAUNT_TURNS+' turns — even moves that hit everyone only hit this Toto';
       case 'fortify': return 'Takes '+Math.round((1-PVP_FX.guard)*100)+'% less damage from the next 2 hits';
     }
     return '';
@@ -5120,7 +5120,7 @@
     };
     const dmgValue = (a, m, t)=>{
       let v = 0;
-      (m.tgt === 'foes' ? foeAlive : [t]).forEach(j=>{
+      (m.tgt === 'foes' ? (E.forced(side) != null ? [E.forced(side)] : foeAlive) : [t]).forEach(j=>{
         const d = foes[j], x = estHit(a, d, m);
         v += Math.min(x, d.hp);
         if (x >= d.hp) v += foeHit(d)*2.5 + d.maxHp*0.15;                        // a knock-out stops all its future hits
@@ -5244,7 +5244,9 @@
         return h;
       };
       if (m.tgt === 'foes'){
-        const order = [p.t].concat(foes.map((g, j)=> j).filter(j=> j !== p.t));
+        // a taunting Tank takes the WHOLE attack: moves that hit every rival only hit the Tank
+        const tauntIx = E.forced(side);
+        const order = tauntIx != null ? [tauntIx] : [p.t].concat(foes.map((g, j)=> j).filter(j=> j !== p.t));
         order.forEach(j=>{ const h = hitOne(j, m.pow); if (h && m.type === 'weakenAll' && foes[j].hp > 0) foes[j].weak = 2; });
       } else if (m.type === 'multi'){
         for (let n=0; n<m.n; n++){ if (!foes[p.t] || foes[p.t].hp <= 0) break; hitOne(p.t, m.pow); }
@@ -7489,7 +7491,7 @@
     if (!found) showScreen('auth');
   })();
   if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)){
-    window.__tq = { state:()=> state, give, addToto, openToto, startCampaignBattle, btState:()=> B.E ? { turn:B.E.turn, winner:B.E.winner, mode:B.mode, hp:['p1','p2'].map(s=> B.E.T[s].map(f=> f.hp)) } : null, waveTeam, B, Camp, renderIsland, pvpFighter, Isl, spotProblem, coloBattle, btClose, btOpen };
+    window.__tq = { state:()=> state, give, addToto, openToto, startCampaignBattle, btState:()=> B.E ? { turn:B.E.turn, winner:B.E.winner, mode:B.mode, hp:['p1','p2'].map(s=> B.E.T[s].map(f=> f.hp)) } : null, waveTeam, B, Camp, renderIsland, pvpFighter, Isl, spotProblem, coloBattle, btClose, btOpen, pvpEngine, pvpStep, pvpAiChoose };
   }
 })();
 </script>
@@ -7501,7 +7503,7 @@
 </style>
 <script>
 // Bump this together with version.json and sw.js's CACHE_NAME on every release.
-window.TQ_APP_VERSION = 'v111';
+window.TQ_APP_VERSION = 'v112';
 (function(){
   var pv = document.getElementById('profile-version'); if (pv) pv.textContent = window.TQ_APP_VERSION;
   // older releases restarted onto "index.html?v=..." — tidy that off the address
